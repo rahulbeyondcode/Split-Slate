@@ -1,6 +1,6 @@
-# owe-it Wiki
+# split-slate Wiki
 
-Synthesized knowledge for the owe-it expense splitting PWA.
+Synthesized knowledge for the split-slate expense splitting PWA.
 This wiki is the sole source of truth. Source: `src/` | Changes: [log.md](log.md)
 
 ---

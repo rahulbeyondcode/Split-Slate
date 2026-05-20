@@ -45,7 +45,7 @@ Must ship at launch to be taken seriously:
 
 ---
 
-## Differentiators Where owe-it Can Win
+## Differentiators Where split-slate Can Win
 
 **India layer** (no competitor does all of these):
 - UPI deep-links to GPay/PhonePe/Paytm/CRED/Amazon Pay

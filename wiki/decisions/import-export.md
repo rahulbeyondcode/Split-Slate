@@ -11,7 +11,7 @@ Last updated: 2026-05-18
 
 ## Why This Exists
 
-owe-it is offline-first with no backend in MVP. Import/export is the only mechanism for sharing group data between devices. The core marketing promise: **members who don't have the app installed can view expense data with zero hassle.**
+split-slate is offline-first with no backend in MVP. Import/export is the only mechanism for sharing group data between devices. The core marketing promise: **members who don't have the app installed can view expense data with zero hassle.**
 
 ---
 
@@ -42,7 +42,7 @@ owe-it is offline-first with no backend in MVP. Import/export is the only mechan
 
 ### 1. View-Only (Zero Hassle)
 
-- No owe-it account required
+- No split-slate account required
 - **Link:** data auto-populates on open — nothing to do
 - **CSV/ZIP:** user imports the file, data loads in read-only mode
 - Can view: expense list, expense details, member balances
@@ -56,13 +56,13 @@ owe-it is offline-first with no backend in MVP. Import/export is the only mechan
 For users who want to add or edit expenses after receiving shared data.
 
 **Steps:**
-1. User must have owe-it set up (name + icon configured)
+1. User must have split-slate set up (name + icon configured)
 2. Open the link or import the CSV/ZIP
 3. Choose "Import as my group" from the view-only screen
 4. Pick which member they are from the group's member list:
    - All existing members are listed (name + icon)
    - A **"New Member"** option is always available at the end — for someone not originally in the group
-   - Selecting "New Member" uses the user's registered owe-it name, or prompts for a name if not yet set up
+   - Selecting "New Member" uses the user's registered split-slate name, or prompts for a name if not yet set up
 5. Group is added to their groups list
 
 ---

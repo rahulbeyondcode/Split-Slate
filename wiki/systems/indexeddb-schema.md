@@ -1,6 +1,6 @@
 ---
 name: indexeddb-schema
-description: IndexedDB table structure, keys, and relationships for owe-it
+description: IndexedDB table structure, keys, and relationships for split-slate
 metadata:
   type: systems
 ---

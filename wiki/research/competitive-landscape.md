@@ -69,4 +69,4 @@ Source: `Requirement Docs/expense-splitting-apps-feature-tables.md.pdf` + `Requi
 
 - [[market-opportunity]] — the gap Splitwise's paywall created
 - [[user-pain-points]] — top complaints per app
-- [[monetization-model]] — recommended pricing for owe-it
+- [[monetization-model]] — recommended pricing for split-slate

@@ -1,6 +1,6 @@
 ---
 name: domain-models
-description: Core data shapes and invariants for owe-it
+description: Core data shapes and invariants for split-slate
 metadata:
   type: architecture
 ---
