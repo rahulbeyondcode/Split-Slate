@@ -1,5 +1,5 @@
-import FeatureCarousel from '@/features/onboarding/components/feature-carousel'
+import FeatureCarousel from "@/features/onboarding/components/feature-carousel";
 
-const OnboardingPage = () => <FeatureCarousel />
+const OnboardingPage = () => <FeatureCarousel />;
 
-export default OnboardingPage
+export default OnboardingPage;

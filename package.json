@@ -10,6 +10,8 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "fix": "eslint . --fix && prettier --write .",
+    "check": "eslint . && prettier --check . && tsc --noEmit",
     "preview": "vite preview"
   },
   "dependencies": {

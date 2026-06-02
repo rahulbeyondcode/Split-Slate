@@ -1,3 +1,3 @@
-const PortalContainer = ({ id }: { id: string }) => <div id={id} />
+const PortalContainer = ({ id }: { id: string }) => <div id={id} />;
 
-export default PortalContainer
+export default PortalContainer;

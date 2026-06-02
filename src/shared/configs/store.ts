@@ -35,7 +35,6 @@ interface AppStore {
     currency: string,
   ) => Promise<{ group: Group; creatorMember: Member }>;
   addMember: (groupId: string, name: string, icon: string) => Promise<Member>;
-  addCategories: (groupId: string, names: string[]) => Promise<Category[]>;
 
   updateGroup: (groupId: string, patch: Partial<Group>) => Promise<Group>;
   addCategory: (groupId: string, name: string) => Promise<Category>;
@@ -125,13 +124,6 @@ export const useStore = create<AppStore>((set, get) => ({
     await db.members.add(member);
     set((s) => ({ members: [...s.members, member] }));
     return member;
-  },
-
-  addCategories: async (groupId, names) => {
-    const cats: Category[] = names.map((name) => ({ id: uuid(), groupId, name, isActive: true }));
-    await db.categories.bulkAdd(cats);
-    set((s) => ({ categories: [...s.categories, ...cats] }));
-    return cats;
   },
 
   updateGroup: async (groupId, patch) => {

@@ -1,14 +1,16 @@
-import { useStore } from '@/shared/configs/store'
+import { useStore } from "@/shared/configs/store";
 
 const GroupsList = () => {
-  const { localUser, groups } = useStore()
+  const { localUser, groups } = useStore();
 
   return (
     <div className="flex flex-col h-svh p-6 max-w-md mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-bold">My Groups</h1>
         {localUser && (
-          <span className="text-2xl" title={localUser.name}>{localUser.icon}</span>
+          <span className="text-2xl" title={localUser.name}>
+            {localUser.icon}
+          </span>
         )}
       </div>
 
@@ -21,7 +23,7 @@ const GroupsList = () => {
           {groups
             .slice()
             .sort((a, b) => b.createdAt - a.createdAt)
-            .map(g => (
+            .map((g) => (
               <li
                 key={g.id}
                 className="flex items-center gap-3 p-4 border rounded cursor-pointer hover:bg-gray-50"
@@ -36,7 +38,7 @@ const GroupsList = () => {
         </ul>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default GroupsList
+export default GroupsList;
