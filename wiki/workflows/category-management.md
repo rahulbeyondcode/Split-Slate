@@ -7,7 +7,7 @@ metadata:
 
 # Category Management
 
-Last updated: 2026-05-18
+Last updated: 2026-06-03
 
 ## Two Levels of Categories
 
@@ -46,8 +46,10 @@ Any member can add a new category to a group at any time — either from the mas
 
 - Categories can be **renamed** at any time
 - Categories can be **deactivated** (hidden from the picker when adding expenses, but historical expenses keep their category reference intact)
-- Categories can **never be deleted** — deleting would corrupt expense records that reference the category ID
 - Deactivated categories can be reactivated at any time
+- Categories can be **deleted only when no expense references them**. Because `categoryId` is mandatory and singular on every expense, a category that is in use cannot be deleted outright — the user must first **reassign every expense** carrying that category to a different category, after which the now-unreferenced category can be deleted. A category with zero referencing expenses (e.g. one just added during onboarding, or never used) can be deleted directly.
+
+**Delete vs deactivate:** deactivate when a category is still on historical expenses but you no longer want it offered for new entries; delete when you want it gone entirely and it is not referenced by any expense.
 
 ---
 

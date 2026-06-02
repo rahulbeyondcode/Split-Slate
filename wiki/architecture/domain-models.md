@@ -7,7 +7,7 @@ metadata:
 
 # Domain Models
 
-Last updated: 2026-05-18
+Last updated: 2026-06-03
 
 ## LocalUser (Device Owner)
 
@@ -74,8 +74,27 @@ One per device. Not synced in MVP/V2. Exists outside any group.
 - At group creation the creator picks which categories to include from the app's master list (skippable). No categories are auto-created. See [[category-management]].
 - Any member can add new categories to a group at any time — either from the master list or custom
 - **categoryId is mandatory on every expense** — the user must select a category when adding an expense
-- Categories can only be renamed or deactivated — never deleted (deleting would corrupt expense records that reference the category ID)
-- Deactivated categories are hidden from the expense entry picker but remain visible on historical expenses
+- Categories can be renamed or deactivated at any time. Deactivated categories are hidden from the expense entry picker but remain visible on historical expenses
+- Categories can be **deleted only when no expense references them** — because `categoryId` is mandatory and singular, an in-use category must have all its expenses reassigned to another category before it can be deleted. See [[category-management]]
+
+---
+
+## Tag
+
+```ts
+{
+  id: UUID,
+  groupId: UUID,
+  name: string
+}
+```
+
+- Tags are group-specific, not global
+- Tags are **optional** on expenses — an expense may have zero or more tags
+- Tags **can be deleted at any time**, even while in use. Deletion is a two-step atomic operation: remove the tag record and remove that `tagId` from every expense in the group. The expenses themselves are not deleted or altered beyond losing the tag reference. (Contrast categories, which are deletable only when no expense references them — `tagIds` is optional and multi-valued, so the cascade always leaves expenses valid.)
+- Tags can be renamed at any time
+- No `isActive` field — tags are either live or deleted; there is no deactivated state
+- Tags are created inline during expense entry (chip/combobox input — typing a new name saves it to the group tag pool) and also via a dedicated tag management screen. See [[tag-management]].
 
 ---
 
@@ -88,6 +107,7 @@ One per device. Not synced in MVP/V2. Exists outside any group.
   expenseName: string,
   createdBy: memberId,
   categoryId: UUID,
+  tagIds: UUID[],                            // references to tags table; empty array if no tags applied
   createdAt: number,                         // automatic — when the entry was added to the app
   when: number,                              // user-entered — when the money was actually spent (unix ms, defaults to now, date + time)
   splitType: 'equal' | 'amount' | 'shares' | 'percentage' | 'adjustment',
@@ -116,3 +136,4 @@ See [[expense-model-design]] for why both arrays are stored, and [[balance-calcu
 - [[balance-calculation]] — how net balances are derived from expenses
 - [[indexeddb-schema]] — how these models map to IndexedDB tables
 - [[state-management]] — Zustand store shape
+- [[tag-management]] — tag creation, rename, and deletion behaviour

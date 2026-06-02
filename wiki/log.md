@@ -66,9 +66,26 @@ Chronological record of all wiki changes.
 - CREATED workflows/filtering.md — 7 filterable expense fields, AND logic, non-persisted filter state
 - UPDATED wiki/index.md — added filtering to Workflows section
 
+## 2026-05-21
+- CREATED workflows/tag-management.md — tag creation (inline + manage screen), rename, atomic delete with cascade, contrast with category no-delete rule
+- UPDATED architecture/domain-models.md — added Tag model; added tagIds[] to Expense; added tag-management to Related section
+- UPDATED systems/indexeddb-schema.md — added tags table (id, groupId, name); added tagIds field to expenses table; updated access pattern summary
+- UPDATED workflows/filtering.md — added Tags multi-select as 8th filterable field; updated field count in overview
+- UPDATED wiki/index.md — added tag-management to Workflows; updated filtering description to 8 fields; added invariant #9 (atomic tag deletion)
+
 ## 2026-05-18 (final consistency pass)
 - UPDATED wiki/index.md — removed stale spec reference from header; corrected competitor count to 7; expanded implementation status to reflect full scope; added invariants 7 and 8
 - UPDATED architecture/domain-models.md — corrected last-updated date to 2026-05-18
 - UPDATED architecture/state-management.md — corrected last-updated date; fixed createGroup signature to include currency param; removed stale spec reference in Dexie.js note
 - UPDATED decisions/solo-group-support.md — replaced restated onboarding steps (which were outdated) with a reference to [[onboarding]]
 - UPDATED workflows/category-management.md — corrected group creation description to include currency step before category selection
+
+## 2026-06-03
+- UPDATED wiki/index.md — revised invariant #4: categories are deletable when unreferenced (reassign-first), no longer "never deleted"
+- UPDATED workflows/category-management.md — Category Rules now allow guarded delete (unreferenced only; reassign all expenses first otherwise); added delete-vs-deactivate guidance
+- UPDATED architecture/domain-models.md — category guarded-delete rule; clarified tag-vs-category deletion contrast (tags delete freely with cascade; categories only when unreferenced)
+- UPDATED workflows/tag-management.md — updated tag-vs-category deletion contrast and Related note to match guarded category delete
+- CREATED decisions/onboarding-persistence.md — per-step save + resumable onboarding: dedicated single-row `onboarding` store, monotonic `lastCompletedStep`, viewed step is Zustand-only, completion gated by explicit flag (not `localUser` presence)
+- UPDATED workflows/onboarding.md — added Persistence & Resume section; linked onboarding-persistence
+- UPDATED systems/indexeddb-schema.md — added `onboarding` single-row store (fixed key `'current'`)
+- UPDATED wiki/index.md — added onboarding-persistence to Decisions; marked "IndexedDB layer + Zustand store" and "Onboarding flow" IN PROGRESS

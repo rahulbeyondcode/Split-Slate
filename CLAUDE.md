@@ -140,7 +140,7 @@ src/
 ├── app/
 │   ├── router/          ← route definitions
 │   ├── providers/       ← React context providers
-│   └── pages/           ← one folder per page (e.g. groups-page/, onboarding-page/)
+│   └── pages/           ← one folder per page (e.g. groups-list/, onboarding-page/)
 │
 ├── assets/
 │   ├── images/
@@ -173,6 +173,61 @@ src/
 - Shared UI components each get their own subfolder inside `shared/ui/`
 - Never place a file at a level that skips this hierarchy (e.g. no loose files in `features/` root)
 - No `api/` folders — this app is fully offline; use `store/` for all data operations
+
+---
+
+# Code Style — STRICT, NO EXCEPTIONS
+
+Formatting is enforced by Prettier (`.prettierrc.json`) and ESLint (`eslint.config.js`).
+Run `pnpm format` to fix formatting and `pnpm lint:fix` to auto-fix lint issues.
+The rules below are the canonical statement of intent; the tooling is how it's enforced.
+
+## Formatting (Prettier-enforced)
+- **Semicolons:** required.
+- **Strings:** double quotes (`"INR"`), single allowed only to avoid escaping. JSX attributes use double quotes.
+- **Indentation:** 2 spaces.
+- **Trailing commas:** on every multiline list/object/param set.
+- **Arrow params:** always parenthesised — `(d) => ...`, not `d => ...`.
+- **Line width:** 100 columns.
+
+## Imports
+- **Always use the `@/` alias** for cross-folder imports — never relative parent paths (`../`). Sibling `./` imports are fine. (ESLint-enforced.)
+- **Type-only imports use `import type`** — `import type { Group } from "@/shared/types/domain.types"`. (ESLint-enforced, auto-fixable.)
+- **Import order is grouped and alphabetised** (ESLint-enforced via `simple-import-sort`, auto-fixable with `pnpm lint:fix`). Groups appear in this order, each separated by **one blank line**, each sorted alphabetically within:
+  1. **Packages** — node builtins and external modules (`react`, `react-router-dom`, `zustand`, …)
+  2. **Components** — `@/` paths under a `components/` directory
+  3. **Store / logic** — `@/` store, configs, hooks, utils, helpers
+  4. **Types & constants** — `@/` `types`/`constants` (including type files colocated under `components/`)
+
+  ```ts
+  import { useState } from "react";
+  import { useNavigate } from "react-router-dom";
+
+  import StepIdentity from "@/features/onboarding/components/setup-flow/step-identity";
+  import PortalContainer from "@/shared/components/portal/portal-container";
+
+  import { useStore } from "@/shared/configs/store";
+
+  import type { SetupData } from "@/features/onboarding/components/setup-flow/types";
+  import { PERSON_EMOJIS } from "@/shared/constants/emojis";
+  ```
+
+## Components
+- One component per folder as `index.tsx`. Arrow-function components: `const Foo = (props) => { ... }`.
+- **Components use `export default`** at the bottom of the file. Everything else (stores, hooks, utils, types, constants) uses **named exports**.
+- **Props are typed with a local `interface PropsType`** declared above the component.
+- **No inline multi-statement callbacks in JSX.** Extract any handler with a body into a named `handleX` function above the `return`; pass it by reference (`onToggle={handleToggleCategory}`). Trivial one-expression callbacks (`onNext={() => setStep("next")}`) may stay inline.
+
+## Types
+- Domain/data shapes are `interface` (see `shared/types/domain.types.ts`). Use `type` for unions, aliases, and form-value shapes (`type FormValues = z.infer<typeof schema>`).
+- Constants are `SCREAMING_SNAKE_CASE` (`PERSON_EMOJIS`, `MASTER_CATEGORIES`).
+
+## Forms
+- All forms use **react-hook-form + Zod** via `zodResolver`, wrapped in `FormProvider`, with the shared `Input` / `EmojiPicker` field components. Do not hand-roll controlled inputs or ad-hoc validation.
+
+## Store (Zustand)
+- Mutations are `async` thunks: write to Dexie (`db`) first, then optimistically update state via `set(...)`, then return the created/updated entity.
+- IDs are generated with `uuid()`. Never derive IDs from user input.
 
 ---
 

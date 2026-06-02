@@ -7,7 +7,7 @@ metadata:
 
 # Expense Filtering
 
-Last updated: 2026-05-18
+Last updated: 2026-05-21
 
 ## Overview
 
@@ -22,6 +22,7 @@ The expense list supports strong filtering across all major expense fields. Filt
 | Expense name | Text search | Free-text; matches partial strings |
 | Date range | `when` date picker | From/to date range on the actual expense date |
 | Category | Multi-select | Pick one or more categories |
+| Tags | Multi-select | Matches expenses that carry any of the selected tags |
 | Paid by | Multi-select | Filter by who paid (matches `paid[]` array) |
 | Member involved | Multi-select | Any member in `paid[]` or `owes[]` of the expense |
 | Split type | Multi-select | equal / amount / shares / percentage / adjustment |
@@ -44,3 +45,4 @@ The expense list supports strong filtering across all major expense fields. Filt
 - [[main-screen]] — expense list where filtering is applied
 - [[domain-models]] — Expense fields that filters operate on
 - [[split-types]] — split type values used in the split type filter
+- [[tag-management]] — how tags are created and managed within a group

@@ -7,7 +7,7 @@ metadata:
 
 # Onboarding Flow
 
-Last updated: 2026-05-18
+Last updated: 2026-06-03
 
 ## Standard First-Launch Flow
 
@@ -35,6 +35,19 @@ For users opening the app for the first time without any imported data.
 
 ---
 
+## Persistence & Resume
+
+The five setup steps (identity → group → currency → categories → members) **save to IndexedDB as each is completed**, rather than committing everything at the end. Progress is tracked in a dedicated single-row `onboarding` store holding a monotonic `lastCompletedStep` (plus `groupId` and `complete`). The Zustand store derives which step to render as the step after `lastCompletedStep`; the viewed step itself is not persisted (Back moves it in memory only, Next advances the frontier).
+
+Consequences:
+- **Resumable** — closing the app mid-flow and reopening lands the user back on the step they left off, with prior data intact. An in-progress, incomplete session arriving at the intro page is redirected straight into the setup flow.
+- **Skip keeps data** — because saves are live, skipping a step no longer discards earlier input.
+- **Completion is an explicit flag** — `onboarding.complete`, not `localUser` presence, gates entry to the app (the user record is created at the very first step).
+
+See [[onboarding-persistence]] for the full rationale, the step→save mapping, and the create-once group/currency handling.
+
+---
+
 ## Alternative Entry Points (bypasses onboarding)
 
 When a user arrives via a shared link, CSV, or ZIP, the standard onboarding is bypassed:
@@ -49,6 +62,7 @@ See [[import-export]] for full details on import modes.
 
 ## Related
 
+- [[onboarding-persistence]] — per-step save + resume model backing this flow
 - [[solo-group-support]] — why the add-members step is skippable and what solo groups mean
 - [[import-export]] — alternative entry points via link, CSV, ZIP
 - [[main-screen]] — where the user lands after onboarding

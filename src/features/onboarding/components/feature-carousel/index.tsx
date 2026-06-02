@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { slides } from './slide-data'
+import { slides } from '@/features/onboarding/components/feature-carousel/slide-data'
 
 const FeatureCarousel = () => {
   const [current, setCurrent] = useState(0)

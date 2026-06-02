@@ -17,6 +17,7 @@ This wiki is the sole source of truth. Source: `src/` | Changes: [log.md](log.md
 - [Group-Scoped Members](decisions/group-scoped-members.md) — why no global user in MVP/V2; privacy-first tradeoff
 - [Expense Model Design](decisions/expense-model-design.md) — why both paid[] and owes[] are stored on each expense
 - [Solo Group Support](decisions/solo-group-support.md) — single-member groups are valid; add-members step is skippable with an explanatory prompt
+- [Onboarding Persistence](decisions/onboarding-persistence.md) — per-step save to IndexedDB + resume from a monotonic `lastCompletedStep`; completion gated by an explicit flag, not `localUser` presence
 - [Import / Export Design](decisions/import-export.md) — three export formats (link/CSV/ZIP), two import modes (view-only/editable), conflict resolution strategy
 - [Expense Edit and Delete](decisions/expense-edit-delete.md) — hard delete with attachment cascade; no access control in MVP; V3 note on admin controls
 - [Group Deletion](decisions/group-deletion.md) — permanent, cascades all group data (members, expenses, categories, attachments); irreversible warning shown
@@ -30,7 +31,8 @@ This wiki is the sole source of truth. Source: `src/` | Changes: [log.md](log.md
 - [Paid-By](workflows/paid-by.md) — frequent payers quick-select, pre-selection logic, multi-payer mode
 - [Member Management](workflows/member-management.md) — add anytime, edit name/icon freely, removal blocked if member is in any expense
 - [Category Management](workflows/category-management.md) — app master list + group-level selection at creation (skippable); custom categories addable anytime; rename/deactivate only, never delete
-- [Filtering](workflows/filtering.md) — expense list filtering across 7 fields (name, date, category, paid-by, member, split type, amount); all ANDed, not persisted
+- [Tag Management](workflows/tag-management.md) — group-scoped optional labels; inline creation during expense entry + manage screen; rename anytime; deletable (cascades off all expenses atomically)
+- [Filtering](workflows/filtering.md) — expense list filtering across 8 fields (name, date, category, tags, paid-by, member, split type, amount); all ANDed, not persisted
 
 ### Ideas (captured, not committed)
 - [Rewarded Ads](ideas/rewarded-ads.md) — optional ad-watch → credits → Pro unlock mechanic; fully opt-in
@@ -50,8 +52,8 @@ This wiki is the sole source of truth. Source: `src/` | Changes: [log.md](log.md
 |-----------------------------------|-------------|
 | Project scaffold                  | DONE        |
 | Routing skeleton                  | DONE        |
-| IndexedDB layer + Zustand store   | PENDING     |
-| Onboarding flow (7 steps)         | PENDING     |
+| IndexedDB layer + Zustand store   | IN PROGRESS |
+| Onboarding flow (7 steps)         | IN PROGRESS |
 | Groups list (home screen)         | PENDING     |
 | Group creation flow               | PENDING     |
 | Member management                 | PENDING     |
@@ -71,8 +73,9 @@ This wiki is the sole source of truth. Source: `src/` | Changes: [log.md](log.md
 1. `sum(paid[].amount) == sum(owes[].amount)` on every expense
 2. Member IDs are group-scoped — same person in two groups = two different UUIDs
 3. Balance = totalPaid − totalOwed (per member, per group) — not a running ledger
-4. Categories can only be renamed or deactivated, never deleted
+4. Categories can be renamed or deactivated anytime; deletable only when no expense references them (otherwise the referencing expenses must be reassigned to another category first)
 5. No global user in MVP/V2 — only a device-local `localUser`
 6. Group creator (LocalUser) is automatically added as a Member when the group is created — they are always part of every group they create and cannot be added again manually
 7. `categoryId` is mandatory on every expense — no uncategorised expenses
 8. Currency is single per group (set at creation, defaults to INR) — no multi-currency in MVP
+9. Tag deletion is atomic — tag record and all `tagId` references in group expenses are removed in a single IndexedDB transaction; no dangling references

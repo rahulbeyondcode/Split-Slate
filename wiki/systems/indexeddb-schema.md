@@ -7,7 +7,7 @@ metadata:
 
 # IndexedDB Schema
 
-Last updated: 2026-05-17
+Last updated: 2026-06-03
 
 ## Tables
 
@@ -59,6 +59,7 @@ Index: `groupId` — used to fetch all members of a group.
 | expenseName   | string  |                                                                    |
 | createdBy     | UUID    | memberId                                                           |
 | categoryId    | UUID    | foreign key to categories — **mandatory**                          |
+| tagIds        | UUID[]  | references to the tags table; empty array if no tags applied       |
 | createdAt     | number  | unix ms — set automatically by the app, never user-edited          |
 | when          | number  | unix ms — user-entered date + time of the actual expense; defaults to now |
 | splitType     | string  | `'equal' \| 'amount' \| 'shares' \| 'percentage' \| 'adjustment'` |
@@ -103,6 +104,35 @@ Index: `groupId` — used to fetch categories for a group.
 
 ---
 
+### `tags`
+
+| Field   | Type   | Notes                         |
+|---------|--------|-------------------------------|
+| id      | UUID   | primary key                   |
+| groupId | UUID   | index → foreign key to groups |
+| name    | string |                               |
+
+Index: `groupId` — used to fetch all tags for a group.
+
+No `isActive` field — tags are either live or deleted (no deactivated state). On deletion the tag record is removed and `tagId` is stripped from all referencing expense records atomically. See [[tag-management]].
+
+---
+
+### `onboarding`
+
+Single-row store tracking onboarding progress so the setup flow is resumable. Always read/written at the fixed key `'current'` — never a generated UUID. See [[onboarding-persistence]].
+
+| Field             | Type             | Notes                                                              |
+|-------------------|------------------|--------------------------------------------------------------------|
+| id                | `'current'`      | primary key — fixed constant, one row only                         |
+| lastCompletedStep | SetupStep\|null  | furthest step the user has completed (`identity \| group \| currency \| categories \| members`); **monotonic** — only ever moves forward; `null` before any step completes |
+| groupId           | UUID\|null       | the in-progress group created during onboarding                    |
+| complete          | boolean          | onboarding finished; gates app entry instead of `localUser` presence |
+
+The currently-viewed step is **not** stored here — it is Zustand-only, derived on load as the step after `lastCompletedStep`. Only the Next action writes this row (saving the step's domain data and advancing `lastCompletedStep`); Back is a pure in-memory move. This store holds flow-progress state only — deliberately kept separate from domain data rather than folded into `localUser`.
+
+---
+
 ## Access Pattern Summary
 
 | Query                         | Table       | Index Used |
@@ -111,6 +141,7 @@ Index: `groupId` — used to fetch categories for a group.
 | Members of a group            | members     | groupId    |
 | Expenses of a group           | expenses    | groupId    |
 | Categories of a group         | categories  | groupId    |
+| Tags of a group               | tags        | groupId    |
 | Single expense by ID          | expenses    | primary    |
 | Attachments for an expense    | attachments | expenseId  |
 

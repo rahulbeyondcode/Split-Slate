@@ -1,0 +1,8 @@
+dist
+node_modules
+pnpm-lock.yaml
+public
+
+# Docs and wiki are prose, not code — keep them out of the formatter
+*.md
+wiki
