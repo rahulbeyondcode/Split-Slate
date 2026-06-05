@@ -80,6 +80,21 @@ Chronological record of all wiki changes.
 - UPDATED decisions/solo-group-support.md — replaced restated onboarding steps (which were outdated) with a reference to [[onboarding]]
 - UPDATED workflows/category-management.md — corrected group creation description to include currency step before category selection
 
+## 2026-06-03 (groups list UI)
+- CREATED architecture/layout-architecture.md — two-mode layout system (mobile vs desktop); useViewport hook; AppFooter route-aware design; AppSidebar and ActivityPanel (future)
+- UPDATED wiki/index.md — added layout-architecture entry; Groups list status PENDING → DONE
+
+## 2026-06-05
+- UPDATED architecture/layout-architecture.md — added exact breakpoints (768px/1080px), full sidebar structure, group item component anatomy, context-aware menu items per route
+- CREATED workflows/dashboard.md — dashboard sections (overall summary, per-group cards, unsettled balances, category chart, activity), empty states, navigation, multi-currency edge case
+- UPDATED wiki/index.md — added dashboard entry to Workflows section
+- UPDATED architecture/layout-architecture.md — expanded mobile section: top bar (greeting + light/dark toggle), context-aware bottom nav (home set vs in-group set), no FAB rationale, no features dropped principle
+- UPDATED workflows/dashboard.md — added mobile content mapping table showing how each dashboard section maps to a bottom nav tab
+- UPDATED architecture/layout-architecture.md — removed persistent top bar concept; greeting is dashboard page content only, not chrome
+- UPDATED workflows/dashboard.md — greeting is page content on dashboard only (mobile + desktop); light/dark toggle moved to Settings only
+- UPDATED architecture/layout-architecture.md — tablet activity section has explicit "Activity" heading; mobile has no persistent top bar (explicit); cross-reference to dashboard for greeting/toggle details
+- UPDATED workflows/dashboard.md — activity item documented as two-line two-column component; unsettled balance entry format documented (group name first, then direction + amount)
+
 ## 2026-06-03
 - UPDATED wiki/index.md — revised invariant #4: categories are deletable when unreferenced (reassign-first), no longer "never deleted"
 - UPDATED workflows/category-management.md — Category Rules now allow guarded delete (unreferenced only; reassign all expenses first otherwise); added delete-vs-deactivate guidance

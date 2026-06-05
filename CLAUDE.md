@@ -10,6 +10,8 @@ These are hard stops. Not guidelines. Not suggestions.
 
 1. **Session start:** Read `wiki/index.md` before touching any code or answering any non-trivial question. No shortcuts.
 
+2. **Plan before code — mandatory:** Before writing any code, list every file you will create or modify. Each entry is the file path followed by a description of max 3 lines. Wait for explicit user approval before writing any code.
+
 2. **Wiki proposals are mandatory:** If you identify something worth adding or changing in the wiki, you MUST explicitly propose it to the user and wait for approval or rejection before writing anything. You cannot defer it. You cannot add it silently. You cannot let it get lost in the noise of a long conversation.
 
 3. **Index integrity is absolute:** You are NEVER allowed to create, modify, or delete a wiki page without updating `wiki/index.md` in the same action. No exceptions under any circumstances.
@@ -140,7 +142,7 @@ src/
 ├── app/
 │   ├── router/          ← route definitions
 │   ├── providers/       ← React context providers
-│   └── pages/           ← one folder per page (e.g. groups-list/, onboarding-page/)
+│   └── layouts/         ← structural layout wrappers (e.g. app-shell/)
 │
 ├── assets/
 │   ├── images/
@@ -168,7 +170,6 @@ src/
 ```
 
 **Rules:**
-- Pages live in `app/pages/` only — never inside `features/`
 - Non-shared hooks, store slices, types, and utils belong inside their `features/<feature>/` folder
 - Shared UI components each get their own subfolder inside `shared/ui/`
 - Never place a file at a level that skips this hierarchy (e.g. no loose files in `features/` root)

@@ -12,6 +12,7 @@ This wiki is the sole source of truth. Source: `src/` | Changes: [log.md](log.md
 - [Balance Calculation](architecture/balance-calculation.md) — net = totalPaid − totalOwed; worked example; debt simplification
 - [State Management](architecture/state-management.md) — Zustand store shape; what is persisted vs computed
 - [Split Types](architecture/split-types.md) — 5 split types (equal, amount, shares, percentage, adjustment); mechanics, UX, validation, splitMeta storage
+- [Layout Architecture](architecture/layout-architecture.md) — two-mode responsive layout (mobile vs desktop); useViewport hook; AppFooter; AppSidebar
 
 ### Decisions
 - [Group-Scoped Members](decisions/group-scoped-members.md) — why no global user in MVP/V2; privacy-first tradeoff
@@ -33,6 +34,7 @@ This wiki is the sole source of truth. Source: `src/` | Changes: [log.md](log.md
 - [Category Management](workflows/category-management.md) — app master list + group-level selection at creation (skippable); custom categories addable anytime; rename/deactivate only, never delete
 - [Tag Management](workflows/tag-management.md) — group-scoped optional labels; inline creation during expense entry + manage screen; rename anytime; deletable (cascades off all expenses atomically)
 - [Filtering](workflows/filtering.md) — expense list filtering across 8 fields (name, date, category, tags, paid-by, member, split type, amount); all ANDed, not persisted
+- [Dashboard](workflows/dashboard.md) — dashboard main pane: overall summary, per-group cards, unsettled balances, category chart, activity; multi-currency edge case
 
 ### Ideas (captured, not committed)
 - [Rewarded Ads](ideas/rewarded-ads.md) — optional ad-watch → credits → Pro unlock mechanic; fully opt-in
@@ -54,7 +56,7 @@ This wiki is the sole source of truth. Source: `src/` | Changes: [log.md](log.md
 | Routing skeleton                  | DONE        |
 | IndexedDB layer + Zustand store   | IN PROGRESS |
 | Onboarding flow (7 steps)         | IN PROGRESS |
-| Groups list (home screen)         | PENDING     |
+| Groups list (home screen)         | DONE        |
 | Group creation flow               | PENDING     |
 | Member management                 | PENDING     |
 | Category management               | PENDING     |
