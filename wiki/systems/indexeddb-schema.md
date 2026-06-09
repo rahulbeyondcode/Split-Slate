@@ -7,7 +7,7 @@ metadata:
 
 # IndexedDB Schema
 
-Last updated: 2026-06-03
+Last updated: 2026-06-10
 
 ## Tables
 
@@ -98,6 +98,7 @@ Images are compressed on ingest before storage. No hard limit on count per expen
 | id       | UUID    | primary key                   |
 | groupId  | UUID    | index → foreign key to groups |
 | name     | string  |                               |
+| icon     | string  | emoji character               |
 | isActive | boolean |                               |
 
 Index: `groupId` — used to fetch categories for a group.
@@ -118,18 +119,30 @@ No `isActive` field — tags are either live or deleted (no deactivated state). 
 
 ---
 
-### `onboarding`
+### `settings`
 
-Single-row store tracking onboarding progress so the setup flow is resumable. Always read/written at the fixed key `'current'` — never a generated UUID. See [[onboarding-persistence]].
+Single-row-per-domain store for app configuration and flow state. Each row is keyed by a fixed string `id` (never a generated UUID), and the row shape is a **discriminated union on `id`** — so each domain stays fully typed while sharing one table. New configuration domains are added as new row types, not new tables. See [[onboarding-persistence]] and [[category-settings-ui]].
+
+#### `"onboarding"` row — setup-flow progress (resumable)
 
 | Field             | Type             | Notes                                                              |
 |-------------------|------------------|--------------------------------------------------------------------|
-| id                | `'current'`      | primary key — fixed constant, one row only                         |
+| id                | `'onboarding'`   | primary key — fixed constant                                       |
 | lastCompletedStep | SetupStep\|null  | furthest step the user has completed (`identity \| group \| currency \| categories \| members`); **monotonic** — only ever moves forward; `null` before any step completes |
 | groupId           | UUID\|null       | the in-progress group created during onboarding                    |
 | complete          | boolean          | onboarding finished; gates app entry instead of `localUser` presence |
 
-The currently-viewed step is **not** stored here — it is Zustand-only, derived on load as the step after `lastCompletedStep`. Only the Next action writes this row (saving the step's domain data and advancing `lastCompletedStep`); Back is a pure in-memory move. This store holds flow-progress state only — deliberately kept separate from domain data rather than folded into `localUser`.
+The currently-viewed step is **not** stored here — it is Zustand-only, derived on load as the step after `lastCompletedStep`. Holds flow-progress state only — deliberately separate from domain data rather than folded into `localUser`.
+
+#### `"categories"` row — category configuration
+
+| Field   | Type                          | Notes                                                       |
+|---------|-------------------------------|------------------------------------------------------------|
+| id      | `'categories'`                | primary key — fixed constant                               |
+| master  | `{ name: string; icon: string }[]` | the full master category list, each with a preset emoji icon (user-editable in future) |
+| default | string[]                      | names (subset of `master`) pre-selected when creating a group; icons resolved from `master` |
+
+Both arrays are **seeded from code constants on first launch** (`SEED_MASTER_CATEGORIES`, `SEED_DEFAULT_GROUP_CATEGORIES`), then DB-authoritative and editable thereafter. The master list moved here from a hardcoded constant so it can become user-editable. See [[category-settings-ui]].
 
 ---
 

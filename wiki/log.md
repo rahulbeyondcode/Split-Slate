@@ -95,6 +95,29 @@ Chronological record of all wiki changes.
 - UPDATED architecture/layout-architecture.md — tablet activity section has explicit "Activity" heading; mobile has no persistent top bar (explicit); cross-reference to dashboard for greeting/toggle details
 - UPDATED workflows/dashboard.md — activity item documented as two-line two-column component; unsettled balance entry format documented (group name first, then direction + amount)
 
+## 2026-06-09
+- CREATED ideas/category-settings-ui.md — TODO note for settings UI to configure defaultVisibleCategories and defaultSelectedCategories; data layer plan captured
+- UPDATED wiki/index.md — added category-settings-ui to Ideas section
+
+## 2026-06-10 (category icons)
+- UPDATED architecture/domain-models.md — Category gains an emoji `icon` field; noted master presets ship with icons, custom categories get a user-picked one
+- UPDATED systems/indexeddb-schema.md — `categories` table gains `icon`; settings `"categories"` row `master` is now `{ name, icon }[]`, `default` clarified as names resolving icons from master
+- UPDATED workflows/category-management.md — every category carries an icon; master entries have preset icons; custom-add is an emoji + name editor (shared with onboarding)
+- UPDATED ideas/category-settings-ui.md — master shape is now `{ name, icon }[]`
+
+## 2026-06-10 (onboarding central-form refactor)
+- UPDATED workflows/onboarding.md — steps now save on each "Save and Proceed" (commit-on-button, not live per-toggle); categories step now mandatory (≥1); members optional with no Skip button; added category-mandatory invariant
+- UPDATED decisions/onboarding-persistence.md — step→save mapping updated to commit-on-button (categories diffed on Save and Proceed; members added only on final Save and Finish); Next→Save and Proceed terminology; removed stale "saves are live / Skip keeps data" note
+- UPDATED workflows/category-management.md — master list is now DB-backed (settings "categories" row, seeded from constant); category selection at creation is mandatory (≥1), defaults pre-selected; persisted on Save and Proceed
+- UPDATED decisions/solo-group-support.md — members step has no Skip button; "Save and Finish" without adding yields a solo group; updated helper text
+- UPDATED wiki/index.md — category-management description (DB-backed, ≥1 mandatory); added invariant #10 (group requires ≥1 category at creation)
+
+## 2026-06-10 (settings store + categories in DB)
+- UPDATED systems/indexeddb-schema.md — replaced the `onboarding` table with a typed, discriminated-union `settings` store (rows keyed by fixed id: `"onboarding"` progress, `"categories"` config); documented seed-from-constants then DB-authoritative
+- UPDATED decisions/onboarding-persistence.md — onboarding progress now lives as the `"onboarding"` row in the shared `settings` store (key `'onboarding'`), not a dedicated `onboarding` table at key `'current'`; save mechanics unchanged
+- UPDATED ideas/category-settings-ui.md — data layer now built (master/default lists are the `"categories"` settings row, seeded from `SEED_*` constants); aligned field names to reality; settings UI + persist action still TODO
+- UPDATED wiki/index.md — schema description now notes the `settings` store; updated category-settings-ui status to "data layer built"
+
 ## 2026-06-03
 - UPDATED wiki/index.md — revised invariant #4: categories are deletable when unreferenced (reassign-first), no longer "never deleted"
 - UPDATED workflows/category-management.md — Category Rules now allow guarded delete (unreferenced only; reassign all expenses first otherwise); added delete-vs-deactivate guidance

@@ -24,6 +24,7 @@ export interface Category {
   id: string;
   groupId: string;
   name: string;
+  icon: string;
   isActive: boolean;
 }
 
@@ -65,9 +66,17 @@ export interface Attachment {
 
 export type SetupStep = "identity" | "group" | "currency" | "categories" | "members";
 
-export interface OnboardingProgress {
-  id: "current";
+export interface OnboardingSettings {
+  id: "onboarding";
   lastCompletedStep: SetupStep | null;
   groupId: string | null;
   complete: boolean;
 }
+
+export interface CategorySettings {
+  id: "categories";
+  master: { name: string; icon: string }[];
+  default: string[];
+}
+
+export type SettingsRecord = OnboardingSettings | CategorySettings;

@@ -174,6 +174,7 @@ src/
 - Shared UI components each get their own subfolder inside `shared/ui/`
 - Never place a file at a level that skips this hierarchy (e.g. no loose files in `features/` root)
 - No `api/` folders — this app is fully offline; use `store/` for all data operations
+- No `pages/` folder — routes in `app/router/` reference feature components directly; never create thin page wrappers
 
 ---
 

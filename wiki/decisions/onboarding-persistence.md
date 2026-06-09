@@ -7,7 +7,7 @@ metadata:
 
 # Onboarding Persistence — Per-Step Save + Resume
 
-Last updated: 2026-06-03
+Last updated: 2026-06-10
 
 ## Decision
 
@@ -26,23 +26,23 @@ Per-step save makes every completed step durable immediately and lets the user r
 
 ## How It Works
 
-### Progress record — a dedicated `onboarding` store
-A new IndexedDB object store, `onboarding`, alongside the existing domain stores. It keeps flow-progress state **separate from domain data** (not folded into `localUser`). It holds exactly one row, read/written at a fixed key `'current'`:
+### Progress record — the `"onboarding"` row in the shared `settings` store
+Onboarding progress lives as one row in the shared `settings` table (a discriminated-union store keyed by a fixed string `id`, holding app config + flow state side by side). It keeps flow-progress state **separate from domain data** (not folded into `localUser`), read/written at the fixed key `'onboarding'`:
 
 ```ts
 {
-  id: 'current',
+  id: 'onboarding',
   lastCompletedStep: SetupStep | null, // furthest completed step — monotonic
   groupId: string | null,              // the in-progress group
   complete: boolean
 }
 ```
 
-`SetupStep` = `'identity' | 'group' | 'currency' | 'categories' | 'members'`. The store is structurally ordinary (`id`-keyed like the others); only its usage is single-row — we always `get`/`put` at `'current'` rather than generating a UUID per record.
+`SetupStep` = `'identity' | 'group' | 'currency' | 'categories' | 'members'`. The row is structurally ordinary (`id`-keyed like every other settings row); only its usage is single-row — we always `get`/`put` at `'onboarding'` rather than generating a UUID per record.
 
 **Only `lastCompletedStep` is persisted; the currently-viewed step is Zustand-only.** The flow is strictly linear with no step-bypass, so being on a step already implies every earlier step is done — the viewed step does not need persisting. On load it is derived as the step after `lastCompletedStep`.
 
-- **Next** writes the row: saves the step's domain data, then advances `lastCompletedStep = max(lastCompletedStep, viewedStep)`.
+- **Save and Proceed** writes the row: validates the current step's slice of the central form, saves the step's domain data, then advances `lastCompletedStep = max(lastCompletedStep, viewedStep)`. Within a step nothing is written until this button — all input lives in the central form first.
 - **Back** is a pure in-memory Zustand move (decrement the viewed step); it does not touch IndexedDB.
 
 `lastCompletedStep` is **monotonic** — clamped forward via `max` so it never rewinds. This matters when the user walks forward several steps, goes Back to edit an earlier one, and clicks Next: the edited data is re-saved, but the frontier stays at the furthest step reached, so resume still lands at the true frontier instead of re-walking already-completed steps. No cascade-invalidation is needed because later steps (categories, members) do not depend on the values of earlier ones.
@@ -53,8 +53,8 @@ A new IndexedDB object store, `onboarding`, alongside the existing domain stores
 | identity | `setLocalUser` (put-upsert — reuses id on Back-edit) |
 | group | `createGroup(name, icon, "INR")` **once** (also auto-creates the creator Member); Back-edits call `updateGroup` |
 | currency | `updateGroup(groupId, { currency })` |
-| categories | live `addCategory` / `removeCategory` per toggle |
-| members | `addMember` / `removeMember` per row; final "Done" sets `complete: true` |
+| categories | on Save and Proceed: `addCategory` for each newly-selected, `removeCategory` for each deselected (diffed against the DB); **≥1 required** to advance |
+| members | on the final "Save and Finish": `addMember` for each row added in the central form. During onboarding the DB only ever holds the creator until this point, so no removal/diff is needed |
 
 The group is created at the **group** step with the default `"INR"` currency (a group row requires a currency, but currency is chosen one step later); the **currency** step then updates it. The create-once guard (`groupId === null`) ensures the auto-created creator Member is never duplicated when the user navigates Back and edits.
 
@@ -62,11 +62,11 @@ The group is created at the **group** step with the default `"INR"` currency (a 
 Previously `localUser` presence meant "onboarded". Per-step save creates `localUser` at step 1, so completion is now an explicit `onboarding.complete` flag, exposed by the store. Route protection reads this flag, not `localUser`. **Back-compat:** an existing user with a `localUser` but no onboarding row is treated as already complete.
 
 ### Resume
-On launch, `init()` hydrates the onboarding row into the store; the setup flow renders the step after `lastCompletedStep` (or `identity` when it is `null`). Arriving at the intro page with an in-progress, incomplete session redirects straight into `/onboarding/setup` (auto-resume). Skipping a step still persists prior data (saves are live), so Skip no longer discards anything.
+On launch, `init()` hydrates the onboarding row into the store; the setup flow renders the step after `lastCompletedStep` (or `identity` when it is `null`). Arriving at the intro page with an in-progress, incomplete session redirects straight into `/onboarding/setup` (auto-resume). Every completed step's data is already saved, so resume never re-asks for it; only in-progress input on the current, unconfirmed step is not retained across a reload.
 
 ## Related
 
 - [[onboarding]] — the step-by-step flow this persistence model backs
 - [[state-management]] — Zustand store shape and thunks
-- [[indexeddb-schema]] — the `onboarding` store
+- [[indexeddb-schema]] — the `settings` store (`"onboarding"` row)
 - [[solo-group-support]] — why the members step is skippable

@@ -7,7 +7,7 @@ import type {
   Group,
   LocalUser,
   Member,
-  OnboardingProgress,
+  SettingsRecord,
 } from "@/shared/types/domain.types";
 
 class SplitSlateDatabase extends Dexie {
@@ -17,7 +17,7 @@ class SplitSlateDatabase extends Dexie {
   categories!: EntityTable<Category, "id">;
   expenses!: EntityTable<Expense, "expenseId">;
   attachments!: EntityTable<Attachment, "id">;
-  onboarding!: EntityTable<OnboardingProgress, "id">;
+  settings!: EntityTable<SettingsRecord, "id">;
 
   constructor() {
     super("split-slate");
@@ -28,7 +28,7 @@ class SplitSlateDatabase extends Dexie {
       categories: "id, groupId",
       expenses: "expenseId, groupId",
       attachments: "id, expenseId",
-      onboarding: "id",
+      settings: "id",
     });
   }
 }

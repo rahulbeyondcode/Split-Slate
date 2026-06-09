@@ -24,14 +24,14 @@ This wiki is the sole source of truth. Source: `src/` | Changes: [log.md](log.md
 - [Group Deletion](decisions/group-deletion.md) — permanent, cascades all group data (members, expenses, categories, attachments); irreversible warning shown
 
 ### Systems
-- [IndexedDB Schema](systems/indexeddb-schema.md) — tables, primary keys, indexes, access patterns (includes attachments table)
+- [IndexedDB Schema](systems/indexeddb-schema.md) — tables, primary keys, indexes, access patterns (includes attachments + the typed `settings` store)
 
 ### Workflows
 - [Onboarding](workflows/onboarding.md) — first-launch flow; standard path and import-based entry points
 - [Main Screen](workflows/main-screen.md) — groups list home, in-group tabs, expense list structure
 - [Paid-By](workflows/paid-by.md) — frequent payers quick-select, pre-selection logic, multi-payer mode
 - [Member Management](workflows/member-management.md) — add anytime, edit name/icon freely, removal blocked if member is in any expense
-- [Category Management](workflows/category-management.md) — app master list + group-level selection at creation (skippable); custom categories addable anytime; rename/deactivate only, never delete
+- [Category Management](workflows/category-management.md) — DB-backed master list + group-level selection at creation (≥1 mandatory, defaults pre-selected); custom categories addable anytime; guarded delete
 - [Tag Management](workflows/tag-management.md) — group-scoped optional labels; inline creation during expense entry + manage screen; rename anytime; deletable (cascades off all expenses atomically)
 - [Filtering](workflows/filtering.md) — expense list filtering across 8 fields (name, date, category, tags, paid-by, member, split type, amount); all ANDed, not persisted
 - [Dashboard](workflows/dashboard.md) — dashboard main pane: overall summary, per-group cards, unsettled balances, category chart, activity; multi-currency edge case
@@ -39,6 +39,7 @@ This wiki is the sole source of truth. Source: `src/` | Changes: [log.md](log.md
 ### Ideas (captured, not committed)
 - [Rewarded Ads](ideas/rewarded-ads.md) — optional ad-watch → credits → Pro unlock mechanic; fully opt-in
 - [Itemized Split](ideas/itemized-split.md) — 6th split type; bottom-up item-by-item receipt assignment; deferred to V2/V3
+- [Category Settings UI](ideas/category-settings-ui.md) — data layer built (DB-backed master/default category lists); settings screen still TODO
 
 ### Research
 - [Competitive Landscape](research/competitive-landscape.md) — 7 apps analysed, fatal flaws, table-stakes features, feature monopolies
@@ -81,3 +82,4 @@ This wiki is the sole source of truth. Source: `src/` | Changes: [log.md](log.md
 7. `categoryId` is mandatory on every expense — no uncategorised expenses
 8. Currency is single per group (set at creation, defaults to INR) — no multi-currency in MVP
 9. Tag deletion is atomic — tag record and all `tagId` references in group expenses are removed in a single IndexedDB transaction; no dangling references
+10. A group must have at least one category — enforced at creation (categories step requires ≥1 selected) so every expense can be categorised

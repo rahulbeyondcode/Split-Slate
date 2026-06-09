@@ -9,19 +9,19 @@ const RouteProtector = () => {
 
   if (!initialized) return null;
 
-  const onOnboarding = pathname.startsWith("/onboarding");
-  const onSetup = pathname.startsWith("/onboarding/setup");
-  const started = onboardingLastCompletedStep !== null || onboardingGroupId !== null;
+  const onOnboardingPage = pathname.startsWith("/onboarding");
+  const onOnboardingSetupPage = pathname.startsWith("/onboarding/setup");
+  const didStartOnboarding = onboardingLastCompletedStep !== null || onboardingGroupId !== null;
 
   // Finished users never see onboarding again
-  if (onOnboarding && onboardingComplete) return <Navigate to="/dashboard" replace />;
+  if (onOnboardingPage && onboardingComplete) return <Navigate to="/dashboard" replace />;
 
   // Unfinished users can't reach the app
-  if (pathname.startsWith("/dashboard") && !onboardingComplete)
+  if (!pathname.includes("/onboarding") && !onboardingComplete)
     return <Navigate to="/onboarding" replace />;
 
   // Auto-resume: a started-but-unfinished session jumps from the intro straight into setup
-  if (onOnboarding && !onSetup && !onboardingComplete && started)
+  if (onOnboardingPage && !onOnboardingSetupPage && !onboardingComplete && didStartOnboarding)
     return <Navigate to="/onboarding/setup" replace />;
 
   return <Outlet />;

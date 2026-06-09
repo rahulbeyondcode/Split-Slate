@@ -7,12 +7,14 @@ metadata:
 
 # Category Management
 
-Last updated: 2026-06-03
+Last updated: 2026-06-10
 
 ## Two Levels of Categories
 
 ### App-Level Master List
-The app ships with a curated list of common categories (specific names TBD — to be decided before first build). These are read-only templates built into the app — not stored in IndexedDB, not editable by users.
+The app ships with a curated master list of common categories, **each paired with a preset emoji icon**. It is **seeded from a code constant on first launch into the `"categories"` row of the `settings` store** (see [[indexeddb-schema]]) and is DB-backed and user-editable thereafter (editing UI still TODO — see [[category-settings-ui]]). A subset of the master list is marked as the **default pre-selected set** for new groups.
+
+Every category — master or custom — carries an emoji `icon`. Master entries use their preset icon; custom categories get an icon the user picks when creating them.
 
 ### Group-Level Categories
 Each group has its own category list. These are the categories members actually pick from when adding expenses. They are group-scoped records in the `categories` table.
@@ -25,20 +27,20 @@ Group categories come from two sources:
 
 ## Group Creation Flow — Category Selection Step
 
-After the group name/icon and currency are set, the creator is shown the app master list and asked to pick which categories apply to this group.
+After the group name/icon and currency are set, the creator is shown the master list with the **default set pre-selected**, and picks which categories apply to this group.
 
 **The screen explains:**
-> "Choose the categories that make sense for this group. You'll pick from these when adding expenses — keeping the list short means faster entry. You can always add more categories later."
+> "Pick the categories that make sense for this group. You can always add more later."
 
-- This step is **skippable** — same pattern as the add-members step
-- If skipped: the group starts with no categories; the creator or any member can add them later
-- Selected categories are instantiated as group-scoped `Category` records at the moment of selection
+- This step is **mandatory — at least one category must be selected.** Because `categoryId` is required on every expense, a group cannot be created with zero categories.
+- The default set is pre-selected, so the step needs no effort unless the creator wants to change it; they can deselect, add custom categories, or both — as long as one remains.
+- Selected categories are instantiated as group-scoped `Category` records when the step's **Save and Proceed** is pressed (not on each toggle).
 
 ---
 
 ## Adding Categories After Group Creation
 
-Any member can add a new category to a group at any time — either from the master list (if any were skipped at creation) or as a completely custom category with a name they type in.
+Any member can add a new category to a group at any time — either from the master list (those not selected at creation) or as a completely custom category, entered through an **emoji + name editor** (pick an icon, type a name). The same editor is used in the onboarding category step.
 
 ---
 

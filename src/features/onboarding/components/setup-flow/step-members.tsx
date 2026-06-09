@@ -1,18 +1,16 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
-import { FormProvider, useForm } from "react-hook-form";
+import { FormProvider, useFieldArray, useForm, useFormContext } from "react-hook-form";
 import { z } from "zod";
 
 import EmojiPicker from "@/shared/components/emoji-picker";
 import Input from "@/shared/components/form-elements/input";
-import PortalComponent from "@/shared/components/portal";
 
-import { useFinishOnboarding } from "@/features/onboarding/hooks/use-finish-onboarding";
 import { useStore } from "@/shared/configs/store";
+import type { SetupFormValues } from "@/features/onboarding/helpers/setup-schema";
+import type { MemberEditorValues } from "@/features/onboarding/helpers/setupflow-types";
 
 import { PERSON_EMOJIS } from "@/shared/constants/emojis";
-
-type FormValues = { name: string; icon: string };
 
 const createMemberSchema = (existingNames: string[]) =>
   z.object({
@@ -27,55 +25,69 @@ const createMemberSchema = (existingNames: string[]) =>
   });
 
 const StepMembers = () => {
-  const { localUser, groups, members, onboardingGroupId, addMember, removeMember } = useStore();
-  const finishOnboarding = useFinishOnboarding();
-  const [saving, setSaving] = useState(false);
+  const localUser = useStore((s) => s.localUser);
+  const { control } = useFormContext<SetupFormValues>();
+  const { fields, append, remove } = useFieldArray({ control, name: "members", keyName: "_key" });
+  const [addingNewMember, setAddingNewMember] = useState(false);
 
-  const group = groups.find((g) => g.id === onboardingGroupId);
-  const creatorId = group?.frequentPayerIds[0];
-  const addedMembers = members.filter((m) => m.groupId === onboardingGroupId && m.id !== creatorId);
+  const existingNames = [localUser?.name ?? "", ...fields.map((f) => f.name)];
 
-  const existingNames = [localUser?.name ?? "", ...addedMembers.map((m) => m.name)];
-
-  const methods = useForm<FormValues>({
+  const methods = useForm<MemberEditorValues>({
     resolver: zodResolver(createMemberSchema(existingNames)),
     defaultValues: { name: "", icon: PERSON_EMOJIS[0] },
   });
 
-  const handleAdd = methods.handleSubmit((values) => {
-    if (group) addMember(group.id, values.name.trim(), values.icon);
-    methods.reset({ name: "", icon: PERSON_EMOJIS[0] });
-  });
+  const { reset, handleSubmit } = methods;
 
-  const handleFinish = async () => {
-    setSaving(true);
-    try {
-      await finishOnboarding();
-    } finally {
-      setSaving(false);
-    }
+  const handleOpenAdd = () => {
+    reset({ name: "", icon: PERSON_EMOJIS[0] });
+    setAddingNewMember(true);
   };
+
+  const handleSaveMember = handleSubmit((v) => {
+    append({ name: v.name.trim(), icon: v.icon });
+    setAddingNewMember(false);
+  });
 
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h2 className="text-xl font-bold mb-1">Add members</h2>
         <p className="text-sm text-gray-500">
-          You're already in this group. Add others now, or skip — you can always add them later.
+          You're already in this group. Add others now, or continue — you can always add them later.
         </p>
       </div>
 
-      <FormProvider {...methods}>
-        <form onSubmit={handleAdd} className="flex flex-col gap-2">
-          <div className="flex gap-2 items-start">
-            <EmojiPicker name="icon" emojis={PERSON_EMOJIS} />
-            <Input name="name" placeholder="Member name" wrapperClass="flex-1" />
-            <button type="submit" className="px-4 py-2 bg-gray-900 text-white text-sm rounded">
-              Add
-            </button>
-          </div>
-        </form>
-      </FormProvider>
+      {addingNewMember ? (
+        <FormProvider {...methods}>
+          <form onSubmit={handleSaveMember} className="flex flex-col gap-2 border rounded p-3">
+            <div className="flex gap-2 items-start">
+              <EmojiPicker name="icon" emojis={PERSON_EMOJIS} />
+              <Input name="name" placeholder="Member name" wrapperClass="flex-1" autoFocus />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <button
+                type="button"
+                onClick={() => setAddingNewMember(false)}
+                className="px-4 py-2 text-sm text-gray-500"
+              >
+                Cancel
+              </button>
+              <button type="submit" className="px-4 py-2 bg-gray-900 text-white text-sm rounded">
+                Add
+              </button>
+            </div>
+          </form>
+        </FormProvider>
+      ) : (
+        <button
+          type="button"
+          onClick={handleOpenAdd}
+          className="px-4 py-2 text-sm border border-dashed border-gray-400 rounded text-gray-600"
+        >
+          + Add new member
+        </button>
+      )}
 
       <ul className="flex flex-col gap-2">
         <li className="flex items-center justify-between px-3 py-2 border rounded bg-gray-50">
@@ -84,32 +96,17 @@ const StepMembers = () => {
           </span>
           <span className="text-xs text-gray-400">You</span>
         </li>
-        {addedMembers.map((m) => (
-          <li key={m.id} className="flex items-center justify-between px-3 py-2 border rounded">
+        {fields.map((f, i) => (
+          <li key={f._key} className="flex items-center justify-between px-3 py-2 border rounded">
             <span className="text-sm">
-              {m.icon} {m.name}
+              {f.icon} {f.name}
             </span>
-            <button
-              type="button"
-              onClick={() => removeMember(m.id)}
-              className="text-xs text-red-500"
-            >
-              Remove
+            <button type="button" onClick={() => remove(i)} className="text-xs text-red-500">
+              Delete
             </button>
           </li>
         ))}
       </ul>
-
-      <PortalComponent id="next-btn-slot">
-        <button
-          type="button"
-          onClick={handleFinish}
-          disabled={saving}
-          className="px-6 py-2 bg-gray-900 text-white text-sm rounded disabled:opacity-30"
-        >
-          {saving ? "Saving…" : "Done"}
-        </button>
-      </PortalComponent>
     </div>
   );
 };

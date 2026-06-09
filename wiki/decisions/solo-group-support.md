@@ -7,11 +7,11 @@ metadata:
 
 # Decision: Solo Group Support
 
-Last updated: 2026-05-17
+Last updated: 2026-06-10
 
 ## Decision
 
-A group with only one member (the device owner) is valid. The "add members" step in onboarding is skippable. When the user skips, a prompt explicitly tells them: they can add members to the group at any time, or keep the group as a personal expense tracker with themselves as the only spender.
+A group with only one member (the device owner) is valid. The "add members" step in onboarding is **optional** — the creator can finish with only themselves. There is **no separate "Skip" button**: pressing the step's "Save and Finish" without adding anyone produces a solo group. The step's helper text makes this explicit so users know it is intentional, not a bypassed requirement.
 
 ## Why
 
@@ -21,8 +21,8 @@ A group with only one member (the device owner) is valid. The "add members" step
 
 ## Onboarding Behavior
 
-The "Add Members" step in the group creation flow has a visible "Skip" option. If skipped, a prompt explains:
-> "You can add members to this group anytime. For now, this group will work as a personal expense tracker with only you as the spender."
+The "Add Members" step in the group creation flow can be completed without adding anyone — "Save and Finish" proceeds with just the creator. The step explains:
+> "You're already in this group. Add others now, or continue — you can always add them later."
 
 See [[onboarding]] for the full group creation flow and step order.
 

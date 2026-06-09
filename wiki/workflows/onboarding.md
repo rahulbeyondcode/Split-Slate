@@ -7,7 +7,7 @@ metadata:
 
 # Onboarding Flow
 
-Last updated: 2026-06-03
+Last updated: 2026-06-10
 
 ## Standard First-Launch Flow
 
@@ -17,11 +17,10 @@ For users opening the app for the first time without any imported data.
 2. **Set up identity** — Enter name (mandatory) + choose an icon. Name is required before proceeding.
 3. **Create a group** — Mandatory. User must create at least one group to enter the app.
 4. **Select currency** — Pre-filled with INR (India-first default). User can change it. If left untouched, INR is used. Always results in a currency being set — not skippable but requires zero effort if INR is correct.
-5. **Select categories** — Skippable. Creator picks which categories from the app master list apply to this group.
-   - Screen explains: *"Choose the categories that make sense for this group. You'll pick from these when adding expenses — keeping the list short means faster entry. You can always add more categories later."*
-   - If skipped: group starts with no categories; any member can add them later.
-6. **Add members** — Skippable. The user is already auto-added to the group as a member (see invariant below). They can add others here or skip.
-   - If skipped: a prompt explains — *"You can add members to this group anytime. For now, this group will work as a personal expense tracker with only you as the spender."*
+5. **Select categories** — **Mandatory: at least one.** A sensible default set is pre-selected (`defaultGroupCategories`); the creator can toggle these, add custom ones, or change the selection — but cannot proceed with zero, since every expense requires a category.
+   - Screen explains: *"Pick the categories that make sense for this group. You can always add more later."*
+   - More categories can be added anytime after creation.
+6. **Add members** — Optional. The user is already auto-added to the group as a member (see invariant below). They can add others here, or simply continue with only themselves (a valid solo group). There is **no separate "Skip" button** — pressing "Save and Finish" without adding anyone is the solo path.
 7. **Main app** — User lands on the group they just created.
 
 ---
@@ -30,6 +29,7 @@ For users opening the app for the first time without any imported data.
 
 - **Name is mandatory** — the app cannot proceed past step 2 without a name
 - **Group creation is mandatory** — the app cannot proceed past step 3 without a group
+- **At least one category is mandatory** — the categories step cannot be passed with zero selected; a default set is pre-selected so this needs no effort unless the user deselects everything
 - **Adding members is optional** — a solo group (one member) is a valid and supported use case. See [[solo-group-support]]
 - **Group creator is always auto-added as a Member** — when the group is created, a group-scoped Member record is created for the LocalUser automatically. The creator cannot be added again manually and cannot operate a group they are not part of.
 
@@ -37,11 +37,11 @@ For users opening the app for the first time without any imported data.
 
 ## Persistence & Resume
 
-The five setup steps (identity → group → currency → categories → members) **save to IndexedDB as each is completed**, rather than committing everything at the end. Progress is tracked in a dedicated single-row `onboarding` store holding a monotonic `lastCompletedStep` (plus `groupId` and `complete`). The Zustand store derives which step to render as the step after `lastCompletedStep`; the viewed step itself is not persisted (Back moves it in memory only, Next advances the frontier).
+The five setup steps (identity → group → currency → categories → members) **save to IndexedDB when each step's "Save and Proceed" button is pressed**, rather than committing everything at the end. Within a step, all input is held in a single central form (React/Zustand state) and **nothing is written on individual toggles or adds** — only Save and Proceed commits that step. Progress is tracked in the `"onboarding"` row of the `settings` store, holding a monotonic `lastCompletedStep` (plus `groupId` and `complete`). The Zustand store derives which step to render as the step after `lastCompletedStep`; the viewed step itself is not persisted (Back moves it in memory only, Save and Proceed advances the frontier).
 
 Consequences:
-- **Resumable** — closing the app mid-flow and reopening lands the user back on the step they left off, with prior data intact. An in-progress, incomplete session arriving at the intro page is redirected straight into the setup flow.
-- **Skip keeps data** — because saves are live, skipping a step no longer discards earlier input.
+- **Resumable** — closing the app mid-flow and reopening lands the user back on the last completed step, with all saved data intact. An in-progress, incomplete session arriving at the intro page is redirected straight into the setup flow.
+- **Commit-on-button** — input on a step that was never confirmed with Save and Proceed is not persisted; this is intentional ("save only when you press the button").
 - **Completion is an explicit flag** — `onboarding.complete`, not `localUser` presence, gates entry to the app (the user record is created at the very first step).
 
 See [[onboarding-persistence]] for the full rationale, the step→save mapping, and the create-once group/currency handling.

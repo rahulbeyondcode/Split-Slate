@@ -1,19 +1,11 @@
-import PortalComponent from "@/shared/components/portal";
+import { useController } from "react-hook-form";
 
-import { useStore } from "@/shared/configs/store";
+import type { SetupFormValues } from "@/features/onboarding/helpers/setup-schema";
 
 import { CURRENCIES } from "@/shared/constants/currencies";
 
 const StepCurrency = () => {
-  const { groups, onboardingGroupId, updateGroup, advanceOnboarding } = useStore();
-  const group = groups.find((g) => g.id === onboardingGroupId);
-  const currency = group?.currency ?? "INR";
-
-  const handleSelect = (code: string) => {
-    if (group) updateGroup(group.id, { currency: code });
-  };
-
-  const handleNext = () => advanceOnboarding("currency");
+  const { field } = useController<SetupFormValues, "currency">({ name: "currency" });
 
   return (
     <div className="flex flex-col gap-6">
@@ -27,9 +19,9 @@ const StepCurrency = () => {
           <button
             key={curr.code}
             type="button"
-            onClick={() => handleSelect(curr.code)}
+            onClick={() => field.onChange(curr.code)}
             className={`flex items-center gap-3 px-4 py-3 border rounded text-left ${
-              currency === curr.code ? "border-gray-900 bg-gray-50" : "border-gray-200"
+              field.value === curr.code ? "border-gray-900 bg-gray-50" : "border-gray-200"
             }`}
           >
             <span className="text-lg w-8 text-center">{curr.symbol}</span>
@@ -38,16 +30,6 @@ const StepCurrency = () => {
           </button>
         ))}
       </div>
-
-      <PortalComponent id="next-btn-slot">
-        <button
-          type="button"
-          onClick={handleNext}
-          className="px-6 py-2 bg-gray-900 text-white text-sm rounded"
-        >
-          Next
-        </button>
-      </PortalComponent>
     </div>
   );
 };

@@ -66,12 +66,14 @@ One per device. Not synced in MVP/V2. Exists outside any group.
   id: UUID,
   groupId: UUID,
   name: string,
+  icon: string,   // emoji
   isActive: boolean
 }
 ```
 
 - Categories are group-specific, not global
-- At group creation the creator picks which categories to include from the app's master list (skippable). No categories are auto-created. See [[category-management]].
+- Each category carries an emoji `icon`; master-list entries ship with preset icons, custom categories get a user-picked one
+- At group creation the creator picks which categories to include from the app's master list — **at least one is mandatory** (a default set is pre-selected). No categories are auto-created beyond that selection. See [[category-management]].
 - Any member can add new categories to a group at any time — either from the master list or custom
 - **categoryId is mandatory on every expense** — the user must select a category when adding an expense
 - Categories can be renamed or deactivated at any time. Deactivated categories are hidden from the expense entry picker but remain visible on historical expenses

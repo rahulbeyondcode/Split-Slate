@@ -4,7 +4,10 @@ interface NavItem {
 }
 
 export const SIDEBAR_NAV: Record<string, NavItem[]> = {
-  dashboard: [{ label: "Dashboard", path: "/dashboard" }],
+  dashboard: [
+    { label: "Dashboard", path: "/dashboard" },
+    { label: "All Friends", path: "/friends" },
+  ],
   group: [
     { label: "Overview", path: "/groups/:groupId" },
     { label: "Expenses", path: "/groups/:groupId/expenses" },

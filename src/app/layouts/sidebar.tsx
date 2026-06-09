@@ -1,4 +1,4 @@
-import { NavLink, useParams } from "react-router-dom";
+import { Link, NavLink, useParams } from "react-router-dom";
 
 import GroupListItem from "@/features/groups-list/components/group-list-item";
 
@@ -42,7 +42,12 @@ const AppSidebar = () => {
       </nav>
 
       <div className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-1">
-        <p className="text-xs font-medium text-gray-400 uppercase tracking-wider px-1 mb-1">Your Groups</p>
+        <div className="flex items-center justify-between px-1 mb-1">
+          <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Your Groups</p>
+          <Link to="/groups/new" className="text-xs text-blue-600 hover:text-blue-700 font-medium">
+            + New
+          </Link>
+        </div>
         {groups
           .slice()
           .sort((a, b) => b.createdAt - a.createdAt)
@@ -52,13 +57,7 @@ const AppSidebar = () => {
         )}
       </div>
 
-      <div className="px-3 py-2 border-t border-gray-100">
-        <button className="w-full text-left px-3 py-2 text-sm text-blue-600 rounded-md hover:bg-blue-50">
-          + New group
-        </button>
-      </div>
-
-      <div className="px-4 py-3 border-t border-gray-100 flex items-center gap-3">
+<div className="px-4 py-3 border-t border-gray-100 flex items-center gap-3">
         <span className="text-xl shrink-0">{localUser?.icon}</span>
         <span className="flex-1 text-sm text-gray-700 truncate">{localUser?.name}</span>
         <button className="text-gray-400 hover:text-gray-600 text-base">⚙</button>
