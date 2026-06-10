@@ -28,6 +28,7 @@ This wiki is the sole source of truth. Source: `src/` | Changes: [log.md](log.md
 
 ### Workflows
 - [Onboarding](workflows/onboarding.md) — first-launch flow; standard path and import-based entry points
+- [Group Creation](workflows/group-creation.md) — standalone post-onboarding flow; 4 steps, create-on-finish; shares step components with onboarding
 - [Main Screen](workflows/main-screen.md) — groups list home, in-group tabs, expense list structure
 - [Paid-By](workflows/paid-by.md) — frequent payers quick-select, pre-selection logic, multi-payer mode
 - [Member Management](workflows/member-management.md) — add anytime, edit name/icon freely, removal blocked if member is in any expense
@@ -55,10 +56,10 @@ This wiki is the sole source of truth. Source: `src/` | Changes: [log.md](log.md
 |-----------------------------------|-------------|
 | Project scaffold                  | DONE        |
 | Routing skeleton                  | DONE        |
-| IndexedDB layer + Zustand store   | IN PROGRESS |
-| Onboarding flow (7 steps)         | IN PROGRESS |
-| Groups list (home screen)         | DONE        |
-| Group creation flow               | PENDING     |
+| IndexedDB layer + Zustand store   | DONE        |
+| Onboarding flow (5 steps)         | DONE        |
+| Dashboard / groups list (home)    | IN PROGRESS |
+| Group creation flow               | DONE        |
 | Member management                 | PENDING     |
 | Category management               | PENDING     |
 | Add / edit / delete expense       | PENDING     |

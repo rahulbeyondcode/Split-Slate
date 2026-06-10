@@ -1,16 +1,16 @@
 import { useState } from "react";
 import { useController } from "react-hook-form";
 
-import CategoryEditor from "@/features/onboarding/components/setup-flow/category-editor";
+import CategoryEditor from "@/features/create-group/components/category-editor";
 
 import { useStore } from "@/shared/configs/store";
-import type { SetupFormValues } from "@/features/onboarding/helpers/setup-schema";
+import type { CreateGroupFormValues } from "@/features/create-group/helpers/schema";
 
 type Chip = { name: string; icon: string };
 
 const StepCategories = () => {
   const masterCategories = useStore((s) => s.masterCategories);
-  const { field: categoriesField, fieldState } = useController<SetupFormValues, "categories">({
+  const { field: categoriesField, fieldState } = useController<CreateGroupFormValues, "categories">({
     name: "categories",
   });
   const selectedCategories = categoriesField.value;

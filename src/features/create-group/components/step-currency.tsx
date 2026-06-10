@@ -1,11 +1,11 @@
 import { useController } from "react-hook-form";
 
-import type { SetupFormValues } from "@/features/onboarding/helpers/setup-schema";
+import type { CreateGroupFormValues } from "@/features/create-group/helpers/schema";
 
 import { CURRENCIES } from "@/shared/constants/currencies";
 
 const StepCurrency = () => {
-  const { field } = useController<SetupFormValues, "currency">({ name: "currency" });
+  const { field } = useController<CreateGroupFormValues, "currency">({ name: "currency" });
 
   return (
     <div className="flex flex-col gap-6">

@@ -2,11 +2,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 
-import StepCategories from "@/features/onboarding/components/setup-flow/step-categories";
-import StepCurrency from "@/features/onboarding/components/setup-flow/step-currency";
-import StepGroup from "@/features/onboarding/components/setup-flow/step-group";
+import StepCategories from "@/features/create-group/components/step-categories";
+import StepCurrency from "@/features/create-group/components/step-currency";
+import StepGroup from "@/features/create-group/components/step-group";
+import StepMembers from "@/features/create-group/components/step-members";
 import StepIdentity from "@/features/onboarding/components/setup-flow/step-identity";
-import StepMembers from "@/features/onboarding/components/setup-flow/step-members";
 
 import { useFinishOnboarding } from "@/features/onboarding/hooks/use-finish-onboarding";
 import { useStore } from "@/shared/configs/store";

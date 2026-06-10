@@ -5,7 +5,7 @@ import { z } from "zod";
 import EmojiPicker from "@/shared/components/emoji-picker";
 import Input from "@/shared/components/form-elements/input";
 
-import type { CategoryEditorValues } from "@/features/onboarding/helpers/setupflow-types";
+import type { CategoryEditorValues } from "@/features/create-group/helpers/editor-types";
 
 import { CATEGORY_EMOJIS } from "@/shared/constants/emojis";
 

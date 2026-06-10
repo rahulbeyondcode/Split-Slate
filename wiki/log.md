@@ -118,6 +118,13 @@ Chronological record of all wiki changes.
 - UPDATED ideas/category-settings-ui.md — data layer now built (master/default lists are the `"categories"` settings row, seeded from `SEED_*` constants); aligned field names to reality; settings UI + persist action still TODO
 - UPDATED wiki/index.md — schema description now notes the `settings` store; updated category-settings-ui status to "data layer built"
 
+## 2026-06-10 (group creation flow)
+- CREATED workflows/group-creation.md — standalone post-onboarding group creation; 4 steps (no identity), create-on-finish vs onboarding's per-step persistence; create-group domain owns the shared step components, onboarding composes on top
+- UPDATED wiki/index.md — added group-creation to Workflows; Group creation flow IN PROGRESS → DONE
+
+## 2026-06-10 (status reconciliation)
+- UPDATED wiki/index.md — corrected Implementation Status to match source: IndexedDB+store and onboarding (5 steps, not 7) now DONE; old "Groups list DONE" was stale (page deleted) — home is now the dashboard stub, marked IN PROGRESS; group creation flow moved PENDING → IN PROGRESS (work starting on standalone /groups/new)
+
 ## 2026-06-03
 - UPDATED wiki/index.md — revised invariant #4: categories are deletable when unreferenced (reassign-first), no longer "never deleted"
 - UPDATED workflows/category-management.md — Category Rules now allow guarded delete (unreferenced only; reassign all expenses first otherwise); added delete-vs-deactivate guidance

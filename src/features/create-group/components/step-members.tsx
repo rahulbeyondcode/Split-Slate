@@ -7,8 +7,8 @@ import EmojiPicker from "@/shared/components/emoji-picker";
 import Input from "@/shared/components/form-elements/input";
 
 import { useStore } from "@/shared/configs/store";
-import type { SetupFormValues } from "@/features/onboarding/helpers/setup-schema";
-import type { MemberEditorValues } from "@/features/onboarding/helpers/setupflow-types";
+import type { MemberEditorValues } from "@/features/create-group/helpers/editor-types";
+import type { CreateGroupFormValues } from "@/features/create-group/helpers/schema";
 
 import { PERSON_EMOJIS } from "@/shared/constants/emojis";
 
@@ -26,7 +26,7 @@ const createMemberSchema = (existingNames: string[]) =>
 
 const StepMembers = () => {
   const localUser = useStore((s) => s.localUser);
-  const { control } = useFormContext<SetupFormValues>();
+  const { control } = useFormContext<CreateGroupFormValues>();
   const { fields, append, remove } = useFieldArray({ control, name: "members", keyName: "_key" });
   const [addingNewMember, setAddingNewMember] = useState(false);
 
