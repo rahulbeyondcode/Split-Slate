@@ -64,6 +64,15 @@ export interface Attachment {
   createdAt: number;
 }
 
+// Ephemeral draft of an in-progress group build (create-group flow). Memory-only — never persisted to IndexedDB. Mirrors the form so a live preview can subscribe.
+export interface GroupDraft {
+  name: string;
+  icon: string;
+  currency: string;
+  categories: { name: string; icon: string }[];
+  members: { name: string; icon: string }[];
+}
+
 export type SetupStep = "identity" | "group" | "currency" | "categories" | "members";
 
 export interface OnboardingSettings {

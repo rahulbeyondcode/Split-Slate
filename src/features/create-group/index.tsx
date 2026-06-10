@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 
@@ -17,11 +17,28 @@ import {
 } from "@/features/create-group/helpers/schema";
 
 import { GROUP_EMOJIS } from "@/shared/constants/emojis";
+import type { GroupDraft } from "@/shared/types/domain.types";
+
+// Flattens the form shape into the memory-only draft the live preview subscribes to.
+const toGroupDraft = (values: CreateGroupFormValues): GroupDraft => ({
+  name: values.group.name,
+  icon: values.group.icon,
+  currency: values.currency,
+  categories: values.categories.map((category) => ({ name: category.name, icon: category.icon })),
+  members: values.members.map((member) => ({ name: member.name, icon: member.icon })),
+});
 
 const CreateGroupFlow = () => {
   const navigate = useNavigate();
-  const { masterCategories, defaultGroupCategories, createGroup, addCategory, addMember } =
-    useStore();
+  const {
+    masterCategories,
+    defaultGroupCategories,
+    createGroup,
+    addCategory,
+    addMember,
+    setGroupDraft,
+    clearGroupDraft,
+  } = useStore();
   const [stepIndex, setStepIndex] = useState(0);
   const [saving, setSaving] = useState(false);
 
@@ -40,13 +57,29 @@ const CreateGroupFlow = () => {
     },
   });
 
+  const { getValues, subscribe, trigger } = methods;
+
+  // Mirror the form into the store draft: seed once, then push every value change (per-keystroke).
+  useEffect(() => {
+    setGroupDraft(toGroupDraft(getValues()));
+    const unsubscribe = subscribe({
+      formState: { values: true },
+      callback: ({ values }) => setGroupDraft(toGroupDraft(values)),
+    });
+    return () => {
+      unsubscribe();
+      clearGroupDraft();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const currentStep = CREATE_GROUP_STEPS[stepIndex];
   const isLast = stepIndex === CREATE_GROUP_STEPS.length - 1;
 
   const handleBack = () => setStepIndex((index) => Math.max(index - 1, 0));
 
   const handleCreate = async () => {
-    const values = methods.getValues();
+    const values = getValues();
     setSaving(true);
     try {
       const { group } = await createGroup(values.group.name, values.group.icon, values.currency);
@@ -63,7 +96,7 @@ const CreateGroupFlow = () => {
   };
 
   const handleNext = async () => {
-    const valid = await methods.trigger(CREATE_GROUP_STEP_FIELDS[currentStep]);
+    const valid = await trigger(CREATE_GROUP_STEP_FIELDS[currentStep]);
     if (!valid) return;
     if (isLast) {
       await handleCreate();

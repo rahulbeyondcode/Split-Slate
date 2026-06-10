@@ -12,6 +12,7 @@ import type {
   Category,
   Expense,
   Group,
+  GroupDraft,
   LocalUser,
   Member,
   OnboardingSettings,
@@ -29,6 +30,9 @@ interface AppStore {
 
   masterCategories: { name: string; icon: string }[];
   defaultGroupCategories: string[];
+
+  // Ephemeral, memory-only draft of the in-progress create-group form (powers live preview).
+  groupDraft: GroupDraft | null;
 
   onboardingStep: SetupStep;
   onboardingLastCompletedStep: SetupStep | null;
@@ -52,6 +56,9 @@ interface AppStore {
   updateOnboarding: (patch: Partial<Omit<OnboardingSettings, "id">>) => Promise<void>;
   advanceOnboarding: (fromStep: SetupStep) => Promise<void>;
   setOnboardingStep: (step: SetupStep) => void;
+
+  setGroupDraft: (draft: GroupDraft | null) => void;
+  clearGroupDraft: () => void;
 }
 
 // Key-aware wrapper over db.settings.get — narrows the union to the row type
@@ -69,6 +76,8 @@ export const useStore = create<AppStore>((set, get) => ({
 
   masterCategories: [],
   defaultGroupCategories: [],
+
+  groupDraft: null,
 
   onboardingStep: "identity",
   onboardingLastCompletedStep: null,
@@ -239,5 +248,13 @@ export const useStore = create<AppStore>((set, get) => ({
 
   setOnboardingStep: (step) => {
     set({ onboardingStep: step });
+  },
+
+  setGroupDraft: (draft) => {
+    set({ groupDraft: draft });
+  },
+
+  clearGroupDraft: () => {
+    set({ groupDraft: null });
   },
 }));

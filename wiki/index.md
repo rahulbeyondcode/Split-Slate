@@ -10,7 +10,7 @@ This wiki is the sole source of truth. Source: `src/` | Changes: [log.md](log.md
 ### Architecture
 - [Domain Models](architecture/domain-models.md) — Group, Member, Expense, Category, LocalUser shapes and invariants
 - [Balance Calculation](architecture/balance-calculation.md) — net = totalPaid − totalOwed; worked example; debt simplification
-- [State Management](architecture/state-management.md) — Zustand store shape; what is persisted vs computed
+- [State Management](architecture/state-management.md) — Zustand store shape; persisted vs computed vs ephemeral (the memory-only group draft that powers the live preview)
 - [Split Types](architecture/split-types.md) — 5 split types (equal, amount, shares, percentage, adjustment); mechanics, UX, validation, splitMeta storage
 - [Layout Architecture](architecture/layout-architecture.md) — two-mode responsive layout (mobile vs desktop); useViewport hook; AppFooter; AppSidebar
 

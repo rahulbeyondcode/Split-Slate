@@ -118,6 +118,10 @@ Chronological record of all wiki changes.
 - UPDATED ideas/category-settings-ui.md — data layer now built (master/default lists are the `"categories"` settings row, seeded from `SEED_*` constants); aligned field names to reality; settings UI + persist action still TODO
 - UPDATED wiki/index.md — schema description now notes the `settings` store; updated category-settings-ui status to "data layer built"
 
+## 2026-06-11 (group draft / live preview)
+- UPDATED architecture/state-management.md — added "Ephemeral State (in store, not persisted)" section documenting the memory-only group draft: per-keystroke mirror of the create/edit group form, seeded on mount and cleared on unmount, synchronous setters with no IndexedDB write; powers the activity-panel live preview; member list excludes creator (reintroduced from localUser); contrasted with onboarding-persistence
+- UPDATED wiki/index.md — extended state-management description to mention ephemeral group draft
+
 ## 2026-06-10 (group creation flow)
 - CREATED workflows/group-creation.md — standalone post-onboarding group creation; 4 steps (no identity), create-on-finish vs onboarding's per-step persistence; create-group domain owns the shared step components, onboarding composes on top
 - UPDATED wiki/index.md — added group-creation to Workflows; Group creation flow IN PROGRESS → DONE
