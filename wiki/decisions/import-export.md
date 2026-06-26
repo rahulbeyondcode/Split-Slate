@@ -67,6 +67,19 @@ For users who want to add or edit expenses after receiving shared data.
 
 ---
 
+## People Reconciliation
+
+People live in a global device-local directory, not inside the group (see [[global-people-directory]]). A group therefore does **not** embed its members' identities — so export must **snapshot** the people the group references (id + name + icon) alongside the group data.
+
+On **import as your group**, each snapshotted person is reconciled against the local directory:
+
+- **Same person id already in the directory** — reuse it; the member link points at the existing person.
+- **Id not present** — create the person in the local directory, then link.
+
+This keeps cross-group identity intact on the importing device. View-only import resolves names from the snapshot directly and writes nothing to the directory.
+
+---
+
 ## Group Conflict Resolution
 
 The exported data always includes the group's UUID. On import as your group:
@@ -100,4 +113,5 @@ Full merge (tracking edits, deletions, conflict resolution) is deferred to V3 �
 
 - [[domain-models]] — Expense shape with `attachmentIds[]`
 - [[indexeddb-schema]] — `attachments` table structure
+- [[global-people-directory]] — why people are global and must be snapshotted on export
 - [[solo-group-support]] — solo groups can also be exported and imported

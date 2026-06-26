@@ -4,6 +4,22 @@ Chronological record of all wiki changes.
 
 ---
 
+## 2026-06-25
+- UPDATED architecture/state-management.md — documented the single Zustand store as domain slices under `src/shared/configs/store/` with one public `useStore`
+- UPDATED wiki/index.md — refreshed the State Management description for the sliced store implementation
+
+## 2026-06-12 (global people directory)
+- CREATED decisions/global-people-directory.md — people are a global device-local directory; members link to shared people; supersedes group-scoped-members; old model + fully-global kept as rejected alternatives
+- REMOVED decisions/group-scoped-members.md — superseded by global-people-directory
+- CREATED workflows/people-directory.md — friends list management, pick-at-creation, edit propagation, two delete scopes
+- UPDATED architecture/domain-models.md — added Person; Member is now a group↔person link (no own name/icon); LocalUser mirrored as a Person
+- UPDATED systems/indexeddb-schema.md — added `people` table; `members` now {id, groupId, personId} with personId index; access patterns
+- UPDATED workflows/member-management.md — members link to people; edit via person propagates; two removal scopes (per-group link vs directory-wide)
+- UPDATED decisions/import-export.md — export snapshots referenced people; import reconciles against local directory
+- UPDATED wiki/index.md — decision link renamed; people-directory added to Workflows; invariants #2 & #6 reworded; People directory row IN PROGRESS
+
+---
+
 ## 2026-05-17
 - CREATED wiki/index.md — bootstrapped wiki navigation hub
 - CREATED wiki/log.md — chronological change record (Karpathy LLM Wiki pattern)

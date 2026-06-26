@@ -51,13 +51,13 @@ const AppSidebar = () => {
         {groups
           .slice()
           .sort((a, b) => b.createdAt - a.createdAt)
-          .map((group) => <GroupListItem key={group.id} groupId={group.id} />)}
-        {groups.length === 0 && (
-          <p className="text-xs text-gray-400 px-3 py-2">No groups yet</p>
-        )}
+          .map((group) => (
+            <GroupListItem key={group.id} groupId={group.id} />
+          ))}
+        {groups.length === 0 && <p className="text-xs text-gray-400 px-3 py-2">No groups yet</p>}
       </div>
 
-<div className="px-4 py-3 border-t border-gray-100 flex items-center gap-3">
+      <div className="px-4 py-3 border-t border-gray-100 flex items-center gap-3">
         <span className="text-xl shrink-0">{localUser?.icon}</span>
         <span className="flex-1 text-sm text-gray-700 truncate">{localUser?.name}</span>
         <button className="text-gray-400 hover:text-gray-600 text-base">⚙</button>

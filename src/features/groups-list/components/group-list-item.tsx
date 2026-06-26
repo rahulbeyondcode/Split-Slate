@@ -10,10 +10,13 @@ const HARDCODED_BALANCE = 1250;
 
 const GroupListItem = ({ groupId }: PropsType) => {
   const { groupId: urlGroupId } = useParams();
-  const { groups, members, expenses } = useStore();
+  const { groups, people, members, expenses } = useStore();
 
   const group = groups.find((g) => g.id === groupId);
-  const groupMembers = members.filter((m) => m.groupId === groupId);
+  // Members link to people; resolve each member's icon through the directory.
+  const groupMembers = members
+    .filter((m) => m.groupId === groupId)
+    .map((m) => ({ id: m.id, icon: people.find((p) => p.id === m.personId)?.icon ?? "" }));
   const expenseCount = expenses.filter((e) => e.groupId === groupId).length;
   const isActive = urlGroupId === groupId;
 
@@ -46,9 +49,7 @@ const GroupListItem = ({ groupId }: PropsType) => {
               {m.icon}
             </span>
           ))}
-          {overflow > 0 && (
-            <span className="text-xs text-gray-400 ml-2">+{overflow} more</span>
-          )}
+          {overflow > 0 && <span className="text-xs text-gray-400 ml-2">+{overflow} more</span>}
         </div>
         <p className="text-xs text-gray-400 mt-0.5">{expenseCount} expenses</p>
       </div>

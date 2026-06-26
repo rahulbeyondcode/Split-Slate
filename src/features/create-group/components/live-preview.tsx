@@ -37,7 +37,9 @@ const LivePreview = () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <span className="text-xs font-medium uppercase tracking-wide text-gray-400">Live preview</span>
+      <span className="text-xs font-medium uppercase tracking-wide text-gray-400">
+        Live preview
+      </span>
 
       <div className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4">
         <div className="flex items-center gap-3">
@@ -76,7 +78,9 @@ const LivePreview = () => {
       </div>
 
       <div className="flex flex-col gap-2">
-        <span className="text-xs font-medium uppercase tracking-wide text-gray-400">Categories</span>
+        <span className="text-xs font-medium uppercase tracking-wide text-gray-400">
+          Categories
+        </span>
         {categories.length ? (
           <div className="flex flex-wrap gap-2">
             {categories.map((category) => (

@@ -1,91 +1,83 @@
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
-import { FormProvider, useFieldArray, useForm, useFormContext } from "react-hook-form";
-import { z } from "zod";
+import { useFieldArray, useFormContext } from "react-hook-form";
 
-import EmojiPicker from "@/shared/components/emoji-picker";
-import Input from "@/shared/components/form-elements/input";
+import PersonEditor from "@/features/people/components/person-editor";
 
 import { useStore } from "@/shared/configs/store";
-import type { MemberEditorValues } from "@/features/create-group/helpers/editor-types";
 import type { CreateGroupFormValues } from "@/features/create-group/helpers/schema";
+import type { PersonEditorValues } from "@/features/people/helpers/schema";
 
-import { PERSON_EMOJIS } from "@/shared/constants/emojis";
-
-const createMemberSchema = (existingNames: string[]) =>
-  z.object({
-    name: z
-      .string()
-      .min(1, "Member name is required")
-      .refine(
-        (val) => !existingNames.some((n) => n.toLowerCase() === val.trim().toLowerCase()),
-        "A member with this name already exists",
-      ),
-    icon: z.string(),
-  });
+import type { Person } from "@/shared/types/domain.types";
 
 const StepMembers = () => {
   const localUser = useStore((s) => s.localUser);
+  const people = useStore((s) => s.people);
   const { control } = useFormContext<CreateGroupFormValues>();
   const { fields, append, remove } = useFieldArray({ control, name: "members", keyName: "_key" });
-  const [addingNewMember, setAddingNewMember] = useState(false);
+  const [addingNew, setAddingNew] = useState(false);
 
+  const selectedPersonIds = new Set(
+    fields.map((f) => f.personId).filter((id): id is string => Boolean(id)),
+  );
+  // Directory people available to add: not yourself, not already in the group.
+  const available = people.filter((p) => p.id !== localUser?.id && !selectedPersonIds.has(p.id));
   const existingNames = [localUser?.name ?? "", ...fields.map((f) => f.name)];
 
-  const methods = useForm<MemberEditorValues>({
-    resolver: zodResolver(createMemberSchema(existingNames)),
-    defaultValues: { name: "", icon: PERSON_EMOJIS[0] },
-  });
-
-  const { reset, handleSubmit } = methods;
-
-  const handleOpenAdd = () => {
-    reset({ name: "", icon: PERSON_EMOJIS[0] });
-    setAddingNewMember(true);
+  const handlePick = (person: Person) => {
+    append({ personId: person.id, name: person.name, icon: person.icon });
   };
 
-  const handleSaveMember = handleSubmit((v) => {
-    append({ name: v.name.trim(), icon: v.icon });
-    setAddingNewMember(false);
-  });
+  const handleAddNew = (values: PersonEditorValues) => {
+    append({ name: values.name, icon: values.icon });
+    setAddingNew(false);
+  };
 
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h2 className="text-xl font-bold mb-1">Add members</h2>
         <p className="text-sm text-gray-500">
-          You're already in this group. Add others now, or continue — you can always add them later.
+          You're already in this group. Pick from your friends or add someone new — you can always
+          add them later.
         </p>
       </div>
 
-      {addingNewMember ? (
-        <FormProvider {...methods}>
-          <form onSubmit={handleSaveMember} className="flex flex-col gap-2 border rounded p-3">
-            <div className="flex gap-2 items-start">
-              <EmojiPicker name="icon" emojis={PERSON_EMOJIS} />
-              <Input name="name" placeholder="Member name" wrapperClass="flex-1" autoFocus />
-            </div>
-            <div className="flex gap-2 justify-end">
+      {available.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <span className="text-xs font-medium uppercase tracking-wide text-gray-400">
+            Your friends
+          </span>
+          <div className="flex flex-wrap gap-2">
+            {available.map((person) => (
               <button
+                key={person.id}
                 type="button"
-                onClick={() => setAddingNewMember(false)}
-                className="px-4 py-2 text-sm text-gray-500"
+                onClick={() => handlePick(person)}
+                className="flex items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-1.5 text-sm hover:bg-gray-50"
               >
-                Cancel
+                <span>{person.icon}</span>
+                <span>{person.name}</span>
+                <span className="text-gray-400">+</span>
               </button>
-              <button type="submit" className="px-4 py-2 bg-gray-900 text-white text-sm rounded">
-                Add
-              </button>
-            </div>
-          </form>
-        </FormProvider>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {addingNew ? (
+        <PersonEditor
+          existingNames={existingNames}
+          onSave={handleAddNew}
+          onCancel={() => setAddingNew(false)}
+          submitLabel="Add"
+        />
       ) : (
         <button
           type="button"
-          onClick={handleOpenAdd}
+          onClick={() => setAddingNew(true)}
           className="px-4 py-2 text-sm border border-dashed border-gray-400 rounded text-gray-600"
         >
-          + Add new member
+          + Add new person
         </button>
       )}
 
@@ -102,7 +94,7 @@ const StepMembers = () => {
               {f.icon} {f.name}
             </span>
             <button type="button" onClick={() => remove(i)} className="text-xs text-red-500">
-              Delete
+              Remove
             </button>
           </li>
         ))}

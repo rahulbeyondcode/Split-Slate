@@ -23,6 +23,7 @@ const SetupFlow = () => {
   const {
     localUser,
     groups,
+    people,
     members,
     categories,
     masterCategories,
@@ -38,6 +39,7 @@ const SetupFlow = () => {
     addCategory,
     removeCategory,
     addMember,
+    addPerson,
   } = useStore();
   const finishOnboarding = useFinishOnboarding();
   const [saving, setSaving] = useState(false);
@@ -53,7 +55,15 @@ const SetupFlow = () => {
   }));
   const existingMembers = members
     .filter((member) => member.groupId === onboardingGroupId && member.id !== creatorId)
-    .map((member) => ({ id: member.id, name: member.name, icon: member.icon }));
+    .map((member) => {
+      const person = people.find((p) => p.id === member.personId);
+      return {
+        id: member.id,
+        personId: member.personId,
+        name: person?.name ?? "",
+        icon: person?.icon ?? "",
+      };
+    });
 
   const methods = useForm<SetupFormValues>({
     resolver: zodResolver(setupSchema),
@@ -87,7 +97,9 @@ const SetupFlow = () => {
   const persistMembers = async (memberList: SetupFormValues["members"]) => {
     if (!group) return;
     for (const member of memberList) {
-      if (!member.id) await addMember(group.id, member.name, member.icon);
+      if (member.id) continue;
+      const personId = member.personId ?? (await addPerson(member.name, member.icon)).id;
+      await addMember(group.id, personId);
     }
   };
 

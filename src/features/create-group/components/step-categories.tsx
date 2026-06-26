@@ -10,9 +10,11 @@ type Chip = { name: string; icon: string };
 
 const StepCategories = () => {
   const masterCategories = useStore((s) => s.masterCategories);
-  const { field: categoriesField, fieldState } = useController<CreateGroupFormValues, "categories">({
-    name: "categories",
-  });
+  const { field: categoriesField, fieldState } = useController<CreateGroupFormValues, "categories">(
+    {
+      name: "categories",
+    },
+  );
   const selectedCategories = categoriesField.value;
   const [addingNewCategory, setAddingNewCategory] = useState(false);
 

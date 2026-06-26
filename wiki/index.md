@@ -10,12 +10,12 @@ This wiki is the sole source of truth. Source: `src/` | Changes: [log.md](log.md
 ### Architecture
 - [Domain Models](architecture/domain-models.md) — Group, Member, Expense, Category, LocalUser shapes and invariants
 - [Balance Calculation](architecture/balance-calculation.md) — net = totalPaid − totalOwed; worked example; debt simplification
-- [State Management](architecture/state-management.md) — Zustand store shape; persisted vs computed vs ephemeral (the memory-only group draft that powers the live preview)
+- [State Management](architecture/state-management.md) — single Zustand store composed from domain slices; persisted vs computed vs ephemeral group draft
 - [Split Types](architecture/split-types.md) — 5 split types (equal, amount, shares, percentage, adjustment); mechanics, UX, validation, splitMeta storage
 - [Layout Architecture](architecture/layout-architecture.md) — two-mode responsive layout (mobile vs desktop); useViewport hook; AppFooter; AppSidebar
 
 ### Decisions
-- [Group-Scoped Members](decisions/group-scoped-members.md) — why no global user in MVP/V2; privacy-first tradeoff
+- [Global People Directory](decisions/global-people-directory.md) — device-local friends list; members link to shared people; supersedes per-group members
 - [Expense Model Design](decisions/expense-model-design.md) — why both paid[] and owes[] are stored on each expense
 - [Solo Group Support](decisions/solo-group-support.md) — single-member groups are valid; add-members step is skippable with an explanatory prompt
 - [Onboarding Persistence](decisions/onboarding-persistence.md) — per-step save to IndexedDB + resume from a monotonic `lastCompletedStep`; completion gated by an explicit flag, not `localUser` presence
@@ -31,7 +31,8 @@ This wiki is the sole source of truth. Source: `src/` | Changes: [log.md](log.md
 - [Group Creation](workflows/group-creation.md) — standalone post-onboarding flow; 4 steps, create-on-finish; shares step components with onboarding
 - [Main Screen](workflows/main-screen.md) — groups list home, in-group tabs, expense list structure
 - [Paid-By](workflows/paid-by.md) — frequent payers quick-select, pre-selection logic, multi-payer mode
-- [Member Management](workflows/member-management.md) — add anytime, edit name/icon freely, removal blocked if member is in any expense
+- [People Directory](workflows/people-directory.md) — global friends list; manage people; pick them when building a group
+- [Member Management](workflows/member-management.md) — members link to people; two removal scopes (per-group vs directory-wide)
 - [Category Management](workflows/category-management.md) — DB-backed master list + group-level selection at creation (≥1 mandatory, defaults pre-selected); custom categories addable anytime; guarded delete
 - [Tag Management](workflows/tag-management.md) — group-scoped optional labels; inline creation during expense entry + manage screen; rename anytime; deletable (cascades off all expenses atomically)
 - [Filtering](workflows/filtering.md) — expense list filtering across 8 fields (name, date, category, tags, paid-by, member, split type, amount); all ANDed, not persisted
@@ -60,6 +61,7 @@ This wiki is the sole source of truth. Source: `src/` | Changes: [log.md](log.md
 | Onboarding flow (5 steps)         | DONE        |
 | Dashboard / groups list (home)    | IN PROGRESS |
 | Group creation flow               | DONE        |
+| People directory (friends list)   | IN PROGRESS |
 | Member management                 | PENDING     |
 | Category management               | PENDING     |
 | Add / edit / delete expense       | PENDING     |
@@ -75,11 +77,11 @@ This wiki is the sole source of truth. Source: `src/` | Changes: [log.md](log.md
 ## Key Invariants (Quick Reference)
 
 1. `sum(paid[].amount) == sum(owes[].amount)` on every expense
-2. Member IDs are group-scoped — same person in two groups = two different UUIDs
+2. People are global (one device-local directory); a group member is a link to a person, so the same person in two groups is one Person referenced twice
 3. Balance = totalPaid − totalOwed (per member, per group) — not a running ledger
 4. Categories can be renamed or deactivated anytime; deletable only when no expense references them (otherwise the referencing expenses must be reassigned to another category first)
 5. No global user in MVP/V2 — only a device-local `localUser`
-6. Group creator (LocalUser) is automatically added as a Member when the group is created — they are always part of every group they create and cannot be added again manually
+6. Group creator (LocalUser) is automatically added as a Member (linked to their self Person) when the group is created — they are always part of every group they create and cannot be added again manually
 7. `categoryId` is mandatory on every expense — no uncategorised expenses
 8. Currency is single per group (set at creation, defaults to INR) — no multi-currency in MVP
 9. Tag deletion is atomic — tag record and all `tagId` references in group expenses are removed in a single IndexedDB transaction; no dangling references

@@ -14,7 +14,10 @@ const Dashboard = () => {
           </h1>
           <p className="text-sm text-gray-500">Your groups</p>
         </div>
-        <Link to="/groups/new" className="px-4 py-2 bg-gray-900 text-white text-sm rounded shrink-0">
+        <Link
+          to="/groups/new"
+          className="px-4 py-2 bg-gray-900 text-white text-sm rounded shrink-0"
+        >
           New group
         </Link>
       </div>

@@ -19,7 +19,24 @@ Last updated: 2026-06-03
 }
 ```
 
-One per device. Not synced in MVP/V2. Exists outside any group.
+One per device. Not synced in MVP/V2. The device owner is also mirrored as a Person (below) sharing this same `id`, so "you" can participate in groups and balances uniformly.
+
+---
+
+## Person (Global Directory)
+
+```ts
+{
+  id: UUID,
+  name: string,
+  icon: string    // emoji character e.g. "🦊"
+}
+```
+
+A single device-local directory of people ("friends list"), reused across every group. A person is created once and referenced by group members. The device owner appears here too, sharing the `LocalUser` id. See [[global-people-directory]] and [[people-directory]].
+
+- **Editing** a person's name/icon propagates to every group, because members resolve display through the person link
+- **Deletion** is allowed only when the person is referenced by no expense in any group
 
 ---
 
@@ -44,18 +61,19 @@ One per device. Not synced in MVP/V2. Exists outside any group.
 
 ---
 
-## Member (Group-Scoped)
+## Member (Group ↔ Person Link)
 
 ```ts
 {
   id: UUID,
   groupId: UUID,
-  name: string,
-  icon: string    // emoji character e.g. "🧑"
+  personId: UUID    // references a Person in the global directory
 }
 ```
 
-**Invariant:** A member's `id` is scoped to a group. The same real person in two groups has two different `memberId` values — by design. See [[group-scoped-members]].
+A member is a thin link between a group and a person — it carries no name or icon of its own. Display name/icon are resolved through `personId`. Expenses reference the member by `id` (`memberId`), so editing the linked person never touches expense records.
+
+**Invariant:** The same real person in two groups is the **same** Person, linked by two member rows. See [[global-people-directory]].
 
 ---
 

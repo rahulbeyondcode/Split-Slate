@@ -13,11 +13,16 @@ export interface Group {
   frequentPayerIds: string[];
 }
 
+export interface Person {
+  id: string;
+  name: string;
+  icon: string;
+}
+
 export interface Member {
   id: string;
   groupId: string;
-  name: string;
-  icon: string;
+  personId: string;
 }
 
 export interface Category {

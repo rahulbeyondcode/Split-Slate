@@ -3,11 +3,41 @@ import { useLocation } from "react-router-dom";
 import LivePreview from "@/features/create-group/components/live-preview";
 
 const DUMMY_ACTIVITY = [
-  { icon: "🛵", title: "Arjun paid Scooty rentals", group: "Goa Trip", time: "2h ago", amount: "Rs 2,400" },
-  { icon: "🍕", title: "Priya added Pizza night", group: "Flat mates", time: "5h ago", amount: "Rs 840" },
-  { icon: "⛽", title: "Rahul paid Fuel", group: "Goa Trip", time: "Yesterday", amount: "Rs 1,200" },
-  { icon: "🛒", title: "Sneha added Groceries", group: "Flat mates", time: "2d ago", amount: "Rs 620" },
-  { icon: "🎟️", title: "Arjun paid Concert tickets", group: "Weekend", time: "3d ago", amount: "Rs 3,000" },
+  {
+    icon: "🛵",
+    title: "Arjun paid Scooty rentals",
+    group: "Goa Trip",
+    time: "2h ago",
+    amount: "Rs 2,400",
+  },
+  {
+    icon: "🍕",
+    title: "Priya added Pizza night",
+    group: "Flat mates",
+    time: "5h ago",
+    amount: "Rs 840",
+  },
+  {
+    icon: "⛽",
+    title: "Rahul paid Fuel",
+    group: "Goa Trip",
+    time: "Yesterday",
+    amount: "Rs 1,200",
+  },
+  {
+    icon: "🛒",
+    title: "Sneha added Groceries",
+    group: "Flat mates",
+    time: "2d ago",
+    amount: "Rs 620",
+  },
+  {
+    icon: "🎟️",
+    title: "Arjun paid Concert tickets",
+    group: "Weekend",
+    time: "3d ago",
+    amount: "Rs 3,000",
+  },
 ];
 
 // The create/edit group flows take over the right pane to show a live preview of the draft.

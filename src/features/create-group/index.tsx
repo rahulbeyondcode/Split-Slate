@@ -36,6 +36,7 @@ const CreateGroupFlow = () => {
     createGroup,
     addCategory,
     addMember,
+    addPerson,
     setGroupDraft,
     clearGroupDraft,
   } = useStore();
@@ -87,7 +88,8 @@ const CreateGroupFlow = () => {
         await addCategory(group.id, category.name, category.icon);
       }
       for (const member of values.members) {
-        await addMember(group.id, member.name, member.icon);
+        const personId = member.personId ?? (await addPerson(member.name, member.icon)).id;
+        await addMember(group.id, personId);
       }
       navigate("/dashboard");
     } finally {

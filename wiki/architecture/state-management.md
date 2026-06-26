@@ -7,11 +7,24 @@ metadata:
 
 # State Management
 
-Last updated: 2026-06-11
+Last updated: 2026-06-25
 
 ## Technology
 
-Zustand v5 — single global store, persisted to IndexedDB.
+Zustand v5 — single global store, backed by IndexedDB.
+
+The public API is `useStore` from `@/shared/configs/store`. The implementation is split into
+domain slices under `src/shared/configs/store/` so each feature owns its state defaults and actions:
+
+- `app-slice.ts` — app bootstrap, hydration, and shared entity/settings loading
+- `people-slice.ts` — `localUser`, people directory, and person mutations
+- `groups-slice.ts` — groups, members, group mutations, and member mutations
+- `categories-slice.ts` — group categories plus master/default category settings
+- `onboarding-slice.ts` — onboarding flow state and progress actions
+- `group-draft-slice.ts` — memory-only create-group draft for live preview
+
+The slices are composed in `src/shared/configs/store/index.ts` into one Zustand store. Components
+still import one `useStore`; the split is an implementation boundary, not separate runtime stores.
 
 ---
 

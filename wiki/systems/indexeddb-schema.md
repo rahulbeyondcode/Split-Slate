@@ -37,16 +37,29 @@ Initial value on group creation: `[creatorMemberId, ...otherMemberIds_alphabetic
 
 ---
 
+### `people`
+
+Global device-local directory of people ("friends list"), reused across every group. The device owner has a row here sharing the `localUser` id. See [[global-people-directory]] and [[people-directory]].
+
+| Field | Type   | Notes        |
+|-------|--------|--------------|
+| id    | UUID   | primary key  |
+| name  | string |              |
+| icon  | string | emoji        |
+
+---
+
 ### `members`
 
-| Field    | Type   | Notes                        |
-|----------|--------|------------------------------|
-| id       | UUID   | primary key                  |
-| groupId  | UUID   | index → foreign key to groups|
-| name     | string |                              |
-| icon     | string |                              |
+A member links a group to a person — it stores no name/icon of its own; display is resolved through `personId`.
 
-Index: `groupId` — used to fetch all members of a group.
+| Field    | Type   | Notes                         |
+|----------|--------|-------------------------------|
+| id       | UUID   | primary key                   |
+| groupId  | UUID   | index → foreign key to groups |
+| personId | UUID   | index → foreign key to people |
+
+Indexes: `groupId` (members of a group), `personId` (groups a person is in — used by the global delete guard).
 
 ---
 
@@ -151,7 +164,9 @@ Both arrays are **seeded from code constants on first launch** (`SEED_MASTER_CAT
 | Query                         | Table       | Index Used |
 |-------------------------------|-------------|------------|
 | All groups                    | groups      | none       |
+| All people (friends list)     | people      | none       |
 | Members of a group            | members     | groupId    |
+| Groups a person belongs to    | members     | personId   |
 | Expenses of a group           | expenses    | groupId    |
 | Categories of a group         | categories  | groupId    |
 | Tags of a group               | tags        | groupId    |

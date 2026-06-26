@@ -9,25 +9,33 @@ metadata:
 
 Last updated: 2026-05-18
 
+A member is a link from a group to a person in the global directory. See [[global-people-directory]] and [[people-directory]].
+
 ## Adding Members
 
-Members can be added to a group at any time after group creation — not just during onboarding. No restrictions.
+Members can be added to a group at any time after group creation — not just during onboarding. Either pick an existing person from the directory or add a new person inline. No restrictions.
 
 ---
 
 ## Editing Members
 
-Member name and icon can be changed at any time.
-
-Because expenses reference members by `memberId` only (never by name or icon directly), editing a member record updates only the `members` table. All expenses, balances, and history automatically reflect the new name and icon without any other changes. See [[indexeddb-schema]].
+A member has no name or icon of its own — those live on the linked person. Editing a person's name/icon (from the friends list) propagates to every group automatically, because expenses and rendering resolve display through `personId`. Expenses reference the member by `memberId` only, so the edit touches nothing else. See [[people-directory]].
 
 ---
 
-## Removing Members
+## Two Removal Scopes
 
-A member can only be removed if they have **no involvement in any expense** — i.e. they do not appear in the `paid[]` or `owes[]` array of any expense in the group.
+Because a person is shared across groups, removal has two distinct meanings:
 
-If they do appear in one or more expenses, removal is blocked.
+### Remove from one group
+
+Deletes only the member link for that group; the person stays in the directory. Allowed only if the person has **no involvement in any expense in that group** — i.e. they do not appear in `createdBy`, `paid[]`, or `owes[]` of any expense in the group.
+
+### Delete from the directory
+
+Removes the person everywhere. Allowed only if the person is referenced by **no expense in any group**. On delete, all their member links and any `frequentPayerIds` references are pruned. See [[global-people-directory]].
+
+If they appear in one or more expenses, the relevant removal is blocked.
 
 ### When Removal Is Blocked
 

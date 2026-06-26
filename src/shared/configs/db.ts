@@ -7,12 +7,14 @@ import type {
   Group,
   LocalUser,
   Member,
+  Person,
   SettingsRecord,
 } from "@/shared/types/domain.types";
 
 class SplitSlateDatabase extends Dexie {
   localUser!: EntityTable<LocalUser, "id">;
   groups!: EntityTable<Group, "id">;
+  people!: EntityTable<Person, "id">;
   members!: EntityTable<Member, "id">;
   categories!: EntityTable<Category, "id">;
   expenses!: EntityTable<Expense, "expenseId">;
@@ -24,7 +26,8 @@ class SplitSlateDatabase extends Dexie {
     this.version(1).stores({
       localUser: "id",
       groups: "id",
-      members: "id, groupId",
+      people: "id",
+      members: "id, groupId, personId",
       categories: "id, groupId",
       expenses: "expenseId, groupId",
       attachments: "id, expenseId",

@@ -21,6 +21,7 @@ export const createGroupSchema = z.object({
   members: z.array(
     z.object({
       id: z.string().optional(),
+      personId: z.string().optional(),
       name: z.string().min(1),
       icon: z.string(),
     }),
