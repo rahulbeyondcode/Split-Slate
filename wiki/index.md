@@ -3,6 +3,8 @@
 Synthesized knowledge for the split-slate expense splitting PWA.
 This wiki is the sole source of truth. Source: `src/` | Changes: [log.md](log.md)
 
+Last updated: 2026-08-16
+
 ---
 
 ## Navigation
@@ -61,7 +63,7 @@ This wiki is the sole source of truth. Source: `src/` | Changes: [log.md](log.md
 | Onboarding flow (5 steps)         | DONE        |
 | Dashboard / groups list (home)    | IN PROGRESS |
 | Group creation flow               | DONE        |
-| People directory (friends list)   | IN PROGRESS |
+| People directory (friends list)   | DONE        |
 | Group detail routes               | DONE        |
 | Member management                 | PENDING     |
 | Category management               | IN PROGRESS |

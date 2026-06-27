@@ -7,7 +7,7 @@ metadata:
 
 # IndexedDB Schema
 
-Last updated: 2026-08-12
+Last updated: 2026-08-16
 
 ## Tables
 
@@ -33,7 +33,7 @@ Single-record store (only one local user per device).
 | createdAt        | number   | unix ms                                                            |
 | frequentPayerIds | UUID[]   | up to 5 memberIds ranked by pay frequency; updated after each expense save |
 
-Initial value on group creation: `[creatorMemberId, ...otherMemberIds_alphabetical]` (up to 5). See [[paid-by]] for update logic.
+Initial value on group creation: `[creatorMemberId]`. See [[paid-by]] for update logic once expenses exist.
 
 ---
 

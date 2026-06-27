@@ -7,7 +7,7 @@ metadata:
 
 # Domain Models
 
-Last updated: 2026-08-12
+Last updated: 2026-08-16
 
 ## LocalUser (Device Owner)
 
@@ -55,7 +55,7 @@ A single device-local directory of people ("friends list"), reused across every 
 
 **Currency** is set once during group creation (MVP: single currency per group, no multi-currency). Default is INR. All expense amounts in the group are assumed to be in this currency.
 
-**Initial value of `frequentPayerIds`** on group creation: `[creatorMemberId, ...otherMemberIds_alphabetical]` — up to 5 total, creator first, rest in alphabetical order by name.
+**Initial value of `frequentPayerIds`** on group creation: `[creatorMemberId]`. Other members are added after the group row exists, but the creator remains the only frequent payer until expense history exists.
 
 **Updated** after every expense save: top 5 members by pay frequency across all group expenses. Tiebreaker: alphabetical order. Stored here to avoid recomputing at render time. See [[paid-by]] for full UX behaviour.
 

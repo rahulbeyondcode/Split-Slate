@@ -7,11 +7,11 @@ metadata:
 
 # State Management
 
-Last updated: 2026-08-12
+Last updated: 2026-08-16
 
 ## Technology
 
-Zustand v5 — single global store, backed by IndexedDB.
+Zustand v5 — single global store, backed by IndexedDB through Dexie.
 
 The public API is `useStore` from `@/shared/configs/store`. The implementation is split into
 domain slices under `src/shared/configs/store/` so each feature owns its state defaults and actions:
@@ -29,45 +29,62 @@ still import one `useStore`; the split is an implementation boundary, not separa
 
 ---
 
-## Planned Store Shape
+## Current Store Shape
 
 ```ts
 interface AppStore {
   // Persisted entities
   localUser: LocalUser | null
+  people: Person[]
   groups: Group[]         // each Group includes frequentPayerIds[]
   members: Member[]       // all members across all groups
   expenses: Expense[]     // all expenses; each includes when, splitType, splitMeta, attachmentIds
   categories: Category[]
   tags: Tag[]
 
-  // Actions — LocalUser
-  setLocalUser: (user: LocalUser) => void
+  // App bootstrap
+  initialized: boolean
+  init: () => Promise<void>
 
   // Actions — Groups
-  createGroup: (name: string, icon: string, currency: string) => Group   // also creates a Member record for LocalUser; initialises frequentPayerIds
-  deleteGroup: (groupId: UUID) => void                  // permanent; cascades members, expenses, categories, attachments
+  createGroup: (name: string, icon: string, currency: string) => Promise<{ group: Group; creatorMember: Member }>
+  updateGroup: (groupId: UUID, patch: Partial<Group>) => Promise<Group>
+
+  // Actions — People
+  setLocalUser: (name: string, icon: string) => Promise<LocalUser>  // also upserts the self Person
+  addPerson: (name: string, icon: string) => Promise<Person>
+  updatePerson: (personId: UUID, patch: Partial<Omit<Person, 'id'>>) => Promise<Person>
+  removePerson: (personId: UUID) => Promise<void>  // blocked if any linked member has expense involvement
 
   // Actions — Members
-  addMember: (groupId: UUID, name: string, icon: string) => Member
-  editMember: (memberId: UUID, name: string, icon: string) => void
-  removeMember: (groupId: UUID, memberId: UUID) => void  // blocked if member has any expense involvement; cleans frequentPayerIds
-
-  // Actions — Expenses
-  addExpense: (expense: Omit<Expense, 'expenseId' | 'createdAt'>) => void   // updates frequentPayerIds after save
-  editExpense: (expenseId: UUID, updates: Partial<Omit<Expense, 'expenseId' | 'groupId' | 'createdAt'>>) => void
-  deleteExpense: (expenseId: UUID) => void                                    // cascades attachments
+  addMember: (groupId: UUID, personId: UUID) => Promise<Member>
+  removeMember: (memberId: UUID) => Promise<void>  // blocked if member has any expense involvement; cleans frequentPayerIds
 
   // Actions — Categories
-  addCategory: (groupId: UUID, name: string) => Category
-  editCategory: (categoryId: UUID, name: string) => void
-  deactivateCategory: (categoryId: UUID) => void
-  reactivateCategory: (categoryId: UUID) => void
+  masterCategories: { name: string; icon: string }[]
+  defaultGroupCategories: string[]
+  addCategory: (groupId: UUID, name: string, icon: string) => Promise<Category>
+  updateCategory: (categoryId: UUID, patch: Partial<Pick<Category, 'name' | 'icon' | 'isActive'>>) => Promise<Category>
+  removeCategory: (categoryId: UUID) => Promise<void>
 
   // Actions — Tags
   addTag: (groupId: UUID, name: string, color: string) => Promise<Tag>
   updateTag: (tagId: UUID, patch: { name?: string, color?: string }) => Promise<Tag>
   removeTag: (tagId: UUID) => Promise<void>   // atomically removes tagIds references from expenses
+
+  // Onboarding flow
+  onboardingStep: SetupStep
+  onboardingLastCompletedStep: SetupStep | null
+  onboardingGroupId: UUID | null
+  onboardingComplete: boolean
+  updateOnboarding: (patch: Partial<Omit<OnboardingSettings, 'id'>>) => Promise<void>
+  advanceOnboarding: (fromStep: SetupStep) => Promise<void>
+  setOnboardingStep: (step: SetupStep) => void
+
+  // Ephemeral create/edit group draft
+  groupDraft: GroupDraft | null
+  setGroupDraft: (draft: GroupDraft | null) => void
+  clearGroupDraft: () => void
 }
 ```
 
@@ -105,7 +122,10 @@ Two deliberate shape decisions:
 - Dexie is the authoritative persistence layer over IndexedDB.
 - Entity mutations validate their input, write to Dexie first, and update Zustand only after the database write succeeds.
 - Zustand holds the hydrated in-memory view of persisted entities; it does not use `persist` middleware.
+- `init()` hydrates entities and settings from IndexedDB and seeds missing settings rows.
 - Mutations spanning multiple tables use a Dexie transaction. Tag deletion, for example, removes the tag and its expense references atomically.
+
+The database definition lives in `src/shared/configs/db.ts`.
 
 See [[indexeddb-schema]] for the underlying table structure.
 

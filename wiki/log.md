@@ -48,6 +48,12 @@ Chronological record of all wiki changes.
 - UPDATED workflows/main-screen.md — documented that dashboard/nav links reference group detail routes that are not implemented yet
 - UPDATED wiki/index.md — reflected pending group detail routes in navigation description and implementation status
 
+## 2026-06-27
+- UPDATED architecture/domain-models.md and systems/indexeddb-schema.md — corrected `frequentPayerIds` initial value to current implementation (`[creatorMemberId]`)
+- UPDATED architecture/state-management.md — Dexie is now the actual IndexedDB wrapper; member/person action signatures aligned with sliced store types
+- UPDATED workflows/group-creation.md and workflows/people-directory.md — clarified create-on-finish timing for member links and inline people
+- UPDATED wiki/index.md — marked People directory DONE to match `/friends` implementation
+
 ## 2026-06-25
 - UPDATED architecture/state-management.md — documented the single Zustand store as domain slices under `src/shared/configs/store/` with one public `useStore`
 - UPDATED wiki/index.md — refreshed the State Management description for the sliced store implementation

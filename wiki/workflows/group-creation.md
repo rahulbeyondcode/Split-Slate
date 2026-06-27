@@ -16,7 +16,7 @@ The creator is not added as a member in this flow's member step — they are add
 
 ## Create-on-finish
 
-Nothing is written until the final "Create group" action. Up to that point the entire flow is in-memory form state. On finish, the group is created first (so it has an id), then categories, then members. Abandoning the flow midway leaves no partial or empty group behind.
+Nothing is written until the final "Create group" action. Up to that point the form is in-memory, with a separate memory-only draft mirrored into the Zustand store for live preview. On finish, the group is created first (so it has an id), then categories, then member links. New inline people are added to the global directory at this same final commit before their member links are created. Abandoning the flow midway leaves no partial group, categories, members, or people behind.
 
 This is the deliberate contrast with onboarding, which persists each step as it completes so an interrupted first-launch can resume. A returning user creating an Nth group has no resume need, so the simpler create-on-finish model applies.
 
@@ -28,4 +28,4 @@ After creation the user lands on the dashboard, where the new group appears. (Th
 - [[solo-group-support]] — why the members step is optional
 - [[domain-models]] — group and member shapes
 
-Last updated: 2026-06-10
+Last updated: 2026-06-27

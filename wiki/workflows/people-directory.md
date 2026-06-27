@@ -7,7 +7,7 @@ metadata:
 
 # People Directory (Friends List)
 
-Last updated: 2026-06-12
+Last updated: 2026-06-27
 
 A single device-local list of people, reused across every group. See [[global-people-directory]] for why this is global rather than per-group.
 
@@ -17,15 +17,16 @@ Reached from the dashboard sidebar ("All Friends"). Lists every person with thei
 
 - **Create:** an emoji + name editor adds a new person to the directory.
 - **Edit:** name and icon can be changed at any time. The change propagates to every group the person is in, because groups resolve a member's display through the person link rather than storing their own copy.
-- **Delete:** allowed only when the person is referenced by **no expense in any group**. On delete, their group memberships and any frequent-payer references are pruned. If they are in an expense, deletion is blocked and the user is told why.
+- **Delete:** allowed only for non-self people and only when the person is referenced by **no expense in any group**. On delete, their group memberships and any frequent-payer references are pruned. If they are in an expense, deletion is blocked and the user is told why.
 
 The device owner appears in the directory as a person too (shared identity with the LocalUser) so "you" can participate and be balanced uniformly.
 
 ## Picking People at Group Creation
 
-The member step of group creation lists the existing directory and lets the creator select who belongs in this group. A new person can also be added inline; doing so creates them in the directory.
+The member step of group creation lists the existing directory and lets the creator select who belongs in this group. A new person can also be added inline, but it is only saved to the directory on the final Create action.
 
-- Selected people are instantiated as group members when the step is saved (not on each toggle), mirroring how categories are committed on save.
+- Selected existing people are held in the in-memory group form until the final Create action. At that point they are instantiated as group members.
+- New inline people are also held in the form first; on Create, they are saved to the directory and then linked into the group.
 - The creator (you) is always a member and is not shown as a selectable row.
 
 ## Membership vs Person
