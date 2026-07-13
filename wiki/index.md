@@ -11,10 +11,10 @@ Last updated: 2026-08-16
 
 ### Architecture
 - [Domain Models](architecture/domain-models.md) — Group, Member, Expense, Category, LocalUser shapes and invariants
-- [Balance Calculation](architecture/balance-calculation.md) — net = totalPaid − totalOwed; worked example; debt simplification
+- [Balance Calculation](architecture/balance-calculation.md) — current inline group-total calculation; member-net formula and planned debt simplification
 - [State Management](architecture/state-management.md) — Dexie-first persistence with one hydrated Zustand store composed from domain slices, including group tags
 - [Split Types](architecture/split-types.md) — 5 split types (equal, amount, shares, percentage, adjustment); mechanics, UX, validation, splitMeta storage
-- [Layout Architecture](architecture/layout-architecture.md) — two-mode responsive layout (mobile vs desktop); useViewport hook; AppFooter; AppSidebar
+- [Layout Architecture](architecture/layout-architecture.md) — current mobile/tablet/desktop shell, route stubs, sidebar, footer, and activity panel
 
 ### Decisions
 - [Global People Directory](decisions/global-people-directory.md) — device-local friends list; members link to shared people; supersedes per-group members
@@ -26,7 +26,7 @@ Last updated: 2026-08-16
 - [Group Deletion](decisions/group-deletion.md) — approved pending design for permanent deletion with a full related-data cascade and irreversible warning
 
 ### Systems
-- [IndexedDB Schema](systems/indexeddb-schema.md) — tables, primary keys, indexes, access patterns (includes attachments + the typed `settings` store)
+- [IndexedDB Schema](systems/indexeddb-schema.md) — current tables and indexes, including tags, plus the unresolved version-1 migration risk
 
 ### Workflows
 - [Onboarding](workflows/onboarding.md) — first-launch flow; standard path and import-based entry points
@@ -38,7 +38,7 @@ Last updated: 2026-08-16
 - [Category Management](workflows/category-management.md) — DB-backed master list + group-level selection at creation (≥1 mandatory, defaults pre-selected); custom categories addable anytime; guarded and confirmed delete
 - [Tag Management](workflows/tag-management.md) — named and colored group-scoped tags; preset/custom hex picker; optional expense references; atomic cascade deletion
 - [Filtering](workflows/filtering.md) — expense list filtering across 8 fields (name, date, category, tags, paid-by, member, split type, amount); all ANDed, not persisted
-- [Dashboard](workflows/dashboard.md) — dashboard main pane: overall summary, per-group cards, unsettled balances, category chart, activity; multi-currency edge case
+- [Dashboard](workflows/dashboard.md) — current groups-list implementation and the planned summaries, analytics, and activity views
 
 ### Ideas (captured, not committed)
 - [Rewarded Ads](ideas/rewarded-ads.md) — optional ad-watch → credits → Pro unlock mechanic; fully opt-in
@@ -55,25 +55,37 @@ Last updated: 2026-08-16
 
 ## Implementation Status
 
-| Area                              | Status      |
-|-----------------------------------|-------------|
-| Project scaffold                  | DONE        |
-| Routing skeleton                  | DONE        |
-| IndexedDB layer + Zustand store   | DONE        |
-| Onboarding flow (5 steps)         | DONE        |
-| Dashboard / groups list (home)    | IN PROGRESS |
-| Group creation flow               | DONE        |
-| People directory (friends list)   | DONE        |
-| Group detail routes               | DONE        |
-| Member management                 | PENDING     |
-| Category management               | IN PROGRESS |
-| Add / edit / delete expense       | PENDING     |
-| Split types (5 types)             | PENDING     |
-| Paid-by (frequent payers UI)      | PENDING     |
-| Expense list + filtering          | PENDING     |
-| Balances tab                      | PENDING     |
-| Export (Link / CSV / ZIP)         | PENDING     |
-| Import (view-only + as your group)| PENDING     |
+| Area                               | Status      |
+|------------------------------------|-------------|
+| Project scaffold                   | DONE        |
+| Routing and responsive app shell   | IN PROGRESS |
+| IndexedDB layer + Zustand store    | IN PROGRESS |
+| Onboarding flow (5 steps)          | DONE        |
+| Dashboard / groups list (home)     | IN PROGRESS |
+| Group detail routes                | DONE        |
+| Group overview                     | IN PROGRESS |
+| Group creation flow                | DONE        |
+| People directory (friends list)    | DONE        |
+| Member management                  | PENDING     |
+| Category management                | IN PROGRESS |
+| Tag management                     | IN PROGRESS |
+| Add / edit / delete expense        | PENDING     |
+| Split types (5 types)              | PENDING     |
+| Paid-by (frequent payers UI)       | PENDING     |
+| Expense list + filtering           | IN PROGRESS |
+| Balances / who-owes-whom view      | PENDING     |
+| Receipt attachments                | PENDING     |
+| Group settings + deletion          | PENDING     |
+| Export (Link / CSV / ZIP)          | PENDING     |
+| Import (view-only + as your group) | PENDING     |
+| Installable/offline PWA support    | PENDING     |
+| Automated tests                    | PENDING     |
+
+`IndexedDB layer + Zustand store` remains in progress because the current schema works for a
+fresh database but has no versioned migration path for databases created by older builds. See
+[[indexeddb-schema]]. All group-detail destinations have routes, but several are lightweight or
+partial. Dashboard-level footer items for Activity, Unsettled, Analytics, and Settings remain
+unmatched; see [[layout-architecture]].
 
 ---
 

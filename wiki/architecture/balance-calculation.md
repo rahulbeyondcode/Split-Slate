@@ -7,7 +7,16 @@ metadata:
 
 # Balance Calculation
 
-Last updated: 2026-05-17
+Last updated: 2026-08-16
+
+## Implementation Status
+
+The committed group overview calculates total group spend inline by summing every `paid`
+transaction. The sidebar group item still displays a hardcoded balance placeholder.
+
+There is no committed reusable member-net helper, all-member balance map, debt-simplification
+helper, or who-owes-whom screen yet. Expense mutation is also pending, so normal UI flows cannot
+create the expense data consumed by the existing read-only group screens.
 
 ## Core Formula
 
@@ -25,7 +34,7 @@ net = totalPaid - totalOwed
 
 ---
 
-## Algorithm
+## Target All-Member Algorithm
 
 ```ts
 function calculateBalances(expenses: Expense[], memberIds: UUID[]): Map<UUID, number> {
@@ -46,9 +55,9 @@ function calculateBalances(expenses: Expense[], memberIds: UUID[]): Map<UUID, nu
 
 ---
 
-## Deriving "Who Owes Whom"
+## Deriving "Who Owes Whom" (planned)
 
-From the net map, produce a minimal set of transactions (debt simplification):
+The target balances view will derive settlement suggestions from the net map:
 
 1. Separate members into creditors (net > 0) and debtors (net < 0)
 2. Greedily match largest debtor to largest creditor

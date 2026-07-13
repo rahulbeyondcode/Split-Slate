@@ -48,6 +48,13 @@ Chronological record of all wiki changes.
 - UPDATED workflows/main-screen.md — documented that dashboard/nav links reference group detail routes that are not implemented yet
 - UPDATED wiki/index.md — reflected pending group detail routes in navigation description and implementation status
 
+## 2026-07-13 (source reconciliation)
+- UPDATED wiki/index.md — reconciled the status table with current source; added group overview, tags, attachments, group deletion, PWA, and test coverage; marked routing and persistence in progress
+- UPDATED systems/indexeddb-schema.md — separated current tables from planned tags/attachment behavior; documented the unchanged Dexie version-1 migration and legacy self-person/member backfill risk
+- UPDATED architecture/layout-architecture.md — corrected viewport rendering, missing routes, tablet activity behavior, and hardcoded desktop activity
+- UPDATED architecture/balance-calculation.md — recorded the current member-net/group-total helpers and marked all-member debt simplification as pending
+- UPDATED workflows/dashboard.md — separated the basic implemented group list from planned summaries, analytics, unsettled balances, and real activity
+
 ## 2026-06-27
 - UPDATED architecture/domain-models.md and systems/indexeddb-schema.md — corrected `frequentPayerIds` initial value to current implementation (`[creatorMemberId]`)
 - UPDATED architecture/state-management.md — Dexie is now the actual IndexedDB wrapper; member/person action signatures aligned with sliced store types

@@ -1,20 +1,39 @@
 # Dashboard View
 
-Last updated: 2026-06-05
+Last updated: 2026-08-16
 
-**Purpose:** The default home view — shows a cross-group financial summary for the local user.
+**Purpose:** Record the current dashboard implementation and the target cross-group summary design.
+
+## Current Implementation
+
+The dashboard currently renders:
+
+- A static `"Hi, {name}"` greeting using the local user's name and icon
+- A New Group link
+- An empty-state prompt when there are no groups
+- A simple group list showing icon, name, and currency
+- Links from each group row to that group's Overview route
+
+The main dashboard does not yet compute balances, category totals, unsettled debts, or activity. It
+renders groups in store order rather than by recent activity. The desktop right pane renders
+hardcoded sample activity; tablet renders no activity section. Each group link opens the committed
+nested group-detail route, whose overview currently shows member count, expense count, and total
+paid. The richer financial overview remains in progress.
+
+## Target Design
 
 ---
 
 ## Page Header
 
-The dashboard page opens with a time-aware greeting using the device clock (e.g. "Good morning Rahul"). This is part of the page content, not a persistent chrome element — it appears only on the dashboard, on both mobile and desktop.
+The target dashboard opens with a time-aware greeting using the device clock (e.g. "Good morning
+Rahul"). This remains planned; the current greeting is always `"Hi"`.
 
 Light/dark mode toggle lives in Settings, not on the dashboard.
 
 ---
 
-## Sections
+## Planned Sections
 
 ### 1. Overall Summary
 
@@ -63,16 +82,16 @@ A feed of recent actions across all groups. Each activity item is a two-line, tw
 - **Line 1:** Left — who did what (e.g. "Rahul paid Scooty rentals"); Right — amount (e.g. "₹2,400")
 - **Line 2:** Group name + time ago (e.g. "Goa Trip — 7hrs ago")
 
-**Placement by breakpoint:**
+**Target placement by breakpoint:**
 - Desktop (1080px+): shown in the dedicated right-side activity panel, not in the main pane
 - Tablet (768px–1079px): appears as a section stacked below main content, under an "Activity" heading
-- Mobile: TBD — to be discussed when mobile layout is designed
+- Mobile: dedicated Activity destination in the footer navigation
 
 **Empty state:** Empty feed with a no-records message.
 
 ---
 
-## Mobile Content Mapping
+## Planned Mobile Content Mapping
 
 On mobile, the dashboard content is not a single pane — it is distributed across the bottom nav tabs. No content is dropped; it is reorganised:
 
@@ -84,13 +103,15 @@ On mobile, the dashboard content is not a single pane — it is distributed acro
 | Category spending chart | Analytics tab |
 | App settings + profile editing | Settings tab |
 
-The Groups tab on mobile is the home screen. It shows the overall summary (total to get / total to give) at the top, followed by the groups list with Add New Group below it.
+Only the Groups/Dashboard destination is currently routed. The other footer items are visible but
+their route components have not been implemented.
 
 ---
 
 ## Navigation
 
-Clicking a per-group stat card navigates to that group's Overview route. The sidebar selection updates to the active group.
+Clicking a current group row navigates to that group's lightweight Overview route. The sidebar group
+item also links to the Overview and detects the active `groupId`.
 
 ---
 

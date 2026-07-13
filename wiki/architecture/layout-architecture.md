@@ -1,21 +1,23 @@
 ---
 name: layout-architecture
-description: Two-mode responsive layout system — mobile vs desktop — and the components that implement it
+description: Responsive mobile, tablet, and desktop shell and the components that implement it
 metadata:
   type: architecture
 ---
 
 # Layout Architecture
 
-Last updated: 2026-08-10
+Last updated: 2026-08-16
 
-## Two Layout Modes
+## Viewport States
 
-The app has exactly two layout modes. Tablet and desktop are unified into one mode; differences between them are handled with CSS only.
+The app uses three viewport states from `useViewport`: mobile, tablet, and desktop. `AppLayout`
+conditionally renders navigation chrome for each state, so the component tree differs by viewport.
 
 ### Mobile (< 768px)
 
-Mobile is the primary surface — no features are dropped relative to desktop. The same content is reorganised to fit a single-column layout.
+Mobile renders the main route outlet and a fixed, context-aware footer. It does not render the
+sidebar or activity panel.
 
 There is no persistent top bar or app chrome header on mobile. The greeting and theme toggle are dashboard page content, not chrome — see [[dashboard]] for details.
 
@@ -26,23 +28,27 @@ There is no persistent top bar or app chrome header on mobile. The greeting and 
 | Home | Groups, Activity, Unsettled, Analytics, Settings |
 | Inside a group | Overview, Expenses, Members, Categories & Tags, Settings |
 
-Each bottom nav item replaces the full-screen content area with its corresponding view. There is no FAB — the Add New Group button lives inside the Groups view, in context with the groups list.
+The Groups destination works. The dashboard-level Activity, Unsettled, Analytics, and Settings
+destinations are navigation stubs whose routes have not been registered. All five in-group footer
+destinations resolve to nested group-detail routes, although several screens remain lightweight.
+There is no FAB; the New Group action lives inside the dashboard.
 
 **No sidebar.** All navigation that lives in the sidebar on desktop is handled by the top bar and bottom nav on mobile.
 
 ### Tablet (768px – 1079px)
 
 - Two-pane layout: sidebar on left, main content on right
-- Activity section appears stacked below main content in the right pane, under an explicit "Activity" heading — not a separate third column
+- No activity panel or stacked activity section is currently rendered
 - No footer
 
 ### Desktop (1080px+)
 
 - Three-pane layout: sidebar on left, main content in centre, activity panel on right
-- Activity panel is always visible as a dedicated third column
+- Activity panel is visible as a dedicated third column
 - No footer
 
-Differences between tablet and desktop (activity panel becoming a separate column, sidebar width, grid density) are handled entirely with CSS — the component tree is identical at both sizes.
+The desktop activity panel currently shows hardcoded sample activity. On group create/edit routes it
+is replaced by the live group-draft preview. A real activity data model/feed has not been implemented.
 
 ---
 
@@ -61,7 +67,7 @@ On dashboard routes, top to bottom:
 1. **App logo** — always at the top
 2. **Dashboard menu items** — Dashboard and All Friends
 3. **Groups list** — scrollable list of group item components
-4. **Add new group button** — below the groups list
+4. **Add new group link** — beside the groups-list heading
 5. **Profile + settings icon** — always at the bottom
 
 Inside a group, top to bottom:
@@ -89,19 +95,19 @@ Each group in the sidebar list is a self-contained component with:
 
 - **Group icon** — emoji or letter avatar
 - **Group name**
-- **Net balance** — positive (green) means the user is owed money; negative (red) means the user owes money
-- **Member count** — e.g. "10 members"
+- **Member avatars** — up to three, followed by an overflow count
 - **Expense count** — e.g. "21 expenses"
+- **Balance placeholder** — currently hardcoded; real member-net calculation is pending
 
 ---
 
 ## Chrome Components
 
-All content components (cards, expense rows, etc.) are identical across both modes. Only the navigation chrome differs:
+Route content is shared across viewport states. The navigation chrome differs:
 
 - **Footer** — mobile only; route-aware; switches its content based on the current path
 - **Sidebar** — tablet and desktop only; always visible
-- **Activity panel** — desktop only (1080px+); on tablet, activity content is stacked below main content
+- **Activity panel** — desktop only (1080px+); currently sample data except for the create-group live preview
 
 ### Bottom nav behaviour by route (mobile)
 
@@ -109,6 +115,9 @@ All content components (cards, expense rows, etc.) are identical across both mod
 |-------|-----------------|
 | Home | Groups, Activity, Unsettled, Analytics, Settings |
 | Inside a group | Overview, Expenses, Members, Categories & Tags, Settings |
+
+All in-group destinations resolve to nested routes. On the dashboard footer, only Groups resolves;
+Activity, Unsettled, Analytics, and Settings still lead to unmatched routes.
 
 ---
 

@@ -9,6 +9,23 @@ metadata:
 
 Last updated: 2026-08-16
 
+## Current Implementation Scope
+
+`src/shared/configs/db.ts` currently declares these Dexie stores: `localUser`, `groups`, `people`,
+`members`, `categories`, `tags`, `expenses`, `attachments`, and `settings`.
+
+All schema revisions to date are still declared as Dexie database version `1`. Earlier builds used
+different version-1 schemas (including an `onboarding` store instead of `settings`, no `people`
+store, and members without `personId`). Dexie will not run an upgrade when an existing version-1
+database opens against another version-1 declaration. A new database version and explicit data
+migration/backfill are therefore required before existing installations can be considered safe.
+In particular, an existing `localUser` must be mirrored into `people`, and legacy members need a
+valid `personId`.
+
+App bootstrap currently calls the async store initializer without an error boundary or visible
+failure state. A schema/opening failure can leave the route protector waiting indefinitely for
+`initialized`.
+
 ## Tables
 
 ### `localUser`
@@ -31,9 +48,11 @@ Single-record store (only one local user per device).
 | icon             | string   | emoji character                                                    |
 | currency         | string   | ISO 4217 code e.g. "INR"; defaults to "INR"; set at group creation |
 | createdAt        | number   | unix ms                                                            |
-| frequentPayerIds | UUID[]   | up to 5 memberIds ranked by pay frequency; updated after each expense save |
+| frequentPayerIds | UUID[]   | memberIds intended to rank frequent payers; expense-driven ranking is pending |
 
-Initial value on group creation: `[creatorMemberId]`. See [[paid-by]] for update logic once expenses exist.
+Initial value on group creation is currently `[creatorMemberId]`. Updating the ranking after an
+expense save is planned but no expense-save action exists yet. See [[paid-by]] for the target UI and
+ranking behavior.
 
 ---
 
@@ -82,25 +101,30 @@ Indexes: `groupId` (members of a group), `personId` (groups a person is in — u
 
 Index: `groupId` — used to fetch all expenses for a group.
 
-All object fields (`tagIds`, `splitMeta`, `transactions`, `attachmentIds`) are stored as nested JSON — IndexedDB supports this natively.
+All object fields (`tagIds`, `splitMeta`, `transactions`, `attachmentIds`) are stored as nested JSON
+— IndexedDB supports this natively. The TypeScript shape, Dexie table, bootstrap hydration, and a
+lightweight expense-list route exist; expense create/edit/delete actions and entry screens do not.
 
 ---
 
 ### `attachments`
 
-Stores receipt image blobs. Kept separate from `expenses` so that expense records load without pulling image data (lazy loading).
+The declared table is intended to store receipt image blobs separately so expense records can load
+without pulling image data.
 
 | Field      | Type   | Notes                            |
 |------------|--------|----------------------------------|
 | id         | UUID   | primary key                      |
 | expenseId  | UUID   | index → foreign key to expenses  |
-| blob       | Blob   | compressed image (max ~1920px)   |
+| blob       | Blob   | image blob                        |
 | mimeType   | string | e.g. `image/jpeg`, `image/png`   |
 | createdAt  | number | unix ms                          |
 
 Index: `expenseId` — used to fetch all attachments for a given expense.
 
-Images are compressed on ingest before storage. No hard limit on count per expense.
+The table and `Attachment` type exist, but attachment ingestion, compression, and store actions are
+not implemented. Compression to a maximum dimension remains a target described by the import/export
+design, not current behavior.
 
 ---
 
@@ -129,7 +153,9 @@ Index: `groupId` — used to fetch categories for a group.
 
 Index: `groupId` — used to fetch all tags for a group.
 
-Tags are optional from the expense perspective. Deleting a tag and removing its ID from every referencing expense happens in one IndexedDB transaction. See [[tag-management]].
+Tags are optional from the expense perspective and have no `isActive` field. Deleting a tag and
+removing its ID from every referencing expense happens in one IndexedDB transaction. See
+[[tag-management]].
 
 ---
 
