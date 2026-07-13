@@ -4,6 +4,15 @@ Chronological record of all wiki changes.
 
 ---
 
+## 2026-08-16 (cross-system history reconciliation)
+- UPDATED architecture/domain-models.md and architecture/state-management.md — combined the newer tag/category implementation with valid local frequent-payer, people, onboarding, draft, and Dexie corrections
+- UPDATED architecture/balance-calculation.md and architecture/layout-architecture.md — aligned current balance and responsive-route claims with committed source while retaining target designs
+- UPDATED systems/indexeddb-schema.md — retained the implemented tags schema and documented the unresolved Dexie version-1 migration risk and unimplemented expense/attachment mutations
+- UPDATED workflows/group-creation.md and workflows/people-directory.md — preserved final-submit timing and self-person safety clarifications from the local history
+- UPDATED workflows/dashboard.md and workflows/main-screen.md — reconciled the older standalone-overview notes with the newer nested group-detail routes and lightweight screens
+- UPDATED wiki/index.md — reconciled implementation statuses and navigation summaries against current source
+- UPDATED wiki/log.md — preserved both chronological histories and recorded their semantic reconciliation
+
 ## 2026-08-12
 - UPDATED decisions/group-deletion.md — clarified that permanent group deletion and its full cascade are approved but not yet implemented
 - UPDATED wiki/index.md — marked group deletion as an approved pending design
@@ -54,6 +63,10 @@ Chronological record of all wiki changes.
 - UPDATED architecture/layout-architecture.md — corrected viewport rendering, missing routes, tablet activity behavior, and hardcoded desktop activity
 - UPDATED architecture/balance-calculation.md — recorded the current member-net/group-total helpers and marked all-member debt simplification as pending
 - UPDATED workflows/dashboard.md — separated the basic implemented group list from planned summaries, analytics, unsettled balances, and real activity
+
+## 2026-07-13 (main-screen reconciliation)
+- UPDATED workflows/main-screen.md — documented current dashboard-to-overview navigation, group overview contents, sidebar balances, and missing routes; relabeled expense/balance views and group menu as target design
+- UPDATED wiki/index.md — refreshed the Main Screen description to distinguish current navigation from planned in-group behavior
 
 ## 2026-06-27
 - UPDATED architecture/domain-models.md and systems/indexeddb-schema.md — corrected `frequentPayerIds` initial value to current implementation (`[creatorMemberId]`)

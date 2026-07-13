@@ -31,7 +31,7 @@ Last updated: 2026-08-16
 ### Workflows
 - [Onboarding](workflows/onboarding.md) — first-launch flow; standard path and import-based entry points
 - [Group Creation](workflows/group-creation.md) — standalone post-onboarding flow; 4 steps, create-on-finish; shares step components with onboarding
-- [Main Screen](workflows/main-screen.md) — groups list home, lightweight group routes, expense list structure, and route/add-expense TODOs
+- [Main Screen](workflows/main-screen.md) — current dashboard and nested group-detail routes; planned expense entry and balance views
 - [Paid-By](workflows/paid-by.md) — frequent payers quick-select, pre-selection logic, multi-payer mode
 - [People Directory](workflows/people-directory.md) — global friends list; manage people; pick them when building a group
 - [Member Management](workflows/member-management.md) — members link to people; two removal scopes (per-group vs directory-wide)
