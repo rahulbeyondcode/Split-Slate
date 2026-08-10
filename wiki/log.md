@@ -4,6 +4,10 @@ Chronological record of all wiki changes.
 
 ---
 
+## 2026-08-10
+- UPDATED workflows/main-screen.md — documented that dashboard/nav links reference group detail routes that are not implemented yet
+- UPDATED wiki/index.md — reflected pending group detail routes in navigation description and implementation status
+
 ## 2026-06-25
 - UPDATED architecture/state-management.md — documented the single Zustand store as domain slices under `src/shared/configs/store/` with one public `useStore`
 - UPDATED wiki/index.md — refreshed the State Management description for the sliced store implementation

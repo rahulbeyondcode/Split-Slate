@@ -29,7 +29,7 @@ This wiki is the sole source of truth. Source: `src/` | Changes: [log.md](log.md
 ### Workflows
 - [Onboarding](workflows/onboarding.md) — first-launch flow; standard path and import-based entry points
 - [Group Creation](workflows/group-creation.md) — standalone post-onboarding flow; 4 steps, create-on-finish; shares step components with onboarding
-- [Main Screen](workflows/main-screen.md) — groups list home, in-group tabs, expense list structure
+- [Main Screen](workflows/main-screen.md) — groups list home, pending group detail routes, in-group tabs, expense list structure
 - [Paid-By](workflows/paid-by.md) — frequent payers quick-select, pre-selection logic, multi-payer mode
 - [People Directory](workflows/people-directory.md) — global friends list; manage people; pick them when building a group
 - [Member Management](workflows/member-management.md) — members link to people; two removal scopes (per-group vs directory-wide)
@@ -62,6 +62,7 @@ This wiki is the sole source of truth. Source: `src/` | Changes: [log.md](log.md
 | Dashboard / groups list (home)    | IN PROGRESS |
 | Group creation flow               | DONE        |
 | People directory (friends list)   | IN PROGRESS |
+| Group detail routes               | PENDING     |
 | Member management                 | PENDING     |
 | Category management               | PENDING     |
 | Add / edit / delete expense       | PENDING     |
