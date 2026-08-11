@@ -9,6 +9,7 @@ import type {
   Member,
   Person,
   SettingsRecord,
+  Tag,
 } from "@/shared/types/domain.types";
 
 class SplitSlateDatabase extends Dexie {
@@ -17,6 +18,7 @@ class SplitSlateDatabase extends Dexie {
   people!: EntityTable<Person, "id">;
   members!: EntityTable<Member, "id">;
   categories!: EntityTable<Category, "id">;
+  tags!: EntityTable<Tag, "id">;
   expenses!: EntityTable<Expense, "expenseId">;
   attachments!: EntityTable<Attachment, "id">;
   settings!: EntityTable<SettingsRecord, "id">;
@@ -29,6 +31,7 @@ class SplitSlateDatabase extends Dexie {
       people: "id",
       members: "id, groupId, personId",
       categories: "id, groupId",
+      tags: "id, groupId",
       expenses: "expenseId, groupId",
       attachments: "id, expenseId",
       settings: "id",

@@ -7,7 +7,7 @@ metadata:
 
 # Main Screen
 
-Last updated: 2026-08-10
+Last updated: 2026-08-12
 
 ## Home (Groups List)
 
@@ -25,6 +25,8 @@ Current implementation status: `/dashboard` renders a basic groups list and link
 ## Inside a Group
 
 Current implementation status: the app layout navigation declares group-level entries for overview, expenses, members, categories/tags, and settings. These routes exist with lightweight screens; full feature workflows remain pending.
+
+Low-priority TODO: if someone manually replaces `:groupId` in the browser URL while a category or tag editor is open, reset the editor's local state for the new group. Normal in-app navigation unmounts the group screen and is unaffected; group IDs are UUIDs, so this is not a priority for the current flow.
 
 ### Tabs
 
@@ -50,6 +52,7 @@ Expenses are sorted by `when` descending — most recent expense date first.
 ### Primary CTA
 
 - **Add Expense** button — always visible and prominent
+- **Current implementation TODO:** the button currently opens the lightweight expense-list route; the add-expense form will be implemented next
 
 ### Group Menu
 

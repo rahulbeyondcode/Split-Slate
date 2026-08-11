@@ -7,7 +7,7 @@ metadata:
 
 # State Management
 
-Last updated: 2026-06-25
+Last updated: 2026-08-12
 
 ## Technology
 
@@ -20,6 +20,7 @@ domain slices under `src/shared/configs/store/` so each feature owns its state d
 - `people-slice.ts` — `localUser`, people directory, and person mutations
 - `groups-slice.ts` — groups, members, group mutations, and member mutations
 - `categories-slice.ts` — group categories plus master/default category settings
+- `tags-slice.ts` — group-scoped tag records and atomic expense-reference cleanup
 - `onboarding-slice.ts` — onboarding flow state and progress actions
 - `group-draft-slice.ts` — memory-only create-group draft for live preview
 
@@ -38,6 +39,7 @@ interface AppStore {
   members: Member[]       // all members across all groups
   expenses: Expense[]     // all expenses; each includes when, splitType, splitMeta, attachmentIds
   categories: Category[]
+  tags: Tag[]
 
   // Actions — LocalUser
   setLocalUser: (user: LocalUser) => void
@@ -61,6 +63,11 @@ interface AppStore {
   editCategory: (categoryId: UUID, name: string) => void
   deactivateCategory: (categoryId: UUID) => void
   reactivateCategory: (categoryId: UUID) => void
+
+  // Actions — Tags
+  addTag: (groupId: UUID, name: string, color: string) => Promise<Tag>
+  updateTag: (tagId: UUID, patch: { name?: string, color?: string }) => Promise<Tag>
+  removeTag: (tagId: UUID) => Promise<void>   // atomically removes tagIds references from expenses
 }
 ```
 
@@ -74,6 +81,7 @@ These are derived at read time, never stored:
 - "Who owes whom" list → derived from net balances
 - Members of a specific group → filtered from `members[]` by `groupId`
 - Expenses of a specific group → filtered from `expenses[]` by `groupId`
+- Tags of a specific group → filtered from `tags[]` by `groupId`
 
 ---
 
@@ -94,8 +102,10 @@ Two deliberate shape decisions:
 
 ## Persistence Strategy
 
-- Zustand `persist` middleware → writes to IndexedDB via a custom storage adapter
-- Dexie.js is an optional IndexedDB wrapper — decision pending on whether to use it or the raw IndexedDB API
+- Dexie is the authoritative persistence layer over IndexedDB.
+- Entity mutations validate their input, write to Dexie first, and update Zustand only after the database write succeeds.
+- Zustand holds the hydrated in-memory view of persisted entities; it does not use `persist` middleware.
+- Mutations spanning multiple tables use a Dexie transaction. Tag deletion, for example, removes the tag and its expense references atomically.
 
 See [[indexeddb-schema]] for the underlying table structure.
 

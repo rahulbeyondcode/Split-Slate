@@ -1,34 +1,37 @@
 ---
 name: group-deletion
-description: Group deletion is permanent and cascades all related data from IndexedDB
+description: Approved pending design for permanent group deletion and its IndexedDB cascade
 metadata:
   type: decisions
 ---
 
 # Decision: Group Deletion
 
-Last updated: 2026-05-18
+Last updated: 2026-08-12
 
 ## Decision
 
-Groups can be deleted. Deletion is permanent and cannot be undone. The user is clearly warned before proceeding.
+Group deletion will be permanent and cannot be undone. The user must be clearly warned before proceeding.
+
+Implementation status: approved design, not yet implemented. The current group store and settings screen do not expose group deletion.
 
 ## Cascade
 
-Deleting a group removes every piece of data associated with it from IndexedDB — nothing is left behind:
+When implemented, deleting a group must remove every piece of data associated with it from IndexedDB — nothing may be left behind:
 
 - All `members` with matching `groupId`
 - All `expenses` with matching `groupId`
 - All `attachments` whose `expenseId` belongs to a deleted expense
 - All `categories` with matching `groupId`
+- All `tags` with matching `groupId`
 - The `group` record itself
 
-After deletion, the group disappears from the groups list immediately.
+After a successful deletion, the group must disappear from the groups list immediately.
 
 ## Warning
 
-Before deletion is confirmed, the app shows a clear, irreversible-action warning:
-> "Deleting this group is permanent and cannot be undone. All expenses, members, categories, and attachments will be deleted."
+Before deletion is confirmed, the app must show a clear, irreversible-action warning:
+> "Deleting this group is permanent and cannot be undone. All expenses, members, categories, tags, and attachments will be deleted."
 
 ## Related
 

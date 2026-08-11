@@ -33,6 +33,13 @@ export interface Category {
   isActive: boolean;
 }
 
+export interface Tag {
+  id: string;
+  groupId: string;
+  name: string;
+  color: string;
+}
+
 export interface SplitMeta {
   memberId: string;
   value: number;
@@ -57,7 +64,7 @@ export interface Expense {
     paid: Transaction[];
     owes: Transaction[];
   };
-  tags: string[];
+  tagIds: string[];
   attachmentIds: string[];
 }
 

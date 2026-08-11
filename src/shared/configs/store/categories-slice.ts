@@ -12,19 +12,58 @@ export const createCategoriesSlice: SliceCreator<CategoriesSlice> = (set, get) =
   defaultGroupCategories: [],
 
   addCategory: async (groupId, name, icon) => {
-    const category: Category = { id: uuid(), groupId, name, icon, isActive: true };
+    const normalizedName = name.trim();
+    if (!normalizedName) {
+      throw new Error("Category name is required");
+    }
+    const duplicate = get().categories.some(
+      (category) =>
+        category.groupId === groupId &&
+        category.name.trim().toLowerCase() === normalizedName.toLowerCase(),
+    );
+    if (duplicate) {
+      throw new Error("Category already exists");
+    }
+
+    const category: Category = {
+      id: uuid(),
+      groupId,
+      name: normalizedName,
+      icon,
+      isActive: true,
+    };
     await db.categories.add(category);
     set((s) => ({ categories: [...s.categories, category] }));
     return category;
   },
 
   updateCategory: async (categoryId, patch) => {
-    await db.categories.update(categoryId, patch);
     const existing = get().categories.find((category) => category.id === categoryId);
     if (!existing) {
-      throw new Error("category not found");
+      throw new Error("Category not found");
     }
-    const updated: Category = { ...existing, ...patch };
+
+    const normalizedPatch = {
+      ...patch,
+      ...(patch.name !== undefined ? { name: patch.name.trim() } : {}),
+    };
+    if (normalizedPatch.name !== undefined && !normalizedPatch.name) {
+      throw new Error("Category name is required");
+    }
+    if (normalizedPatch.name !== undefined) {
+      const duplicate = get().categories.some(
+        (category) =>
+          category.groupId === existing.groupId &&
+          category.id !== categoryId &&
+          category.name.trim().toLowerCase() === normalizedPatch.name?.toLowerCase(),
+      );
+      if (duplicate) {
+        throw new Error("Category already exists");
+      }
+    }
+
+    await db.categories.update(categoryId, normalizedPatch);
+    const updated: Category = { ...existing, ...normalizedPatch };
     set((s) => ({
       categories: s.categories.map((category) => (category.id === categoryId ? updated : category)),
     }));

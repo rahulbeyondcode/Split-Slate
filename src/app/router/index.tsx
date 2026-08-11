@@ -1,5 +1,10 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 
+import CategoriesAndTags from "@/features/group-detail/components/categories-and-tags";
+import ExpenseList from "@/features/group-detail/components/expense-list";
+import GroupOverview from "@/features/group-detail/components/group-overview";
+import GroupSettings from "@/features/group-detail/components/group-settings";
+import MemberList from "@/features/group-detail/components/member-list";
 import FeatureCarousel from "@/features/onboarding/components/feature-carousel";
 import SetupFlow from "@/features/onboarding/components/setup-flow";
 import PeopleList from "@/features/people/components/people-list";
@@ -23,11 +28,17 @@ export const router = createBrowserRouter([
           { path: "/dashboard", element: <Dashboard /> },
           { path: "/friends", element: <PeopleList /> },
           { path: "/groups/new", element: <CreateGroup /> },
-          { path: "/groups/:groupId", element: <GroupDetail /> },
-          { path: "/groups/:groupId/expenses", element: <GroupDetail /> },
-          { path: "/groups/:groupId/members", element: <GroupDetail /> },
-          { path: "/groups/:groupId/categories", element: <GroupDetail /> },
-          { path: "/groups/:groupId/settings", element: <GroupDetail /> },
+          {
+            path: "/groups/:groupId",
+            element: <GroupDetail />,
+            children: [
+              { index: true, element: <GroupOverview /> },
+              { path: "expenses", element: <ExpenseList /> },
+              { path: "members", element: <MemberList /> },
+              { path: "categories", element: <CategoriesAndTags /> },
+              { path: "settings", element: <GroupSettings /> },
+            ],
+          },
         ],
       },
     ],

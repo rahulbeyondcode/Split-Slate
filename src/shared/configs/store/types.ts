@@ -10,6 +10,7 @@ import type {
   OnboardingSettings,
   Person,
   SetupStep,
+  Tag,
 } from "@/shared/types/domain.types";
 
 export interface AppSlice {
@@ -17,7 +18,6 @@ export interface AppSlice {
   initialized: boolean;
 
   init: () => Promise<void>;
-  removeTagFromGroupExpenses: (groupId: string, tag: string) => Promise<void>;
 }
 
 export interface PeopleSlice {
@@ -50,8 +50,19 @@ export interface CategoriesSlice {
   defaultGroupCategories: string[];
 
   addCategory: (groupId: string, name: string, icon: string) => Promise<Category>;
-  updateCategory: (categoryId: string, patch: Partial<Omit<Category, "id">>) => Promise<Category>;
+  updateCategory: (
+    categoryId: string,
+    patch: Partial<Pick<Category, "name" | "icon" | "isActive">>,
+  ) => Promise<Category>;
   removeCategory: (categoryId: string) => Promise<void>;
+}
+
+export interface TagsSlice {
+  tags: Tag[];
+
+  addTag: (groupId: string, name: string, color: string) => Promise<Tag>;
+  updateTag: (tagId: string, patch: Partial<Pick<Tag, "name" | "color">>) => Promise<Tag>;
+  removeTag: (tagId: string) => Promise<void>;
 }
 
 export interface OnboardingSlice {
@@ -76,6 +87,7 @@ export type AppStore = AppSlice &
   PeopleSlice &
   GroupsSlice &
   CategoriesSlice &
+  TagsSlice &
   OnboardingSlice &
   GroupDraftSlice;
 

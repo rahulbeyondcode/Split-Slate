@@ -4,6 +4,31 @@ Chronological record of all wiki changes.
 
 ---
 
+## 2026-08-12
+- UPDATED decisions/group-deletion.md — clarified that permanent group deletion and its full cascade are approved but not yet implemented
+- UPDATED wiki/index.md — marked group deletion as an approved pending design
+- UPDATED workflows/main-screen.md — recorded the low-priority direct-URL group-switch editor-state edge case
+- UPDATED decisions/group-deletion.md — added group-scoped tags to the deletion cascade and warning
+- UPDATED architecture/state-management.md — corrected tag actions to async and documented the implemented Dexie-first persistence strategy
+- UPDATED wiki/index.md — refreshed summaries for state management, group deletion, and main-screen TODOs
+- UPDATED workflows/tag-management.md — documented the reusable 10-preset color picker with synchronized custom and hex inputs
+- UPDATED wiki/index.md — added the preset/custom hex picker to the tag-management summary
+- UPDATED architecture/domain-models.md — added required color to the Tag model
+- UPDATED architecture/state-management.md — added color to tag creation and update actions
+- UPDATED systems/indexeddb-schema.md — documented the required tag color field
+- UPDATED workflows/tag-management.md — tag creation and editing now require a visual color
+- UPDATED wiki/index.md — described tags as named and colored group records
+- UPDATED workflows/category-management.md — category deletion now checks in-use and last-category guards before showing irreversible-action confirmation
+- UPDATED wiki/index.md — noted guarded and confirmed category deletion
+- UPDATED architecture/domain-models.md — restored durable group-scoped Tag records and optional Expense.tagIds references
+- UPDATED architecture/state-management.md — documented the tags slice and group-tag actions
+- UPDATED systems/indexeddb-schema.md — restored the group-indexed tags table and atomic expense-reference cleanup
+- UPDATED workflows/category-management.md — documented normalized, case-insensitively unique group category names
+- UPDATED workflows/tag-management.md — corrected tags to group-scoped records with optional expense references and atomic deletion
+- UPDATED workflows/filtering.md — changed tag filtering back to group tag IDs
+- UPDATED workflows/main-screen.md — recorded the add-expense form as the next TODO behind the existing CTA
+- UPDATED wiki/index.md — corrected tag invariants and refreshed state-management and main-screen summaries
+
 ## 2026-08-11
 - UPDATED workflows/category-management.md — category delete is blocked for in-use categories and the last category in a group
 - UPDATED workflows/tag-management.md — deleting a group tag label removes it from matching expense `tags` arrays

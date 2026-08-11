@@ -7,7 +7,7 @@ metadata:
 
 # IndexedDB Schema
 
-Last updated: 2026-08-11
+Last updated: 2026-08-12
 
 ## Tables
 
@@ -72,7 +72,7 @@ Indexes: `groupId` (members of a group), `personId` (groups a person is in — u
 | expenseName   | string  |                                                                    |
 | createdBy     | UUID    | memberId                                                           |
 | categoryId    | UUID    | foreign key to categories — **mandatory**                          |
-| tags          | string[] | optional expense-local labels; unique within the expense           |
+| tagIds        | UUID[]  | optional references to group tags; empty array if no tags apply    |
 | createdAt     | number  | unix ms — set automatically by the app, never user-edited          |
 | when          | number  | unix ms — user-entered date + time of the actual expense; defaults to now |
 | splitType     | string  | `'equal' \| 'amount' \| 'shares' \| 'percentage' \| 'adjustment'` |
@@ -82,7 +82,7 @@ Indexes: `groupId` (members of a group), `personId` (groups a person is in — u
 
 Index: `groupId` — used to fetch all expenses for a group.
 
-All object fields (`tags`, `splitMeta`, `transactions`, `attachmentIds`) are stored as nested JSON — IndexedDB supports this natively.
+All object fields (`tagIds`, `splitMeta`, `transactions`, `attachmentIds`) are stored as nested JSON — IndexedDB supports this natively.
 
 ---
 
@@ -115,6 +115,21 @@ Images are compressed on ingest before storage. No hard limit on count per expen
 | isActive | boolean |                               |
 
 Index: `groupId` — used to fetch categories for a group.
+
+---
+
+### `tags`
+
+| Field   | Type   | Notes                         |
+|---------|--------|-------------------------------|
+| id      | UUID   | primary key                   |
+| groupId | UUID   | index → foreign key to groups |
+| name    | string | trimmed; unique per group ignoring case |
+| color   | string | required six-digit hex color  |
+
+Index: `groupId` — used to fetch all tags for a group.
+
+Tags are optional from the expense perspective. Deleting a tag and removing its ID from every referencing expense happens in one IndexedDB transaction. See [[tag-management]].
 
 ---
 
@@ -155,6 +170,7 @@ Both arrays are **seeded from code constants on first launch** (`SEED_MASTER_CAT
 | Groups a person belongs to    | members     | personId   |
 | Expenses of a group           | expenses    | groupId    |
 | Categories of a group         | categories  | groupId    |
+| Tags of a group               | tags        | groupId    |
 | Single expense by ID          | expenses    | primary    |
 | Attachments for an expense    | attachments | expenseId  |
 

@@ -10,7 +10,7 @@ This wiki is the sole source of truth. Source: `src/` | Changes: [log.md](log.md
 ### Architecture
 - [Domain Models](architecture/domain-models.md) — Group, Member, Expense, Category, LocalUser shapes and invariants
 - [Balance Calculation](architecture/balance-calculation.md) — net = totalPaid − totalOwed; worked example; debt simplification
-- [State Management](architecture/state-management.md) — single Zustand store composed from domain slices; persisted vs computed vs ephemeral group draft
+- [State Management](architecture/state-management.md) — Dexie-first persistence with one hydrated Zustand store composed from domain slices, including group tags
 - [Split Types](architecture/split-types.md) — 5 split types (equal, amount, shares, percentage, adjustment); mechanics, UX, validation, splitMeta storage
 - [Layout Architecture](architecture/layout-architecture.md) — two-mode responsive layout (mobile vs desktop); useViewport hook; AppFooter; AppSidebar
 
@@ -21,7 +21,7 @@ This wiki is the sole source of truth. Source: `src/` | Changes: [log.md](log.md
 - [Onboarding Persistence](decisions/onboarding-persistence.md) — per-step save to IndexedDB + resume from a monotonic `lastCompletedStep`; completion gated by an explicit flag, not `localUser` presence
 - [Import / Export Design](decisions/import-export.md) — three export formats (link/CSV/ZIP), two import modes (view-only/editable), conflict resolution strategy
 - [Expense Edit and Delete](decisions/expense-edit-delete.md) — hard delete with attachment cascade; no access control in MVP; V3 note on admin controls
-- [Group Deletion](decisions/group-deletion.md) — permanent, cascades all group data (members, expenses, categories, attachments); irreversible warning shown
+- [Group Deletion](decisions/group-deletion.md) — approved pending design for permanent deletion with a full related-data cascade and irreversible warning
 
 ### Systems
 - [IndexedDB Schema](systems/indexeddb-schema.md) — tables, primary keys, indexes, access patterns (includes attachments + the typed `settings` store)
@@ -29,12 +29,12 @@ This wiki is the sole source of truth. Source: `src/` | Changes: [log.md](log.md
 ### Workflows
 - [Onboarding](workflows/onboarding.md) — first-launch flow; standard path and import-based entry points
 - [Group Creation](workflows/group-creation.md) — standalone post-onboarding flow; 4 steps, create-on-finish; shares step components with onboarding
-- [Main Screen](workflows/main-screen.md) — groups list home, pending group detail routes, in-group tabs, expense list structure
+- [Main Screen](workflows/main-screen.md) — groups list home, lightweight group routes, expense list structure, and route/add-expense TODOs
 - [Paid-By](workflows/paid-by.md) — frequent payers quick-select, pre-selection logic, multi-payer mode
 - [People Directory](workflows/people-directory.md) — global friends list; manage people; pick them when building a group
 - [Member Management](workflows/member-management.md) — members link to people; two removal scopes (per-group vs directory-wide)
-- [Category Management](workflows/category-management.md) — DB-backed master list + group-level selection at creation (≥1 mandatory, defaults pre-selected); custom categories addable anytime; guarded delete
-- [Tag Management](workflows/tag-management.md) — optional expense-local labels; no permanent tag registry; unique within a single expense
+- [Category Management](workflows/category-management.md) — DB-backed master list + group-level selection at creation (≥1 mandatory, defaults pre-selected); custom categories addable anytime; guarded and confirmed delete
+- [Tag Management](workflows/tag-management.md) — named and colored group-scoped tags; preset/custom hex picker; optional expense references; atomic cascade deletion
 - [Filtering](workflows/filtering.md) — expense list filtering across 8 fields (name, date, category, tags, paid-by, member, split type, amount); all ANDed, not persisted
 - [Dashboard](workflows/dashboard.md) — dashboard main pane: overall summary, per-group cards, unsettled balances, category chart, activity; multi-currency edge case
 
@@ -85,5 +85,5 @@ This wiki is the sole source of truth. Source: `src/` | Changes: [log.md](log.md
 6. Group creator (LocalUser) is automatically added as a Member (linked to their self Person) when the group is created — they are always part of every group they create and cannot be added again manually
 7. `categoryId` is mandatory on every expense — no uncategorised expenses
 8. Currency is single per group (set at creation, defaults to INR) — no multi-currency in MVP
-9. Tags are optional expense-local labels stored on `Expense.tags`; one expense cannot contain the same tag label more than once, and deleting a group tag label removes it from matching expenses
+9. Tags are named and colored group-scoped records referenced optionally through `Expense.tagIds`; deleting a tag atomically removes its references without deleting expenses
 10. A group must have at least one category — enforced at creation (categories step requires ≥1 selected) so every expense can be categorised

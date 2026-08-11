@@ -2,14 +2,6 @@ import { useStore } from "@/shared/configs/store";
 
 import { CURRENCIES } from "@/shared/constants/currencies";
 
-// Placeholder until the tags feature ships. Tags are plain text + a user-picked colour;
-// they are not part of the group draft yet, so they are hardcoded here for the preview.
-const PLACEHOLDER_TAGS = [
-  { name: "Trip", color: "#6366f1" },
-  { name: "Reimbursable", color: "#10b981" },
-  { name: "Recurring", color: "#f59e0b" },
-];
-
 const MAX_AVATARS = 5;
 
 const LivePreview = () => {
@@ -30,7 +22,6 @@ const LivePreview = () => {
   const details = [
     { label: "Name", value: name || "—" },
     { label: "Categories", value: `${categories.length} selected` },
-    { label: "Tags", value: `${PLACEHOLDER_TAGS.length} selected` },
     { label: "Currency", value: `${currency} · ${currencySymbol}` },
     { label: "Members", value: String(memberCount) },
   ];
@@ -96,22 +87,6 @@ const LivePreview = () => {
         ) : (
           <p className="text-sm text-gray-400">No categories selected</p>
         )}
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <span className="text-xs font-medium uppercase tracking-wide text-gray-400">Tags</span>
-        <div className="flex flex-wrap gap-2">
-          {PLACEHOLDER_TAGS.map((tag) => (
-            <span
-              key={tag.name}
-              className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm"
-              style={{ borderColor: tag.color, color: tag.color }}
-            >
-              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: tag.color }} />
-              {tag.name}
-            </span>
-          ))}
-        </div>
       </div>
     </div>
   );

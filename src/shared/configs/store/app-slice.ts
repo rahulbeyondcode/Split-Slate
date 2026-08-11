@@ -14,7 +14,7 @@ import type { AppSlice, SliceCreator } from "./types";
 const getSetting = <T extends SettingsRecord["id"]>(id: T) =>
   db.settings.get(id) as Promise<Extract<SettingsRecord, { id: T }> | undefined>;
 
-export const createAppSlice: SliceCreator<AppSlice> = (set, get) => ({
+export const createAppSlice: SliceCreator<AppSlice> = (set) => ({
   expenses: [],
   initialized: false,
 
@@ -25,6 +25,7 @@ export const createAppSlice: SliceCreator<AppSlice> = (set, get) => ({
       allPeople,
       groupMembers,
       categories,
+      tags,
       expenses,
       onboarding,
       categorySettings,
@@ -34,6 +35,7 @@ export const createAppSlice: SliceCreator<AppSlice> = (set, get) => ({
       db.people.toArray(),
       db.members.toArray(),
       db.categories.toArray(),
+      db.tags.toArray(),
       db.expenses.toArray(),
       getSetting("onboarding"),
       getSetting("categories"),
@@ -66,6 +68,7 @@ export const createAppSlice: SliceCreator<AppSlice> = (set, get) => ({
       people: allPeople,
       members: groupMembers,
       categories,
+      tags,
       expenses,
       initialized: true,
       masterCategories: categoryRow.master,
@@ -75,26 +78,5 @@ export const createAppSlice: SliceCreator<AppSlice> = (set, get) => ({
       onboardingComplete: onboardingRow.complete,
       onboardingStep: stepAfter(onboardingRow.lastCompletedStep),
     });
-  },
-
-  removeTagFromGroupExpenses: async (groupId, tag) => {
-    const matchingExpenses = get().expenses.filter(
-      (expense) =>
-        expense.groupId === groupId &&
-        (expense.tags ?? []).some((expenseTag) => expenseTag.trim() === tag),
-    );
-    const updatedExpenses = matchingExpenses.map((expense) => ({
-      ...expense,
-      tags: (expense.tags ?? []).filter((expenseTag) => expenseTag.trim() !== tag),
-    }));
-    if (updatedExpenses.length === 0) return;
-
-    await db.expenses.bulkPut(updatedExpenses);
-    const updatedById = new Map(
-      updatedExpenses.map((expense) => [expense.expenseId, expense] as const),
-    );
-    set((s) => ({
-      expenses: s.expenses.map((expense) => updatedById.get(expense.expenseId) ?? expense),
-    }));
   },
 });

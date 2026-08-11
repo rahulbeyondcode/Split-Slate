@@ -14,6 +14,7 @@ import type {
   Member,
   Person,
   SettingsRecord,
+  Tag,
 } from "@/shared/types/domain.types";
 
 const onboardUser = async () => {
@@ -52,6 +53,11 @@ const onboardUser = async () => {
     icon: SEED_MASTER_CATEGORIES.find((category) => category.name === name)?.icon ?? "📌",
     isActive: true,
   }));
+  const tags: Tag[] = [
+    { id: uuid(), groupId: group.id, name: "Trip", color: "#6366f1" },
+    { id: uuid(), groupId: group.id, name: "Reimbursable", color: "#10b981" },
+    { id: uuid(), groupId: group.id, name: "Recurring", color: "#f59e0b" },
+  ];
   const settings: SettingsRecord[] = [
     {
       id: "onboarding",
@@ -74,6 +80,7 @@ const onboardUser = async () => {
       db.people,
       db.members,
       db.categories,
+      db.tags,
       db.expenses,
       db.attachments,
       db.settings,
@@ -85,6 +92,7 @@ const onboardUser = async () => {
       await db.groups.add(group);
       await db.members.bulkAdd(members);
       await db.categories.bulkAdd(categories);
+      await db.tags.bulkAdd(tags);
       await db.settings.bulkAdd(settings);
     },
   );

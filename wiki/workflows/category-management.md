@@ -7,7 +7,7 @@ metadata:
 
 # Category Management
 
-Last updated: 2026-08-11
+Last updated: 2026-08-12
 
 ## Two Levels of Categories
 
@@ -42,17 +42,19 @@ After the group name/icon and currency are set, the creator is shown the master 
 
 Any member can add a new category to a group at any time — either from the master list (those not selected at creation) or as a completely custom category, entered through an **emoji + name editor** (pick an icon, type a name). The same editor is used in the onboarding category step.
 
-The group **Categories & Tags** screen contains a Categories section where group categories can be added, edited, and deleted subject to the rules below. Tags appear separately on the same screen because they are expense-local labels, not category records.
+The group **Categories & Tags** screen contains separate management sections for group-scoped category and tag records. Categories can be added, edited, and deleted subject to the rules below.
 
 ---
 
 ## Category Rules
 
 - Categories can be **renamed** at any time
+- Category names are trimmed and case-insensitively unique within one group
 - Categories can be **deactivated** (hidden from the picker when adding expenses, but historical expenses keep their category reference intact)
 - Deactivated categories can be reactivated at any time
 - Categories can be **deleted only when no expense references them**. Because `categoryId` is mandatory and singular on every expense, a category that is in use cannot be deleted outright — the user must first **reassign every expense** carrying that category to a different category, after which the now-unreferenced category can be deleted. A category with zero referencing expenses (e.g. one just added during onboarding, or never used) can be deleted directly.
 - A group must keep at least one category; the last remaining category cannot be deleted.
+- Delete eligibility is checked before confirmation. In-use and last-category attempts show their blocking reason without a confirmation prompt; an eligible delete requires explicit irreversible-action confirmation.
 
 **Delete vs deactivate:** deactivate when a category is still on historical expenses but you no longer want it offered for new entries; delete when you want it gone entirely and it is not referenced by any expense.
 
