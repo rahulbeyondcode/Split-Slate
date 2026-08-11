@@ -57,7 +57,7 @@ export interface Expense {
     paid: Transaction[];
     owes: Transaction[];
   };
-  tagIds: string[];
+  tags: string[];
   attachmentIds: string[];
 }
 

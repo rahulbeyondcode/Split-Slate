@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
 import { useStore } from "@/shared/configs/store";
 
@@ -31,7 +31,8 @@ const GroupListItem = ({ groupId }: PropsType) => {
   const overflow = groupMembers.length - visibleMembers.length;
 
   return (
-    <button
+    <Link
+      to={`/groups/${groupId}`}
       className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors border ${
         isActive ? "bg-gray-100 border-gray-300" : "border-gray-200 hover:bg-gray-50"
       }`}
@@ -57,7 +58,7 @@ const GroupListItem = ({ groupId }: PropsType) => {
         {balancePrefix}
         {group.currency} {Math.abs(balance).toLocaleString()}
       </div>
-    </button>
+    </Link>
   );
 };
 

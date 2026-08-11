@@ -18,7 +18,30 @@ export const createCategoriesSlice: SliceCreator<CategoriesSlice> = (set, get) =
     return category;
   },
 
+  updateCategory: async (categoryId, patch) => {
+    await db.categories.update(categoryId, patch);
+    const existing = get().categories.find((category) => category.id === categoryId);
+    if (!existing) {
+      throw new Error("category not found");
+    }
+    const updated: Category = { ...existing, ...patch };
+    set((s) => ({
+      categories: s.categories.map((category) => (category.id === categoryId ? updated : category)),
+    }));
+    return updated;
+  },
+
   removeCategory: async (categoryId) => {
+    const category = get().categories.find((item) => item.id === categoryId);
+    if (!category) {
+      throw new Error("category not found");
+    }
+
+    const groupCategories = get().categories.filter((item) => item.groupId === category.groupId);
+    if (groupCategories.length <= 1) {
+      throw new Error("A group needs at least one category");
+    }
+
     const inUse = get().expenses.some((e) => e.categoryId === categoryId);
     if (inUse) {
       throw new Error("Cannot delete a category used by expenses; reassign those expenses first");

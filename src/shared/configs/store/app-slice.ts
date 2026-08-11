@@ -14,7 +14,7 @@ import type { AppSlice, SliceCreator } from "./types";
 const getSetting = <T extends SettingsRecord["id"]>(id: T) =>
   db.settings.get(id) as Promise<Extract<SettingsRecord, { id: T }> | undefined>;
 
-export const createAppSlice: SliceCreator<AppSlice> = (set) => ({
+export const createAppSlice: SliceCreator<AppSlice> = (set, get) => ({
   expenses: [],
   initialized: false,
 
@@ -75,5 +75,26 @@ export const createAppSlice: SliceCreator<AppSlice> = (set) => ({
       onboardingComplete: onboardingRow.complete,
       onboardingStep: stepAfter(onboardingRow.lastCompletedStep),
     });
+  },
+
+  removeTagFromGroupExpenses: async (groupId, tag) => {
+    const matchingExpenses = get().expenses.filter(
+      (expense) =>
+        expense.groupId === groupId &&
+        (expense.tags ?? []).some((expenseTag) => expenseTag.trim() === tag),
+    );
+    const updatedExpenses = matchingExpenses.map((expense) => ({
+      ...expense,
+      tags: (expense.tags ?? []).filter((expenseTag) => expenseTag.trim() !== tag),
+    }));
+    if (updatedExpenses.length === 0) return;
+
+    await db.expenses.bulkPut(updatedExpenses);
+    const updatedById = new Map(
+      updatedExpenses.map((expense) => [expense.expenseId, expense] as const),
+    );
+    set((s) => ({
+      expenses: s.expenses.map((expense) => updatedById.get(expense.expenseId) ?? expense),
+    }));
   },
 });

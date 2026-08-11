@@ -17,6 +17,7 @@ export interface AppSlice {
   initialized: boolean;
 
   init: () => Promise<void>;
+  removeTagFromGroupExpenses: (groupId: string, tag: string) => Promise<void>;
 }
 
 export interface PeopleSlice {
@@ -49,6 +50,7 @@ export interface CategoriesSlice {
   defaultGroupCategories: string[];
 
   addCategory: (groupId: string, name: string, icon: string) => Promise<Category>;
+  updateCategory: (categoryId: string, patch: Partial<Omit<Category, "id">>) => Promise<Category>;
   removeCategory: (categoryId: string) => Promise<void>;
 }
 
