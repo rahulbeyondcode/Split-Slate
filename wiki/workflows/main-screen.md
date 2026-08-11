@@ -18,13 +18,13 @@ After onboarding, the app always lands on the **groups list** — all groups the
 - If the user has only one group, the list has one item — still one tap to enter
 - No auto-navigation to the last active group — avoids landing in the wrong group when multiple groups are active simultaneously
 
-Current implementation status: `/dashboard` renders a basic groups list and links each group to `/groups/:groupId`, but the router does not yet define the group detail route or its child screens.
+Current implementation status: `/dashboard` renders a basic groups list and links each group to `/groups/:groupId`; the route exists and renders a lightweight group overview.
 
 ---
 
 ## Inside a Group
 
-Current implementation status: the app layout navigation declares group-level entries for overview, expenses, members, categories/tags, and settings, but these routed screens are still pending.
+Current implementation status: the app layout navigation declares group-level entries for overview, expenses, members, categories/tags, and settings. These routes exist with lightweight screens; full feature workflows remain pending.
 
 ### Tabs
 

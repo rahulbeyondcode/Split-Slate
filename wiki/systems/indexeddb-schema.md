@@ -7,7 +7,7 @@ metadata:
 
 # IndexedDB Schema
 
-Last updated: 2026-06-10
+Last updated: 2026-08-11
 
 ## Tables
 
@@ -72,7 +72,7 @@ Indexes: `groupId` (members of a group), `personId` (groups a person is in — u
 | expenseName   | string  |                                                                    |
 | createdBy     | UUID    | memberId                                                           |
 | categoryId    | UUID    | foreign key to categories — **mandatory**                          |
-| tagIds        | UUID[]  | references to the tags table; empty array if no tags applied       |
+| tags          | string[] | optional expense-local labels; unique within the expense           |
 | createdAt     | number  | unix ms — set automatically by the app, never user-edited          |
 | when          | number  | unix ms — user-entered date + time of the actual expense; defaults to now |
 | splitType     | string  | `'equal' \| 'amount' \| 'shares' \| 'percentage' \| 'adjustment'` |
@@ -82,7 +82,7 @@ Indexes: `groupId` (members of a group), `personId` (groups a person is in — u
 
 Index: `groupId` — used to fetch all expenses for a group.
 
-All object fields (`splitMeta`, `transactions`, `attachmentIds`) are stored as nested JSON — IndexedDB supports this natively.
+All object fields (`tags`, `splitMeta`, `transactions`, `attachmentIds`) are stored as nested JSON — IndexedDB supports this natively.
 
 ---
 
@@ -115,20 +115,6 @@ Images are compressed on ingest before storage. No hard limit on count per expen
 | isActive | boolean |                               |
 
 Index: `groupId` — used to fetch categories for a group.
-
----
-
-### `tags`
-
-| Field   | Type   | Notes                         |
-|---------|--------|-------------------------------|
-| id      | UUID   | primary key                   |
-| groupId | UUID   | index → foreign key to groups |
-| name    | string |                               |
-
-Index: `groupId` — used to fetch all tags for a group.
-
-No `isActive` field — tags are either live or deleted (no deactivated state). On deletion the tag record is removed and `tagId` is stripped from all referencing expense records atomically. See [[tag-management]].
 
 ---
 
@@ -169,7 +155,6 @@ Both arrays are **seeded from code constants on first launch** (`SEED_MASTER_CAT
 | Groups a person belongs to    | members     | personId   |
 | Expenses of a group           | expenses    | groupId    |
 | Categories of a group         | categories  | groupId    |
-| Tags of a group               | tags        | groupId    |
 | Single expense by ID          | expenses    | primary    |
 | Attachments for an expense    | attachments | expenseId  |
 

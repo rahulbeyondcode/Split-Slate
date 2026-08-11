@@ -4,7 +4,22 @@ Chronological record of all wiki changes.
 
 ---
 
+## 2026-08-11
+- UPDATED workflows/category-management.md — category delete is blocked for in-use categories and the last category in a group
+- UPDATED workflows/tag-management.md — deleting a group tag label removes it from matching expense `tags` arrays
+- UPDATED wiki/index.md — updated category and tag invariants for delete semantics
+- UPDATED architecture/domain-models.md — removed permanent Tag model and changed Expense from `tagIds[]` to expense-local `tags[]`
+- UPDATED systems/indexeddb-schema.md — removed tags table and documented tags as nested expense labels
+- UPDATED workflows/tag-management.md — rewrote tag behaviour as optional non-permanent expense-local labels
+- UPDATED workflows/category-management.md — noted Categories & Tags screen separates durable category management from expense-local tags
+- UPDATED workflows/filtering.md — tag filtering now operates on `Expense.tags` labels
+- UPDATED wiki/index.md — updated tag workflow description and tag invariant
+- UPDATED wiki/index.md — marked Category management IN PROGRESS after adding group category controls
+
 ## 2026-08-10
+- UPDATED architecture/layout-architecture.md — sidebar now shows back-to-dashboard plus active group summary instead of the full groups list inside group routes
+- UPDATED workflows/main-screen.md — changed group route status from missing to lightweight routed screens
+- UPDATED wiki/index.md — marked group detail routes DONE while feature workflows remain pending
 - UPDATED workflows/main-screen.md — documented that dashboard/nav links reference group detail routes that are not implemented yet
 - UPDATED wiki/index.md — reflected pending group detail routes in navigation description and implementation status
 

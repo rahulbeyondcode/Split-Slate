@@ -34,7 +34,7 @@ This wiki is the sole source of truth. Source: `src/` | Changes: [log.md](log.md
 - [People Directory](workflows/people-directory.md) — global friends list; manage people; pick them when building a group
 - [Member Management](workflows/member-management.md) — members link to people; two removal scopes (per-group vs directory-wide)
 - [Category Management](workflows/category-management.md) — DB-backed master list + group-level selection at creation (≥1 mandatory, defaults pre-selected); custom categories addable anytime; guarded delete
-- [Tag Management](workflows/tag-management.md) — group-scoped optional labels; inline creation during expense entry + manage screen; rename anytime; deletable (cascades off all expenses atomically)
+- [Tag Management](workflows/tag-management.md) — optional expense-local labels; no permanent tag registry; unique within a single expense
 - [Filtering](workflows/filtering.md) — expense list filtering across 8 fields (name, date, category, tags, paid-by, member, split type, amount); all ANDed, not persisted
 - [Dashboard](workflows/dashboard.md) — dashboard main pane: overall summary, per-group cards, unsettled balances, category chart, activity; multi-currency edge case
 
@@ -62,9 +62,9 @@ This wiki is the sole source of truth. Source: `src/` | Changes: [log.md](log.md
 | Dashboard / groups list (home)    | IN PROGRESS |
 | Group creation flow               | DONE        |
 | People directory (friends list)   | IN PROGRESS |
-| Group detail routes               | PENDING     |
+| Group detail routes               | DONE        |
 | Member management                 | PENDING     |
-| Category management               | PENDING     |
+| Category management               | IN PROGRESS |
 | Add / edit / delete expense       | PENDING     |
 | Split types (5 types)             | PENDING     |
 | Paid-by (frequent payers UI)      | PENDING     |
@@ -80,10 +80,10 @@ This wiki is the sole source of truth. Source: `src/` | Changes: [log.md](log.md
 1. `sum(paid[].amount) == sum(owes[].amount)` on every expense
 2. People are global (one device-local directory); a group member is a link to a person, so the same person in two groups is one Person referenced twice
 3. Balance = totalPaid − totalOwed (per member, per group) — not a running ledger
-4. Categories can be renamed or deactivated anytime; deletable only when no expense references them (otherwise the referencing expenses must be reassigned to another category first)
+4. Categories can be renamed or deactivated anytime; deletable only when no expense references them and the group has another category left
 5. No global user in MVP/V2 — only a device-local `localUser`
 6. Group creator (LocalUser) is automatically added as a Member (linked to their self Person) when the group is created — they are always part of every group they create and cannot be added again manually
 7. `categoryId` is mandatory on every expense — no uncategorised expenses
 8. Currency is single per group (set at creation, defaults to INR) — no multi-currency in MVP
-9. Tag deletion is atomic — tag record and all `tagId` references in group expenses are removed in a single IndexedDB transaction; no dangling references
+9. Tags are optional expense-local labels stored on `Expense.tags`; one expense cannot contain the same tag label more than once, and deleting a group tag label removes it from matching expenses
 10. A group must have at least one category — enforced at creation (categories step requires ≥1 selected) so every expense can be categorised

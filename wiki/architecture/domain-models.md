@@ -7,7 +7,7 @@ metadata:
 
 # Domain Models
 
-Last updated: 2026-06-03
+Last updated: 2026-08-11
 
 ## LocalUser (Device Owner)
 
@@ -99,25 +99,6 @@ A member is a thin link between a group and a person — it carries no name or i
 
 ---
 
-## Tag
-
-```ts
-{
-  id: UUID,
-  groupId: UUID,
-  name: string
-}
-```
-
-- Tags are group-specific, not global
-- Tags are **optional** on expenses — an expense may have zero or more tags
-- Tags **can be deleted at any time**, even while in use. Deletion is a two-step atomic operation: remove the tag record and remove that `tagId` from every expense in the group. The expenses themselves are not deleted or altered beyond losing the tag reference. (Contrast categories, which are deletable only when no expense references them — `tagIds` is optional and multi-valued, so the cascade always leaves expenses valid.)
-- Tags can be renamed at any time
-- No `isActive` field — tags are either live or deleted; there is no deactivated state
-- Tags are created inline during expense entry (chip/combobox input — typing a new name saves it to the group tag pool) and also via a dedicated tag management screen. See [[tag-management]].
-
----
-
 ## Expense
 
 ```ts
@@ -127,7 +108,7 @@ A member is a thin link between a group and a person — it carries no name or i
   expenseName: string,
   createdBy: memberId,
   categoryId: UUID,
-  tagIds: UUID[],                            // references to tags table; empty array if no tags applied
+  tags: string[],                            // optional expense-local labels; unique within this expense
   createdAt: number,                         // automatic — when the entry was added to the app
   when: number,                              // user-entered — when the money was actually spent (unix ms, defaults to now, date + time)
   splitType: 'equal' | 'amount' | 'shares' | 'percentage' | 'adjustment',
@@ -144,6 +125,7 @@ A member is a thin link between a group and a person — it carries no name or i
 
 - `createdAt` is set automatically by the app and never shown to or edited by the user
 - `when` is shown in the UI as the expense date — defaults to the current date and time, user can change it
+- `tags` is optional and stores plain labels directly on the expense; an expense may have zero or more tags, but the same label cannot appear twice on the same expense
 - `splitMeta` is needed for shares, percentage, and adjustment types — the raw input values cannot be derived back from `owes[]` alone. See [[split-types]] for per-type details.
 - `attachmentIds` is always present but may be an empty array. Attachment blobs are stored in a separate `attachments` table and loaded lazily — expenses load without pulling image data.
 
@@ -156,4 +138,4 @@ See [[expense-model-design]] for why both arrays are stored, and [[balance-calcu
 - [[balance-calculation]] — how net balances are derived from expenses
 - [[indexeddb-schema]] — how these models map to IndexedDB tables
 - [[state-management]] — Zustand store shape
-- [[tag-management]] — tag creation, rename, and deletion behaviour
+- [[tag-management]] — expense-local tag label behaviour

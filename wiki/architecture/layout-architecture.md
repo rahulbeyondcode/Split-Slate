@@ -7,7 +7,7 @@ metadata:
 
 # Layout Architecture
 
-Last updated: 2026-06-05
+Last updated: 2026-08-10
 
 ## Two Layout Modes
 
@@ -54,19 +54,31 @@ A shared hook reads the window width and updates in real time whenever the viewp
 
 ## Sidebar Structure
 
-The sidebar is present on all tablet and desktop routes. Its sections, top to bottom:
+The sidebar is present on all tablet and desktop routes. Its sections are route-context aware.
+
+On dashboard routes, top to bottom:
 
 1. **App logo** — always at the top
-2. **Context-aware menu items** — change based on the current route (see below)
+2. **Dashboard menu items** — Dashboard and All Friends
 3. **Groups list** — scrollable list of group item components
 4. **Add new group button** — below the groups list
 5. **Profile + settings icon** — always at the bottom
+
+Inside a group, top to bottom:
+
+1. **App logo** — always at the top
+2. **Back to dashboard** — returns to the dashboard groups list
+3. **Current group summary** — non-clickable group icon/name/currency plus member and expense counts
+4. **Group menu items** — Overview, Expenses, Members, Categories & Tags, Settings
+5. **Profile + settings icon** — always at the bottom
+
+All groups are not listed while inside a group; the sidebar focuses on the active group context.
 
 ### Context-aware menu items by route
 
 | Route | Menu items |
 |-------|-----------|
-| Home (Dashboard) | Dashboard |
+| Home (Dashboard) | Dashboard, All Friends |
 | Inside a group | Overview, Expenses, Members, Categories & Tags, Settings |
 
 ---
