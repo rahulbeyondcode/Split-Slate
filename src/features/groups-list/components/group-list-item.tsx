@@ -1,28 +1,30 @@
 import { Link, useParams } from "react-router-dom";
 
 import { useStore } from "@/shared/configs/store";
+import { calculateMemberNet } from "@/shared/utils/balances";
+import { formatCurrency } from "@/shared/utils/currency";
 
 interface PropsType {
   groupId: string;
 }
 
-const HARDCODED_BALANCE = 1250;
-
 const GroupListItem = ({ groupId }: PropsType) => {
   const { groupId: urlGroupId } = useParams();
-  const { groups, people, members, expenses } = useStore();
+  const { groups, people, members, expenses, localUser } = useStore();
 
   const group = groups.find((g) => g.id === groupId);
   // Members link to people; resolve each member's icon through the directory.
   const groupMembers = members
     .filter((m) => m.groupId === groupId)
     .map((m) => ({ id: m.id, icon: people.find((p) => p.id === m.personId)?.icon ?? "" }));
-  const expenseCount = expenses.filter((e) => e.groupId === groupId).length;
+  const groupExpenses = expenses.filter((e) => e.groupId === groupId);
+  const expenseCount = groupExpenses.length;
   const isActive = urlGroupId === groupId;
 
   if (!group) return null;
 
-  const balance = HARDCODED_BALANCE;
+  const localMember = members.find((m) => m.groupId === groupId && m.personId === localUser?.id);
+  const balance = localMember ? calculateMemberNet(groupExpenses, localMember.id) : 0;
   const balanceColor =
     balance > 0 ? "text-green-600" : balance < 0 ? "text-red-500" : "text-gray-400";
   const balancePrefix = balance > 0 ? "+" : balance < 0 ? "−" : "";
@@ -56,7 +58,7 @@ const GroupListItem = ({ groupId }: PropsType) => {
       </div>
       <div className={`text-xs font-medium shrink-0 ${balanceColor}`}>
         {balancePrefix}
-        {group.currency} {Math.abs(balance).toLocaleString()}
+        {formatCurrency(Math.abs(balance), group.currency)}
       </div>
     </Link>
   );

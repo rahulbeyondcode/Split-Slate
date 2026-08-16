@@ -4,6 +4,15 @@ Chronological record of all wiki changes.
 
 ---
 
+## 2026-08-16 (group overview completion)
+- CREATED src/shared/utils/balances.ts and src/shared/utils/currency.ts — added reusable member-net, group-total, and currency-formatting helpers
+- UPDATED src/features/group-detail/components/group-overview/index.tsx — added local position, total spend, category count, members, and recent expenses to the nested overview
+- UPDATED src/features/groups-list/components/group-list-item.tsx — replaced the hardcoded balance with the local member's calculated net position
+- UPDATED src/features/group-detail/components/expense-list/index.tsx — switched expense totals to the shared currency formatter
+- REMOVED src/features/group-detail/utils/format-money.ts — superseded by the shared currency utility
+- UPDATED architecture/balance-calculation.md, architecture/layout-architecture.md, workflows/dashboard.md, and workflows/main-screen.md — documented the implemented overview and balance behavior
+- UPDATED wiki/index.md — marked Group overview DONE and refreshed the balance-calculation summary
+
 ## 2026-08-16 (cross-system history reconciliation)
 - UPDATED architecture/domain-models.md and architecture/state-management.md — combined the newer tag/category implementation with valid local frequent-payer, people, onboarding, draft, and Dexie corrections
 - UPDATED architecture/balance-calculation.md and architecture/layout-architecture.md — aligned current balance and responsive-route claims with committed source while retaining target designs

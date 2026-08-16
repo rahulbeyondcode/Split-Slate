@@ -97,7 +97,7 @@ Each group in the sidebar list is a self-contained component with:
 - **Group name**
 - **Member avatars** — up to three, followed by an overflow count
 - **Expense count** — e.g. "21 expenses"
-- **Balance placeholder** — currently hardcoded; real member-net calculation is pending
+- **Net balance** — calculated from the local member's paid and owed transactions in the group
 
 ---
 

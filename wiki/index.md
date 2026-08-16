@@ -11,7 +11,7 @@ Last updated: 2026-08-16
 
 ### Architecture
 - [Domain Models](architecture/domain-models.md) — Group, Member, Expense, Category, LocalUser shapes and invariants
-- [Balance Calculation](architecture/balance-calculation.md) — current inline group-total calculation; member-net formula and planned debt simplification
+- [Balance Calculation](architecture/balance-calculation.md) — implemented member-net/group-total helpers; planned all-member balances and debt simplification
 - [State Management](architecture/state-management.md) — Dexie-first persistence with one hydrated Zustand store composed from domain slices, including group tags
 - [Split Types](architecture/split-types.md) — 5 split types (equal, amount, shares, percentage, adjustment); mechanics, UX, validation, splitMeta storage
 - [Layout Architecture](architecture/layout-architecture.md) — current mobile/tablet/desktop shell, route stubs, sidebar, footer, and activity panel
@@ -63,7 +63,7 @@ Last updated: 2026-08-16
 | Onboarding flow (5 steps)          | DONE        |
 | Dashboard / groups list (home)     | IN PROGRESS |
 | Group detail routes                | DONE        |
-| Group overview                     | IN PROGRESS |
+| Group overview                     | DONE        |
 | Group creation flow                | DONE        |
 | People directory (friends list)    | DONE        |
 | Member management                  | PENDING     |

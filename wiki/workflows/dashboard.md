@@ -17,8 +17,8 @@ The dashboard currently renders:
 The main dashboard does not yet compute balances, category totals, unsettled debts, or activity. It
 renders groups in store order rather than by recent activity. The desktop right pane renders
 hardcoded sample activity; tablet renders no activity section. Each group link opens the committed
-nested group-detail route, whose overview currently shows member count, expense count, and total
-paid. The richer financial overview remains in progress.
+nested group-detail route. Its overview shows the local user's net position, total group spend,
+category count, member list, and up to five recent expenses.
 
 ## Target Design
 

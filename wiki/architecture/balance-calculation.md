@@ -11,12 +11,15 @@ Last updated: 2026-08-16
 
 ## Implementation Status
 
-The committed group overview calculates total group spend inline by summing every `paid`
-transaction. The sidebar group item still displays a hardcoded balance placeholder.
+Two pure helpers are implemented in `src/shared/utils/balances.ts`:
 
-There is no committed reusable member-net helper, all-member balance map, debt-simplification
-helper, or who-owes-whom screen yet. Expense mutation is also pending, so normal UI flows cannot
-create the expense data consumed by the existing read-only group screens.
+- `calculateMemberNet(expenses, memberId)` — applies `totalPaid - totalOwed` for one member
+- `calculateGroupTotal(expenses)` — sums every `paid` transaction across the supplied expenses
+
+The group overview and sidebar group item use `calculateMemberNet` for the local user's position.
+The overview also uses `calculateGroupTotal`. There is no all-member balance map,
+debt-simplification helper, or who-owes-whom screen yet. Expense mutation is also pending, so normal
+UI flows cannot create the expense data consumed by the existing read-only screens.
 
 ## Core Formula
 

@@ -27,15 +27,15 @@ unknown group shows a not-found state with a return link to the dashboard.
 
 The current child screens are:
 
-- **Overview** — member count, expense count, and total paid across the group's expenses
+- **Overview** — local net position, total spend, category count, members, and up to five recent expenses
 - **Expenses** — a read-only list sorted by `when` descending, showing expense name and total paid
 - **Members** — a read-only list resolved through the global people directory
 - **Categories & Tags** — add, edit, and guarded-delete controls for both record types
 - **Settings** — read-only group name and currency
 
 The group header's Add Expense link currently opens the lightweight Expenses route; no entry form
-exists yet. Dashboard and sidebar group rows link to the Overview. The sidebar balance is still a
-hardcoded placeholder rather than the local user's calculated net position.
+exists yet. Dashboard and sidebar group rows link to the Overview. The sidebar displays the local
+member's calculated net position derived from paid and owed transactions.
 
 ---
 

@@ -1,6 +1,6 @@
 import { useOutletContext } from "react-router-dom";
 
-import { formatMoney } from "@/features/group-detail/utils/format-money";
+import { formatCurrency } from "@/shared/utils/currency";
 
 import type { GroupDetailContext } from "@/features/group-detail/types/group-detail.types";
 
@@ -19,9 +19,9 @@ const ExpenseList = () => {
             <li key={expense.expenseId} className="rounded border border-gray-200 px-4 py-3">
               <p className="text-sm font-medium text-gray-900">{expense.expenseName}</p>
               <p className="text-xs text-gray-500">
-                {formatMoney(
-                  group.currency,
+                {formatCurrency(
                   expense.transactions.paid.reduce((sum, item) => sum + item.amount, 0),
+                  group.currency,
                 )}
               </p>
             </li>
