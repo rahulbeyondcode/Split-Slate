@@ -7,11 +7,45 @@ metadata:
 
 # Decision: Import / Export Design
 
-Last updated: 2026-05-18
+Last updated: 2026-08-20
+
+## Implementation Status
+
+Approved design, not implemented. There is no export serializer, shared-link handler, import parser,
+ZIP/attachment pipeline, view-only session mode, or conflict-resolution UI. Every behavior below is
+a target unless explicitly described as an existing data-model constraint.
 
 ## Why This Exists
 
 split-slate is offline-first with no backend in MVP. Import/export is the only mechanism for sharing group data between devices. The core marketing promise: **members who don't have the app installed can view expense data with zero hassle.**
+
+---
+
+## Portable Dataset Contract
+
+Every export must be self-contained enough to reconstruct the exported group without consulting
+the source device. The logical dataset includes:
+
+- an export schema version
+- the group, including its UUID, currency, icon, and creation metadata
+- snapshots of every referenced Person plus the group's Member links
+- group categories and tags
+- expenses, including IDs, dates, creator, category, tags, split type, split metadata, paid entries,
+  owed entries, and attachment references
+- attachment metadata; ZIP additionally carries the image blobs
+
+Monetary values use integer minor units under [[money-representation-and-rounding]]. UUIDs are
+preserved so re-import and future reconciliation can distinguish the same records from new ones.
+
+“CSV” describes the user-facing portable option, not yet a finalized wire schema. The exact
+multi-entity CSV layout, escaping rules, schema-version envelope, and ZIP manifest still require an
+implementation design before a serializer or parser is built.
+
+An import must validate the complete dataset before durable writes: schema compatibility, required
+records, group ownership of references, unique IDs where required, and the paid/owed invariant.
+The **Add new expenses only** mode must also bring in or reconcile every missing dependency needed
+by an accepted expense. Precise behavior for same-ID dependency records whose content differs is a
+remaining conflict-design decision; silently creating dangling references is never valid.
 
 ---
 
@@ -24,7 +58,7 @@ split-slate is offline-first with no backend in MVP. Import/export is the only m
 - **Size limitation:** Browser URL length limits vary across browsers. The app maintains an optimal data ceiling comfortable across most browsers. Groups whose data exceeds this ceiling are offered CSV/ZIP only — no link option is shown.
 
 ### CSV
-- Full group data export (members, expenses, splits)
+- Full reconstructable group dataset described above
 - No image attachments included
 - Works for any group size
 - Recipient shares via their own communication channel (WhatsApp, email, etc.)
@@ -112,6 +146,7 @@ Full merge (tracking edits, deletions, conflict resolution) is deferred to V3 �
 ## Related
 
 - [[domain-models]] — Expense shape with `attachmentIds[]`
+- [[money-representation-and-rounding]] — portable integer amount representation
 - [[indexeddb-schema]] — `attachments` table structure
 - [[global-people-directory]] — why people are global and must be snapshotted on export
 - [[solo-group-support]] — solo groups can also be exported and imported

@@ -1,7 +1,15 @@
 # Competitive Landscape
 
-Last updated: 2026-05-17
-Source: `Requirement Docs/expense-splitting-apps-feature-tables.md.pdf` + `Requirement Docs/Expense-Splitting Apps_ Market Opportunity Analysis for a Splitwise Alternative.pdf`
+A dated competitor snapshot used to preserve the evidence and hypotheses behind product strategy.
+
+Last updated: 2026-08-20
+Research snapshot: May 2026; volatile facts were rechecked on 2026-08-20.
+Source: `app-featureset-context/expense-splitting-apps-feature-tables.md.pdf` + `app-featureset-context/Expense-Splitting Apps_ Market Opportunity Analysis for a Splitwise Alternative.pdf`
+
+This is research evidence, not the implementation roadmap. Current product status lives in
+[[index]]. Official rechecks: [Splitwise Pro limits](https://kb.splitwise.com/pro/what-is-splitwise-pro),
+[Splid on Google Play](https://play.google.com/store/apps/details?id=splid.teamturtle.com.splid),
+[PeerSplit repository](https://github.com/tanayvk/peersplit), and [Spliit](https://spliit.app/).
 
 ---
 
@@ -9,30 +17,34 @@ Source: `Requirement Docs/expense-splitting-apps-feature-tables.md.pdf` + `Requi
 
 | App | Model | Strongest Region | Fatal Flaw |
 |-----|-------|-----------------|------------|
-| Splitwise | Freemium ($4.99/mo) | US, India, Europe | Paywall backlash — 3 expenses/day + 10-sec cooldown on free tier |
+| Splitwise | Freemium; regional subscription pricing | US, India, Europe | Paywall backlash; current official limit is 4 expenses/day on the free tier |
 | Tricount (bunq) | Free + ads | France, Europe | Post-bunq redesign hated; no UPI; CSV export removed in v8 |
-| Settle Up | Freemium (~$1.99/mo) | Czech Republic, Europe | Sync failures; ads on free; India ad-free at ₹3,999 considered too expensive |
-| Splid | Free + one-time IAP | Germany, US (travelers) | No web version; last Android update Mar 2023 — abandonment risk |
-| SplitMyExpenses | Free + $3-9/mo | US | Web-primary; native iOS/Android only launched Nov 2025 |
-| Splitkaro | Freemium (~₹49/mo) | India | India-only; ~6-person team; group-delete bug; back-date bug |
-| Spilit / SplitPro / PeerSplit | Free, FOSS | Self-hosted niche | No native mobile app; niche audience only |
+| Settle Up | Freemium; regional subscription pricing | Czech Republic, Europe | Sync failures and ads were prominent complaints in the source snapshot |
+| Splid | Free + one-time IAP | Germany, US (travelers) | No web version; Android was updated in August 2025 |
+| SplitMyExpenses | Freemium subscription | US | Web-primary; native apps were new in the source snapshot |
+| Splitkaro | Freemium subscription | India | India-focused; source snapshot reported group-delete and back-date bugs |
+| Spliit | Free, open-source/self-hosted | Self-hosted niche | No native mobile app; niche audience |
+| SplitPro | Free, open-source/self-hosted | Self-hosted niche | No native mobile app; niche audience |
+| PeerSplit | Fair-source, local-first P2P | Privacy/P2P niche | No native mobile app; niche audience |
 
 ---
 
-## Feature Monopolies (only one app has this)
+## Feature Monopolies Reported in the May 2026 Snapshot
 
 - **Ultrasound device-to-device group join** — Settle Up
 - **Voice assistant integration** — Settle Up
 - **Auto-fetch from Swiggy/Zomato/BlinkIt** — Splitkaro
 - **SMS expense auto-detect** — Splitkaro
 - **P2P sync, no central server** — PeerSplit
-- **End-to-end encryption** — PeerSplit
 - **Group Premium splittable among members** — Settle Up
 - **Charge review share-link** — SplitMyExpenses
 
 ---
 
-## Features Every Serious App Has (Table Stakes)
+## Research-Identified Table Stakes
+
+These are market recommendations from the source snapshot, not a statement that split-slate has
+implemented them.
 
 - Equal / unequal / percentage / share splits
 - Multi-payer per expense
@@ -59,9 +71,10 @@ Source: `Requirement Docs/expense-splitting-apps-feature-tables.md.pdf` + `Requi
 ## Business Model Groupings
 
 - **Freemium subscription**: Splitwise, Settle Up, Splitkaro, SplitMyExpenses
-- **Free + ads (no paid tier)**: Tricount v8+, Splid
-- **One-time / lifetime IAP**: Splid (~$4.99), splitty ($24.99)
-- **Open-source / self-hosted**: Spilit, SplitPro, PeerSplit
+- **Free/ad-supported in the source snapshot**: Tricount v8+
+- **One-time/lifetime purchase**: Splid, splitty
+- **Open-source/self-hosted**: Spliit, SplitPro
+- **Fair-source/local-first P2P**: PeerSplit
 
 ---
 

@@ -7,7 +7,7 @@ metadata:
 
 # State Management
 
-Last updated: 2026-08-16
+Last updated: 2026-08-20
 
 ## Technology
 
@@ -81,7 +81,7 @@ interface AppStore {
   advanceOnboarding: (fromStep: SetupStep) => Promise<void>
   setOnboardingStep: (step: SetupStep) => void
 
-  // Ephemeral create/edit group draft
+  // Ephemeral group draft (create flow today; edit support planned)
   groupDraft: GroupDraft | null
   setGroupDraft: (draft: GroupDraft | null) => void
   clearGroupDraft: () => void
@@ -106,9 +106,18 @@ These are derived at read time, never stored:
 
 Not everything in the store is a persisted entity. The group draft is memory-only state that lives in the store but is never written to IndexedDB.
 
-The draft is a flattened mirror of the in-progress group being built in the create (and, later, edit) group flow. While that flow is on screen, it pushes its form values into the draft on every change — effectively per-keystroke — so any subscriber sees the group taking shape in real time. The draft is seeded when the flow mounts and cleared when it unmounts, so leaving the flow leaves no residue.
+The draft is a flattened mirror of the in-progress group being built in the create flow. A future
+edit flow can reuse it, but the router currently registers only `/groups/new`, not a group edit
+route. While creation is on screen, it pushes form values into the draft on every change —
+effectively per-keystroke — so any subscriber sees the group taking shape in real time. The draft
+is seeded when the flow mounts and cleared when it unmounts, so leaving the flow leaves no residue.
 
-Its sole purpose is to decouple the form from any live view of it. The form owns the source of truth while editing; the draft is a read-only projection other parts of the UI can subscribe to without coupling to the form. The first consumer is the activity panel's live preview, which swaps in for the activity feed on the group create/edit routes and re-renders as the draft changes. Because consumers subscribe to the draft rather than the form, the form pane itself does not re-render on these updates.
+Its sole purpose is to decouple the form from any live view of it. The form owns the source of truth
+while editing; the draft is a read-only projection other parts of the UI can subscribe to without
+coupling to the form. The current consumer is the activity panel's live preview on the create-group
+route. Its route matcher anticipates a future edit route, but no such route is registered. Because
+consumers subscribe to the draft rather than the form, the form pane itself does not re-render on
+these updates.
 
 Two deliberate shape decisions:
 
@@ -120,10 +129,19 @@ Two deliberate shape decisions:
 ## Persistence Strategy
 
 - Dexie is the authoritative persistence layer over IndexedDB.
-- Entity mutations validate their input, write to Dexie first, and update Zustand only after the database write succeeds.
+- Entity mutations write to Dexie before updating their corresponding Zustand state.
+- Category and tag mutations enforce their documented name/color, uniqueness, and deletion guards.
+  Group, person, and member actions do not uniformly validate names, referenced IDs, duplicate
+  memberships, self deletion, or creator retention; their documented UI constraints are not all
+  store invariants.
 - Zustand holds the hydrated in-memory view of persisted entities; it does not use `persist` middleware.
 - `init()` hydrates entities and settings from IndexedDB and seeds missing settings rows.
-- Mutations spanning multiple tables use a Dexie transaction. Tag deletion, for example, removes the tag and its expense references atomically.
+- Tag deletion is explicitly wrapped in a Dexie transaction, so deleting the tag and removing its
+  expense references is atomic.
+- Other composed operations are sequential rather than atomic. Examples include creating a group
+  and its creator member, mirroring the local user into `people`, deleting a person and cleaning up
+  member/group references, and the standalone group-creation submission. If a later write fails,
+  earlier successful database writes are retained.
 
 The database definition lives in `src/shared/configs/db.ts`.
 

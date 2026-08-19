@@ -1,15 +1,21 @@
 # Market Opportunity
 
-Last updated: 2026-05-17
-Source: `Requirement Docs/Expense-Splitting Apps_ Market Opportunity Analysis for a Splitwise Alternative.pdf`
+A dated market thesis that records the acquisition hypotheses and recommendations from the research.
+
+Last updated: 2026-08-20
+Research snapshot: May 2026; not the committed implementation roadmap.
+Source: `app-featureset-context/Expense-Splitting Apps_ Market Opportunity Analysis for a Splitwise Alternative.pdf`
 
 ---
 
 ## The Opening
 
-Splitwise's 2023–2024 paywall tightening — 3 expenses/day cap + 10-second cooldown on free tier — created the single biggest market gap in this category since 2011. Large-scale churn confirmed across Reddit (r/Splitwise), Hacker News, Trustpilot, Google Play, DesiDime, and IndianPersonalFinance.
+The source research identified Splitwise's 2023–2024 paywall tightening and cooldown as a major
+market opening, based on complaints across Reddit, Hacker News, Trustpilot, Google Play, DesiDime,
+and IndianPersonalFinance. Splitwise's current official documentation lists a four-expenses-per-day
+free limit; exact limits and pricing are volatile. See [[competitive-landscape]].
 
-No current competitor combines:
+The May 2026 research found no competitor combining:
 - Polished cross-platform experience
 - True India layer (UPI deep-links + Swiggy/Zomato import)
 - Privacy-first, local-first architecture
@@ -27,9 +33,10 @@ The displaced Splitwise user is the primary acquisition target — they already 
 
 ---
 
-## Table Stakes for Any Entrant
+## Research Recommendations for an Entrant
 
-Must ship at launch to be taken seriously:
+The source recommended the following launch scope. This is not the split-slate roadmap; several
+items are pending or only captured as ideas in [[index]].
 
 1. Unlimited expenses — no daily cap, no cooldown
 2. Equal / unequal / percentage / share / itemized / adjustment splits
@@ -69,7 +76,8 @@ Must ship at launch to be taken seriously:
 - Launch India-first on Reddit (r/Splitwise, r/IndianPersonalFinance, r/india) + DesiDime
 - SEO: "Splitwise alternative", "Splitwise India alternative", "free bill splitting app India"
 - Viral mechanic: share-group-via-link (no signup for invitee) + Splitwise import wizard
-- Pricing significantly below Splitwise India (₹999/yr) — see [[monetization-model]]
+- Use a lower-priced India-first offer than the incumbent pricing observed in the source snapshot;
+  see the unimplemented proposal in [[monetization-model]].
 
 ---
 

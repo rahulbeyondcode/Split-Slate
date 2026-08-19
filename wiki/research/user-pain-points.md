@@ -1,15 +1,18 @@
 # User Pain Points
 
-Last updated: 2026-05-17
-Source: `Requirement Docs/Expense-Splitting Apps_ Market Opportunity Analysis for a Splitwise Alternative.pdf`
+A dated synthesis of reported complaints and requested features used as product-discovery evidence.
+
+Last updated: 2026-08-20
+Research snapshot: May 2026; complaints are historical evidence, not guaranteed current behavior.
+Source: `app-featureset-context/Expense-Splitting Apps_ Market Opportunity Analysis for a Splitwise Alternative.pdf`
 
 ---
 
-## Splitwise — Top Complaints (ranked by forum frequency)
+## Splitwise — Complaints Reported in the Source Snapshot
 
-1. Daily 3-expense limit + 10-sec cooldown on free tier
+1. Daily free-tier limit + cooldown; current official documentation lists 4 expenses/day
 2. Paywall on previously free features: currency conversion, charts, expense search, OCR
-3. Annual-only subscription — no monthly or lifetime option
+3. Subscription pricing and packaging; current Splitwise documentation includes a monthly option
 4. Anyone in group can edit/delete any expense — no group admin controls
 5. Email/phone required to add a friend — high friction
 6. OCR only captures total amount, not line items
@@ -22,7 +25,9 @@ Source: `Requirement Docs/Expense-Splitting Apps_ Market Opportunity Analysis fo
 
 - **Tricount**: Post-bunq redesign hated — "Triccount was just perfect… Now i hate it. Slow. Errors. Lost data. No filtering. No sorting. No export function." Per-expense friction. Data loss reports.
 - **Settle Up**: Sync failures — "Only 1 time out of 50 does it actually sync." Ads on free tier.
-- **Splid**: No web version; no receipt attachments; last Android update Mar 2023.
+- **Splid**: No web version and no receipt attachments in the source comparison. The current Google
+  Play listing records an August 2025 Android update, so the prior March 2023 abandonment claim was
+  inaccurate.
 - **Splitkaro**: Group-delete black-screen bug; back-date bug in expense form; weaker PDF export.
 
 ---
@@ -34,7 +39,7 @@ Source: `Requirement Docs/Expense-Splitting Apps_ Market Opportunity Analysis fo
 3. **Item-level OCR with per-line assignment** — only SplitMyExpenses + Splitkaro do this
 4. **Add friends without email/phone**
 5. **Recurring expenses** — most apps have it; Splid doesn't
-6. **Multi-payer per expense** — top HN comment on Spilit Feb 2024 launch
+6. **Multi-payer per expense** — top HN comment on the Spliit February 2024 launch
 7. **Bank / SMS auto-import**
 8. **Couple / family / personal mode**
 9. **Search expense history** — Splitwise Pro-gated
@@ -49,8 +54,10 @@ Source: `Requirement Docs/Expense-Splitting Apps_ Market Opportunity Analysis fo
 - No real UPI — Splitwise added Paytm in May 2017; top comment was "But why not UPI. You must support that." Never shipped.
 - Hostel/PG sharing: monthly rent + utilities + food-delivery cycles — no app handles member churn (new roommate replaces old without breaking history)
 - Indian wedding splits: multi-family, multi-event, multi-payer, often cash with reimbursements
-- Regional languages: zero Indian app has localised Hindi/Tamil/Telugu/Marathi/Bengali UI yet
-- Pricing: ₹999/yr heavily resisted; ₹300–500/yr or one-time ~₹500 is the perceived "fair zone"
+- Regional languages: the source research did not identify a compared Indian app with localized
+  Hindi/Tamil/Telugu/Marathi/Bengali UI
+- Pricing: the source reported resistance to ₹999/year and a perceived ₹300–500/year or roughly
+  ₹500 one-time "fair zone"; these are dated observations
 
 ---
 

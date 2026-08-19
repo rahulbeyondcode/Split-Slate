@@ -7,22 +7,29 @@ metadata:
 
 # Decision: Solo Group Support
 
-Last updated: 2026-06-10
+Last updated: 2026-08-20
 
 ## Decision
 
-A group with only one member (the device owner) is valid. The "add members" step in onboarding is **optional** — the creator can finish with only themselves. There is **no separate "Skip" button**: pressing the step's "Save and Finish" without adding anyone produces a solo group. The step's helper text makes this explicit so users know it is intentional, not a bypassed requirement.
+A group with only one member (the device owner) is valid. The "add members" step in onboarding is
+**optional** — the creator can finish with only themselves. There is **no separate "Skip" button**:
+pressing "Save and Finish" without adding anyone produces a solo group. The implemented helper text
+does not explicitly name the solo path, so that clarity portion of this decision remains open.
 
 ## Why
 
 - The data model already supports 1-member groups — no new architecture needed.
 - A solo group is useful: tracking personal trip expenses, logging costs before friends join, or simply using the app as a lightweight personal expense log.
-- Making the skip path intentional (via a prompt) prevents users from thinking the app is broken or that they accidentally bypassed a required step.
+- Explicitly explaining the solo path would prevent users from thinking the app is broken or that
+  they accidentally bypassed a required step; the current helper only says people can be added later.
 
 ## Onboarding Behavior
 
-The "Add Members" step in the group creation flow can be completed without adding anyone — "Save and Finish" proceeds with just the creator. The step explains:
-> "You're already in this group. Add others now, or continue — you can always add them later."
+The "Add Members" step in the group creation flow can be completed without adding anyone — "Save
+and Finish" proceeds with just the creator. Its current helper text is:
+> "You're already in this group. Pick from your friends or add someone new — you can always add them later."
+
+This text permits the solo path but does not explicitly tell the user that finishing solo is valid.
 
 See [[onboarding]] for the full group creation flow and step order.
 

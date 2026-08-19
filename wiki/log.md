@@ -1,19 +1,36 @@
 # Wiki Log
 
-Chronological record of all wiki changes.
+Reverse-chronological record of all wiki changes.
+
+Last updated: 2026-08-20
 
 ---
 
-## 2026-08-16 (group overview completion)
-- CREATED src/shared/utils/balances.ts and src/shared/utils/currency.ts — added reusable member-net, group-total, and currency-formatting helpers
-- UPDATED src/features/group-detail/components/group-overview/index.tsx — added local position, total spend, category count, members, and recent expenses to the nested overview
-- UPDATED src/features/groups-list/components/group-list-item.tsx — replaced the hardcoded balance with the local member's calculated net position
-- UPDATED src/features/group-detail/components/expense-list/index.tsx — switched expense totals to the shared currency formatter
-- REMOVED src/features/group-detail/utils/format-money.ts — superseded by the shared currency utility
+## 2026-08-20
+- CREATED roadmap/product-roadmap.md — compiled the historical master scope into a status-labelled product compass, staged delivery horizons, release gates, non-goals, and exploration list
+- CREATED decisions/money-representation-and-rounding.md — approved currency-aware integer minor units and deterministic largest-remainder split allocation before expense entry implementation
+- UPDATED architecture/domain-models.md, architecture/split-types.md, and systems/indexeddb-schema.md — documented the approved monetary target while preserving the current unimplemented enforcement boundary
+- UPDATED decisions/import-export.md — defined the complete portable dataset, ID/versioning requirements, validation boundary, and remaining serialization/dependency-conflict work
+- UPDATED wiki/index.md — added the roadmap and money decision to navigation and recorded the monetary target invariant
+- UPDATED wiki/log.md — recorded the master-scope ingestion
+- UPDATED wiki/index.md — clarified source authority, corrected research coverage, and distinguished target invariants from store-enforced behavior
+- UPDATED architecture/domain-models.md, architecture/state-management.md, architecture/layout-architecture.md, and architecture/split-types.md — reconciled implementation boundaries, routing, validation, and the unresolved rounding policy
+- UPDATED decisions/expense-model-design.md, decisions/expense-edit-delete.md, decisions/import-export.md, and decisions/solo-group-support.md — marked unimplemented behavior explicitly and corrected the solo-helper claim
+- UPDATED workflows/onboarding.md, workflows/category-management.md, and workflows/member-management.md — corrected navigation/resume behavior and UI-versus-store enforcement gaps
+- UPDATED research/competitive-landscape.md, research/market-opportunity.md, research/monetization-model.md, and research/user-pain-points.md — repaired source paths, added dated-snapshot status, refreshed volatile facts, and reduced roadmap ambiguity
+- UPDATED wiki/log.md — normalized date headings, removed source-code-only history, and recorded this audit reconciliation
+- UPDATED wiki/index.md — removed the development-migration blocker, marked IndexedDB/Zustand DONE, and distinguished implemented, partial, and planned workflows
+- UPDATED systems/indexeddb-schema.md — documented the active-development reset-on-schema-change lifecycle and removed legacy migration/backfill warnings
+- UPDATED architecture/state-management.md and workflows/group-creation.md — distinguished atomic tag deletion from sequential composed writes and final-submit group creation
+- UPDATED workflows/onboarding.md and decisions/onboarding-persistence.md — corrected the `/dashboard` destination, final-step completion semantics, missing-row behavior, and planned import entry points
+- UPDATED architecture/split-types.md, workflows/paid-by.md, and workflows/filtering.md — labelled modelled designs and all unimplemented UI/calculation/filter behavior as planned
+- UPDATED workflows/member-management.md and workflows/category-management.md — separated implemented store/CRUD guards from missing management UI and recorded category deactivation as future historical-reference protection
+- UPDATED wiki/log.md — recorded the reconciliation and normalized all dated sections into reverse chronological order
+
+## 2026-08-16
 - UPDATED architecture/balance-calculation.md, architecture/layout-architecture.md, workflows/dashboard.md, and workflows/main-screen.md — documented the implemented overview and balance behavior
 - UPDATED wiki/index.md — marked Group overview DONE and refreshed the balance-calculation summary
 
-## 2026-08-16 (cross-system history reconciliation)
 - UPDATED architecture/domain-models.md and architecture/state-management.md — combined the newer tag/category implementation with valid local frequent-payer, people, onboarding, draft, and Dexie corrections
 - UPDATED architecture/balance-calculation.md and architecture/layout-architecture.md — aligned current balance and responsive-route claims with committed source while retaining target designs
 - UPDATED systems/indexeddb-schema.md — retained the implemented tags schema and documented the unresolved Dexie version-1 migration risk and unimplemented expense/attachment mutations
@@ -66,14 +83,13 @@ Chronological record of all wiki changes.
 - UPDATED workflows/main-screen.md — documented that dashboard/nav links reference group detail routes that are not implemented yet
 - UPDATED wiki/index.md — reflected pending group detail routes in navigation description and implementation status
 
-## 2026-07-13 (source reconciliation)
+## 2026-07-13
 - UPDATED wiki/index.md — reconciled the status table with current source; added group overview, tags, attachments, group deletion, PWA, and test coverage; marked routing and persistence in progress
 - UPDATED systems/indexeddb-schema.md — separated current tables from planned tags/attachment behavior; documented the unchanged Dexie version-1 migration and legacy self-person/member backfill risk
 - UPDATED architecture/layout-architecture.md — corrected viewport rendering, missing routes, tablet activity behavior, and hardcoded desktop activity
 - UPDATED architecture/balance-calculation.md — recorded the current member-net/group-total helpers and marked all-member debt simplification as pending
 - UPDATED workflows/dashboard.md — separated the basic implemented group list from planned summaries, analytics, unsettled balances, and real activity
 
-## 2026-07-13 (main-screen reconciliation)
 - UPDATED workflows/main-screen.md — documented current dashboard-to-overview navigation, group overview contents, sidebar balances, and missing routes; relabeled expense/balance views and group menu as target design
 - UPDATED wiki/index.md — refreshed the Main Screen description to distinguish current navigation from planned in-group behavior
 
@@ -87,7 +103,7 @@ Chronological record of all wiki changes.
 - UPDATED architecture/state-management.md — documented the single Zustand store as domain slices under `src/shared/configs/store/` with one public `useStore`
 - UPDATED wiki/index.md — refreshed the State Management description for the sliced store implementation
 
-## 2026-06-12 (global people directory)
+## 2026-06-12
 - CREATED decisions/global-people-directory.md — people are a global device-local directory; members link to shared people; supersedes group-scoped-members; old model + fully-global kept as rejected alternatives
 - REMOVED decisions/group-scoped-members.md — superseded by global-people-directory
 - CREATED workflows/people-directory.md — friends list management, pick-at-creation, edit propagation, two delete scopes
@@ -97,31 +113,66 @@ Chronological record of all wiki changes.
 - UPDATED decisions/import-export.md — export snapshots referenced people; import reconciles against local directory
 - UPDATED wiki/index.md — decision link renamed; people-directory added to Workflows; invariants #2 & #6 reworded; People directory row IN PROGRESS
 
----
+## 2026-06-11
+- UPDATED architecture/state-management.md — added "Ephemeral State (in store, not persisted)" section documenting the memory-only group draft: per-keystroke mirror of the create/edit group form, seeded on mount and cleared on unmount, synchronous setters with no IndexedDB write; powers the activity-panel live preview; member list excludes creator (reintroduced from localUser); contrasted with onboarding-persistence
+- UPDATED wiki/index.md — extended state-management description to mention ephemeral group draft
 
-## 2026-05-17
-- CREATED wiki/index.md — bootstrapped wiki navigation hub
-- CREATED wiki/log.md — chronological change record (Karpathy LLM Wiki pattern)
-- CREATED architecture/domain-models.md — entity shapes and invariants
-- CREATED architecture/balance-calculation.md — net balance algorithm + worked example
-- CREATED architecture/state-management.md — Zustand store shape plan
-- CREATED decisions/group-scoped-members.md — why no global user in MVP/V2
-- CREATED decisions/expense-model-design.md — why both paid[] and owes[] are stored
-- CREATED systems/indexeddb-schema.md — tables, keys, access patterns
-- CREATED research/competitive-landscape.md — 10 competitors, fatal flaws, feature monopolies (from market research PDFs)
-- CREATED research/market-opportunity.md — Splitwise paywall gap, positioning, differentiators, GTM
-- CREATED research/user-pain-points.md — top complaints, 12 most-requested features, India pain points
-- CREATED research/monetization-model.md — pricing tiers, what stays free, Splitwise anti-patterns
-- UPDATED wiki/index.md — added Research section with 4 new pages
+## 2026-06-10
+- UPDATED architecture/domain-models.md — Category gains an emoji `icon` field; noted master presets ship with icons, custom categories get a user-picked one
+- UPDATED systems/indexeddb-schema.md — `categories` table gains `icon`; settings `"categories"` row `master` is now `{ name, icon }[]`, `default` clarified as names resolving icons from master
+- UPDATED workflows/category-management.md — every category carries an icon; master entries have preset icons; custom-add is an emoji + name editor (shared with onboarding)
+- UPDATED ideas/category-settings-ui.md — master shape is now `{ name, icon }[]`
 
-## 2026-05-17 (lint)
-- UPDATED research/monetization-model.md — removed "Custom categories" from Pro features; categories are a free MVP feature (analytics + filtering tool, not a paid gating point)
-- CREATED decisions/solo-group-support.md — solo groups (1 member) are valid; add-members onboarding step is skippable with an explanatory prompt; no minimum member count
-- UPDATED wiki/index.md — added solo-group-support to Decisions section
-- UPDATED architecture/state-management.md — noted that createGroup also auto-creates a Member record for LocalUser
-- UPDATED wiki/index.md — added invariant #6: group creator is always auto-added as a Member and cannot be added again manually
-- CREATED ideas/rewarded-ads.md — captured optional monetization idea (not committed); user watches ad → earns credits → unlocks Pro
-- UPDATED wiki/index.md — added Ideas section for features that are captured but not committed to
+- UPDATED workflows/onboarding.md — steps now save on each "Save and Proceed" (commit-on-button, not live per-toggle); categories step now mandatory (≥1); members optional with no Skip button; added category-mandatory invariant
+- UPDATED decisions/onboarding-persistence.md — step→save mapping updated to commit-on-button (categories diffed on Save and Proceed; members added only on final Save and Finish); Next→Save and Proceed terminology; removed stale "saves are live / Skip keeps data" note
+- UPDATED workflows/category-management.md — master list is now DB-backed (settings "categories" row, seeded from constant); category selection at creation is mandatory (≥1), defaults pre-selected; persisted on Save and Proceed
+- UPDATED decisions/solo-group-support.md — members step has no Skip button; "Save and Finish" without adding yields a solo group; updated helper text
+- UPDATED wiki/index.md — category-management description (DB-backed, ≥1 mandatory); added invariant #10 (group requires ≥1 category at creation)
+
+- UPDATED systems/indexeddb-schema.md — replaced the `onboarding` table with a typed, discriminated-union `settings` store (rows keyed by fixed id: `"onboarding"` progress, `"categories"` config); documented seed-from-constants then DB-authoritative
+- UPDATED decisions/onboarding-persistence.md — onboarding progress now lives as the `"onboarding"` row in the shared `settings` store (key `'onboarding'`), not a dedicated `onboarding` table at key `'current'`; save mechanics unchanged
+- UPDATED ideas/category-settings-ui.md — data layer now built (master/default lists are the `"categories"` settings row, seeded from `SEED_*` constants); aligned field names to reality; settings UI + persist action still TODO
+- UPDATED wiki/index.md — schema description now notes the `settings` store; updated category-settings-ui status to "data layer built"
+
+- CREATED workflows/group-creation.md — standalone post-onboarding group creation; 4 steps (no identity), create-on-finish vs onboarding's per-step persistence; create-group domain owns the shared step components, onboarding composes on top
+- UPDATED wiki/index.md — added group-creation to Workflows; Group creation flow IN PROGRESS → DONE
+
+- UPDATED wiki/index.md — corrected Implementation Status to match source: IndexedDB+store and onboarding (5 steps, not 7) now DONE; old "Groups list DONE" was stale (page deleted) — home is now the dashboard stub, marked IN PROGRESS; group creation flow moved PENDING → IN PROGRESS (work starting on standalone /groups/new)
+
+## 2026-06-09
+- CREATED ideas/category-settings-ui.md — TODO note for settings UI to configure defaultVisibleCategories and defaultSelectedCategories; data layer plan captured
+- UPDATED wiki/index.md — added category-settings-ui to Ideas section
+
+## 2026-06-05
+- UPDATED architecture/layout-architecture.md — added exact breakpoints (768px/1080px), full sidebar structure, group item component anatomy, context-aware menu items per route
+- CREATED workflows/dashboard.md — dashboard sections (overall summary, per-group cards, unsettled balances, category chart, activity), empty states, navigation, multi-currency edge case
+- UPDATED wiki/index.md — added dashboard entry to Workflows section
+- UPDATED architecture/layout-architecture.md — expanded mobile section: top bar (greeting + light/dark toggle), context-aware bottom nav (home set vs in-group set), no FAB rationale, no features dropped principle
+- UPDATED workflows/dashboard.md — added mobile content mapping table showing how each dashboard section maps to a bottom nav tab
+- UPDATED architecture/layout-architecture.md — removed persistent top bar concept; greeting is dashboard page content only, not chrome
+- UPDATED workflows/dashboard.md — greeting is page content on dashboard only (mobile + desktop); light/dark toggle moved to Settings only
+- UPDATED architecture/layout-architecture.md — tablet activity section has explicit "Activity" heading; mobile has no persistent top bar (explicit); cross-reference to dashboard for greeting/toggle details
+- UPDATED workflows/dashboard.md — activity item documented as two-line two-column component; unsettled balance entry format documented (group name first, then direction + amount)
+
+## 2026-06-03
+- CREATED architecture/layout-architecture.md — two-mode layout system (mobile vs desktop); useViewport hook; AppFooter route-aware design; AppSidebar and ActivityPanel (future)
+- UPDATED wiki/index.md — added layout-architecture entry; Groups list status PENDING → DONE
+
+- UPDATED wiki/index.md — revised invariant #4: categories are deletable when unreferenced (reassign-first), no longer "never deleted"
+- UPDATED workflows/category-management.md — Category Rules now allow guarded delete (unreferenced only; reassign all expenses first otherwise); added delete-vs-deactivate guidance
+- UPDATED architecture/domain-models.md — category guarded-delete rule; clarified tag-vs-category deletion contrast (tags delete freely with cascade; categories only when unreferenced)
+- UPDATED workflows/tag-management.md — updated tag-vs-category deletion contrast and Related note to match guarded category delete
+- CREATED decisions/onboarding-persistence.md — per-step save + resumable onboarding: dedicated single-row `onboarding` store, monotonic `lastCompletedStep`, viewed step is Zustand-only, completion gated by explicit flag (not `localUser` presence)
+- UPDATED workflows/onboarding.md — added Persistence & Resume section; linked onboarding-persistence
+- UPDATED systems/indexeddb-schema.md — added `onboarding` single-row store (fixed key `'current'`)
+- UPDATED wiki/index.md — added onboarding-persistence to Decisions; marked "IndexedDB layer + Zustand store" and "Onboarding flow" IN PROGRESS
+
+## 2026-05-21
+- CREATED workflows/tag-management.md — tag creation (inline + manage screen), rename, atomic delete with cascade, contrast with category no-delete rule
+- UPDATED architecture/domain-models.md — added Tag model; added tagIds[] to Expense; added tag-management to Related section
+- UPDATED systems/indexeddb-schema.md — added tags table (id, groupId, name); added tagIds field to expenses table; updated access pattern summary
+- UPDATED workflows/filtering.md — added Tags multi-select as 8th filterable field; updated field count in overview
+- UPDATED wiki/index.md — added tag-management to Workflows; updated filtering description to 8 fields; added invariant #9 (atomic tag deletion)
 
 ## 2026-05-18
 - CREATED decisions/import-export.md — three export formats (link/CSV/ZIP), two import modes (view-only/editable), UUID-based group matching, conflict resolution (add-new-only vs replace), receipt attachment compression strategy
@@ -147,10 +198,9 @@ Chronological record of all wiki changes.
 - UPDATED workflows/onboarding.md — inserted category selection as step 4 (skippable) between group creation and add members; renumbered steps
 - UPDATED wiki/index.md — added category-management to Workflows section
 
-## 2026-05-18 (final pass — bug fixes + open questions)
-- FIXED systems/indexeddb-schema.md — expenses table now includes when, splitType, splitMeta, attachmentIds; categoryId marked mandatory
-- FIXED architecture/domain-models.md — removed stale "auto-created categories" note; added master list selection model; categoryId mandatory on expense; icons documented as emoji; deactivated categories stay visible on history
-- FIXED architecture/state-management.md — updated Zustand store shape with all new fields and full action signatures
+- UPDATED systems/indexeddb-schema.md — expenses table now includes when, splitType, splitMeta, attachmentIds; categoryId marked mandatory
+- UPDATED architecture/domain-models.md — removed stale "auto-created categories" note; added master list selection model; categoryId mandatory on expense; icons documented as emoji; deactivated categories stay visible on history
+- UPDATED architecture/state-management.md — updated Zustand store shape with all new fields and full action signatures
 - UPDATED workflows/main-screen.md — expense list sorted by `when` descending; date shown is `when` not `createdAt`
 - UPDATED workflows/member-management.md — added frequentPayerIds cleanup on member removal
 - CREATED decisions/group-deletion.md — permanent deletion cascades all group data; irreversible warning
@@ -161,75 +211,31 @@ Chronological record of all wiki changes.
 - CREATED workflows/filtering.md — 7 filterable expense fields, AND logic, non-persisted filter state
 - UPDATED wiki/index.md — added filtering to Workflows section
 
-## 2026-05-21
-- CREATED workflows/tag-management.md — tag creation (inline + manage screen), rename, atomic delete with cascade, contrast with category no-delete rule
-- UPDATED architecture/domain-models.md — added Tag model; added tagIds[] to Expense; added tag-management to Related section
-- UPDATED systems/indexeddb-schema.md — added tags table (id, groupId, name); added tagIds field to expenses table; updated access pattern summary
-- UPDATED workflows/filtering.md — added Tags multi-select as 8th filterable field; updated field count in overview
-- UPDATED wiki/index.md — added tag-management to Workflows; updated filtering description to 8 fields; added invariant #9 (atomic tag deletion)
-
-## 2026-05-18 (final consistency pass)
 - UPDATED wiki/index.md — removed stale spec reference from header; corrected competitor count to 7; expanded implementation status to reflect full scope; added invariants 7 and 8
 - UPDATED architecture/domain-models.md — corrected last-updated date to 2026-05-18
 - UPDATED architecture/state-management.md — corrected last-updated date; fixed createGroup signature to include currency param; removed stale spec reference in Dexie.js note
 - UPDATED decisions/solo-group-support.md — replaced restated onboarding steps (which were outdated) with a reference to [[onboarding]]
 - UPDATED workflows/category-management.md — corrected group creation description to include currency step before category selection
 
-## 2026-06-03 (groups list UI)
-- CREATED architecture/layout-architecture.md — two-mode layout system (mobile vs desktop); useViewport hook; AppFooter route-aware design; AppSidebar and ActivityPanel (future)
-- UPDATED wiki/index.md — added layout-architecture entry; Groups list status PENDING → DONE
+## 2026-05-17
+- CREATED wiki/index.md — bootstrapped wiki navigation hub
+- CREATED wiki/log.md — chronological change record (Karpathy LLM Wiki pattern)
+- CREATED architecture/domain-models.md — entity shapes and invariants
+- CREATED architecture/balance-calculation.md — net balance algorithm + worked example
+- CREATED architecture/state-management.md — Zustand store shape plan
+- CREATED decisions/group-scoped-members.md — why no global user in MVP/V2
+- CREATED decisions/expense-model-design.md — why both paid[] and owes[] are stored
+- CREATED systems/indexeddb-schema.md — tables, keys, access patterns
+- CREATED research/competitive-landscape.md — 10 competitors, fatal flaws, feature monopolies (from market research PDFs)
+- CREATED research/market-opportunity.md — Splitwise paywall gap, positioning, differentiators, GTM
+- CREATED research/user-pain-points.md — top complaints, 12 most-requested features, India pain points
+- CREATED research/monetization-model.md — pricing tiers, what stays free, Splitwise anti-patterns
+- UPDATED wiki/index.md — added Research section with 4 new pages
 
-## 2026-06-05
-- UPDATED architecture/layout-architecture.md — added exact breakpoints (768px/1080px), full sidebar structure, group item component anatomy, context-aware menu items per route
-- CREATED workflows/dashboard.md — dashboard sections (overall summary, per-group cards, unsettled balances, category chart, activity), empty states, navigation, multi-currency edge case
-- UPDATED wiki/index.md — added dashboard entry to Workflows section
-- UPDATED architecture/layout-architecture.md — expanded mobile section: top bar (greeting + light/dark toggle), context-aware bottom nav (home set vs in-group set), no FAB rationale, no features dropped principle
-- UPDATED workflows/dashboard.md — added mobile content mapping table showing how each dashboard section maps to a bottom nav tab
-- UPDATED architecture/layout-architecture.md — removed persistent top bar concept; greeting is dashboard page content only, not chrome
-- UPDATED workflows/dashboard.md — greeting is page content on dashboard only (mobile + desktop); light/dark toggle moved to Settings only
-- UPDATED architecture/layout-architecture.md — tablet activity section has explicit "Activity" heading; mobile has no persistent top bar (explicit); cross-reference to dashboard for greeting/toggle details
-- UPDATED workflows/dashboard.md — activity item documented as two-line two-column component; unsettled balance entry format documented (group name first, then direction + amount)
-
-## 2026-06-09
-- CREATED ideas/category-settings-ui.md — TODO note for settings UI to configure defaultVisibleCategories and defaultSelectedCategories; data layer plan captured
-- UPDATED wiki/index.md — added category-settings-ui to Ideas section
-
-## 2026-06-10 (category icons)
-- UPDATED architecture/domain-models.md — Category gains an emoji `icon` field; noted master presets ship with icons, custom categories get a user-picked one
-- UPDATED systems/indexeddb-schema.md — `categories` table gains `icon`; settings `"categories"` row `master` is now `{ name, icon }[]`, `default` clarified as names resolving icons from master
-- UPDATED workflows/category-management.md — every category carries an icon; master entries have preset icons; custom-add is an emoji + name editor (shared with onboarding)
-- UPDATED ideas/category-settings-ui.md — master shape is now `{ name, icon }[]`
-
-## 2026-06-10 (onboarding central-form refactor)
-- UPDATED workflows/onboarding.md — steps now save on each "Save and Proceed" (commit-on-button, not live per-toggle); categories step now mandatory (≥1); members optional with no Skip button; added category-mandatory invariant
-- UPDATED decisions/onboarding-persistence.md — step→save mapping updated to commit-on-button (categories diffed on Save and Proceed; members added only on final Save and Finish); Next→Save and Proceed terminology; removed stale "saves are live / Skip keeps data" note
-- UPDATED workflows/category-management.md — master list is now DB-backed (settings "categories" row, seeded from constant); category selection at creation is mandatory (≥1), defaults pre-selected; persisted on Save and Proceed
-- UPDATED decisions/solo-group-support.md — members step has no Skip button; "Save and Finish" without adding yields a solo group; updated helper text
-- UPDATED wiki/index.md — category-management description (DB-backed, ≥1 mandatory); added invariant #10 (group requires ≥1 category at creation)
-
-## 2026-06-10 (settings store + categories in DB)
-- UPDATED systems/indexeddb-schema.md — replaced the `onboarding` table with a typed, discriminated-union `settings` store (rows keyed by fixed id: `"onboarding"` progress, `"categories"` config); documented seed-from-constants then DB-authoritative
-- UPDATED decisions/onboarding-persistence.md — onboarding progress now lives as the `"onboarding"` row in the shared `settings` store (key `'onboarding'`), not a dedicated `onboarding` table at key `'current'`; save mechanics unchanged
-- UPDATED ideas/category-settings-ui.md — data layer now built (master/default lists are the `"categories"` settings row, seeded from `SEED_*` constants); aligned field names to reality; settings UI + persist action still TODO
-- UPDATED wiki/index.md — schema description now notes the `settings` store; updated category-settings-ui status to "data layer built"
-
-## 2026-06-11 (group draft / live preview)
-- UPDATED architecture/state-management.md — added "Ephemeral State (in store, not persisted)" section documenting the memory-only group draft: per-keystroke mirror of the create/edit group form, seeded on mount and cleared on unmount, synchronous setters with no IndexedDB write; powers the activity-panel live preview; member list excludes creator (reintroduced from localUser); contrasted with onboarding-persistence
-- UPDATED wiki/index.md — extended state-management description to mention ephemeral group draft
-
-## 2026-06-10 (group creation flow)
-- CREATED workflows/group-creation.md — standalone post-onboarding group creation; 4 steps (no identity), create-on-finish vs onboarding's per-step persistence; create-group domain owns the shared step components, onboarding composes on top
-- UPDATED wiki/index.md — added group-creation to Workflows; Group creation flow IN PROGRESS → DONE
-
-## 2026-06-10 (status reconciliation)
-- UPDATED wiki/index.md — corrected Implementation Status to match source: IndexedDB+store and onboarding (5 steps, not 7) now DONE; old "Groups list DONE" was stale (page deleted) — home is now the dashboard stub, marked IN PROGRESS; group creation flow moved PENDING → IN PROGRESS (work starting on standalone /groups/new)
-
-## 2026-06-03
-- UPDATED wiki/index.md — revised invariant #4: categories are deletable when unreferenced (reassign-first), no longer "never deleted"
-- UPDATED workflows/category-management.md — Category Rules now allow guarded delete (unreferenced only; reassign all expenses first otherwise); added delete-vs-deactivate guidance
-- UPDATED architecture/domain-models.md — category guarded-delete rule; clarified tag-vs-category deletion contrast (tags delete freely with cascade; categories only when unreferenced)
-- UPDATED workflows/tag-management.md — updated tag-vs-category deletion contrast and Related note to match guarded category delete
-- CREATED decisions/onboarding-persistence.md — per-step save + resumable onboarding: dedicated single-row `onboarding` store, monotonic `lastCompletedStep`, viewed step is Zustand-only, completion gated by explicit flag (not `localUser` presence)
-- UPDATED workflows/onboarding.md — added Persistence & Resume section; linked onboarding-persistence
-- UPDATED systems/indexeddb-schema.md — added `onboarding` single-row store (fixed key `'current'`)
-- UPDATED wiki/index.md — added onboarding-persistence to Decisions; marked "IndexedDB layer + Zustand store" and "Onboarding flow" IN PROGRESS
+- UPDATED research/monetization-model.md — removed "Custom categories" from Pro features; categories are a free MVP feature (analytics + filtering tool, not a paid gating point)
+- CREATED decisions/solo-group-support.md — solo groups (1 member) are valid; add-members onboarding step is skippable with an explanatory prompt; no minimum member count
+- UPDATED wiki/index.md — added solo-group-support to Decisions section
+- UPDATED architecture/state-management.md — noted that createGroup also auto-creates a Member record for LocalUser
+- UPDATED wiki/index.md — added invariant #6: group creator is always auto-added as a Member and cannot be added again manually
+- CREATED ideas/rewarded-ads.md — captured optional monetization idea (not committed); user watches ad → earns credits → unlocks Pro
+- UPDATED wiki/index.md — added Ideas section for features that are captured but not committed to

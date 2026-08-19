@@ -1,43 +1,49 @@
 # split-slate Wiki
 
 Synthesized knowledge for the split-slate expense splitting PWA.
-This wiki is the sole source of truth. Source: `src/` | Changes: [log.md](log.md)
+This wiki is the sole persistent compiled knowledge layer. The implementation in `src/` remains
+authoritative; `app-featureset-context/spec-sheet.md` is a historical baseline where later source
+and approved decisions have superseded it. Changes: [log.md](log.md)
 
-Last updated: 2026-08-16
+Last updated: 2026-08-20
 
 ---
 
 ## Navigation
 
+### Roadmap
+- [Product Direction and Roadmap](roadmap/product-roadmap.md) — living product compass, delivery horizons, release gates, non-goals, and explicitly uncommitted ideas
+
 ### Architecture
 - [Domain Models](architecture/domain-models.md) — Group, Member, Expense, Category, LocalUser shapes and invariants
 - [Balance Calculation](architecture/balance-calculation.md) — implemented member-net/group-total helpers; planned all-member balances and debt simplification
-- [State Management](architecture/state-management.md) — Dexie-first persistence with one hydrated Zustand store composed from domain slices, including group tags
-- [Split Types](architecture/split-types.md) — 5 split types (equal, amount, shares, percentage, adjustment); mechanics, UX, validation, splitMeta storage
+- [State Management](architecture/state-management.md) — Dexie-first persistence with one hydrated Zustand store; exact validation and atomicity boundaries
+- [Split Types](architecture/split-types.md) — 5 approved and modelled split types; entry/calculation implementation is pending and deterministic rounding is now designed
 - [Layout Architecture](architecture/layout-architecture.md) — current mobile/tablet/desktop shell, route stubs, sidebar, footer, and activity panel
 
 ### Decisions
 - [Global People Directory](decisions/global-people-directory.md) — device-local friends list; members link to shared people; supersedes per-group members
 - [Expense Model Design](decisions/expense-model-design.md) — why both paid[] and owes[] are stored on each expense
-- [Solo Group Support](decisions/solo-group-support.md) — single-member groups are valid; add-members step is skippable with an explanatory prompt
+- [Solo Group Support](decisions/solo-group-support.md) — single-member groups are valid; add-members can finish without adding anyone, while explicit solo-helper copy remains pending
 - [Onboarding Persistence](decisions/onboarding-persistence.md) — per-step save to IndexedDB + resume from a monotonic `lastCompletedStep`; completion gated by an explicit flag, not `localUser` presence
-- [Import / Export Design](decisions/import-export.md) — three export formats (link/CSV/ZIP), two import modes (view-only/editable), conflict resolution strategy
-- [Expense Edit and Delete](decisions/expense-edit-delete.md) — hard delete with attachment cascade; no access control in MVP; V3 note on admin controls
+- [Import / Export Design](decisions/import-export.md) — approved but unimplemented design for three export formats, two import modes, and conflict resolution
+- [Expense Edit and Delete](decisions/expense-edit-delete.md) — approved but unimplemented hard-delete and attachment-cascade behavior
 - [Group Deletion](decisions/group-deletion.md) — approved pending design for permanent deletion with a full related-data cascade and irreversible warning
+- [Money Representation and Rounding](decisions/money-representation-and-rounding.md) — approved integer minor-unit storage and deterministic largest-remainder allocation; implementation pending
 
 ### Systems
-- [IndexedDB Schema](systems/indexeddb-schema.md) — current tables and indexes, including tags, plus the unresolved version-1 migration risk
+- [IndexedDB Schema](systems/indexeddb-schema.md) — current tables and indexes, including tags; active development resets the database after schema changes instead of migrating it
 
 ### Workflows
-- [Onboarding](workflows/onboarding.md) — first-launch flow; standard path and import-based entry points
-- [Group Creation](workflows/group-creation.md) — standalone post-onboarding flow; 4 steps, create-on-finish; shares step components with onboarding
+- [Onboarding](workflows/onboarding.md) — implemented first-launch flow ending at `/dashboard`; import-based bypasses are planned
+- [Group Creation](workflows/group-creation.md) — standalone 4-step flow; writes begin only on final submission and then run sequentially
 - [Main Screen](workflows/main-screen.md) — current dashboard and nested group-detail routes; planned expense entry and balance views
-- [Paid-By](workflows/paid-by.md) — frequent payers quick-select, pre-selection logic, multi-payer mode
+- [Paid-By](workflows/paid-by.md) — planned frequent-payer selector, ranking updates, pre-selection, and multi-payer entry; storage shapes exist
 - [People Directory](workflows/people-directory.md) — global friends list; manage people; pick them when building a group
-- [Member Management](workflows/member-management.md) — members link to people; two removal scopes (per-group vs directory-wide)
-- [Category Management](workflows/category-management.md) — DB-backed master list + group-level selection at creation (≥1 mandatory, defaults pre-selected); custom categories addable anytime; guarded and confirmed delete
+- [Member Management](workflows/member-management.md) — expense-reference removal guards exist; duplicate, self, and creator protections plus management UX remain incomplete
+- [Category Management](workflows/category-management.md) — implemented group category CRUD and delete guards; deactivation and expense-picker integration remain future work
 - [Tag Management](workflows/tag-management.md) — named and colored group-scoped tags; preset/custom hex picker; optional expense references; atomic cascade deletion
-- [Filtering](workflows/filtering.md) — expense list filtering across 8 fields (name, date, category, tags, paid-by, member, split type, amount); all ANDed, not persisted
+- [Filtering](workflows/filtering.md) — planned eight-field expense filtering; the current route only renders a read-only list sorted by expense date
 - [Dashboard](workflows/dashboard.md) — current groups-list implementation and the planned summaries, analytics, and activity views
 
 ### Ideas (captured, not committed)
@@ -46,10 +52,10 @@ Last updated: 2026-08-16
 - [Category Settings UI](ideas/category-settings-ui.md) — data layer built (DB-backed master/default category lists); settings screen still TODO
 
 ### Research
-- [Competitive Landscape](research/competitive-landscape.md) — 7 apps analysed, fatal flaws, table-stakes features, feature monopolies
-- [Market Opportunity](research/market-opportunity.md) — Splitwise paywall gap, target positioning, differentiators, GTM summary
-- [User Pain Points](research/user-pain-points.md) — top complaints, 12 most-requested features, India-specific pain points
-- [Monetization Model](research/monetization-model.md) — pricing tiers (India + global), what stays free, what NOT to do
+- [Competitive Landscape](research/competitive-landscape.md) — dated May 2026 research snapshot covering 9 apps, with current fact corrections
+- [Market Opportunity](research/market-opportunity.md) — dated research thesis and recommendations, not the committed product roadmap
+- [User Pain Points](research/user-pain-points.md) — dated complaint synthesis with current-behavior qualifications
+- [Monetization Model](research/monetization-model.md) — unimplemented pricing and packaging proposal derived from the research snapshot
 
 ---
 
@@ -59,7 +65,7 @@ Last updated: 2026-08-16
 |------------------------------------|-------------|
 | Project scaffold                   | DONE        |
 | Routing and responsive app shell   | IN PROGRESS |
-| IndexedDB layer + Zustand store    | IN PROGRESS |
+| IndexedDB layer + Zustand store    | DONE        |
 | Onboarding flow (5 steps)          | DONE        |
 | Dashboard / groups list (home)     | IN PROGRESS |
 | Group detail routes                | DONE        |
@@ -81,23 +87,24 @@ Last updated: 2026-08-16
 | Installable/offline PWA support    | PENDING     |
 | Automated tests                    | PENDING     |
 
-`IndexedDB layer + Zustand store` remains in progress because the current schema works for a
-fresh database but has no versioned migration path for databases created by older builds. See
-[[indexeddb-schema]]. All group-detail destinations have routes, but several are lightweight or
-partial. Dashboard-level footer items for Activity, Unsettled, Analytics, and Settings remain
-unmatched; see [[layout-architecture]].
+The IndexedDB layer and Zustand store are complete for the current development scope. Schema
+changes intentionally require resetting the local database; versioned migrations are not needed
+while development data is disposable. All group-detail destinations have routes, but several are
+lightweight or partial. Dashboard-level footer items for Activity, Unsettled, Analytics, and
+Settings remain unmatched; see [[layout-architecture]].
 
 ---
 
 ## Key Invariants (Quick Reference)
 
-1. `sum(paid[].amount) == sum(owes[].amount)` on every expense
+1. Target expense invariant: `sum(paid[].amount) == sum(owes[].amount)`; enforcement begins with the planned expense mutation and validation flow
 2. People are global (one device-local directory); a group member is a link to a person, so the same person in two groups is one Person referenced twice
 3. Balance = totalPaid − totalOwed (per member, per group) — not a running ledger
-4. Categories can be renamed or deactivated anytime; deletable only when no expense references them and the group has another category left
+4. Categories can be renamed and guard-deleted now; the model supports deactivation, but its UI and expense-picker behavior are planned
 5. No global user in MVP/V2 — only a device-local `localUser`
-6. Group creator (LocalUser) is automatically added as a Member (linked to their self Person) when the group is created — they are always part of every group they create and cannot be added again manually
+6. Group creation automatically adds the LocalUser as a Member linked to their self Person; current UI avoids duplicates, but the member store does not yet enforce uniqueness or creator retention
 7. `categoryId` is mandatory on every expense — no uncategorised expenses
 8. Currency is single per group (set at creation, defaults to INR) — no multi-currency in MVP
 9. Tags are named and colored group-scoped records referenced optionally through `Expense.tagIds`; deleting a tag atomically removes its references without deleting expenses
 10. A group must have at least one category — enforced at creation (categories step requires ≥1 selected) so every expense can be categorised
+11. Approved monetary target: stored money uses currency-aware integer minor units and calculated splits use deterministic largest-remainder allocation; no expense write path enforces this yet

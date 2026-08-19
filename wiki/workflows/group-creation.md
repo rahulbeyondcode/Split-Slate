@@ -2,6 +2,8 @@
 
 One-line purpose: the standalone flow for creating a new group after onboarding is complete.
 
+Last updated: 2026-08-20
+
 ## Relationship to onboarding
 
 Group creation and onboarding share the same building blocks. The reusable steps — name/icon, currency, categories, and members — are owned by the group-creation domain. Onboarding is a superset: it adds an identity step in front and layers on per-step persistence and resume. The standalone flow reuses the steps directly, with none of that onboarding machinery.
@@ -16,7 +18,16 @@ The creator is not added as a member in this flow's member step — they are add
 
 ## Create-on-finish
 
-Nothing is written until the final "Create group" action. Up to that point the form is in-memory, with a separate memory-only draft mirrored into the Zustand store for live preview. On finish, the group is created first (so it has an id), then categories, then member links. New inline people are added to the global directory at this same final commit before their member links are created. Abandoning the flow midway leaves no partial group, categories, members, or people behind.
+Nothing is written until the final "Create group" action. Up to that point the form is in-memory,
+with a separate memory-only draft mirrored into the Zustand store for live preview. Abandoning the
+flow before that action leaves no partial group, categories, members, or people behind.
+
+The final action starts a sequence of independent database writes; it is not one atomic Dexie
+transaction. The group row is written first, followed separately by its creator member, each
+category, and each selected member link. A newly entered person is added to the global directory
+immediately before that person's member link. If a later write fails, all earlier successful writes
+remain saved. "Create-on-finish" therefore describes when persistence begins, not an all-or-nothing
+commit guarantee.
 
 This is the deliberate contrast with onboarding, which persists each step as it completes so an interrupted first-launch can resume. A returning user creating an Nth group has no resume need, so the simpler create-on-finish model applies.
 
@@ -27,5 +38,3 @@ After creation the user lands on the dashboard, where the new group appears. (Th
 - [[category-management]] — category selection rules reused here
 - [[solo-group-support]] — why the members step is optional
 - [[domain-models]] — group and member shapes
-
-Last updated: 2026-06-27

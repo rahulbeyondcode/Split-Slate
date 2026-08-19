@@ -7,13 +7,31 @@ metadata:
 
 # Split Types
 
-Last updated: 2026-05-18
+Last updated: 2026-08-20
 
 ## Overview
 
-Every expense has a `splitType`. Regardless of which type is chosen, the user always selects **which members are affected** — it does not have to be the entire group. A group of 10 can split an expense among just 4 selected members.
+The domain model can represent five `splitType` values and stores `splitMeta[]` plus final
+`transactions.owes[]` values. The five mechanics below are the approved design for expense entry;
+they are not implemented calculation behavior today.
+
+There is currently no add/edit expense form, split selector, calculation utility, validation flow,
+or expense-save mutation. The existing expense route only renders stored records. Consequently,
+all UX, formulas, and validation described below remain planned, even though the TypeScript and
+IndexedDB shapes can store their results.
+
+In the target flow, the user selects **which members are affected** — it does not have to be the
+entire group. A group of 10 can split an expense among just 4 selected members.
 
 The selected members and the computed amounts are stored in `transactions.owes[]`. For split types where the input values cannot be derived back from `owes[]` alone (shares, percentage, adjustment), the raw input values are stored in `splitMeta[]` so the expense can be accurately displayed and edited later.
+
+## Approved Rounding Policy (not implemented)
+
+All monetary results use integer currency minor units. Equal, shares, percentage, and adjustment
+calculations allocate indivisible remainders with the largest-remainder method and break exact ties
+by ascending `memberId`. This guarantees that the final stored owed amounts sum to the expense
+total. See [[money-representation-and-rounding]] for the complete input, validation, and currency
+exponent rules.
 
 ---
 
@@ -144,4 +162,5 @@ member_owes = base_per_member + member_adjustment
 
 - [[domain-models]] — Expense shape (splitType, splitMeta, when fields)
 - [[expense-model-design]] — why owes[] stores final computed amounts
+- [[money-representation-and-rounding]] — minor-unit storage and deterministic rounding
 - [[balance-calculation]] — how owes[] feeds into net balance computation

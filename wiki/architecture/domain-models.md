@@ -7,7 +7,7 @@ metadata:
 
 # Domain Models
 
-Last updated: 2026-08-16
+Last updated: 2026-08-20
 
 ## LocalUser (Device Owner)
 
@@ -36,7 +36,9 @@ One per device. Not synced in MVP/V2. The device owner is also mirrored as a Per
 A single device-local directory of people ("friends list"), reused across every group. A person is created once and referenced by group members. The device owner appears here too, sharing the `LocalUser` id. See [[global-people-directory]] and [[people-directory]].
 
 - **Editing** a person's name/icon propagates to every group, because members resolve display through the person link
-- **Deletion** is allowed only when the person is referenced by no expense in any group
+- **Deletion** is blocked by the store when the person is involved in an expense. The implemented
+  people UI also hides deletion for the self Person, but `removePerson` does not enforce that
+  self-protection at the store boundary.
 
 ---
 
@@ -53,11 +55,16 @@ A single device-local directory of people ("friends list"), reused across every 
 }
 ```
 
-**Currency** is set once during group creation (MVP: single currency per group, no multi-currency). Default is INR. All expense amounts in the group are assumed to be in this currency.
+**Currency** is singular per group (MVP: no multi-currency). Onboarding and standalone creation set
+it, defaulting to INR, and all expense amounts are assumed to use it. There is no dedicated
+post-creation currency editor, although the generic `updateGroup` patch action can change it.
 
 **Initial value of `frequentPayerIds`** on group creation: `[creatorMemberId]`. Other members are added after the group row exists, but the creator remains the only frequent payer until expense history exists.
 
-**Updated** after every expense save: top 5 members by pay frequency across all group expenses. Tiebreaker: alphabetical order. Stored here to avoid recomputing at render time. See [[paid-by]] for full UX behaviour.
+**Planned update behavior:** after an expense save, rank the top 5 members by pay frequency across
+the group's expenses, with alphabetical order as the tiebreaker. No expense-save mutation or
+ranking recalculation exists yet, so the current value remains the creation-time initializer unless
+changed through the generic group patch action. See [[paid-by]].
 
 ---
 
@@ -74,6 +81,8 @@ A single device-local directory of people ("friends list"), reused across every 
 A member is a thin link between a group and a person — it carries no name or icon of its own. Display name/icon are resolved through `personId`. Expenses reference the member by `id` (`memberId`), so editing the linked person never touches expense records.
 
 **Invariant:** The same real person in two groups is the **same** Person, linked by two member rows. See [[global-people-directory]].
+The implemented creation UI reuses directory people, but `addMember` does not currently reject a
+duplicate `(groupId, personId)` link or verify creator retention. These remain store-boundary gaps.
 
 ---
 
@@ -92,9 +101,11 @@ A member is a thin link between a group and a person — it carries no name or i
 - Categories are group-specific, not global
 - Each category carries an emoji `icon`; master-list entries ship with preset icons, custom categories get a user-picked one
 - At group creation the creator picks which categories to include from the app's master list — **at least one is mandatory** (a default set is pre-selected). No categories are auto-created beyond that selection. See [[category-management]].
-- Any member can add new categories to a group at any time — either from the master list or custom
+- The current Categories & Tags screen can add custom categories. Picking additional master-list
+  entries after creation is not exposed as a separate UI.
 - **categoryId is mandatory on every expense** — the user must select a category when adding an expense
-- Categories can be renamed or deactivated at any time. Deactivated categories are hidden from the expense entry picker but remain visible on historical expenses
+- Categories can be renamed now. The model/store support deactivation, but the management control
+  and expense-picker behavior are planned.
 - Categories can be **deleted only when no expense references them** — because `categoryId` is mandatory and singular, an in-use category must have all its expenses reassigned to another category before it can be deleted. See [[category-management]]
 
 ---
@@ -144,7 +155,20 @@ See [[tag-management]] for the full lifecycle.
 }
 ```
 
-**Invariant:** `sum(paid[].amount)` must equal `sum(owes[].amount)` for every expense.
+### Money representation (approved target)
+
+Every monetary value in `transactions.paid[]`, `transactions.owes[]`, and adjustment-type
+`splitMeta[]` entries is an integer count of the group's currency minor unit. Shares and percentage
+metadata remain unitless ratios. The currency's ISO 4217 exponent determines the scale; it is not
+always two decimal places. See [[money-representation-and-rounding]].
+
+This representation is approved but not enforced by the current source. The TypeScript fields are
+plain `number`, there is no expense write path, the currency list has no minor-unit metadata, and
+the existing formatter expects major units. Those boundaries must be aligned before expense entry
+is implemented.
+
+**Target invariant:** `sum(paid[].amount)` must equal `sum(owes[].amount)` for every expense. The
+current app has no expense-create/update mutation, so this is not yet enforced at a write boundary.
 
 - `createdAt` is set automatically by the app and never shown to or edited by the user
 - `when` is shown in the UI as the expense date — defaults to the current date and time, user can change it
@@ -159,6 +183,7 @@ See [[expense-model-design]] for why both arrays are stored, and [[balance-calcu
 ## Related
 
 - [[balance-calculation]] — how net balances are derived from expenses
+- [[money-representation-and-rounding]] — integer minor units and deterministic remainder allocation
 - [[indexeddb-schema]] — how these models map to IndexedDB tables
 - [[state-management]] — Zustand store shape
 - [[tag-management]] — group tag lifecycle and optional expense references

@@ -7,11 +7,16 @@ metadata:
 
 # Expense Filtering
 
-Last updated: 2026-08-12
+Last updated: 2026-08-20
 
 ## Overview
 
-The expense list supports strong filtering across all major expense fields. Filters can be combined — only expenses matching all active filters are shown.
+All eight filters on this page are planned. The current expense route is a read-only list that sorts
+stored expenses by `when` descending and displays only each expense's name and total paid amount.
+It has no filter controls or filter predicate.
+
+The target design supports filtering across all major expense fields. Filters can be combined —
+only expenses matching all active filters are shown.
 
 ---
 

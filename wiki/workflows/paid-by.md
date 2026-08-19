@@ -7,11 +7,21 @@ metadata:
 
 # Paid-By
 
-Last updated: 2026-05-18
+Last updated: 2026-08-20
 
 ## Overview
 
-The paid-by selector is not a traditional dropdown. It shows a smart quick-select list of up to 5 frequent payers for fast entry without repeated searching. A "Show more" option reveals all group members when needed.
+The paid-by workflow is planned, not implemented. The data model can store multiple payer entries in
+`Expense.transactions.paid[]`, and each `Group` stores `frequentPayerIds`. New groups initialize
+that list with the creator member ID.
+
+There is currently no expense-entry form or expense-save mutation. Therefore the selector, recent-
+payer pre-selection, ranking recalculation, and multiple-payer amount interface described below do
+not yet run. They define the target behavior.
+
+The planned selector is not a traditional dropdown. It shows a smart quick-select list of up to 5
+frequent payers for fast entry without repeated searching. A "Show more" option reveals all group
+members when needed.
 
 ---
 

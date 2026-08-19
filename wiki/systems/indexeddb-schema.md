@@ -7,20 +7,21 @@ metadata:
 
 # IndexedDB Schema
 
-Last updated: 2026-08-16
+Last updated: 2026-08-20
 
 ## Current Implementation Scope
 
 `src/shared/configs/db.ts` currently declares these Dexie stores: `localUser`, `groups`, `people`,
 `members`, `categories`, `tags`, `expenses`, `attachments`, and `settings`.
 
-All schema revisions to date are still declared as Dexie database version `1`. Earlier builds used
-different version-1 schemas (including an `onboarding` store instead of `settings`, no `people`
-store, and members without `personId`). Dexie will not run an upgrade when an existing version-1
-database opens against another version-1 declaration. A new database version and explicit data
-migration/backfill are therefore required before existing installations can be considered safe.
-In particular, an existing `localUser` must be mirrored into `people`, and legacy members need a
-valid `personId`.
+All schema revisions are currently declared as Dexie database version `1`. This is intentional
+during active development: after a schema change, the local `split-slate` database is cleared and
+the app starts against a fresh schema. Development data is disposable, so there is no supported
+legacy database shape to migrate or backfill.
+
+Versioned Dexie upgrades will become necessary only when the project starts preserving user data
+across released schema changes. Until then, the reset-on-schema-change workflow is the supported
+development lifecycle and the lack of migrations is not an implementation blocker.
 
 App bootstrap currently calls the async store initializer without an error boundary or visible
 failure state. A schema/opening failure can leave the route protector waiting indefinitely for
@@ -95,8 +96,8 @@ Indexes: `groupId` (members of a group), `personId` (groups a person is in — u
 | createdAt     | number  | unix ms — set automatically by the app, never user-edited          |
 | when          | number  | unix ms — user-entered date + time of the actual expense; defaults to now |
 | splitType     | string  | `'equal' \| 'amount' \| 'shares' \| 'percentage' \| 'adjustment'` |
-| splitMeta     | object  | `{ memberId: UUID, value: number }[]` — raw split input for view/edit |
-| transactions  | object  | `{ paid: [], owes: [] }`                                           |
+| splitMeta     | object  | `{ memberId: UUID, value: number }[]` — raw input; adjustment values target minor units |
+| transactions  | object  | `{ paid: [], owes: [] }` — monetary amounts target integer minor units |
 | attachmentIds | UUID[]  | references to the attachments table; empty array if none           |
 
 Index: `groupId` — used to fetch all expenses for a group.
@@ -104,6 +105,12 @@ Index: `groupId` — used to fetch all expenses for a group.
 All object fields (`tagIds`, `splitMeta`, `transactions`, `attachmentIds`) are stored as nested JSON
 — IndexedDB supports this natively. The TypeScript shape, Dexie table, bootstrap hydration, and a
 lightweight expense-list route exist; expense create/edit/delete actions and entry screens do not.
+
+The approved monetary representation is integer currency minor units, including support for ISO
+currencies whose exponent is not two. This is a target write-boundary rule rather than current
+runtime enforcement: the schema stores JavaScript numbers, no expense mutation validates safe
+integers, and the current display formatter expects major units. See
+[[money-representation-and-rounding]].
 
 ---
 
@@ -136,7 +143,7 @@ design, not current behavior.
 | groupId  | UUID    | index → foreign key to groups |
 | name     | string  |                               |
 | icon     | string  | emoji character               |
-| isActive | boolean |                               |
+| isActive | boolean | model/store support exists; management toggle and expense-picker filtering are planned |
 
 Index: `groupId` — used to fetch categories for a group.
 
@@ -206,3 +213,4 @@ Both arrays are **seeded from code constants on first launch** (`SEED_MASTER_CAT
 
 - [[domain-models]] — TypeScript shapes these tables correspond to
 - [[state-management]] — Zustand store that wraps this persistence layer
+- [[category-management]] — implemented category CRUD and planned activation-state UI

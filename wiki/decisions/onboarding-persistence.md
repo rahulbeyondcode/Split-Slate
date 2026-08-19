@@ -7,7 +7,7 @@ metadata:
 
 # Onboarding Persistence — Per-Step Save + Resume
 
-Last updated: 2026-06-10
+Last updated: 2026-08-20
 
 ## Decision
 
@@ -51,18 +51,26 @@ Onboarding progress lives as one row in the shared `settings` table (a discrimin
 | Step | Persisted write |
 |------|-----------------|
 | identity | `setLocalUser` (put-upsert — reuses id on Back-edit) |
-| group | `createGroup(name, icon, "INR")` **once** (also auto-creates the creator Member); Back-edits call `updateGroup` |
+| group | `createGroup(name, icon, currency)` **once** using the form's initial `"INR"` value (also auto-creates the creator Member); Back-edits call `updateGroup` |
 | currency | `updateGroup(groupId, { currency })` |
 | categories | on Save and Proceed: `addCategory` for each newly-selected, `removeCategory` for each deselected (diffed against the DB); **≥1 required** to advance |
-| members | on the final "Save and Finish": `addMember` for each row added in the central form. During onboarding the DB only ever holds the creator until this point, so no removal/diff is needed |
+| members | on the final "Save and Finish": add each new Person when needed, then `addMember` for each row added in the central form. After all sequential writes succeed, set `onboarding.complete = true` and navigate to `/dashboard` |
 
 The group is created at the **group** step with the default `"INR"` currency (a group row requires a currency, but currency is chosen one step later); the **currency** step then updates it. The create-once guard (`groupId === null`) ensures the auto-created creator Member is never duplicated when the user navigates Back and edits.
 
 ### Completion signal moved off `localUser`
-Previously `localUser` presence meant "onboarded". Per-step save creates `localUser` at step 1, so completion is now an explicit `onboarding.complete` flag, exposed by the store. Route protection reads this flag, not `localUser`. **Back-compat:** an existing user with a `localUser` but no onboarding row is treated as already complete.
+Per-step save creates `localUser` at step 1, so completion is an explicit
+`onboarding.complete` flag exposed by the store. Route protection reads this flag, not
+`localUser`. If the onboarding row is missing, initialization creates it with `complete: false`;
+there is no legacy-install fallback based on `localUser` presence.
+
+The final "Save and Finish" does not advance `lastCompletedStep` to `members`. It sequentially
+persists any new people and member links, then sets `complete: true`. If those writes finish but the
+completion write fails, the flow remains incomplete and resumes at the members step; already-saved
+member rows are loaded back into the form.
 
 ### Resume
-On launch, `init()` hydrates the onboarding row into the store; the setup flow renders the step after `lastCompletedStep` (or `identity` when it is `null`). Arriving at the intro page with an in-progress, incomplete session redirects straight into `/onboarding/setup` (auto-resume). Every completed step's data is already saved, so resume never re-asks for it; only in-progress input on the current, unconfirmed step is not retained across a reload.
+On launch, `init()` hydrates the onboarding row into the store; the setup flow renders the step after `lastCompletedStep` (or `identity` when it is `null`). Arriving at the intro page with an in-progress, incomplete session redirects straight into `/onboarding/setup` (auto-resume). Every completed step's data is already saved, so resume never re-asks for it; only in-progress input on the current, unconfirmed step is not retained across a reload. Successful completion redirects to `/dashboard`.
 
 ## Related
 

@@ -7,7 +7,7 @@ metadata:
 
 # Layout Architecture
 
-Last updated: 2026-08-16
+Last updated: 2026-08-20
 
 ## Viewport States
 
@@ -33,7 +33,8 @@ destinations are navigation stubs whose routes have not been registered. All fiv
 destinations resolve to nested group-detail routes, although several screens remain lightweight.
 There is no FAB; the New Group action lives inside the dashboard.
 
-**No sidebar.** All navigation that lives in the sidebar on desktop is handled by the top bar and bottom nav on mobile.
+**No sidebar.** Mobile navigation is handled by the context-aware bottom nav and route content;
+there is no persistent top bar.
 
 ### Tablet (768px – 1079px)
 
@@ -47,8 +48,9 @@ There is no FAB; the New Group action lives inside the dashboard.
 - Activity panel is visible as a dedicated third column
 - No footer
 
-The desktop activity panel currently shows hardcoded sample activity. On group create/edit routes it
-is replaced by the live group-draft preview. A real activity data model/feed has not been implemented.
+The desktop activity panel currently shows hardcoded sample activity. On the create-group route it
+is replaced by the live group-draft preview. The matcher anticipates a future edit route, but the
+router does not register one. A real activity data model/feed has not been implemented.
 
 ---
 
@@ -60,7 +62,8 @@ A shared hook reads the window width and updates in real time whenever the viewp
 
 ## Sidebar Structure
 
-The sidebar is present on all tablet and desktop routes. Its sections are route-context aware.
+The sidebar is present on tablet and desktop routes rendered inside the post-onboarding
+`AppLayout`. Onboarding routes use their own layout. Sidebar sections are route-context aware.
 
 On dashboard routes, top to bottom:
 

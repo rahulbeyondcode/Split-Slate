@@ -1,17 +1,23 @@
 # Monetization Model
 
-Last updated: 2026-05-17
-Source: `Requirement Docs/Expense-Splitting Apps_ Market Opportunity Analysis for a Splitwise Alternative.pdf`
+An unimplemented packaging and pricing proposal derived from the May 2026 market research.
+
+Last updated: 2026-08-20
+Research snapshot: May 2026; no monetization, subscription, ad, or entitlement system is implemented.
+Source: `app-featureset-context/Expense-Splitting Apps_ Market Opportunity Analysis for a Splitwise Alternative.pdf`
 
 ---
 
-## Core Principle
+## Proposed Core Principle
 
 **Never paywall the act of adding an expense.** That is what shattered Splitwise's goodwill. Paywall convenience and analytics only.
 
 ---
 
-## Recommended Pricing Tiers
+## Proposed Pricing Tiers
+
+These figures are strategy inputs, not current product prices. Competitor prices are regional and
+volatile and must be rechecked before implementation.
 
 | Tier | India (INR) | Global (USD) |
 |------|------------|--------------|
@@ -21,11 +27,13 @@ Source: `Requirement Docs/Expense-Splitting Apps_ Market Opportunity Analysis fo
 | Pro Lifetime | ₹1,499 | $39.99 |
 | Trip Pass (30 days, splittable) | ₹99 | $4.99 |
 
-Pricing is significantly below Splitwise India (₹149/mo or ₹999/yr). The perceived "fair zone" from DesiDime research is ₹300–500/yr or one-time ~₹500.
+The source intended these prices to undercut the Splitwise India prices it observed. It reported a
+DesiDime "fair zone" of ₹300–500/year or a roughly ₹500 one-time purchase; these are dated research
+observations, not verified current prices.
 
 ---
 
-## What Pro Unlocks
+## Proposed Pro Features
 
 - Unlimited receipt OCR + AI item-level scan
 - Recurring expenses with smart reminders
@@ -38,7 +46,7 @@ Pricing is significantly below Splitwise India (₹149/mo or ₹999/yr). The per
 
 ---
 
-## What Must Stay Free Forever
+## Proposed Free-Forever Boundary
 
 - Adding expenses (unlimited, no cap, no cooldown)
 - All split types (equal, unequal, percentage, shares, itemized)

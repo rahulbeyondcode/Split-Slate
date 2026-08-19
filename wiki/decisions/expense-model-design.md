@@ -7,7 +7,12 @@ metadata:
 
 # Decision: Store Both paid[] and owes[] on Every Expense
 
-Last updated: 2026-05-18
+Last updated: 2026-08-20
+
+## Implementation Status
+
+The TypeScript and IndexedDB shapes implement this storage design, and existing read paths consume
+`paid[]` and `owes[]`. Expense creation, editing, calculation, and validation are not implemented.
 
 ## Decision
 
@@ -42,7 +47,8 @@ All four are written at expense-creation time and stored as-is.
 
 ## Invariant
 
-`sum(paid[].amount)` must equal `sum(owes[].amount)` — enforced at validation time (React Hook Form + Zod).
+`sum(paid[].amount)` must equal `sum(owes[].amount)`. This will be enforced by the planned expense
+form and save mutation; there is no current React Hook Form/Zod expense validation path.
 
 ## Related
 
