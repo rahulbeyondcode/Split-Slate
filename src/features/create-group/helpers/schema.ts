@@ -1,20 +1,22 @@
 import { z } from "zod";
 
+import { createRequiredStringSchema } from "@/shared/utils/string-validation";
+
 // Shared form schema for the group-building steps (group → currency → categories → members).
 // Onboarding extends this with an `identity` slice; the standalone create-group flow uses it as-is.
 
 export const createGroupSchema = z.object({
   group: z.object({
-    name: z.string().min(1, "Group name is required"),
-    icon: z.string(),
+    name: createRequiredStringSchema("Group name is required"),
+    icon: createRequiredStringSchema("Group icon is required"),
   }),
-  currency: z.string().min(1),
+  currency: createRequiredStringSchema("Currency is required"),
   categories: z
     .array(
       z.object({
         id: z.string().optional(),
-        name: z.string().min(1),
-        icon: z.string(),
+        name: createRequiredStringSchema("Category name is required"),
+        icon: createRequiredStringSchema("Category icon is required"),
       }),
     )
     .min(1, "Select at least one category"),
@@ -22,8 +24,8 @@ export const createGroupSchema = z.object({
     z.object({
       id: z.string().optional(),
       personId: z.string().optional(),
-      name: z.string().min(1),
-      icon: z.string(),
+      name: createRequiredStringSchema("Member name is required"),
+      icon: createRequiredStringSchema("Member icon is required"),
     }),
   ),
 });

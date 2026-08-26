@@ -8,14 +8,15 @@ import EmojiPicker from "@/shared/components/emoji-picker";
 import Input from "@/shared/components/form-elements/input";
 
 import { useStore } from "@/shared/configs/store";
+import { createRequiredStringSchema } from "@/shared/utils/string-validation";
 
 import { CATEGORY_EMOJIS } from "@/shared/constants/emojis";
 import type { GroupDetailContext } from "@/features/group-detail/types/group-detail.types";
 import type { Category } from "@/shared/types/domain.types";
 
 const categoryFormSchema = z.object({
-  name: z.string().trim().min(1, "Category name is required"),
-  icon: z.string().min(1),
+  name: createRequiredStringSchema("Category name is required"),
+  icon: createRequiredStringSchema("Category icon is required"),
 });
 
 type CategoryFormValues = z.infer<typeof categoryFormSchema>;

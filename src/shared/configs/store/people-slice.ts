@@ -1,6 +1,7 @@
 import { v4 as uuid } from "uuid";
 
 import { db } from "@/shared/configs/db";
+import { normalizeRequiredString } from "@/shared/utils/string-validation";
 
 import type { LocalUser, Person } from "@/shared/types/domain.types";
 
@@ -12,10 +13,16 @@ export const createPeopleSlice: SliceCreator<PeopleSlice> = (set, get) => ({
 
   setLocalUser: async (name, icon) => {
     const existing = get().localUser;
-    const user: LocalUser = { id: existing?.id ?? uuid(), name, icon };
+    const normalizedName = normalizeRequiredString(name, "Name is required");
+    const normalizedIcon = normalizeRequiredString(icon, "Icon is required");
+    const user: LocalUser = {
+      id: existing?.id ?? uuid(),
+      name: normalizedName,
+      icon: normalizedIcon,
+    };
     await db.localUser.put(user);
 
-    const selfPerson: Person = { id: user.id, name, icon };
+    const selfPerson: Person = { id: user.id, name: normalizedName, icon: normalizedIcon };
     await db.people.put(selfPerson);
     set((s) => ({
       localUser: user,
@@ -27,19 +34,32 @@ export const createPeopleSlice: SliceCreator<PeopleSlice> = (set, get) => ({
   },
 
   addPerson: async (name, icon) => {
-    const person: Person = { id: uuid(), name, icon };
+    const person: Person = {
+      id: uuid(),
+      name: normalizeRequiredString(name, "Name is required"),
+      icon: normalizeRequiredString(icon, "Icon is required"),
+    };
     await db.people.add(person);
     set((s) => ({ people: [...s.people, person] }));
     return person;
   },
 
   updatePerson: async (personId, patch) => {
-    await db.people.update(personId, patch);
+    const normalizedPatch: Partial<Omit<Person, "id">> = {
+      ...patch,
+      ...(patch.name !== undefined
+        ? { name: normalizeRequiredString(patch.name, "Name is required") }
+        : {}),
+      ...(patch.icon !== undefined
+        ? { icon: normalizeRequiredString(patch.icon, "Icon is required") }
+        : {}),
+    };
+    await db.people.update(personId, normalizedPatch);
     const existing = get().people.find((p) => p.id === personId);
     if (!existing) {
       throw new Error("person not found");
     }
-    const updated: Person = { ...existing, ...patch };
+    const updated: Person = { ...existing, ...normalizedPatch };
     set((s) => ({ people: s.people.map((p) => (p.id === personId ? updated : p)) }));
     return updated;
   },

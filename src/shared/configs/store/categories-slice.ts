@@ -1,6 +1,7 @@
 import { v4 as uuid } from "uuid";
 
 import { db } from "@/shared/configs/db";
+import { normalizeRequiredString } from "@/shared/utils/string-validation";
 
 import type { Category } from "@/shared/types/domain.types";
 
@@ -12,10 +13,8 @@ export const createCategoriesSlice: SliceCreator<CategoriesSlice> = (set, get) =
   defaultGroupCategories: [],
 
   addCategory: async (groupId, name, icon) => {
-    const normalizedName = name.trim();
-    if (!normalizedName) {
-      throw new Error("Category name is required");
-    }
+    const normalizedName = normalizeRequiredString(name, "Category name is required");
+    const normalizedIcon = normalizeRequiredString(icon, "Category icon is required");
     const duplicate = get().categories.some(
       (category) =>
         category.groupId === groupId &&
@@ -29,7 +28,7 @@ export const createCategoriesSlice: SliceCreator<CategoriesSlice> = (set, get) =
       id: uuid(),
       groupId,
       name: normalizedName,
-      icon,
+      icon: normalizedIcon,
       isActive: true,
     };
     await db.categories.add(category);
@@ -45,11 +44,13 @@ export const createCategoriesSlice: SliceCreator<CategoriesSlice> = (set, get) =
 
     const normalizedPatch = {
       ...patch,
-      ...(patch.name !== undefined ? { name: patch.name.trim() } : {}),
+      ...(patch.name !== undefined
+        ? { name: normalizeRequiredString(patch.name, "Category name is required") }
+        : {}),
+      ...(patch.icon !== undefined
+        ? { icon: normalizeRequiredString(patch.icon, "Category icon is required") }
+        : {}),
     };
-    if (normalizedPatch.name !== undefined && !normalizedPatch.name) {
-      throw new Error("Category name is required");
-    }
     if (normalizedPatch.name !== undefined) {
       const duplicate = get().categories.some(
         (category) =>

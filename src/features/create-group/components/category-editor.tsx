@@ -5,20 +5,18 @@ import { z } from "zod";
 import EmojiPicker from "@/shared/components/emoji-picker";
 import Input from "@/shared/components/form-elements/input";
 
+import { createRequiredStringSchema } from "@/shared/utils/string-validation";
 import type { CategoryEditorValues } from "@/features/create-group/helpers/editor-types";
 
 import { CATEGORY_EMOJIS } from "@/shared/constants/emojis";
 
 const createCategorySchema = (existingNames: string[]) =>
   z.object({
-    category: z
-      .string()
-      .min(1, "Category name is required")
-      .refine(
-        (val) => !existingNames.some((name) => name.toLowerCase() === val.trim().toLowerCase()),
-        "Category already exists",
-      ),
-    icon: z.string(),
+    category: createRequiredStringSchema("Category name is required").refine(
+      (val) => !existingNames.some((name) => name.toLowerCase() === val.trim().toLowerCase()),
+      "Category already exists",
+    ),
+    icon: createRequiredStringSchema("Category icon is required"),
   });
 
 interface PropsType {

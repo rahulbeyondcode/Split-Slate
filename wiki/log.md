@@ -2,9 +2,18 @@
 
 Reverse-chronological record of all wiki changes.
 
-Last updated: 2026-08-20
+Last updated: 2026-08-26
 
 ---
+
+## 2026-08-26
+- CREATED decisions/testing-strategy.md — selected Vitest for unit and integration tests and reserved Playwright for critical end-to-end browser workflows
+- CREATED decisions/string-input-normalization.md — required trimming and nonempty validation for every submitted user string at form and store boundaries
+- UPDATED decisions/testing-strategy.md — defined mirrored test directories, authoring rules, case-selection checklist, slice completion criteria, and behavior-based coverage expectations
+- UPDATED wiki/index.md — linked the testing strategy and marked automated tests in progress after adding balance-helper coverage
+- UPDATED wiki/index.md — linked the string-input normalization decision
+- UPDATED wiki/index.md — expanded the testing-strategy summary after adopting the test-directory and authoring protocol
+- UPDATED wiki/log.md — recorded the testing-strategy decision
 
 ## 2026-08-20
 - CREATED roadmap/product-roadmap.md — compiled the historical master scope into a status-labelled product compass, staged delivery horizons, release gates, non-goals, and exploration list

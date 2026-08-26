@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { createRequiredStringSchema } from "@/shared/utils/string-validation";
 import {
   CREATE_GROUP_STEP_FIELDS,
   createGroupSchema,
@@ -12,8 +13,8 @@ import type { SetupStep } from "@/shared/types/domain.types";
 
 export const setupSchema = createGroupSchema.extend({
   identity: z.object({
-    name: z.string().min(1, "Name is required"),
-    icon: z.string(),
+    name: createRequiredStringSchema("Name is required"),
+    icon: createRequiredStringSchema("Icon is required"),
   }),
 });
 

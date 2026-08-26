@@ -14,7 +14,10 @@ import type { Tag } from "@/shared/types/domain.types";
 
 const tagFormSchema = z.object({
   name: z.string().trim().min(1, "Tag name is required"),
-  color: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Choose a valid tag color"),
+  color: z
+    .string()
+    .trim()
+    .regex(/^#[0-9a-fA-F]{6}$/, "Choose a valid tag color"),
 });
 
 type TagFormValues = z.infer<typeof tagFormSchema>;

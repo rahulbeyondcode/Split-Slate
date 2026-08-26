@@ -5,7 +5,7 @@ This wiki is the sole persistent compiled knowledge layer. The implementation in
 authoritative; `app-featureset-context/spec-sheet.md` is a historical baseline where later source
 and approved decisions have superseded it. Changes: [log.md](log.md)
 
-Last updated: 2026-08-20
+Last updated: 2026-08-26
 
 ---
 
@@ -16,7 +16,7 @@ Last updated: 2026-08-20
 
 ### Architecture
 - [Domain Models](architecture/domain-models.md) — Group, Member, Expense, Category, LocalUser shapes and invariants
-- [Balance Calculation](architecture/balance-calculation.md) — implemented member-net/group-total helpers; planned all-member balances and debt simplification
+- [Balance Calculation](architecture/balance-calculation.md) — implemented and unit-tested member-net/group-total helpers; planned all-member balances and debt simplification
 - [State Management](architecture/state-management.md) — Dexie-first persistence with one hydrated Zustand store; exact validation and atomicity boundaries
 - [Split Types](architecture/split-types.md) — 5 approved and modelled split types; entry/calculation implementation is pending and deterministic rounding is now designed
 - [Layout Architecture](architecture/layout-architecture.md) — current mobile/tablet/desktop shell, route stubs, sidebar, footer, and activity panel
@@ -30,6 +30,8 @@ Last updated: 2026-08-20
 - [Expense Edit and Delete](decisions/expense-edit-delete.md) — approved but unimplemented hard-delete and attachment-cascade behavior
 - [Group Deletion](decisions/group-deletion.md) — approved pending design for permanent deletion with a full related-data cascade and irreversible warning
 - [Money Representation and Rounding](decisions/money-representation-and-rounding.md) — approved integer minor-unit storage and deterministic largest-remainder allocation; implementation pending
+- [String Input Normalization](decisions/string-input-normalization.md) — submitted user strings are trimmed and rejected when empty at form and store boundaries
+- [Testing Strategy](decisions/testing-strategy.md) — test-directory structure, case-driven authoring protocol, Vitest coverage, and planned Playwright browser coverage
 
 ### Systems
 - [IndexedDB Schema](systems/indexeddb-schema.md) — current tables and indexes, including tags; active development resets the database after schema changes instead of migrating it
@@ -85,7 +87,7 @@ Last updated: 2026-08-20
 | Export (Link / CSV / ZIP)          | PENDING     |
 | Import (view-only + as your group) | PENDING     |
 | Installable/offline PWA support    | PENDING     |
-| Automated tests                    | PENDING     |
+| Automated tests                    | IN PROGRESS |
 
 The IndexedDB layer and Zustand store are complete for the current development scope. Schema
 changes intentionally require resetting the local database; versioned migrations are not needed

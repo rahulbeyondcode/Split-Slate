@@ -1,6 +1,7 @@
 import { v4 as uuid } from "uuid";
 
 import { db } from "@/shared/configs/db";
+import { normalizeRequiredString } from "@/shared/utils/string-validation";
 
 import type { Group, Member } from "@/shared/types/domain.types";
 
@@ -18,12 +19,15 @@ export const createGroupsSlice: SliceCreator<GroupsSlice> = (set, get) => ({
 
     const groupId = uuid();
     const memberId = uuid();
+    const normalizedName = normalizeRequiredString(name, "Group name is required");
+    const normalizedIcon = normalizeRequiredString(icon, "Group icon is required");
+    const normalizedCurrency = normalizeRequiredString(currency, "Currency is required");
 
     const group: Group = {
       id: groupId,
-      name,
-      icon,
-      currency,
+      name: normalizedName,
+      icon: normalizedIcon,
+      currency: normalizedCurrency,
       createdAt: Date.now(),
       frequentPayerIds: [memberId],
     };
@@ -41,12 +45,24 @@ export const createGroupsSlice: SliceCreator<GroupsSlice> = (set, get) => ({
   },
 
   updateGroup: async (groupId, patch) => {
-    await db.groups.update(groupId, patch);
+    const normalizedPatch: Partial<Group> = {
+      ...patch,
+      ...(patch.name !== undefined
+        ? { name: normalizeRequiredString(patch.name, "Group name is required") }
+        : {}),
+      ...(patch.icon !== undefined
+        ? { icon: normalizeRequiredString(patch.icon, "Group icon is required") }
+        : {}),
+      ...(patch.currency !== undefined
+        ? { currency: normalizeRequiredString(patch.currency, "Currency is required") }
+        : {}),
+    };
+    await db.groups.update(groupId, normalizedPatch);
     const existing = get().groups.find((g) => g.id === groupId);
     if (!existing) {
       throw new Error("group not found");
     }
-    const updated: Group = { ...existing, ...patch };
+    const updated: Group = { ...existing, ...normalizedPatch };
     set((s) => ({ groups: s.groups.map((g) => (g.id === groupId ? updated : g)) }));
     return updated;
   },
