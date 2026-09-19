@@ -47,14 +47,14 @@ const GroupDetail = () => {
           <p className="text-sm text-gray-500">{group.currency} group</p>
         </div>
         <Link
-          to={`/groups/${group.id}/expenses`}
+          to={`/groups/${group.id}/expenses/new`}
           className="px-4 py-2 bg-gray-900 text-white text-sm rounded self-start"
         >
           Add expense
         </Link>
       </header>
 
-      <Outlet context={context} />
+      <Outlet key={group.id} context={context} />
     </div>
   );
 };

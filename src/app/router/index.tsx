@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 
+import ExpenseForm from "@/features/expenses/components/expense-form";
 import CategoriesAndTags from "@/features/group-detail/components/categories-and-tags";
 import ExpenseList from "@/features/group-detail/components/expense-list";
 import GroupOverview from "@/features/group-detail/components/group-overview";
@@ -34,6 +35,7 @@ export const router = createBrowserRouter([
             children: [
               { index: true, element: <GroupOverview /> },
               { path: "expenses", element: <ExpenseList /> },
+              { path: "expenses/new", element: <ExpenseForm /> },
               { path: "members", element: <MemberList /> },
               { path: "categories", element: <CategoriesAndTags /> },
               { path: "settings", element: <GroupSettings /> },

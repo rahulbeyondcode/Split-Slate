@@ -1,5 +1,6 @@
 import type { StateCreator } from "zustand";
 
+import type { ExpensesSlice } from "@/features/expenses/types/expenses.types";
 import type {
   Category,
   Expense,
@@ -84,6 +85,7 @@ export interface GroupDraftSlice {
 }
 
 export type AppStore = AppSlice &
+  ExpensesSlice &
   PeopleSlice &
   GroupsSlice &
   CategoriesSlice &

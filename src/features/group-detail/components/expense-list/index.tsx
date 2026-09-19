@@ -5,7 +5,8 @@ import { formatCurrency } from "@/shared/utils/currency";
 import type { GroupDetailContext } from "@/features/group-detail/types/group-detail.types";
 
 const ExpenseList = () => {
-  const { group, groupExpenses } = useOutletContext<GroupDetailContext>();
+  const { group, groupExpenses, groupMembers, groupCategories } =
+    useOutletContext<GroupDetailContext>();
   const sortedExpenses = groupExpenses.slice().sort((a, b) => b.when - a.when);
 
   return (
@@ -23,6 +24,21 @@ const ExpenseList = () => {
                   expense.transactions.paid.reduce((sum, item) => sum + item.amount, 0),
                   group.currency,
                 )}
+              </p>
+              <p className="mt-1 text-xs text-gray-500">
+                Paid by{" "}
+                {expense.transactions.paid
+                  .map(
+                    (payer) =>
+                      groupMembers.find((member) => member.id === payer.memberId)?.person?.name ??
+                      "Unknown person",
+                  )
+                  .join(", ")}
+                {" · "}
+                {new Date(expense.when).toLocaleString()}
+                {" · "}
+                {groupCategories.find((category) => category.id === expense.categoryId)?.name ??
+                  "Unknown category"}
               </p>
             </li>
           ))}

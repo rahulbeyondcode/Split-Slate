@@ -68,13 +68,33 @@ export const createGroupsSlice: SliceCreator<GroupsSlice> = (set, get) => ({
   },
 
   addMember: async (groupId, personId) => {
-    const member: Member = { id: uuid(), groupId, personId };
-    await db.members.add(member);
+    const member = await db.transaction("rw", db.members, async () => {
+      const existing = await db.members
+        .where("groupId")
+        .equals(groupId)
+        .and((item) => item.personId === personId)
+        .first();
+      if (existing) {
+        throw new Error("This person is already a member of the group");
+      }
+
+      const created: Member = { id: uuid(), groupId, personId };
+      await db.members.add(created);
+      return created;
+    });
     set((s) => ({ members: [...s.members, member] }));
     return member;
   },
 
   removeMember: async (memberId) => {
+    const member = get().members.find((item) => item.id === memberId);
+    if (!member) {
+      throw new Error("Member not found");
+    }
+    if (member.personId === get().localUser?.id) {
+      throw new Error("You cannot remove yourself from a group you created");
+    }
+
     const inUse = get().expenses.some(
       (e) =>
         e.createdBy === memberId ||
@@ -85,19 +105,16 @@ export const createGroupsSlice: SliceCreator<GroupsSlice> = (set, get) => ({
       throw new Error("Cannot remove a member assigned to expenses; reassign those expenses first");
     }
 
-    const member = get().members.find((m) => m.id === memberId);
     await db.members.delete(memberId);
     set((s) => ({ members: s.members.filter((m) => m.id !== memberId) }));
 
-    if (member) {
-      const group = get().groups.find((g) => g.id === member.groupId);
-      if (group && group.frequentPayerIds.includes(memberId)) {
-        const frequentPayerIds = group.frequentPayerIds.filter((id) => id !== memberId);
-        await db.groups.update(group.id, { frequentPayerIds });
-        set((s) => ({
-          groups: s.groups.map((g) => (g.id === group.id ? { ...g, frequentPayerIds } : g)),
-        }));
-      }
+    const group = get().groups.find((g) => g.id === member.groupId);
+    if (group && group.frequentPayerIds.includes(memberId)) {
+      const frequentPayerIds = group.frequentPayerIds.filter((id) => id !== memberId);
+      await db.groups.update(group.id, { frequentPayerIds });
+      set((s) => ({
+        groups: s.groups.map((g) => (g.id === group.id ? { ...g, frequentPayerIds } : g)),
+      }));
     }
   },
 });
