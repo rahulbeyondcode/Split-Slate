@@ -7,7 +7,9 @@ metadata:
 
 # IndexedDB Schema
 
-Last updated: 2026-08-20
+Purpose: describe the persisted records, indexes, and implemented write boundaries.
+
+Last updated: 2026-09-19
 
 ## Current Implementation Scope
 
@@ -49,11 +51,10 @@ Single-record store (only one local user per device).
 | icon             | string   | emoji character                                                    |
 | currency         | string   | ISO 4217 code e.g. "INR"; defaults to "INR"; set at group creation |
 | createdAt        | number   | unix ms                                                            |
-| frequentPayerIds | UUID[]   | memberIds intended to rank frequent payers; expense-driven ranking is pending |
+| frequentPayerIds | UUID[]   | top-five memberIds ranked after each expense creation |
 
-Initial value on group creation is currently `[creatorMemberId]`. Updating the ranking after an
-expense save is planned but no expense-save action exists yet. See [[paid-by]] for the target UI and
-ranking behavior.
+Initial value on group creation is `[creatorMemberId]`. Expense creation recalculates the ranking
+and commits it atomically with the expense. See [[paid-by]] for selection and ranking behavior.
 
 ---
 
@@ -79,7 +80,8 @@ A member links a group to a person — it stores no name/icon of its own; displa
 | groupId  | UUID   | index → foreign key to groups |
 | personId | UUID   | index → foreign key to people |
 
-Indexes: `groupId` (members of a group), `personId` (groups a person is in — used by the global delete guard).
+Indexes: `groupId` (members of a group), `personId` (memberships linked to a person). The current
+person-deletion guard resolves memberships from hydrated state rather than querying that index.
 
 ---
 
@@ -96,21 +98,21 @@ Indexes: `groupId` (members of a group), `personId` (groups a person is in — u
 | createdAt     | number  | unix ms — set automatically by the app, never user-edited          |
 | when          | number  | unix ms — user-entered date + time of the actual expense; defaults to now |
 | splitType     | string  | `'equal' \| 'amount' \| 'shares' \| 'percentage' \| 'adjustment'` |
-| splitMeta     | object  | `{ memberId: UUID, value: number }[]` — raw input; adjustment values target minor units |
-| transactions  | object  | `{ paid: [], owes: [] }` — monetary amounts target integer minor units |
+| splitMeta     | object[] | `{ memberId: UUID, value: number }[]` — ratios for shares/percentages, integer minor units for adjustments |
+| transactions  | object  | `{ paid: [], owes: [] }` — monetary amounts use integer minor units |
 | attachmentIds | UUID[]  | references to the attachments table; empty array if none           |
 
 Index: `groupId` — used to fetch all expenses for a group.
 
-All object fields (`tagIds`, `splitMeta`, `transactions`, `attachmentIds`) are stored as nested JSON
-— IndexedDB supports this natively. The TypeScript shape, Dexie table, bootstrap hydration, and a
-lightweight expense-list route exist; expense create/edit/delete actions and entry screens do not.
+Arrays and objects (`tagIds`, `splitMeta`, `transactions`, `attachmentIds`) are stored directly as
+nested structured data. Expense creation, bootstrap hydration, the entry form, and the read-only
+expense list are implemented. Expense editing and deletion remain pending.
 
-The approved monetary representation is integer currency minor units, including support for ISO
-currencies whose exponent is not two. This is a target write-boundary rule rather than current
-runtime enforcement: the schema stores JavaScript numbers, no expense mutation validates safe
-integers, and the current display formatter expects major units. See
-[[money-representation-and-rounding]].
+Creation validates safe-integer currency minor units and equal paid/owed totals. Within one Dexie
+transaction it rechecks persisted group, member/person, creator, active-category, and tag
+references, checks the aggregate group-spending limit, and writes the expense and payer ranking.
+The formatter consumes minor units, including currencies with zero or three decimal places. See
+[[money-representation-and-rounding]] and [[state-management]].
 
 ---
 
@@ -143,7 +145,7 @@ design, not current behavior.
 | groupId  | UUID    | index → foreign key to groups |
 | name     | string  |                               |
 | icon     | string  | emoji character               |
-| isActive | boolean | model/store support exists; management toggle and expense-picker filtering are planned |
+| isActive | boolean | expense picker and creation validation honor this flag; management toggle remains planned |
 
 Index: `groupId` — used to fetch categories for a group.
 
@@ -160,8 +162,9 @@ Index: `groupId` — used to fetch categories for a group.
 
 Index: `groupId` — used to fetch all tags for a group.
 
-Tags are optional from the expense perspective and have no `isActive` field. Deleting a tag and
-removing its ID from every referencing expense happens in one IndexedDB transaction. See
+Tags are optional from the expense perspective and have no `isActive` field. Tag deletion and
+cleanup of referencing expenses selected from hydrated state commit in one IndexedDB transaction.
+The cascade does not query persisted expenses again; stale-state limitations are documented in
 [[tag-management]].
 
 ---
@@ -189,7 +192,10 @@ The currently-viewed step is **not** stored here — it is Zustand-only, derived
 | master  | `{ name: string; icon: string }[]` | the full master category list, each with a preset emoji icon (user-editable in future) |
 | default | string[]                      | names (subset of `master`) pre-selected when creating a group; icons resolved from `master` |
 
-Both arrays are **seeded from code constants on first launch** (`SEED_MASTER_CATEGORIES`, `SEED_DEFAULT_GROUP_CATEGORIES`), then DB-authoritative and editable thereafter. The master list moved here from a hardcoded constant so it can become user-editable. See [[category-settings-ui]].
+Both arrays are **seeded from code constants on first launch** (`SEED_MASTER_CATEGORIES`,
+`SEED_DEFAULT_GROUP_CATEGORIES`) and read from the database thereafter. Their storage shape
+supports future editing, but settings controls and a mutation to save those edits remain pending.
+See [[category-settings-ui]].
 
 ---
 

@@ -9,7 +9,7 @@ metadata:
 
 Purpose: provide a current planning compass without turning exploratory ideas into commitments.
 
-Last updated: 2026-08-20
+Last updated: 2026-09-19
 
 ## How to Read This Page
 
@@ -71,20 +71,21 @@ The following foundation is implemented now:
 - Solo and multi-member groups with one configured currency per group
 - Group categories, group tags, and their current management guards
 - Expense, split, transaction, tag, and attachment storage shapes
-- Read-only expense-list and group-overview surfaces
+- Expense recording with five split types, one/multiple payers, optional tags, and local persistence
+- Expense-list and group-overview surfaces showing saved records and balances
 - Helpers for one-member net balance and total group spending
 
-The data shapes for expenses are ahead of the product flow: there is no normal expense create,
-edit, delete, split calculation, attachment ingest, or settlement mutation yet. Existing expense
-screens therefore demonstrate reads, not a complete accounting loop. Current detail lives in
-[[index]], [[domain-models]], and [[main-screen]].
+Expense creation, minor-unit accounting, split calculation, and payer ranking are implemented.
+Expense edit/delete, attachment ingestion, and settlement mutations remain pending, so the complete
+correction/removal loop is not finished. Current detail lives in [[index]], [[domain-models]], and
+[[main-screen]].
 
 ## Horizon 1 — Complete the Core Accounting Loop
 
 **Goal:** a user can record, understand, correct, and remove shared expenses without leaving the
 device.
 
-Approved work, in dependency order:
+Approved work, in dependency order (items 1–4 are implemented for creation; update validation remains pending):
 
 1. Implement [[money-representation-and-rounding]] in currency input, calculation, validation, and
    formatting utilities.
@@ -98,13 +99,14 @@ Approved work, in dependency order:
 6. Calculate all-member net balances and render clear suggested transfers. The simplification
    method must be described as a settlement suggestion, not hidden financial history. See
    [[balance-calculation]].
-7. Complete member-management UI and enforce duplicate membership, self, creator-retention, and
-   referenced-record rules at the store boundary. See [[member-management]].
+7. Finish the remaining member-store validation: the management UI, atomic duplicate-membership
+   guard, and local-user removal protection are implemented; referenced group/person existence
+   checks and directory-wide self-deletion protection remain pending. See [[member-management]].
 
 Five-second entry is an acceptance benchmark for the common case, not permission to skip
-validation. Candidate defaults include the most recent payer, equal split, recent participants,
-current time, and remembered safe choices; usability work must confirm which defaults genuinely
-reduce effort.
+validation. Current defaults are the most recent recorded payer, equal split across all current
+members, current local date/time, and the first active category. Remembered participants and other
+remembered choices remain candidates; usability work must establish the entry-time benchmark.
 
 ## Horizon 2 — Make the Local Product Safe to Release
 
@@ -114,7 +116,7 @@ app is installed.
 Approved or required work:
 
 - Complete expense history, detail display, and the planned filters in [[filtering]].
-- Finish category activation/deactivation and active-category expense-picker behavior.
+- Finish category activation/deactivation controls; active-category expense-picker behavior is implemented.
 - Implement receipt attachment ingestion, compression, lazy loading, and delete cascades.
 - Implement the Link/CSV/ZIP export and the view-only/editable import flows in
   [[import-export]].
@@ -149,8 +151,9 @@ Candidates, ordered roughly by dependency and user value:
 
 ### Settlement Decision Gate
 
-The current target in [[main-screen]] describes a V2 binary fully-settled toggle, while the older
-scope proposed explicit repayment records such as “Rahul paid Alex ₹500.” These are not equivalent.
+The historical V2 proposal recorded in [[main-screen]] describes a binary fully-settled toggle,
+while the older scope proposed explicit repayment records such as “Rahul paid Alex ₹500.” These
+are not equivalent.
 A toggle is simpler but loses amount and audit history; a transfer record supports partial
 repayment and future sync but adds a new entity and workflow.
 
@@ -226,10 +229,9 @@ be reintroduced:
 ## Related
 
 - [[index]] — navigation and current implementation-status summary
-- [[domain-models]] — current entity shapes and target expense invariant
+- [[domain-models]] — current entity shapes and enforced expense-creation invariants
 - [[state-management]] — implemented persistence and mutation boundaries
 - [[main-screen]] — current and target in-group experience
 - [[import-export]] — approved local portability design
 - [[market-opportunity]] — dated product research, not this roadmap
 - [[monetization-model]] — dated packaging research, not approved pricing
-

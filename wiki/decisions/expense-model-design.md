@@ -7,12 +7,16 @@ metadata:
 
 # Decision: Store Both paid[] and owes[] on Every Expense
 
-Last updated: 2026-08-20
+Purpose: explain why expenses retain final allocations and split inputs for later reads.
+
+Last updated: 2026-09-19
 
 ## Implementation Status
 
-The TypeScript and IndexedDB shapes implement this storage design, and existing read paths consume
-`paid[]` and `owes[]`. Expense creation, editing, calculation, and validation are not implemented.
+The TypeScript and IndexedDB shapes implement this storage design. Expense creation calculates and
+validates all five split methods, then persists final `paid[]`, `owes[]`, `splitType`, and
+`splitMeta[]` values. List and balance reads consume stored allocations. Expense detail, editing,
+and deletion remain pending.
 
 ## Decision
 
@@ -28,7 +32,7 @@ All four are written at expense-creation time and stored as-is.
 
 - **Avoids recomputation for balance calculation:** Balance calculation iterates `paid[]` and `owes[]` directly — no split logic needed at read time. See [[balance-calculation]].
 - **Supports complex splits:** Multiple payers + multiple payees in one expense, without special-casing.
-- **splitType and splitMeta are needed for view and edit:** The user can view how an expense was split and edit it later. For shares, percentage, and adjustment types, the original input values (e.g. "Person A had 2 shares") cannot be derived back from `owes[]` alone — the final amounts don't tell you the ratio. Storing splitMeta preserves the full picture.
+- **splitType and splitMeta support planned detail and editing:** For shares, percentage, and adjustment types, the input values (e.g. "Person A had 2 shares") cannot be derived back from `owes[]` alone — the final amounts do not identify the original ratio. Storing splitMeta preserves those inputs for the future detail and edit screens.
 
 ## What splitMeta Stores (per type)
 
@@ -38,7 +42,7 @@ All four are written at expense-creation time and stored as-is.
 | amount     | empty — owes[] has it      |
 | shares     | share count per member     |
 | percentage | percentage per member      |
-| adjustment | adjustment amount per member (can be negative) |
+| adjustment | adjustment amount in currency minor units per member (can be negative) |
 
 ## Tradeoff
 
@@ -47,8 +51,10 @@ All four are written at expense-creation time and stored as-is.
 
 ## Invariant
 
-`sum(paid[].amount)` must equal `sum(owes[].amount)`. This will be enforced by the planned expense
-form and save mutation; there is no current React Hook Form/Zod expense validation path.
+`sum(paid[].amount)` must equal `sum(owes[].amount)`. The React Hook Form/Zod expense form and the
+store's independent validation enforce this for creation using integer minor units. The save also
+enforces a positive total, valid persisted references, and the aggregate group-spending limit.
+Update validation remains pending. See [[money-representation-and-rounding]].
 
 ## Related
 

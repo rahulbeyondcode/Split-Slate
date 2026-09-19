@@ -7,12 +7,15 @@ metadata:
 
 # Decision: Expense Edit and Delete
 
-Last updated: 2026-08-20
+Purpose: preserve the approved expense correction and deletion design while separating pending work.
+
+Last updated: 2026-09-19
 
 ## Implementation Status
 
-Approved but not implemented. The app has no expense-create, update, or delete mutation, no edit or
-delete controls, and no attachment-write/cascade path. The sections below define target behavior.
+Editing and deletion are approved but not implemented. Expense creation and validation are
+implemented; update/delete mutations, edit/delete controls, and attachment ingestion/cascades remain
+pending. The sections below define target behavior.
 
 ## Decision
 
@@ -39,10 +42,14 @@ All fields are editable after an expense is saved:
 
 ## When This Changes
 
-Access control becomes relevant in **V3** when sync is introduced and multiple real users share the same live group data. Group admin controls (only the creator can edit/delete, read-only members) are already planned as a Pro feature — to be designed when sync is built.
+Access control would become relevant if optional synchronization lets multiple users share live
+group data. Group roles, administrative controls, read-only access, and paid packaging remain
+candidates requiring separate design and approval. The historical V3/Pro labels are not delivery
+or pricing commitments; see [[product-roadmap]].
 
 ## Related
 
 - [[domain-models]] — Expense shape
 - [[indexeddb-schema]] — attachments cascade on expense delete
 - [[import-export]] — view-only import mode is already read-only by design (separate from edit/delete controls)
+- [[product-roadmap]] — current delivery horizons and uncommitted online capabilities

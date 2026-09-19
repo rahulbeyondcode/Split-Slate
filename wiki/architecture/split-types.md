@@ -7,25 +7,24 @@ metadata:
 
 # Split Types
 
-Last updated: 2026-08-20
+Purpose: explain implemented split calculations, inputs, rounding, and remaining presentation work.
+
+Last updated: 2026-09-19
 
 ## Overview
 
-The domain model can represent five `splitType` values and stores `splitMeta[]` plus final
-`transactions.owes[]` values. The five mechanics below are the approved design for expense entry;
-they are not implemented calculation behavior today.
+The expense form, live previews, split calculator, validation, and save mutation implement all five
+methods below. Final amounts and the necessary metadata are stored explicitly; ordinary reads do
+not recalculate historical allocations. Shares and percentages accept positive decimal inputs with
+up to six fractional digits, converted to integer weights before allocation. Values outside the
+safe scaled-ratio range are rejected.
 
-There is currently no add/edit expense form, split selector, calculation utility, validation flow,
-or expense-save mutation. The existing expense route only renders stored records. Consequently,
-all UX, formulas, and validation described below remain planned, even though the TypeScript and
-IndexedDB shapes can store their results.
-
-In the target flow, the user selects **which members are affected** — it does not have to be the
+In the entry flow, the user selects **which members are affected** — it does not have to be the
 entire group. A group of 10 can split an expense among just 4 selected members.
 
 The selected members and the computed amounts are stored in `transactions.owes[]`. For split types where the input values cannot be derived back from `owes[]` alone (shares, percentage, adjustment), the raw input values are stored in `splitMeta[]` so the expense can be accurately displayed and edited later.
 
-## Approved Rounding Policy (not implemented)
+## Implemented Rounding Policy
 
 All monetary results use integer currency minor units. Equal, shares, percentage, and adjustment
 calculations allocate indivisible remainders with the largest-remainder method and break exact ties
@@ -94,7 +93,7 @@ member_owes = (member_shares / total_shares) × total
 **splitMeta:** Stores `{ memberId, value: shares_count }` for each member — needed to reconstruct the ratio on view/edit.
 
 **Validation:**
-- All share values must be positive numbers (no zeros, no negatives)
+- All share values must be positive decimals with up to six fractional digits (no zeros, no negatives)
 
 ---
 
@@ -102,7 +101,9 @@ member_owes = (member_shares / total_shares) × total
 
 **What it does:** Each member is assigned a percentage of the total.
 
-**UX:** Each selected member gets a percentage input. Running total shown — must reach exactly 100% to save.
+**UX:** Each selected member gets a percentage input. Calculation and save validation require the
+percentages to total exactly 100%; invalid totals produce a validation message. Per-member amount
+previews appear when the split is valid. A numeric running percentage-total display remains pending.
 
 **Formula:**
 ```
@@ -112,7 +113,7 @@ member_owes = (member_percentage / 100) × total
 **splitMeta:** Stores `{ memberId, value: percentage }` for each member — needed to reconstruct percentages on view/edit.
 
 **Validation:**
-- All percentages must be positive
+- All percentages must be positive decimals with up to six fractional digits
 - Sum of all percentages must equal exactly 100%
 
 ---
@@ -141,7 +142,7 @@ member_owes = base_per_member + member_adjustment
 
 **Validation:**
 - No member's final computed share (`base_per_member + adjustment`) can go below zero
-- If it does: show error — *"[Name]'s adjustment makes their share negative — reduce it or increase the total"*
+- If it does, preview and submit validation report that an adjustment makes a member's share negative
 - Sum of all final shares is guaranteed to equal the total by the formula (no separate validation needed)
 
 ---

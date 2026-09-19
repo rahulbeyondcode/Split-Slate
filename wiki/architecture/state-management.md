@@ -7,20 +7,25 @@ metadata:
 
 # State Management
 
-Last updated: 2026-08-20
+Purpose: map store ownership, persistence order, and the exact validation and transaction boundaries.
+
+Last updated: 2026-09-19
 
 ## Technology
 
 Zustand v5 — single global store, backed by IndexedDB through Dexie.
 
-The public API is `useStore` from `@/shared/configs/store`. The implementation is split into
-domain slices under `src/shared/configs/store/` so each feature owns its state defaults and actions:
+The public API is `useStore` from `@/shared/configs/store`. Most slices currently live under
+`src/shared/configs/store/`; expense mutations live in `src/features/expenses/store/` and are composed
+into the same store. Expense state defaults and hydration remain in the shared app slice:
 
 - `app-slice.ts` — app bootstrap, hydration, and shared entity/settings loading
 - `people-slice.ts` — `localUser`, people directory, and person mutations
 - `groups-slice.ts` — groups, members, group mutations, and member mutations
 - `categories-slice.ts` — group categories plus master/default category settings
 - `tags-slice.ts` — group-scoped tag records and atomic expense-reference cleanup
+- `src/features/expenses/store/index.ts` — expense creation, persisted-reference validation, and
+  atomic expense/frequent-payer writes, composed into the same public store
 - `onboarding-slice.ts` — onboarding flow state and progress actions
 - `group-draft-slice.ts` — memory-only create-group draft for live preview
 
@@ -45,6 +50,9 @@ interface AppStore {
   // App bootstrap
   initialized: boolean
   init: () => Promise<void>
+
+  // Actions — Expenses
+  addExpense: (input: CreateExpenseInput) => Promise<Expense>
 
   // Actions — Groups
   createGroup: (name: string, icon: string, currency: string) => Promise<{ group: Group; creatorMember: Member }>
@@ -130,14 +138,25 @@ Two deliberate shape decisions:
 
 - Dexie is the authoritative persistence layer over IndexedDB.
 - Entity mutations write to Dexie before updating their corresponding Zustand state.
-- Category and tag mutations enforce their documented name/color, uniqueness, and deletion guards.
-  Group, person, and member actions do not uniformly validate names, referenced IDs, duplicate
-  memberships, self deletion, or creator retention; their documented UI constraints are not all
-  store invariants.
+- Group, person, category, and tag mutations normalize required user strings. Category/tag
+  uniqueness checks and member/person/category deletion guards read hydrated Zustand state;
+  they do not recheck persisted references inside a transaction. Group/person existence validation
+  for member additions and directory-wide self-deletion protection remain incomplete. UI
+  constraints therefore do not all hold as database-enforced invariants.
 - Zustand holds the hydrated in-memory view of persisted entities; it does not use `persist` middleware.
 - `init()` hydrates entities and settings from IndexedDB and seeds missing settings rows.
-- Tag deletion is explicitly wrapped in a Dexie transaction, so deleting the tag and removing its
-  expense references is atomic.
+- Tag deletion prepares replacement expense records from hydrated state before entering a Dexie
+  transaction. Deletion and those replacements commit atomically, but stale state can omit new
+  references or overwrite newer expense fields. See [[tag-management]].
+- Member addition checks persisted group/person links and inserts within one read-write
+  transaction on `members`. This serializes duplicate checks across concurrent calls; Zustand is
+  updated after commit. Referenced group/person existence validation remains pending.
+- Expense creation validates decimal input and calculated splits, then rechecks persisted group,
+  member/person, local-user, active-category, and tag references inside a Dexie transaction. The
+  same transaction sums persisted and proposed group spending using BigInt and rejects totals
+  above `Number.MAX_SAFE_INTEGER` minor units. The expense and payer ranking commit together;
+  Zustand changes only after commit. A failure leaves both persisted records and memory unchanged.
+  UUID and recording timestamp are generated on save.
 - Other composed operations are sequential rather than atomic. Examples include creating a group
   and its creator member, mirroring the local user into `people`, deleting a person and cleaning up
   member/group references, and the standalone group-creation submission. If a later write fails,

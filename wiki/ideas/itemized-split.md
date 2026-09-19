@@ -7,7 +7,12 @@ metadata:
 
 # Idea: Itemized Split
 
-Last updated: 2026-05-18
+Purpose: preserve an uncommitted receipt-item split concept without implying a delivery schedule.
+
+Last updated: 2026-09-19
+
+**Status: exploratory, not committed.** Itemized entry and receipt OCR remain ideas under
+[[product-roadmap]], with no approved version or delivery date.
 
 ## What It Is
 
@@ -62,10 +67,12 @@ This is in addition to `splitMeta` and `owes[]`.
 - Most complex split type to build — requires a dedicated line-item entry UI
 - The 5 existing types (equal, amount, shares, percentage, adjustment) cover the vast majority of real-world cases
 - Itemized is powerful but niche — primarily useful when the user has a physical receipt in front of them
-- Receipt OCR (scanning a receipt to auto-fill line items) is already a V3 feature — itemized split makes the most sense to pair with OCR rather than as a standalone manual entry
-- Add in V2 or alongside OCR in V3, whichever comes first
+- Receipt OCR could complement itemized entry by pre-filling line items, but both remain
+  exploratory. Neither depends on an approved V2/V3 delivery commitment.
+- Manual entry versus OCR-assisted entry requires separate prioritization and design.
 
 ## Related
 
 - [[split-types]] — the 5 split types supported in MVP
-- [[import-export]] — receipt images can be attached to expenses (relevant when OCR is added)
+- [[import-export]] — approved but pending receipt-attachment design
+- [[product-roadmap]] — exploration status and delivery priorities

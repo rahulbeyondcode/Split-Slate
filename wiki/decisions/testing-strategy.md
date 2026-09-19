@@ -10,7 +10,7 @@ metadata:
 Purpose: keep accounting tests fast, make every implemented area verifiable, and reserve real
 browser coverage for behavior that depends on browser storage, navigation, or offline capability.
 
-Last updated: 2026-08-26
+Last updated: 2026-09-19
 
 ## Decision
 
@@ -19,8 +19,8 @@ through the existing Vite transformation pipeline and supports the project's Typ
 JSX, plugins, and `@/` aliases. Vitest 4 requires Node.js 20 or newer.
 
 React Testing Library is the planned component-testing layer when interactive component coverage
-is added. Playwright is the planned end-to-end layer for a small set of critical user workflows;
-it is not a substitute for unit-level accounting tests.
+is added. Playwright is installed for browser expense-recording workflows; it is not a substitute
+for unit-level accounting tests.
 
 Jest is not used because it would introduce a second transformation and module-resolution setup
 beside Vite. TestCafe is not used because it overlaps the end-to-end role assigned to Playwright.
@@ -53,12 +53,13 @@ src/
 ```
 
 Only directories that contain tests are committed because Git does not retain empty directories.
-Test files use the production filename followed by `.test.ts` or `.test.tsx`. Cross-directory
-imports continue to use the `@/` alias.
+Unit/integration test files use the production filename followed by `.test.ts` or `.test.tsx`.
+Playwright journeys use `.e2e.ts` under `src/features/expenses/tests/browser/`, as configured in
+`playwright.config.ts`. Cross-directory imports continue to use the `@/` alias.
 
 ## Test Boundaries
 
-Vitest covers:
+Vitest's assigned scope includes:
 
 - monetary parsing, formatting, and validation
 - split calculation and deterministic rounding
@@ -67,7 +68,7 @@ Vitest covers:
 - store actions and persistence boundaries with controlled IndexedDB state
 - component behavior that does not require a complete browser journey
 
-Playwright will cover:
+Playwright's assigned scope includes:
 
 - onboarding and group-creation journeys
 - expense create, edit, and delete journeys
@@ -129,9 +130,24 @@ A test slice is complete when:
 
 ## Current Status
 
-Vitest is installed. Initial unit coverage includes the implemented member-net and group-total
-balance helpers and every setup-step transition. Component, store, persistence, and end-to-end
-coverage remain pending. The committed test files are authoritative for the exact suite inventory.
+Vitest covers the existing helpers and schemas plus money conversion, currency formatting, all five
+split methods, expense input validation, and payer defaults/ranking. Expense-store integration tests
+use `fake-indexeddb` and assert persisted state, hydration, concurrent writes, stale-reference
+rejection, and rollback when either write fails.
+
+`fake-indexeddb` is a development dependency imported by the expense-store tests. It supplies an
+in-memory IndexedDB implementation in Node so the real Dexie/store code can exercise persistence
+and rollback. The application uses browser IndexedDB; Playwright also uses real browser storage.
+
+Playwright expense suites are configured for Chromium at desktop and mobile sizes. They cover
+form recording, all five split methods, multiple payers, list/balance updates, reload persistence,
+cancellation, and retry after save rejection. Test data lives in isolated browser contexts. Run `pnpm test:e2e` after
+`pnpm exec playwright install chromium`. Traces/results are written under `/tmp/split-slate-playwright`.
+Other feature/component/browser coverage remains pending.
+
+This is an inventory of existing suites, not evidence of a passing run. Direct coverage for the
+new membership transaction/repeated-add guard and aggregate group-spending limit remains pending;
+the existing concurrent-write case covers expense saves, not member additions.
 
 Use `pnpm test` for a single complete run and `pnpm test:watch` while developing.
 

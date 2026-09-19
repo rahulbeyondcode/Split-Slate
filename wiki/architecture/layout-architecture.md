@@ -7,7 +7,9 @@ metadata:
 
 # Layout Architecture
 
-Last updated: 2026-08-20
+Purpose: document the implemented responsive shell and distinguish navigation stubs from working routes.
+
+Last updated: 2026-09-19
 
 ## Viewport States
 
@@ -19,7 +21,9 @@ conditionally renders navigation chrome for each state, so the component tree di
 Mobile renders the main route outlet and a fixed, context-aware footer. It does not render the
 sidebar or activity panel.
 
-There is no persistent top bar or app chrome header on mobile. The greeting and theme toggle are dashboard page content, not chrome — see [[dashboard]] for details.
+There is no persistent top bar or app chrome header on mobile. The greeting belongs to dashboard
+page content. No theme toggle is implemented; the target design places it in Settings. See
+[[dashboard]] for details.
 
 **Bottom nav** — always visible at the bottom; context-aware, changes items based on the current route:
 

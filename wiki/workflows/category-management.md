@@ -7,7 +7,7 @@ metadata:
 
 # Category Management
 
-Last updated: 2026-08-20
+Last updated: 2026-09-19
 
 ## Implementation Status
 
@@ -19,13 +19,12 @@ implements mandatory category selection with defaults.
 Category deactivation is a future task. The `isActive` field and store update capability already
 exist, but the management screen has no Activate/Deactivate control. This state is worth retaining
 because a category may be referenced by historical expenses and therefore cannot be deleted, while
-the user may no longer want it offered for new expenses. Deactivation will hide it from the future
-new-expense picker without breaking its historical reference, and reactivation will make it
-selectable again.
+the user may no longer want it offered for new expenses. The new-expense picker already omits
+inactive records without breaking historical references; reactivation makes them selectable again.
 
-Expense-picker integration is also future work because there is no add/edit expense form yet. That
-future picker must offer active categories, omit inactive categories for new selections, and still
-resolve inactive categories on historical expenses.
+The new-expense picker offers active categories only, and the save transaction rechecks category
+activity and group ownership. Historical list/overview rows still resolve inactive category names.
+If no active category exists, the form links to category management instead of allowing a save.
 
 ## Two Levels of Categories
 
@@ -76,7 +75,7 @@ the master list after group creation is not currently exposed as a separate UI.
 - Category names are trimmed and case-insensitively unique within one group
 - Categories are designed to be **deactivated** (hidden from the picker when adding expenses, while
   historical expenses keep their category reference intact); the model/store support this, but the
-  management and picker UI are planned
+  management toggle is planned and the new-expense picker already honors the flag
 - The planned deactivation UI also allows categories to be reactivated
 - Categories can be **deleted only when no expense references them**. Because `categoryId` is mandatory and singular on every expense, a category that is in use cannot be deleted outright — the user must first **reassign every expense** carrying that category to a different category, after which the now-unreferenced category can be deleted. A category with zero referencing expenses (e.g. one just added during onboarding, or never used) can be deleted directly.
 - A group must keep at least one category; the last remaining category cannot be deleted.

@@ -7,21 +7,19 @@ metadata:
 
 # Paid-By
 
-Last updated: 2026-08-20
+Last updated: 2026-09-19
 
 ## Overview
 
-The paid-by workflow is planned, not implemented. The data model can store multiple payer entries in
-`Expense.transactions.paid[]`, and each `Group` stores `frequentPayerIds`. New groups initialize
-that list with the creator member ID.
+The expense form implements single-payer quick selection and an explicit multiple-payer mode.
+New groups start with the creator selected; the remaining initial shortcuts are alphabetical.
+After recording, the top-five ranking is persisted atomically with the expense. The selector reads
+that stored ranking and can reveal every remaining group member.
 
-There is currently no expense-entry form or expense-save mutation. Therefore the selector, recent-
-payer pre-selection, ranking recalculation, and multiple-payer amount interface described below do
-not yet run. They define the target behavior.
-
-The planned selector is not a traditional dropdown. It shows a smart quick-select list of up to 5
-frequent payers for fast entry without repeated searching. A "Show more" option reveals all group
-members when needed.
+The default is the first positive contributor on the most recently recorded expense (`createdAt`,
+with expense ID as a stable tie-break). For multiple-payer history, the first contributor follows
+stored transaction order. An otherwise hidden preselected payer is also shown. Missing historical
+payers fall back to the local creator or first available member.
 
 ---
 
@@ -30,7 +28,7 @@ members when needed.
 ### The Frequent Payers List
 
 - Shows up to 5 unique members ranked by **how often they have paid** across the group's expense history (frequency count)
-- The **most recent payer** (last expense's payer) is pre-selected by default
+- The **most recent recorded payer** is pre-selected by default, even for a backdated expense
 - "Show more" reveals all remaining group members beyond the top 5
 
 ### Initial State (New Group, No Expenses Yet)
@@ -44,7 +42,9 @@ When a group has no expenses:
 
 After each expense is saved, the app recalculates frequency counts across all group expenses and updates the `frequentPayerIds` list on the group record:
 - Top 5 members by pay frequency replace the list
-- If there is a tie in frequency, alphabetical order is the tiebreaker
+- If there is a tie in frequency, alphabetical name order is the tiebreaker, then member ID
+- Only positive contributions count; a member counts at most once per expense. Zero-frequency
+  members can fill remaining slots after members who have paid
 - The list is stored on the `Group` record in IndexedDB — not recomputed at render time
 
 ---

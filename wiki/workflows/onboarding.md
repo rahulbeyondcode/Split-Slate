@@ -7,7 +7,9 @@ metadata:
 
 # Onboarding Flow
 
-Last updated: 2026-08-20
+Purpose: describe the implemented first-launch flow, persistence, and planned import alternatives.
+
+Last updated: 2026-09-19
 
 ## Standard First-Launch Flow
 
@@ -33,8 +35,10 @@ For users opening the app for the first time without any imported data.
 - **At least one category is mandatory** — the categories step cannot be passed with zero selected; a default set is pre-selected so this needs no effort unless the user deselects everything
 - **Adding members is optional** — a solo group (one member) is a valid and supported use case. See [[solo-group-support]]
 - **Group creator is auto-added as a Member at creation** — a group-scoped Member record links the
-  LocalUser automatically. Current UI keeps the creator outside the selectable people list, but
-  `addMember` and `removeMember` do not enforce uniqueness or creator retention at the store boundary.
+  LocalUser automatically. The UI excludes the creator from selectable people; `addMember`
+  atomically rejects persisted duplicate links, and `removeMember` protects the local user's
+  membership. Referenced-ID existence checks and directory-wide self-deletion protection remain
+  gaps; see [[member-management]].
 
 ---
 

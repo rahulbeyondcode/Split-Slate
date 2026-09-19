@@ -2,9 +2,29 @@
 
 Reverse-chronological record of all wiki changes.
 
-Last updated: 2026-08-26
+Last updated: 2026-09-19
 
 ---
+
+## 2026-09-19
+- CREATED workflows/development-tools.md — documented approved random preset helpers, individual creation actions, naming rules, and persistence boundaries
+- UPDATED wiki/index.md — linked the development-tools workflow
+- UPDATED systems/indexeddb-schema.md, decisions/expense-model-design.md, and decisions/expense-edit-delete.md — reconciled implemented expense creation, monetary validation, category selection, and index usage with pending editing, category settings, and attachments
+- UPDATED workflows/onboarding.md, workflows/main-screen.md, architecture/layout-architecture.md, architecture/split-types.md, and decisions/solo-group-support.md — corrected membership guards, group-switch reset, theme controls, split presentation, and solo-flow status
+- UPDATED architecture/domain-models.md, workflows/tag-management.md, and architecture/state-management.md — distinguished future display/loading behavior and documented hydrated-state validation and cascade limits
+- UPDATED decisions/string-input-normalization.md and decisions/testing-strategy.md — documented optional expense blanks, installed browser suites, test-only fake IndexedDB, and remaining coverage gaps
+- UPDATED ideas/itemized-split.md and roadmap/product-roadmap.md — removed obsolete delivery commitments and aligned implemented defaults and unresolved settlement design
+- UPDATED wiki/index.md — synchronized navigation summaries and tag-cascade invariant with the approved wiki audit
+- UPDATED workflows/member-management.md and architecture/domain-models.md — documented transactional duplicate membership protection and repeated-add controls
+- UPDATED decisions/money-representation-and-rounding.md and architecture/state-management.md — documented atomic aggregate-limit validation to keep group spending and member balances within safe-integer bounds
+- UPDATED wiki/index.md — aligned membership and money summaries with the approved review fixes
+- UPDATED workflows/main-screen.md, workflows/paid-by.md, workflows/category-management.md, workflows/tag-management.md, and workflows/filtering.md — documented expense recording, selection rules, saved rows, and remaining editing/filtering work
+- UPDATED architecture/domain-models.md, architecture/state-management.md, architecture/split-types.md, architecture/balance-calculation.md, and systems/indexeddb-schema.md — documented enforced creation invariants, integer allocations, persisted-reference validation, and atomic expense/ranking saves
+- UPDATED decisions/money-representation-and-rounding.md and decisions/testing-strategy.md — recorded implemented monetary boundaries and unit/persistence/browser coverage
+- UPDATED roadmap/product-roadmap.md and wiki/index.md — marked expense recording, five split methods, and paid-by implemented while retaining pending edit/delete and receipt scope
+- UPDATED workflows/member-management.md — reconciled stashed member-management implementation with the upstream audit, retaining remaining validation gaps and planned expense recovery
+- UPDATED wiki/index.md — preserved upstream roadmap and testing entries while aligning member-management status and guards with merged source
+- UPDATED wiki/log.md — resolved the stash conflict, preserving both documentation histories and upstream's normalized wiki-only log
 
 ## 2026-08-26
 - CREATED decisions/testing-strategy.md — selected Vitest for unit and integration tests and reserved Playwright for critical end-to-end browser workflows
@@ -35,6 +55,10 @@ Last updated: 2026-08-26
 - UPDATED architecture/split-types.md, workflows/paid-by.md, and workflows/filtering.md — labelled modelled designs and all unimplemented UI/calculation/filter behavior as planned
 - UPDATED workflows/member-management.md and workflows/category-management.md — separated implemented store/CRUD guards from missing management UI and recorded category deactivation as future historical-reference protection
 - UPDATED wiki/log.md — recorded the reconciliation and normalized all dated sections into reverse chronological order
+
+## 2026-08-17
+- UPDATED workflows/member-management.md — documented the implemented group-details member add, edit, confirmed removal, duplicate guard, and expense-reference validation
+- UPDATED wiki/index.md — marked member management done
 
 ## 2026-08-16
 - UPDATED architecture/balance-calculation.md, architecture/layout-architecture.md, workflows/dashboard.md, and workflows/main-screen.md — documented the implemented overview and balance behavior

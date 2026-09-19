@@ -1,13 +1,15 @@
 ---
 name: solo-group-support
-description: Why single-member groups are valid and how onboarding handles the skip-members flow
+description: Why single-member groups are valid and how creation finishes without additional members
 metadata:
   type: decisions
 ---
 
 # Decision: Solo Group Support
 
-Last updated: 2026-08-20
+Purpose: explain solo groups and distinguish implemented completion behavior from planned balances.
+
+Last updated: 2026-09-19
 
 ## Decision
 
@@ -25,8 +27,9 @@ does not explicitly name the solo path, so that clarity portion of this decision
 
 ## Onboarding Behavior
 
-The "Add Members" step in the group creation flow can be completed without adding anyone — "Save
-and Finish" proceeds with just the creator. Its current helper text is:
+The shared "Add Members" step can be completed without adding anyone. Onboarding uses "Save and
+Finish"; standalone group creation uses "Create group". Both proceed with just the creator. The
+shared helper text is:
 > "You're already in this group. Pick from your friends or add someone new — you can always add them later."
 
 This text permits the solo path but does not explicitly tell the user that finishing solo is valid.
@@ -35,8 +38,10 @@ See [[onboarding]] for the full group creation flow and step order.
 
 ## Tradeoff
 
-- The "Balances" tab in a solo group is always empty (net = 0 when there is only one member) — this is expected and not a bug.
-- The "who owes whom" output is also empty for solo groups — acceptable.
+- The implemented overview shows a zero net position for a solo group: its sole member pays and
+  owes the same total.
+- A Balances tab and suggested-transfer view are not implemented. Their target behavior is no
+  suggested transfers for a solo group.
 
 ## What This Removes
 

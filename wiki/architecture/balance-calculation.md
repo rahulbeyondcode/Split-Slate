@@ -7,7 +7,7 @@ metadata:
 
 # Balance Calculation
 
-Last updated: 2026-08-16
+Last updated: 2026-09-19
 
 ## Implementation Status
 
@@ -18,8 +18,9 @@ Two pure helpers are implemented in `src/shared/utils/balances.ts`:
 
 The group overview and sidebar group item use `calculateMemberNet` for the local user's position.
 The overview also uses `calculateGroupTotal`. There is no all-member balance map,
-debt-simplification helper, or who-owes-whom screen yet. Expense mutation is also pending, so normal
-UI flows cannot create the expense data consumed by the existing read-only screens.
+debt-simplification helper, or who-owes-whom screen yet. Recorded expenses now feed these helpers
+immediately after persistence. Inputs and derived balances use integer minor units; the shared
+currency formatter converts only at the display boundary.
 
 ## Core Formula
 

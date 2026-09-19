@@ -1,13 +1,15 @@
 ---
 name: main-screen
-description: Current dashboard-to-group navigation and the planned in-group expense/balance structure
+description: Current dashboard-to-group navigation, expense recording, and planned balance views
 metadata:
   type: workflows
 ---
 
 # Main Screen
 
-Last updated: 2026-08-16
+Purpose: distinguish implemented group navigation and expense entry from planned detail and balance views.
+
+Last updated: 2026-09-19
 
 ## Current Implementation
 
@@ -20,31 +22,35 @@ also lists groups and currently sorts them by `createdAt` descending.
 
 ### Group Detail Routes
 
-`/groups/:groupId` is a committed parent route with nested routes for Overview, Expenses, Members,
-Categories & Tags, and Settings. The parent resolves the active group's members, people, categories,
-tags, and expenses once and supplies them to child screens through the router outlet context. An
-unknown group shows a not-found state with a return link to the dashboard.
+`/groups/:groupId` is an implemented parent route with nested routes for Overview, Expenses,
+Add Expense, Members, Categories & Tags, and Settings. The parent resolves the active group's
+members, people, categories, tags, and expenses and supplies them to child screens through the
+router outlet context. An unknown group shows a not-found state with a return link to the dashboard.
 
 The current child screens are:
 
 - **Overview** — local net position, total spend, category count, members, and up to five recent expenses
-- **Expenses** — a read-only list sorted by `when` descending, showing expense name and total paid
-- **Members** — a read-only list resolved through the global people directory
+- **Expenses** — a list sorted by `when` descending, showing name, total paid, payer names, date/time, and category
+- **Add Expense** — `/groups/:groupId/expenses/new`, with validated local recording and five split methods
+- **Members** — add existing/new people, edit linked names/icons, and confirmed guarded removal
 - **Categories & Tags** — add, edit, and guarded-delete controls for both record types
 - **Settings** — read-only group name and currency
 
-The group header's Add Expense link currently opens the lightweight Expenses route; no entry form
-exists yet. Dashboard and sidebar group rows link to the Overview. The sidebar displays the local
-member's calculated net position derived from paid and owed transactions.
+The group header's Add Expense link opens the entry form. Successful saves return to the expense
+list and update overview/sidebar balances through the shared store. Failed saves retain form inputs
+and show an error; cancellation writes nothing. Submissions are guarded against repeated clicks.
+Dashboard and sidebar group rows link to the Overview. The sidebar group-list items display the
+local member's calculated net position derived from paid and owed transactions.
+
+The group outlet is keyed by `group.id`. Changing the active group remounts child screens and
+resets their form/editor state, including category and tag editors.
 
 ---
 
-## Target In-Group Design
+## In-Group Experience — Current and Planned
 
-The following sections describe the intended MVP experience beyond the lightweight committed
-screens.
-
-Low-priority TODO: if someone manually replaces `:groupId` in the browser URL while a category or tag editor is open, reset the editor's local state for the new group. Normal in-app navigation unmounts the group screen and is unaffected; group IDs are UUIDs, so this is not a priority for the current flow.
+The following sections distinguish the existing expense list and entry form from the remaining
+target experience. Delivery priorities live in [[product-roadmap]].
 
 ### Expense and Balance Views
 
@@ -55,23 +61,31 @@ Low-priority TODO: if someone manually replaces `:groupId` in the browser URL wh
 
 - Balances tab is **read-only in MVP** — shows who owes whom and how much, nothing else
 - No settlement action, no mark-as-settled, no notifications in MVP
-- **V2:** Settlement toggle (binary — fully settled or not) paired with push notifications that remind the group owner about unsettled debts. Partial settlement tracking is explicitly deferred until user demand justifies it.
-- In a solo group, the Balances tab is always empty (net = 0 with one member)
+- **Settlement design is unresolved:** an earlier V2 proposal paired a binary fully-settled toggle
+  with push notifications. The roadmap requires a separate decision comparing that model with
+  explicit repayment records, including partial repayment, before implementation.
+- The planned Balances view has no suggested transfers for a solo group (net = 0 with one member).
 
-### Planned Expense List
+### Current Expense List
 
 - Expense name
 - Total amount
 - Paid by (member name)
 - Date (`when` — the actual expense date, not `createdAt`)
 
-Expenses are sorted by `when` descending in the current lightweight route. The target row adds payer
-and date details to the currently displayed expense name and total.
+Expenses are sorted by `when` descending. Rows now include payer names, date/time, and category
+beside the name and formatted amount. Editing, deletion, and filtering remain pending.
 
-### Planned Primary CTA
+### Expense Recording
 
 - **Add Expense** button — always visible and prominent
-- **Current implementation TODO:** the button currently opens the lightweight expense-list route; the add-expense form will be implemented next
+- The form defaults to current local date/time, the first active category, one payer, and an equal
+  split among all group members. Participants can be deselected; solo groups are supported.
+- One or multiple payers, all five split types, and existing optional group tags are supported.
+- React Hook Form and Zod validate input; the store revalidates current persisted references and
+  saves the expense plus frequent-payer ranking atomically in IndexedDB.
+- A missing local membership or active category blocks entry. Receipts and inline tag creation
+  remain pending. See [[split-types]], [[paid-by]], and [[money-representation-and-rounding]].
 
 ### Planned Group Menu
 
@@ -88,5 +102,6 @@ and date details to the currently displayed expense name and total.
 - [[dashboard]] — current dashboard and planned cross-group sections
 - [[layout-architecture]] — current route-aware sidebar/footer and unimplemented navigation stubs
 - [[balance-calculation]] — how the Balances tab derives its data
-- [[solo-group-support]] — solo groups always show an empty Balances tab
+- [[solo-group-support]] — implemented zero-net overview and planned solo balance behavior
 - [[import-export]] — Export and Import options in the group menu
+- [[product-roadmap]] — delivery horizons and the unresolved settlement-model decision

@@ -7,12 +7,12 @@ metadata:
 
 # Expense Filtering
 
-Last updated: 2026-08-20
+Last updated: 2026-09-19
 
 ## Overview
 
 All eight filters on this page are planned. The current expense route is a read-only list that sorts
-stored expenses by `when` descending and displays only each expense's name and total paid amount.
+stored expenses by `when` descending and displays name, total paid, payer names, date/time, and category.
 It has no filter controls or filter predicate.
 
 The target design supports filtering across all major expense fields. Filters can be combined —
