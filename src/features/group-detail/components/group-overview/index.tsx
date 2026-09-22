@@ -1,4 +1,4 @@
-import { useOutletContext } from "react-router-dom";
+import { Link, useOutletContext } from "react-router-dom";
 
 import { useStore } from "@/shared/configs/store";
 import { calculateGroupTotal, calculateMemberNet } from "@/shared/utils/balances";
@@ -40,6 +40,9 @@ const GroupOverview = () => {
         </div>
       </section>
 
+      <Link to={`/groups/${group.id}/balances`} className="text-sm text-blue-700">
+        View all balances
+      </Link>
       <section className="flex flex-col gap-3">
         <h2 className="text-sm font-semibold text-gray-900">Members</h2>
         <ul className="flex flex-col gap-2">
@@ -79,9 +82,12 @@ const GroupOverview = () => {
                   className="flex items-center justify-between gap-3 rounded border border-gray-200 px-3 py-2"
                 >
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-gray-900">
+                    <Link
+                      to={`/groups/${group.id}/expenses/${expense.expenseId}`}
+                      className="block truncate text-sm font-medium text-blue-700 hover:underline"
+                    >
                       {expense.expenseName}
-                    </p>
+                    </Link>
                     <p className="text-xs text-gray-500">{category?.name ?? "Unknown category"}</p>
                   </div>
                   <span className="shrink-0 text-sm font-medium text-gray-900">

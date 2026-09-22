@@ -7,9 +7,9 @@ metadata:
 
 # Member Management
 
-Purpose: document implemented member management and the remaining validation and recovery gaps.
+Purpose: document member management, persisted membership guards, and remaining recovery limits.
 
-Last updated: 2026-09-19
+Last updated: 2026-09-20
 
 A member is a link from a group to a person in the global directory. See [[global-people-directory]] and [[people-directory]].
 
@@ -22,14 +22,17 @@ involvement and otherwise cleans up that person's member links and payer referen
 
 The group Members route supports adding existing or new people, editing the linked person's
 name/icon, and confirmed removal. It explains blocked removals before asking for confirmation.
-Expense filtering and editing remain unimplemented, so the recovery flow below is still planned.
+Expense editing and deletion are available through detail. Filtering and a filter-to-fix shortcut
+remain pending.
 
-`addMember` checks persisted `(groupId, personId)` links and inserts within one read-write
-transaction, so concurrent calls cannot create duplicate memberships even when client state is
-stale. It does not verify that the group/person IDs exist. `removeMember` rejects missing members and protects the local
-user's member link. The people UI hides self deletion, while `removePerson` does not enforce that
-rule at the store boundary. ID-existence validation and directory-wide self-deletion protection
-remain implementation gaps.
+`addMember` checks persisted group/person existence and `(groupId, personId)` links, then inserts
+within one read-write transaction spanning groups, people, and members. Concurrent calls cannot
+create duplicate memberships even when client state is stale. `removeMember` rejects missing
+members and protects the local user's member link. `removePerson` separately checks persisted
+LocalUser identity before deletion, even if hydrated identity is missing.
+
+Expense-involvement removal guards and other person/member cascade steps still use hydrated state
+and sequential writes; the additions above do not make every deletion operation transactional.
 
 ## Adding Members
 
@@ -61,17 +64,18 @@ Deletes only the member link for that group; the person stays in the directory. 
 Removes the person everywhere. Allowed only if the person is referenced by **no expense in any group**. On delete, all their member links and any `frequentPayerIds` references are pruned. See [[global-people-directory]].
 
 If they appear in one or more expenses, the relevant removal is blocked.
-The `removeMember` self guard does not extend to `removePerson`: direct directory-store calls can
-still delete the local user's person and member links when there is no expense involvement.
+Both removal scopes protect the device owner. The directory guard reads persisted LocalUser before
+any deletion, rather than relying only on hidden UI controls or hydrated identity.
 
-### Planned blocked-removal recovery
+### Blocked-Removal Recovery
 
-The blocking message is implemented. The expense-editing steps below require the planned expense
-editor; no filter-to-fix shortcut is available yet.
+1. The app blocks removal and explains expense involvement before confirmation.
+2. Open the relevant expenses from the list. Edit their paid-by and split references or delete the
+   expenses with confirmation.
+3. Once no expense references the member, removal becomes available.
 
-1. App blocks the removal before showing a confirmation prompt and explains why
-2. The user manually edits each relevant expense to remove the member from its creator, paid-by, and split references
-3. Once the member has no expense involvement, removal becomes available
+Editing preserves `createdBy`; creator references cannot be reassigned. An expense whose creator
+must be removed must itself be deleted. There is no filter-to-fix shortcut yet.
 
 ### Why No Force-Delete
 

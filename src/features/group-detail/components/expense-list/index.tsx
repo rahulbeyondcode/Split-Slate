@@ -1,4 +1,4 @@
-import { useOutletContext } from "react-router-dom";
+import { Link, useOutletContext } from "react-router-dom";
 
 import { formatCurrency } from "@/shared/utils/currency";
 
@@ -18,7 +18,12 @@ const ExpenseList = () => {
         <ul className="flex flex-col gap-2">
           {sortedExpenses.map((expense) => (
             <li key={expense.expenseId} className="rounded border border-gray-200 px-4 py-3">
-              <p className="text-sm font-medium text-gray-900">{expense.expenseName}</p>
+              <Link
+                to={`/groups/${group.id}/expenses/${expense.expenseId}`}
+                className="text-sm font-medium text-blue-700 hover:underline"
+              >
+                {expense.expenseName}
+              </Link>
               <p className="text-xs text-gray-500">
                 {formatCurrency(
                   expense.transactions.paid.reduce((sum, item) => sum + item.amount, 0),

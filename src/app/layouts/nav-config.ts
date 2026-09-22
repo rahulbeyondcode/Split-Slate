@@ -11,6 +11,7 @@ export const SIDEBAR_NAV: Record<string, NavItem[]> = {
   group: [
     { label: "Overview", path: "/groups/:groupId" },
     { label: "Expenses", path: "/groups/:groupId/expenses" },
+    { label: "Balances", path: "/groups/:groupId/balances" },
     { label: "Members", path: "/groups/:groupId/members" },
     { label: "Categories & Tags", path: "/groups/:groupId/categories" },
     { label: "Settings", path: "/groups/:groupId/settings" },
@@ -28,6 +29,7 @@ export const FOOTER_NAV: Record<string, NavItem[]> = {
   group: [
     { label: "Overview", path: "/groups/:groupId" },
     { label: "Expenses", path: "/groups/:groupId/expenses" },
+    { label: "Balances", path: "/groups/:groupId/balances" },
     { label: "Members", path: "/groups/:groupId/members" },
     { label: "Categories & Tags", path: "/groups/:groupId/categories" },
     { label: "Settings", path: "/groups/:groupId/settings" },

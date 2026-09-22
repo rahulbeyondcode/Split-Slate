@@ -7,20 +7,27 @@ metadata:
 
 # Balance Calculation
 
-Last updated: 2026-09-19
+Purpose: explain exact member balances and deterministic suggested transfers.
+
+Last updated: 2026-09-20
 
 ## Implementation Status
 
-Two pure helpers are implemented in `src/shared/utils/balances.ts`:
+Four pure helpers are implemented in `src/shared/utils/balances.ts`:
 
-- `calculateMemberNet(expenses, memberId)` — applies `totalPaid - totalOwed` for one member
-- `calculateGroupTotal(expenses)` — sums every `paid` transaction across the supplied expenses
+- `calculateMemberNet(expenses, memberId)` — total paid minus total owed for one member
+- `calculateGroupTotal(expenses)` — sums every paid allocation
+- `calculateBalances(expenses, memberIds)` — includes all supplied members, including zero balances
+- `suggestTransfers(balances)` — returns positive integer transfers that clear a zero-sum balance map
 
-The group overview and sidebar group item use `calculateMemberNet` for the local user's position.
-The overview also uses `calculateGroupTotal`. There is no all-member balance map,
-debt-simplification helper, or who-owes-whom screen yet. Recorded expenses now feed these helpers
-immediately after persistence. Inputs and derived balances use integer minor units; the shared
-currency formatter converts only at the display boundary.
+The overview and sidebar use the first two helpers. The `/groups/:groupId/balances` route shows
+all-member balances and suggested payments, updating after expense creation, editing, or deletion.
+Solo groups show zero net and no suggested payments, with explanatory personal-spending copy.
+
+Accumulation uses BigInt internally and returns safe-integer minor units; currency conversion is
+only for display. All-member calculation rejects missing member references and invalid allocations.
+Transfer calculation rejects unsafe/fractional balances and nonzero sums instead of silently
+showing incomplete settlements. Neither helper mutates inputs.
 
 ## Core Formula
 
@@ -38,38 +45,26 @@ net = totalPaid - totalOwed
 
 ---
 
-## Target All-Member Algorithm
+## All-Member Algorithm
 
-```ts
-function calculateBalances(expenses: Expense[], memberIds: UUID[]): Map<UUID, number> {
-  const net = new Map(memberIds.map(id => [id, 0]))
+Initialize every member's net to zero. For every expense, add each paid allocation to its member
+and subtract each owed allocation from its member. Convert exact accumulated values to safe
+integers at the boundary. Positive values are receivable; negative values are payable.
 
-  for (const expense of expenses) {
-    for (const { memberId, amount } of expense.transactions.paid) {
-      net.set(memberId, net.get(memberId)! + amount)
-    }
-    for (const { memberId, amount } of expense.transactions.owes) {
-      net.set(memberId, net.get(memberId)! - amount)
-    }
-  }
+## Deriving Who Pays Whom
 
-  return net
-}
-```
+1. Separate positive creditors and negative debtors; work with positive remaining magnitudes.
+2. Sort each side by largest remaining amount, breaking equal amounts by ascending member ID.
+3. Transfer the smaller of the largest debt and credit, then subtract it from both sides.
+4. Remove zero remainders and re-sort before the next match.
 
----
+Each step clears at least one remaining position. This deterministic greedy algorithm is not
+guaranteed to minimize the number of transfers. Suggestions are one way to clear the net balances,
+not records of original bilateral debts or payments. The view explicitly says that it does not
+record a payment; repayment recording requires the separate roadmap decision.
 
-## Deriving "Who Owes Whom" (planned)
-
-The target balances view will derive settlement suggestions from the net map:
-
-1. Separate members into creditors (net > 0) and debtors (net < 0)
-2. Greedily match largest debtor to largest creditor
-3. Produce transfers: "A pays B ₹X"
-
-This is the classic minimum-cash-flow problem. Greedy gives a good-enough (not always optimal) solution for small groups.
-
----
+Ties use IDs, so names and input array order do not change suggested matches. No transfers are
+produced for an empty or all-zero balance map.
 
 ## Worked Example
 

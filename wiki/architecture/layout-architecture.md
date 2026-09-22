@@ -9,7 +9,7 @@ metadata:
 
 Purpose: document the implemented responsive shell and distinguish navigation stubs from working routes.
 
-Last updated: 2026-09-19
+Last updated: 2026-09-20
 
 ## Viewport States
 
@@ -30,10 +30,10 @@ page content. No theme toggle is implemented; the target design places it in Set
 | Context | Items |
 |---------|-------|
 | Home | Groups, Activity, Unsettled, Analytics, Settings |
-| Inside a group | Overview, Expenses, Members, Categories & Tags, Settings |
+| Inside a group | Overview, Expenses, Balances, Members, Categories & Tags, Settings |
 
 The Groups destination works. The dashboard-level Activity, Unsettled, Analytics, and Settings
-destinations are navigation stubs whose routes have not been registered. All five in-group footer
+destinations are navigation stubs whose routes have not been registered. All six in-group footer
 destinations resolve to nested group-detail routes, although several screens remain lightweight.
 There is no FAB; the New Group action lives inside the dashboard.
 
@@ -82,7 +82,7 @@ Inside a group, top to bottom:
 1. **App logo** — always at the top
 2. **Back to dashboard** — returns to the dashboard groups list
 3. **Current group summary** — non-clickable group icon/name/currency plus member and expense counts
-4. **Group menu items** — Overview, Expenses, Members, Categories & Tags, Settings
+4. **Group menu items** — Overview, Expenses, Balances, Members, Categories & Tags, Settings
 5. **Profile + settings icon** — always at the bottom
 
 All groups are not listed while inside a group; the sidebar focuses on the active group context.
@@ -92,7 +92,7 @@ All groups are not listed while inside a group; the sidebar focuses on the activ
 | Route | Menu items |
 |-------|-----------|
 | Home (Dashboard) | Dashboard, All Friends |
-| Inside a group | Overview, Expenses, Members, Categories & Tags, Settings |
+| Inside a group | Overview, Expenses, Balances, Members, Categories & Tags, Settings |
 
 ---
 
@@ -121,12 +121,18 @@ Route content is shared across viewport states. The navigation chrome differs:
 | Route | Bottom nav items |
 |-------|-----------------|
 | Home | Groups, Activity, Unsettled, Analytics, Settings |
-| Inside a group | Overview, Expenses, Members, Categories & Tags, Settings |
+| Inside a group | Overview, Expenses, Balances, Members, Categories & Tags, Settings |
 
 All in-group destinations resolve to nested routes. On the dashboard footer, only Groups resolves;
 Activity, Unsettled, Analytics, and Settings still lead to unmatched routes.
 
 ---
+
+## Expense Routes
+
+Saved expense links open detail at `/groups/:groupId/expenses/:expenseId`; editing uses its `/edit`
+path. The existing `/expenses/new` route remains creation. Balances is available in both navigation
+layouts and from the overview at `/groups/:groupId/balances`.
 
 ## Related
 

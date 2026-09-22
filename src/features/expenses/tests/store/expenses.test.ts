@@ -213,3 +213,251 @@ describe("addExpense", () => {
     expect((await db.groups.get("g"))?.frequentPayerIds).toEqual(["a", "b"]);
   });
 });
+
+describe("updateExpense", () => {
+  it("updates editable fields, preserves identity and attachments, and survives hydration", async () => {
+    const original = await useStore.getState().addExpense(input());
+    const preciseWhen = original.when + 12345;
+    await db.expenses.update(original.expenseId, { attachmentIds: ["receipt"], when: preciseWhen });
+    const data = input();
+    data.values.expenseName = " Updated lunch ";
+    data.values.amount = "125.50";
+    data.values.payerId = "b";
+    data.values.tagIds = [];
+    data.values.participants[0].selected = false;
+    const updated = await useStore.getState().updateExpense(original.expenseId, data);
+    expect(updated).toMatchObject({
+      expenseId: original.expenseId,
+      createdAt: original.createdAt,
+      createdBy: original.createdBy,
+      groupId: "g",
+      when: preciseWhen,
+      attachmentIds: ["receipt"],
+      expenseName: "Updated lunch",
+      tagIds: [],
+      transactions: {
+        paid: [{ memberId: "b", amount: 12550 }],
+        owes: [{ memberId: "b", amount: 12550 }],
+      },
+    });
+    expect(await db.expenses.count()).toBe(1);
+    expect(await db.expenses.get(original.expenseId)).toEqual(updated);
+    expect((await db.groups.get("g"))?.frequentPayerIds).toEqual(["b", "a"]);
+    useStore.setState({ expenses: [] });
+    await useStore.getState().init();
+    expect(useStore.getState().expenses).toEqual([updated]);
+  });
+  it.each(["amount", "shares", "percentage", "adjustment"] as const)(
+    "recalculates a changed %s split",
+    async (method) => {
+      const original = await useStore.getState().addExpense(input());
+      const data = input();
+      data.values.splitType = method;
+      data.values.participants[0].value =
+        method === "shares" ? "1" : method === "percentage" ? "40" : "10";
+      data.values.participants[1].value =
+        method === "shares" ? "2" : method === "percentage" ? "60" : "";
+      data.values.when = "2026-09-20T15:00";
+      const updated = await useStore.getState().updateExpense(original.expenseId, data);
+      expect(updated.splitType).toBe(method);
+      expect(updated.transactions.owes.reduce((sum, row) => sum + row.amount, 0)).toBe(10001);
+      expect(updated.when).toBe(new Date("2026-09-20T15:00").getTime());
+      expect(updated.splitMeta).toHaveLength(method === "amount" ? 0 : 2);
+    },
+  );
+  it("retains the current inactive category but rejects switching to another inactive category", async () => {
+    const original = await useStore.getState().addExpense(input());
+    await db.categories.update("food", { isActive: false });
+    await useStore.getState().updateExpense(original.expenseId, input());
+    await db.categories.add({
+      id: "other",
+      groupId: "g",
+      name: "Other",
+      icon: "📦",
+      isActive: false,
+    });
+    const data = input();
+    data.values.categoryId = "other";
+    await expect(useStore.getState().updateExpense(original.expenseId, data)).rejects.toThrow(
+      "active category",
+    );
+    expect((await db.expenses.get(original.expenseId))?.categoryId).toBe("food");
+  });
+  it.each(["group", "member", "person", "category", "tag", "currency"])(
+    "rejects a stale %s reference without changing the expense",
+    async (missing) => {
+      const original = await useStore.getState().addExpense(input());
+      if (missing === "group") await db.groups.delete("g");
+      if (missing === "member") await db.members.delete("b");
+      if (missing === "person") await db.people.delete("friend");
+      if (missing === "category") await db.categories.delete("food");
+      if (missing === "tag") await db.tags.delete("trip");
+      if (missing === "currency") await db.groups.update("g", { currency: "JPY" });
+      await expect(
+        useStore.getState().updateExpense(original.expenseId, input()),
+      ).rejects.toThrow();
+      expect(await db.expenses.get(original.expenseId)).toEqual(original);
+      expect(useStore.getState().expenses).toEqual([original]);
+    },
+  );
+  it("rejects missing and cross-group expense IDs", async () => {
+    const original = await useStore.getState().addExpense(input());
+    await expect(useStore.getState().updateExpense("missing", input())).rejects.toThrow(
+      "not found",
+    );
+    await expect(
+      useStore.getState().updateExpense(original.expenseId, { ...input(), groupId: "other" }),
+    ).rejects.toThrow("not found");
+    expect(await db.expenses.get(original.expenseId)).toEqual(original);
+  });
+  it("rejects an invalid total without altering saved data", async () => {
+    const original = await useStore.getState().addExpense(input());
+    const data = input();
+    data.values.amount = "0";
+    await expect(useStore.getState().updateExpense(original.expenseId, data)).rejects.toThrow(
+      "greater than zero",
+    );
+    expect(await db.expenses.get(original.expenseId)).toEqual(original);
+  });
+  it.each(["expense", "ranking"])(
+    "rolls back when the %s write fails, then allows retry",
+    async (failure) => {
+      const original = await useStore.getState().addExpense(input());
+      const previousGroups = useStore.getState().groups;
+      const data = input();
+      data.values.payerId = "b";
+      if (failure === "expense")
+        vi.spyOn(db.expenses, "put").mockRejectedValueOnce(new Error("Disk full"));
+      else vi.spyOn(db.groups, "update").mockRejectedValueOnce(new Error("Disk full"));
+      await expect(useStore.getState().updateExpense(original.expenseId, data)).rejects.toThrow(
+        "Disk full",
+      );
+      expect(await db.expenses.get(original.expenseId)).toEqual(original);
+      expect(useStore.getState().expenses).toEqual([original]);
+      expect(useStore.getState().groups).toEqual(previousGroups);
+      expect(await db.groups.toArray()).toEqual(previousGroups);
+      await useStore.getState().updateExpense(original.expenseId, data);
+      expect((await db.expenses.get(original.expenseId))?.transactions.paid[0].memberId).toBe("b");
+    },
+  );
+  it("replaces the old total when checking aggregate limits and rejects one minor unit over", async () => {
+    const data = input();
+    data.values.amount = "90071992547409.90";
+    const original = await useStore.getState().addExpense(data);
+    data.values.amount = "90071992547409.91";
+    const updated = await useStore.getState().updateExpense(original.expenseId, data);
+    expect(updated.transactions.paid[0].amount).toBe(Number.MAX_SAFE_INTEGER);
+    const small = input();
+    small.values.amount = "0.01";
+    await expect(useStore.getState().addExpense(small)).rejects.toThrow("supported total");
+    data.values.amount = "90071992547409.90";
+    await useStore.getState().updateExpense(original.expenseId, data);
+    await useStore.getState().addExpense(small);
+    data.values.amount = "90071992547409.91";
+    await expect(useStore.getState().updateExpense(original.expenseId, data)).rejects.toThrow(
+      "supported total",
+    );
+    expect((await db.expenses.get(original.expenseId))?.transactions.paid[0].amount).toBe(
+      Number.MAX_SAFE_INTEGER - 1,
+    );
+  });
+  it("serializes concurrent updates without duplicate records", async () => {
+    const original = await useStore.getState().addExpense(input());
+    const changed = input();
+    changed.values.payerId = "b";
+    await Promise.all([
+      useStore.getState().updateExpense(original.expenseId, input()),
+      useStore.getState().updateExpense(original.expenseId, changed),
+    ]);
+    expect(await db.expenses.count()).toBe(1);
+    expect(useStore.getState().expenses).toEqual(await db.expenses.toArray());
+    expect(useStore.getState().groups).toEqual(await db.groups.toArray());
+  });
+});
+
+const addReceipts = async (expenseId: string) => {
+  await db.attachments.bulkAdd([
+    { id: "receipt", expenseId, blob: new Blob(["receipt"]), mimeType: "image/png", createdAt: 1 },
+    {
+      id: "unlisted",
+      expenseId,
+      blob: new Blob(["unlisted"]),
+      mimeType: "image/png",
+      createdAt: 1,
+    },
+    {
+      id: "unrelated",
+      expenseId: "other",
+      blob: new Blob(["other"]),
+      mimeType: "image/png",
+      createdAt: 1,
+    },
+  ]);
+  await db.expenses.update(expenseId, { attachmentIds: ["receipt"] });
+  await useStore.getState().init();
+};
+
+describe("removeExpense", () => {
+  it("deletes owned receipts including unlisted ones, preserves unrelated data, and recalculates rankings", async () => {
+    const data = input();
+    data.values.payerId = "b";
+    const original = await useStore.getState().addExpense(data);
+    await addReceipts(original.expenseId);
+    await useStore.getState().removeExpense(original.expenseId, "g");
+    expect(await db.expenses.count()).toBe(0);
+    expect(useStore.getState().expenses).toEqual([]);
+    expect((await db.attachments.toArray()).map((row) => row.id)).toEqual(["unrelated"]);
+    expect((await db.groups.get("g"))?.frequentPayerIds).toEqual(["a", "b"]);
+    expect(useStore.getState().groups[0].frequentPayerIds).toEqual(["a", "b"]);
+    await useStore.getState().init();
+    expect(useStore.getState().expenses).toEqual([]);
+  });
+  it.each(["expense", "ranking", "attachments"])(
+    "rolls back all deletion when the %s operation fails",
+    async (failure) => {
+      const original = await useStore.getState().addExpense(input());
+      await addReceipts(original.expenseId);
+      const previous = await db.expenses.get(original.expenseId);
+      const groups = await db.groups.toArray();
+      if (failure === "expense")
+        vi.spyOn(db.expenses, "delete").mockRejectedValueOnce(new Error("Disk error"));
+      else if (failure === "ranking")
+        vi.spyOn(db.groups, "update").mockRejectedValueOnce(new Error("Disk error"));
+      else
+        vi.spyOn(db.attachments, "where").mockImplementationOnce(() => {
+          throw new Error("Disk error");
+        });
+      await expect(useStore.getState().removeExpense(original.expenseId, "g")).rejects.toThrow(
+        "Disk error",
+      );
+      expect(await db.expenses.get(original.expenseId)).toEqual(previous);
+      expect(await db.attachments.count()).toBe(3);
+      expect(useStore.getState().expenses).toEqual([previous]);
+      expect(await db.groups.toArray()).toEqual(groups);
+      expect(useStore.getState().groups).toEqual(groups);
+      await useStore.getState().removeExpense(original.expenseId, "g");
+      expect(await db.expenses.count()).toBe(0);
+    },
+  );
+  it("rejects foreign, missing, and repeated deletions", async () => {
+    const original = await useStore.getState().addExpense(input());
+    await expect(useStore.getState().removeExpense(original.expenseId, "other")).rejects.toThrow(
+      "not found",
+    );
+    await expect(useStore.getState().removeExpense("missing", "g")).rejects.toThrow("not found");
+    expect(await db.expenses.get(original.expenseId)).toEqual(original);
+    await useStore.getState().removeExpense(original.expenseId, "g");
+    await expect(useStore.getState().removeExpense(original.expenseId, "g")).rejects.toThrow(
+      "not found",
+    );
+  });
+  it("cannot resurrect an expense when update races deletion", async () => {
+    const original = await useStore.getState().addExpense(input());
+    await Promise.allSettled([
+      useStore.getState().removeExpense(original.expenseId, "g"),
+      useStore.getState().updateExpense(original.expenseId, input()),
+    ]);
+    expect(await db.expenses.get(original.expenseId)).toBeUndefined();
+    expect(useStore.getState().expenses).toEqual([]);
+  });
+});

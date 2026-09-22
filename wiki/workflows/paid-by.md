@@ -7,13 +7,15 @@ metadata:
 
 # Paid-By
 
-Last updated: 2026-09-19
+Purpose: explain payer selection defaults and ranking across expense mutations.
+
+Last updated: 2026-09-20
 
 ## Overview
 
 The expense form implements single-payer quick selection and an explicit multiple-payer mode.
 New groups start with the creator selected; the remaining initial shortcuts are alphabetical.
-After recording, the top-five ranking is persisted atomically with the expense. The selector reads
+After creation, editing, or deletion, the top-five ranking is persisted atomically with the expense. The selector reads
 that stored ranking and can reveal every remaining group member.
 
 The default is the first positive contributor on the most recently recorded expense (`createdAt`,
@@ -40,12 +42,16 @@ When a group has no expenses:
 
 ### How the List Updates Over Time
 
-After each expense is saved, the app recalculates frequency counts across all group expenses and updates the `frequentPayerIds` list on the group record:
+After each expense is created, edited, or deleted, the app recalculates frequency counts across all group expenses and updates the `frequentPayerIds` list on the group record:
 - Top 5 members by pay frequency replace the list
 - If there is a tie in frequency, alphabetical name order is the tiebreaker, then member ID
 - Only positive contributions count; a member counts at most once per expense. Zero-frequency
   members can fill remaining slots after members who have paid
 - The list is stored on the `Group` record in IndexedDB — not recomputed at render time
+- Editing replaces that expense's old contributions; deletion ranks the remaining history. Both
+  commit the ranking with the expense mutation, so a failed write cannot leave a mismatched ranking.
+- Editing preserves `createdAt`, so correcting an older expense does not make it the most recently
+  recorded one. The editor restores that expense's own payer amounts instead of applying defaults.
 
 ---
 

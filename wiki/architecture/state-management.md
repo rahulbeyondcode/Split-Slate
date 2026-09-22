@@ -9,7 +9,7 @@ metadata:
 
 Purpose: map store ownership, persistence order, and the exact validation and transaction boundaries.
 
-Last updated: 2026-09-19
+Last updated: 2026-09-23
 
 ## Technology
 
@@ -24,8 +24,8 @@ into the same store. Expense state defaults and hydration remain in the shared a
 - `groups-slice.ts` — groups, members, group mutations, and member mutations
 - `categories-slice.ts` — group categories plus master/default category settings
 - `tags-slice.ts` — group-scoped tag records and atomic expense-reference cleanup
-- `src/features/expenses/store/index.ts` — expense creation, persisted-reference validation, and
-  atomic expense/frequent-payer writes, composed into the same public store
+- `src/features/expenses/store/index.ts` — expense creation/edit/deletion, persisted-reference validation, and
+  atomic expense/frequent-payer writes with attachment deletion cascades, composed into the same public store
 - `onboarding-slice.ts` — onboarding flow state and progress actions
 - `group-draft-slice.ts` — memory-only create-group draft for live preview
 
@@ -53,6 +53,8 @@ interface AppStore {
 
   // Actions — Expenses
   addExpense: (input: CreateExpenseInput) => Promise<Expense>
+  updateExpense: (expenseId: UUID, input: CreateExpenseInput) => Promise<Expense>
+  removeExpense: (expenseId: UUID, groupId: UUID) => Promise<void>
 
   // Actions — Groups
   createGroup: (name: string, icon: string, currency: string) => Promise<{ group: Group; creatorMember: Member }>
@@ -62,7 +64,7 @@ interface AppStore {
   setLocalUser: (name: string, icon: string) => Promise<LocalUser>  // also upserts the self Person
   addPerson: (name: string, icon: string) => Promise<Person>
   updatePerson: (personId: UUID, patch: Partial<Omit<Person, 'id'>>) => Promise<Person>
-  removePerson: (personId: UUID) => Promise<void>  // blocked if any linked member has expense involvement
+  removePerson: (personId: UUID) => Promise<void>  // blocks persisted self identity and any linked member with expense involvement
 
   // Actions — Members
   addMember: (groupId: UUID, personId: UUID) => Promise<Member>
@@ -140,23 +142,31 @@ Two deliberate shape decisions:
 - Entity mutations write to Dexie before updating their corresponding Zustand state.
 - Group, person, category, and tag mutations normalize required user strings. Category/tag
   uniqueness checks and member/person/category deletion guards read hydrated Zustand state;
-  they do not recheck persisted references inside a transaction. Group/person existence validation
-  for member additions and directory-wide self-deletion protection remain incomplete. UI
-  constraints therefore do not all hold as database-enforced invariants.
+  they do not recheck those references inside a transaction. Directory-wide self-deletion protection
+  reads persisted LocalUser first. Other removal/cascade guards still depend on hydration; not all
+  UI constraints hold as database-enforced invariants.
 - Zustand holds the hydrated in-memory view of persisted entities; it does not use `persist` middleware.
 - `init()` hydrates entities and settings from IndexedDB and seeds missing settings rows.
-- Tag deletion prepares replacement expense records from hydrated state before entering a Dexie
-  transaction. Deletion and those replacements commit atomically, but stale state can omit new
-  references or overwrite newer expense fields. See [[tag-management]].
+- Tag deletion reads the persisted tag and its group's expenses in one transaction on tags and
+  expenses, then deletes the tag and updates only existing records' `tagIds`. It cannot recreate
+  deleted expenses or overwrite newer expense fields from stale hydrated state. After commit,
+  Zustand removes the tag and refreshes that group's expense snapshot, retaining other groups'
+  expense state. This is an action-specific refresh, not automatic full-store cross-tab sync.
+  Failure leaves both persisted records and memory unchanged. See [[tag-management]].
 - Member addition checks persisted group/person links and inserts within one read-write
-  transaction on `members`. This serializes duplicate checks across concurrent calls; Zustand is
-  updated after commit. Referenced group/person existence validation remains pending.
-- Expense creation validates decimal input and calculated splits, then rechecks persisted group,
+  transaction on `members`, `groups`, and `people`. It verifies both referenced records before
+  insertion and serializes duplicate checks across concurrent calls; Zustand updates after commit.
+- Expense creation and editing validate decimal input and calculated splits, then recheck persisted group,
   member/person, local-user, active-category, and tag references inside a Dexie transaction. The
   same transaction sums persisted and proposed group spending using BigInt and rejects totals
   above `Number.MAX_SAFE_INTEGER` minor units. The expense and payer ranking commit together;
   Zustand changes only after commit. A failure leaves both persisted records and memory unchanged.
-  UUID and recording timestamp are generated on save.
+  UUID and recording timestamp are generated only on creation. Update requires an existing expense
+  in the requested group, preserves its creator/creation time/attachments, and checks spending
+  with the old row replaced. Editing may retain its current inactive category.
+- Expense deletion checks persisted ownership, removes owned attachment rows by `expenseId`, deletes
+  the expense, and updates payer ranking in one transaction on groups, members, people, expenses,
+  and attachments. Memory updates only after commit. Later edits cannot resurrect a deleted row.
 - Other composed operations are sequential rather than atomic. Examples include creating a group
   and its creator member, mirroring the local user into `people`, deleting a person and cleaning up
   member/group references, and the standalone group-creation submission. If a later write fails,

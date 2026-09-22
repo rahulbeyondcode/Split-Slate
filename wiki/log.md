@@ -2,9 +2,31 @@
 
 Reverse-chronological record of all wiki changes.
 
-Last updated: 2026-09-19
+Last updated: 2026-09-23
 
 ---
+
+## 2026-09-23
+- UPDATED workflows/tag-management.md — documented persisted-reference cleanup, rollback, and group expense refresh; retained the resolved resurrection bug's cause
+- UPDATED architecture/state-management.md and architecture/domain-models.md — aligned tag deletion guarantees with transactional persisted reads and reference-only updates
+- UPDATED decisions/expense-edit-delete.md — marked tag resurrection resolved while retaining the shares precision limitation
+- UPDATED decisions/testing-strategy.md — recorded tag-cleanup stale-state, overlapping-mutation, and rollback regression coverage
+- UPDATED decisions/money-representation-and-rounding.md — corrected stale creation-only claims to include implemented expense updates and old-total replacement
+- UPDATED wiki/index.md — synchronized tag cleanup guarantees and the remaining review finding
+
+## 2026-09-22
+- UPDATED workflows/tag-management.md — documented the confirmed deleted-expense resurrection caused by stale full-record tag cleanup and its receipt/ranking consequences
+- UPDATED decisions/expense-edit-delete.md — documented the accepted shares boundary that fails on editing and qualified deletion guarantees across tag mutations
+- UPDATED wiki/index.md — surfaced both unresolved review findings in navigation, implementation status, and the tag-cleanup invariant
+
+## 2026-09-20
+- UPDATED decisions/expense-edit-delete.md and decisions/expense-model-design.md — documented implemented detail/edit/delete, preserved metadata, inactive-category retention, and atomic receipt cleanup
+- UPDATED architecture/balance-calculation.md and decisions/solo-group-support.md — documented exact all-member balances, deterministic transfer suggestions, and solo balance copy
+- UPDATED architecture/domain-models.md, architecture/state-management.md, and systems/indexeddb-schema.md — aligned create/update/delete validation, aggregate replacement checks, payer ranking, and attachment transaction boundaries
+- UPDATED workflows/main-screen.md, architecture/layout-architecture.md, workflows/filtering.md, and workflows/paid-by.md — documented detail/edit/balances routes, list navigation, and ranking after corrections/deletion
+- UPDATED workflows/member-management.md and workflows/people-directory.md — documented persisted member reference checks and self-deletion protection while retaining remaining cascade limits
+- UPDATED decisions/testing-strategy.md — recorded edit round-trip, mutation rollback/cascade, member-guard, balance, and browser workflow coverage
+- UPDATED roadmap/product-roadmap.md and wiki/index.md — marked the core accounting implementation complete while retaining later release requirements
 
 ## 2026-09-19
 - CREATED workflows/development-tools.md — documented approved random preset helpers, individual creation actions, naming rules, and persistence boundaries

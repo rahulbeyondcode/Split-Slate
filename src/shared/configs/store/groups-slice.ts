@@ -68,7 +68,9 @@ export const createGroupsSlice: SliceCreator<GroupsSlice> = (set, get) => ({
   },
 
   addMember: async (groupId, personId) => {
-    const member = await db.transaction("rw", db.members, async () => {
+    const member = await db.transaction("rw", [db.members, db.groups, db.people], async () => {
+      if (!(await db.groups.get(groupId))) throw new Error("Group not found");
+      if (!(await db.people.get(personId))) throw new Error("Person not found");
       const existing = await db.members
         .where("groupId")
         .equals(groupId)

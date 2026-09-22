@@ -10,7 +10,7 @@ metadata:
 Purpose: keep accounting tests fast, make every implemented area verifiable, and reserve real
 browser coverage for behavior that depends on browser storage, navigation, or offline capability.
 
-Last updated: 2026-09-19
+Last updated: 2026-09-23
 
 ## Decision
 
@@ -140,14 +140,29 @@ in-memory IndexedDB implementation in Node so the real Dexie/store code can exer
 and rollback. The application uses browser IndexedDB; Playwright also uses real browser storage.
 
 Playwright expense suites are configured for Chromium at desktop and mobile sizes. They cover
-form recording, all five split methods, multiple payers, list/balance updates, reload persistence,
-cancellation, and retry after save rejection. Test data lives in isolated browser contexts. Run `pnpm test:e2e` after
+form recording and editing across all five split methods, multiple payers, detail navigation, tags,
+confirmed deletion, list/balance updates, reload persistence, cancellation, retry after rejection,
+inactive historical categories, solo balances, and missing/cross-group expense routes. Test data lives in isolated browser contexts. Run `pnpm test:e2e` after
 `pnpm exec playwright install chromium`. Traces/results are written under `/tmp/split-slate-playwright`.
 Other feature/component/browser coverage remains pending.
 
-This is an inventory of existing suites, not evidence of a passing run. Direct coverage for the
-new membership transaction/repeated-add guard and aggregate group-spending limit remains pending;
-the existing concurrent-write case covers expense saves, not member additions.
+Additional Vitest suites cover form-value round-trips and currency precision; all-member balances,
+transfer conservation, ID tie-breaking, and safe-integer boundaries; member reference checks,
+concurrent duplicate additions, and persisted self-deletion protection. Expense-store tests cover
+update ownership and validation, old-total replacement at the aggregate limit, payer-ranking
+refresh, timestamp/attachment preservation, attachment cascades, concurrent update/delete, and
+rollback when writes fail.
+
+Tag-store integration tests in `src/shared/tests/configs/store/tags.test.ts` cover cleanup using
+persisted tag/group records, stale deleted or edited expenses, references absent from memory,
+preservation of unrelated data and receipts, unused/missing/repeated deletion, concurrent tag
+removals, and overlapping expense creation/editing/deletion in both orders. Write-failure cases
+verify rollback of the tag and earlier expense changes, unchanged memory, and successful retry.
+These tests use fake IndexedDB; stale snapshots simulate another tab's retained state.
+
+This is an inventory of existing suites, not a substitute for running them. Direct browser coverage
+for the member-management repeated-add UI guard remains pending; store-level concurrent membership
+and aggregate group-spending boundary cases are covered.
 
 Use `pnpm test` for a single complete run and `pnpm test:watch` while developing.
 

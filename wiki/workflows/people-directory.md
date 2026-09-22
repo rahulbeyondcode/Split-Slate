@@ -7,7 +7,9 @@ metadata:
 
 # People Directory (Friends List)
 
-Last updated: 2026-06-27
+Purpose: explain the shared people directory and its membership/deletion boundaries.
+
+Last updated: 2026-09-20
 
 A single device-local list of people, reused across every group. See [[global-people-directory]] for why this is global rather than per-group.
 
@@ -18,6 +20,10 @@ Reached from the dashboard sidebar ("All Friends"). Lists every person with thei
 - **Create:** an emoji + name editor adds a new person to the directory.
 - **Edit:** name and icon can be changed at any time. The change propagates to every group the person is in, because groups resolve a member's display through the person link rather than storing their own copy.
 - **Delete:** allowed only for non-self people and only when the person is referenced by **no expense in any group**. On delete, their group memberships and any frequent-payer references are pruned. If they are in an expense, deletion is blocked and the user is told why.
+
+The store checks persisted LocalUser identity before directory deletion. Self deletion is rejected
+even when hydrated `localUser` or member state is absent. Expense-involvement checks and membership
+cleanup otherwise still rely on hydrated state; the multi-record deletion remains sequential.
 
 The device owner appears in the directory as a person too (shared identity with the LocalUser) so "you" can participate and be balanced uniformly.
 

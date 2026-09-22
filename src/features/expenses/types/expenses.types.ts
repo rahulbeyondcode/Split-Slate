@@ -24,6 +24,8 @@ export interface CreateExpenseInput {
 
 export interface ExpensesSlice {
   addExpense: (input: CreateExpenseInput) => Promise<Expense>;
+  updateExpense: (expenseId: string, input: CreateExpenseInput) => Promise<Expense>;
+  removeExpense: (expenseId: string, groupId: string) => Promise<void>;
 }
 
 export interface PayerMember {

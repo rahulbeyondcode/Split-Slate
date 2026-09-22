@@ -7,9 +7,9 @@ metadata:
 
 # Decision: Solo Group Support
 
-Purpose: explain solo groups and distinguish implemented completion behavior from planned balances.
+Purpose: explain solo groups, their creation behavior, and their zero-net balance display.
 
-Last updated: 2026-09-19
+Last updated: 2026-09-20
 
 ## Decision
 
@@ -40,8 +40,8 @@ See [[onboarding]] for the full group creation flow and step order.
 
 - The implemented overview shows a zero net position for a solo group: its sole member pays and
   owes the same total.
-- A Balances tab and suggested-transfer view are not implemented. Their target behavior is no
-  suggested transfers for a solo group.
+- The Balances view shows no suggested transfers for a solo group and explains that expenses track
+  personal spending with no one to repay. The explicit onboarding solo-path helper remains pending.
 
 ## What This Removes
 

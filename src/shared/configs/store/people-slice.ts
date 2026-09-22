@@ -65,6 +65,10 @@ export const createPeopleSlice: SliceCreator<PeopleSlice> = (set, get) => ({
   },
 
   removePerson: async (personId) => {
+    const localUser = await db.localUser.toCollection().first();
+    if (personId === localUser?.id) {
+      throw new Error("You cannot delete yourself from the people directory");
+    }
     const memberIds = get()
       .members.filter((m) => m.personId === personId)
       .map((m) => m.id);

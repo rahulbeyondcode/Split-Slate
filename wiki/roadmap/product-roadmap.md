@@ -9,7 +9,7 @@ metadata:
 
 Purpose: provide a current planning compass without turning exploratory ideas into commitments.
 
-Last updated: 2026-09-19
+Last updated: 2026-09-20
 
 ## How to Read This Page
 
@@ -73,11 +73,13 @@ The following foundation is implemented now:
 - Expense, split, transaction, tag, and attachment storage shapes
 - Expense recording with five split types, one/multiple payers, optional tags, and local persistence
 - Expense-list and group-overview surfaces showing saved records and balances
-- Helpers for one-member net balance and total group spending
+- Helpers for member/group totals, all-member balances, and suggested payments
+- Expense detail, editing, and confirmed hard deletion with owned-attachment cleanup
 
-Expense creation, minor-unit accounting, split calculation, and payer ranking are implemented.
-Expense edit/delete, attachment ingestion, and settlement mutations remain pending, so the complete
-correction/removal loop is not finished. Current detail lives in [[index]], [[domain-models]], and
+Expense creation/correction/removal, minor-unit accounting, split calculation, payer ranking, and
+all-member balance suggestions are implemented. Member reference checks and directory self-deletion
+protection complete the Horizon 1 implementation list. Attachment ingestion and settlement mutations
+remain pending. Current detail lives in [[index]], [[domain-models]], and
 [[main-screen]].
 
 ## Horizon 1 — Complete the Core Accounting Loop
@@ -85,23 +87,22 @@ correction/removal loop is not finished. Current detail lives in [[index]], [[do
 **Goal:** a user can record, understand, correct, and remove shared expenses without leaving the
 device.
 
-Approved work, in dependency order (items 1–4 are implemented for creation; update validation remains pending):
+The following Horizon 1 work is implemented:
 
 1. Implement [[money-representation-and-rounding]] in currency input, calculation, validation, and
    formatting utilities.
 2. Build pure split calculators for equal, amount, shares, percentage, and adjustment splits. See
    [[split-types]].
-3. Build expense create and update validation that enforces
+3. Expense create and update validation that enforces
    `sum(paid[].amount) == sum(owes[].amount)` using integer minor units.
 4. Build the fast expense-entry flow with one or multiple payers, selected participants, category,
    optional tags, and an editable expense date. See [[paid-by]].
-5. Complete expense detail, edit, and hard-delete behavior. See [[expense-edit-delete]].
-6. Calculate all-member net balances and render clear suggested transfers. The simplification
-   method must be described as a settlement suggestion, not hidden financial history. See
+5. Expense detail, edit, and confirmed hard-delete behavior. See [[expense-edit-delete]].
+6. All-member net balances and deterministic greedy transfer suggestions. The view labels them
+   as suggestions that do not record payments. See
    [[balance-calculation]].
-7. Finish the remaining member-store validation: the management UI, atomic duplicate-membership
-   guard, and local-user removal protection are implemented; referenced group/person existence
-   checks and directory-wide self-deletion protection remain pending. See [[member-management]].
+7. Member management with atomic duplicate-membership and referenced group/person existence
+   checks, local-user member removal protection, and persisted directory self-deletion protection. See [[member-management]].
 
 Five-second entry is an acceptance benchmark for the common case, not permission to skip
 validation. Current defaults are the most recent recorded payer, equal split across all current
@@ -115,9 +116,9 @@ app is installed.
 
 Approved or required work:
 
-- Complete expense history, detail display, and the planned filters in [[filtering]].
+- Complete expense-history refinements and the planned filters in [[filtering]]; detail display is implemented.
 - Finish category activation/deactivation controls; active-category expense-picker behavior is implemented.
-- Implement receipt attachment ingestion, compression, lazy loading, and delete cascades.
+- Implement receipt attachment ingestion, compression, and lazy loading; expense-deletion cascades are implemented.
 - Implement the Link/CSV/ZIP export and the view-only/editable import flows in
   [[import-export]].
 - Add explicit backup/export reminders without making them spammy.

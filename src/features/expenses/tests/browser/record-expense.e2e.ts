@@ -97,6 +97,22 @@ for (const method of ["amount", "shares", "percentage", "adjustment"] as const) 
     await expect(page).toHaveURL(/\/expenses$/);
     await expect(page.getByText(`Split ${method}`, { exact: true })).toBeVisible();
     await expect(page.getByText(/Paid by Amy, Bea/)).toBeVisible();
+    await page.getByRole("link", { name: `Split ${method}`, exact: true }).click();
+    await page.getByRole("link", { name: "Edit expense", exact: true }).click();
+    await expect(page.getByRole("combobox", { name: "Split method", exact: true })).toHaveValue(
+      method,
+    );
+    await expect(page.getByLabel("Amy paid (INR)", { exact: true })).toHaveValue("40.00");
+    await expect(page.getByLabel("Bea paid (INR)", { exact: true })).toHaveValue("60.00");
+    await page.getByLabel("Expense name", { exact: true }).fill(`Edited ${method}`);
+    await page.getByRole("button", { name: "Save changes", exact: true }).click();
+    await expect(
+      page.getByRole("heading", { name: `Edited ${method}`, exact: true }),
+    ).toBeVisible();
+    await page.reload();
+    await expect(
+      page.getByRole("heading", { name: `Edited ${method}`, exact: true }),
+    ).toBeVisible();
   });
 }
 
@@ -131,4 +147,163 @@ test("cancels without recording anything", async ({ page }) => {
   await page.getByLabel("Expense name", { exact: true }).fill("Discard me");
   await page.getByRole("link", { name: "Cancel", exact: true }).click();
   await expect(page.getByText("No expenses have been added yet.")).toBeVisible();
+});
+
+test("inspects, edits, and deletes an expense with live balance updates", async ({ page }) => {
+  await page.getByLabel("Expense name", { exact: true }).fill("Dinner");
+  await page.getByLabel("Amount (INR)", { exact: true }).fill("300");
+  await page.getByLabel("Holiday", { exact: true }).check();
+  await page.getByRole("button", { name: "Save expense", exact: true }).click();
+  await page.getByRole("link", { name: "Dinner", exact: true }).click();
+  const detailUrl = page.url();
+  await expect(page.getByRole("heading", { name: "Dinner", exact: true })).toBeVisible();
+  await expect(page.getByRole("list", { name: "Tags", exact: true })).toContainText("Holiday");
+  await expect(page.getByRole("region", { name: "Split breakdown", exact: true })).toContainText(
+    "₹100.00",
+  );
+  await page.getByRole("link", { name: "Balances", exact: true }).click();
+  await expect(page.getByRole("list", { name: "Member balances" })).toContainText(
+    "Is owed ₹200.00",
+  );
+  await expect(page.getByRole("region", { name: "Suggested payments" })).toContainText(
+    "Bea pays Amy ₹100.00",
+  );
+  await expect(page.getByRole("region", { name: "Suggested payments" })).toContainText(
+    "Cal pays Amy ₹100.00",
+  );
+  await page.goto(detailUrl);
+  await page.getByRole("link", { name: "Edit expense", exact: true }).click();
+  await page.getByLabel("Expense name", { exact: true }).fill("Dinner and dessert");
+  await page.getByLabel("Amount (INR)", { exact: true }).fill("600");
+  await page.getByLabel("Paid by Bea", { exact: true }).check();
+  await page.getByLabel("Holiday", { exact: true }).uncheck();
+  await page.getByRole("button", { name: "Save changes", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Dinner and dessert", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole("list", { name: "Tags" })).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByRole("region", { name: "Paid by", exact: true })).toContainText("Bea");
+  await page.getByRole("link", { name: "Balances", exact: true }).click();
+  await expect(page.getByRole("region", { name: "Suggested payments" })).toContainText(
+    "Amy pays Bea ₹200.00",
+  );
+  await page.goto(detailUrl);
+  await page.getByRole("button", { name: "Delete expense", exact: true }).click();
+  await expect(page.getByRole("region", { name: "Confirm expense deletion" })).toContainText(
+    "cannot be undone",
+  );
+  await page.getByRole("button", { name: "Keep expense", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Delete permanently", exact: true })).toHaveCount(
+    0,
+  );
+  await page.getByRole("button", { name: "Delete expense", exact: true }).click();
+  await page.getByRole("button", { name: "Delete permanently", exact: true }).click();
+  await expect(page).toHaveURL(/\/groups\/trip\/expenses$/);
+  await expect(page.getByText("No expenses have been added yet.")).toBeVisible();
+  await page.reload();
+  await expect(page.getByText("No expenses have been added yet.")).toBeVisible();
+  await page.getByRole("link", { name: "Balances", exact: true }).click();
+  await expect(page.getByText("No payments needed.", { exact: true })).toBeVisible();
+  await page.goto(detailUrl);
+  await expect(page.getByRole("heading", { name: "Expense not found" })).toBeVisible();
+});
+
+test("cancels an edit and retries failed update and delete operations", async ({ page }) => {
+  await page.getByLabel("Expense name", { exact: true }).fill("Taxi");
+  await page.getByLabel("Amount (INR)", { exact: true }).fill("60");
+  await page.getByRole("button", { name: "Save expense", exact: true }).click();
+  await page.getByRole("link", { name: "Taxi", exact: true }).click();
+  await page.getByRole("link", { name: "Edit expense", exact: true }).click();
+  await page.getByLabel("Expense name", { exact: true }).fill("Discard this edit");
+  await page.getByRole("link", { name: "Cancel", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Taxi", exact: true })).toBeVisible();
+  await page.getByRole("link", { name: "Edit expense", exact: true }).click();
+  await page.getByLabel("Expense name", { exact: true }).fill("Updated taxi");
+  await page.evaluate(async () => {
+    const path = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;
+    await db.categories.update("food", { groupId: "elsewhere" });
+  });
+  await page.getByRole("button", { name: "Save changes", exact: true }).click();
+  await expect(page.getByRole("alert")).toContainText("active category");
+  await expect(page.getByLabel("Expense name", { exact: true })).toHaveValue("Updated taxi");
+  await page.evaluate(async () => {
+    const path = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;
+    await db.categories.update("food", { groupId: "trip" });
+  });
+  await page.getByRole("button", { name: "Save changes", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Updated taxi", exact: true })).toBeVisible();
+  const savedGroup = await page.evaluate(async () => {
+    const path = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;
+    const group = await db.groups.get("trip");
+    await db.groups.delete("trip");
+    return group!;
+  });
+  await page.getByRole("button", { name: "Delete expense", exact: true }).click();
+  await page.getByRole("button", { name: "Delete permanently", exact: true }).click();
+  await expect(page.getByRole("alert")).toContainText("Group not found");
+  await page.evaluate(async (group) => {
+    const path = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;
+    await db.groups.put(group);
+  }, savedGroup);
+  await page.getByRole("button", { name: "Delete permanently", exact: true }).click();
+  await expect(page.getByText("No expenses have been added yet.")).toBeVisible();
+});
+
+test("keeps an inactive historical category available while editing", async ({ page }) => {
+  await page.getByLabel("Expense name", { exact: true }).fill("Old dinner");
+  await page.getByLabel("Amount (INR)", { exact: true }).fill("90");
+  await page.getByRole("button", { name: "Save expense", exact: true }).click();
+  await page.evaluate(async () => {
+    const path = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;
+    await db.categories.update("food", { isActive: false });
+  });
+  await page.reload();
+  await page.getByRole("link", { name: "Old dinner", exact: true }).click();
+  await page.getByRole("link", { name: "Edit expense", exact: true }).click();
+  await expect(page.getByRole("combobox", { name: "Category", exact: true })).toHaveValue("food");
+  await expect(page.getByRole("option", { name: "🍽️ Food (inactive)", exact: true })).toHaveCount(
+    1,
+  );
+  await expect(page.getByRole("option", { name: /Old category/ })).toHaveCount(0);
+  await page.getByLabel("Expense name", { exact: true }).fill("Corrected old dinner");
+  await page.getByRole("button", { name: "Save changes", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Corrected old dinner", exact: true }),
+  ).toBeVisible();
+});
+
+test("shows solo balances and rejects missing or foreign expense routes", async ({ page }) => {
+  await page.evaluate(async () => {
+    const path = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;
+    await db.members.bulkDelete(["b", "c"]);
+    await db.expenses.add({
+      expenseId: "foreign",
+      groupId: "elsewhere",
+      expenseName: "Private elsewhere",
+      categoryId: "food",
+      createdBy: "a",
+      createdAt: 1,
+      when: 1,
+      splitType: "equal",
+      splitMeta: [],
+      tagIds: [],
+      attachmentIds: [],
+      transactions: { paid: [], owes: [] },
+    });
+  });
+  await page.goto("/groups/trip/balances");
+  await expect(page.getByText(/This is a solo group/)).toBeVisible();
+  await expect(page.getByText("No payments needed.", { exact: true })).toBeVisible();
+  for (const route of ["missing", "foreign", "missing/edit", "foreign/edit"]) {
+    await page.goto(`/groups/trip/expenses/${route}`);
+    await expect(page.getByRole("heading", { name: "Expense not found" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Back to expenses", exact: true })).toBeVisible();
+  }
 });

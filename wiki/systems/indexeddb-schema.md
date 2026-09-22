@@ -9,7 +9,7 @@ metadata:
 
 Purpose: describe the persisted records, indexes, and implemented write boundaries.
 
-Last updated: 2026-09-19
+Last updated: 2026-09-20
 
 ## Current Implementation Scope
 
@@ -51,10 +51,10 @@ Single-record store (only one local user per device).
 | icon             | string   | emoji character                                                    |
 | currency         | string   | ISO 4217 code e.g. "INR"; defaults to "INR"; set at group creation |
 | createdAt        | number   | unix ms                                                            |
-| frequentPayerIds | UUID[]   | top-five memberIds ranked after each expense creation |
+| frequentPayerIds | UUID[]   | top-five memberIds ranked after each expense create/update/delete |
 
-Initial value on group creation is `[creatorMemberId]`. Expense creation recalculates the ranking
-and commits it atomically with the expense. See [[paid-by]] for selection and ranking behavior.
+Initial value on group creation is `[creatorMemberId]`. Expense creation, editing, and deletion recalculate the ranking
+and commit it atomically with the expense mutation. See [[paid-by]] for selection and ranking behavior.
 
 ---
 
@@ -105,13 +105,15 @@ person-deletion guard resolves memberships from hydrated state rather than query
 Index: `groupId` — used to fetch all expenses for a group.
 
 Arrays and objects (`tagIds`, `splitMeta`, `transactions`, `attachmentIds`) are stored directly as
-nested structured data. Expense creation, bootstrap hydration, the entry form, and the read-only
-expense list are implemented. Expense editing and deletion remain pending.
+nested structured data. Expense creation, editing, deletion, detail, bootstrap hydration, and the
+expense list are implemented.
 
-Creation validates safe-integer currency minor units and equal paid/owed totals. Within one Dexie
-transaction it rechecks persisted group, member/person, creator, active-category, and tag
+Creation and updates validate safe-integer currency minor units and equal paid/owed totals. Within
+one Dexie transaction each save rechecks persisted group, member/person, creator, active-category, and tag
 references, checks the aggregate group-spending limit, and writes the expense and payer ranking.
-The formatter consumes minor units, including currencies with zero or three decimal places. See
+Updates retain creation metadata and attachment IDs, replace the old amount for the spending-limit
+check, and may retain the expense's current inactive category. The formatter consumes minor units,
+including currencies with zero or three decimal places. See
 [[money-representation-and-rounding]] and [[state-management]].
 
 ---
@@ -131,8 +133,10 @@ without pulling image data.
 
 Index: `expenseId` — used to fetch all attachments for a given expense.
 
-The table and `Attachment` type exist, but attachment ingestion, compression, and store actions are
-not implemented. Compression to a maximum dimension remains a target described by the import/export
+The table and `Attachment` type exist. Expense deletion removes owned attachments by this index
+in the same transaction as expense deletion and payer-ranking updates, including owned blobs not
+listed in `attachmentIds`. Attachment ingestion, compression, and independent attachment actions
+remain pending. Compression to a maximum dimension remains a target described by the import/export
 design, not current behavior.
 
 ---

@@ -9,7 +9,7 @@ metadata:
 
 Purpose: describe implemented tag management, expense references, and cascade boundaries.
 
-Last updated: 2026-09-19
+Last updated: 2026-09-23
 
 ## What Tags Are
 
@@ -33,24 +33,40 @@ overview rows do not yet render tags; displaying tags there remains pending.
 
 The group **Categories & Tags** screen lists every tag record in the group, including tags not currently used by an expense. It supports add, rename, and delete operations.
 
-Deleting a tag requires confirmation. The store first selects referencing group expenses from
-hydrated Zustand state, then performs one atomic IndexedDB transaction:
+Deleting a tag requires confirmation. `removeTag` performs one read-write IndexedDB transaction
+on tags and expenses:
 
-1. Delete the tag record
-2. Write the selected expense records with the tag ID removed from `tagIds[]`
+1. Read the persisted tag; reject a missing tag, including repeated deletion.
+2. Read the current expenses in the persisted tag's group.
+3. Delete the tag and update only `tagIds` on existing expenses that reference it.
 
-The prepared expense records retain their other fields and are not deleted.
+All reads and writes share the transaction. An expense created before cleanup is included; a
+later create/update that still references the deleted tag fails persisted-reference validation.
+Concurrent expense edits/deletions and tag removals serialize through the shared tables. Expense
+fields, unrelated tags/groups, attachments, and payer rankings are preserved. Any write failure
+rolls back the tag deletion and all reference changes without updating Zustand.
 
-Atomicity covers these writes, not the completeness or freshness of the selected records. The
-store does not query persisted expenses inside the transaction. If another tab or overlapping
-mutation changes expenses after the snapshot, cleanup can miss new references or overwrite newer
-expense data. See [[state-management]] for persistence boundaries.
+After commit, the store removes the tag from memory and replaces that group's expense snapshot
+with the persisted records read and cleaned in the transaction. This removes stale deleted rows
+from the local view and includes previously unseen expenses. Other groups' expense state is
+retained. This refresh is specific to this action; it does not implement automatic cross-tab
+synchronization of the full store. See [[state-management]].
+
+### Resolved: Deleted Expense Resurrection
+
+The previous cleanup used `bulkPut` on complete hydrated expense records. A stale snapshot could
+therefore recreate a deleted expense or overwrite a newer edit. Reading persisted records and
+using reference-only updates resolves that failure: cleanup never inserts an expense. Regression
+tests cover stale snapshots, overlapping create/edit/delete operations, concurrent tag removals,
+and rollback after a partial cleanup. See [[expense-edit-delete]] and [[testing-strategy]].
 
 ---
 
 ## Contrast With Categories
 
-Every expense must reference exactly one category, so deleting an in-use category is blocked. Tags are optional, so an in-use tag can be deleted safely as long as its optional references are removed atomically.
+Every expense must reference exactly one category, so deleting an in-use category is blocked.
+Tags are optional, so removing their references does not require deleting expenses. Tag cleanup
+reads current persisted references and updates them atomically.
 
 ---
 
@@ -60,4 +76,6 @@ Every expense must reference exactly one category, so deleting an in-use categor
 - [[indexeddb-schema]] — tags table and expense references
 - [[category-management]] — contrast with mandatory categories
 - [[filtering]] — group tags as an expense filter
-- [[state-management]] — hydrated-state selection versus transactional writes
+- [[state-management]] — transactional cleanup and the scope of the local state refresh
+- [[expense-edit-delete]] — expense deletion guarantees across tag cleanup
+- [[testing-strategy]] — stale-state and concurrent-mutation regression coverage

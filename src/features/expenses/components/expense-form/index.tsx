@@ -1,13 +1,18 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { FormEvent } from "react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
-import { Link, useNavigate, useOutletContext } from "react-router-dom";
+import { Link, useNavigate, useOutletContext, useParams } from "react-router-dom";
 
 import PayerSelector from "@/features/expenses/components/payer-selector";
 import SplitEditor from "@/features/expenses/components/split-editor";
 import Input from "@/shared/components/form-elements/input";
 
+import {
+  expenseFormMembers,
+  expenseFormValues,
+  localDateTime,
+} from "@/features/expenses/utils/expense-form-values";
 import { createExpenseSchema } from "@/features/expenses/utils/expense-schema";
 import { defaultPayer, rankPayers } from "@/features/expenses/utils/paid-by";
 import { useStore } from "@/shared/configs/store";
@@ -18,31 +23,46 @@ import type { GroupDetailContext } from "@/features/group-detail/types/group-det
 const ExpenseForm = () => {
   const { group, groupMembers, groupCategories, groupTags, groupExpenses } =
     useOutletContext<GroupDetailContext>();
-  const { localUser, addExpense } = useStore();
+  const { localUser, addExpense, updateExpense } = useStore();
+  const { expenseId } = useParams();
+  const expense = groupExpenses.find((item) => item.expenseId === expenseId);
+  const [openedAt] = useState(Date.now);
   const navigate = useNavigate();
   const saving = useRef(false);
-  const members = groupMembers
-    .filter((member) => member.person)
-    .map((member) => ({ id: member.id, name: member.person!.name }));
+  const members = expenseFormMembers(
+    groupMembers
+      .filter((member) => member.person)
+      .map((member) => ({ id: member.id, name: member.person!.name })),
+    expense,
+  );
   const creatorId = groupMembers.find((member) => member.personId === localUser?.id)?.id ?? "";
-  const categories = groupCategories.filter((category) => category.isActive);
-  const now = new Date();
-  const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}T${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  const categories = groupCategories.filter(
+    (category) => category.isActive || category.id === expense?.categoryId,
+  );
+  const initialValues: ExpenseFormValues = expense
+    ? expenseFormValues(expense, members, group.currency)
+    : {
+        expenseName: "",
+        amount: "",
+        when: localDateTime(openedAt),
+        categoryId: categories[0]?.id ?? "",
+        tagIds: [],
+        payerMode: "single",
+        payerId: defaultPayer(members, groupExpenses, creatorId),
+        payers: members.map((member) => ({ memberId: member.id, amount: "" })),
+        splitType: "equal",
+        participants: members.map((member) => ({ memberId: member.id, selected: true, value: "" })),
+      };
   const methods = useForm<ExpenseFormValues>({
     resolver: zodResolver(createExpenseSchema(group.currency)),
-    defaultValues: {
-      expenseName: "",
-      amount: "",
-      when: localDate,
-      categoryId: categories[0]?.id ?? "",
-      tagIds: [],
-      payerMode: "single",
-      payerId: defaultPayer(members, groupExpenses, creatorId),
-      payers: members.map((member) => ({ memberId: member.id, amount: "" })),
-      splitType: "equal",
-      participants: members.map((member) => ({ memberId: member.id, selected: true, value: "" })),
-    },
+    values: initialValues,
   });
+  const payerMembers = initialValues.payers.flatMap((payer) =>
+    members.filter((member) => member.id === payer.memberId),
+  );
+  const cancelPath = expense
+    ? `/groups/${group.id}/expenses/${expense.expenseId}`
+    : `/groups/${group.id}/expenses`;
   const quickIds = groupExpenses.length
     ? group.frequentPayerIds
     : [...new Set([creatorId, ...rankPayers(members, [])])].filter(Boolean).slice(0, 5);
@@ -53,8 +73,14 @@ const ExpenseForm = () => {
     try {
       await methods.handleSubmit(async (values) => {
         try {
-          await addExpense({ groupId: group.id, currency: group.currency, values });
-          navigate(`/groups/${group.id}/expenses`);
+          const input = { groupId: group.id, currency: group.currency, values };
+          if (expenseId) {
+            await updateExpense(expenseId, input);
+            navigate(`/groups/${group.id}/expenses/${expenseId}`);
+          } else {
+            await addExpense(input);
+            navigate(`/groups/${group.id}/expenses`);
+          }
         } catch (error) {
           methods.setError("root", {
             message:
@@ -70,10 +96,21 @@ const ExpenseForm = () => {
   const formError =
     errors.root?.message ?? errors.participants?.root?.message ?? errors.participants?.message;
 
+  if (expenseId && !expense)
+    return (
+      <section className="flex flex-col gap-3">
+        <h2 className="text-lg font-semibold">Expense not found</h2>
+        <p>This expense is not available in this group.</p>
+        <Link to={`/groups/${group.id}/expenses`} className="text-blue-700">
+          Back to expenses
+        </Link>
+      </section>
+    );
+
   if (!creatorId || !members.length || !categories.length)
     return (
       <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-semibold">Add expense</h2>
+        <h2 className="text-lg font-semibold">{expense ? "Edit expense" : "Add expense"}</h2>
         <p role="alert">
           This group needs your membership and an active category before you can record an expense.
         </p>
@@ -86,7 +123,7 @@ const ExpenseForm = () => {
   return (
     <FormProvider {...methods}>
       <form onSubmit={handleSave} noValidate className="flex flex-col gap-5">
-        <h2 className="text-lg font-semibold">Add expense</h2>
+        <h2 className="text-lg font-semibold">{expense ? "Edit expense" : "Add expense"}</h2>
         <fieldset
           disabled={methods.formState.isSubmitting}
           className="flex min-w-0 flex-col gap-5 disabled:opacity-60"
@@ -113,6 +150,7 @@ const ExpenseForm = () => {
               {categories.map((category) => (
                 <option key={category.id} value={category.id}>
                   {category.icon} {category.name}
+                  {category.isActive ? "" : " (inactive)"}
                 </option>
               ))}
             </select>
@@ -122,7 +160,7 @@ const ExpenseForm = () => {
               </span>
             )}
           </label>
-          <PayerSelector members={members} quickIds={quickIds} currency={group.currency} />
+          <PayerSelector members={payerMembers} quickIds={quickIds} currency={group.currency} />
           <SplitEditor members={members} currency={group.currency} />
           {groupTags.length > 0 && (
             <fieldset className="flex flex-col gap-2">
@@ -144,11 +182,15 @@ const ExpenseForm = () => {
             </p>
           )}
           <div className="flex items-center justify-end gap-4">
-            <Link to={`/groups/${group.id}/expenses`} className="text-sm text-gray-600">
+            <Link to={cancelPath} className="text-sm text-gray-600">
               Cancel
             </Link>
             <button type="submit" className="rounded bg-gray-900 px-4 py-2 text-sm text-white">
-              {methods.formState.isSubmitting ? "Saving…" : "Save expense"}
+              {methods.formState.isSubmitting
+                ? "Saving…"
+                : expense
+                  ? "Save changes"
+                  : "Save expense"}
             </button>
           </div>
         </fieldset>

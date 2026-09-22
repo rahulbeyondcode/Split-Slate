@@ -9,7 +9,7 @@ metadata:
 
 Purpose: describe persisted domain shapes and their implemented invariants.
 
-Last updated: 2026-09-19
+Last updated: 2026-09-23
 
 ## LocalUser (Device Owner)
 
@@ -39,8 +39,8 @@ A single device-local directory of people ("friends list"), reused across every 
 
 - **Editing** a person's name/icon propagates to every group, because members resolve display through the person link
 - **Deletion** is blocked by the store when the person is involved in an expense. The implemented
-  people UI also hides deletion for the self Person, but `removePerson` does not enforce that
-  self-protection at the store boundary.
+  people UI hides deletion for the self Person, and `removePerson` checks the persisted LocalUser
+  before any deletion, including when hydrated identity is stale or absent.
 
 ---
 
@@ -63,8 +63,8 @@ post-creation currency editor, although the generic `updateGroup` patch action c
 
 **Initial value of `frequentPayerIds`** on group creation: `[creatorMemberId]`. Other members are added after the group row exists, but the creator remains the only frequent payer until expense history exists.
 
-**Implemented update behavior:** expense creation ranks the top five members by positive payer
-frequency across the group history, breaking ties by name and then member ID. The expense and
+**Implemented update behavior:** expense creation, editing, and deletion rank the top five members by positive payer
+frequency across the group history, breaking ties by name and then member ID. The expense mutation and
 ranking are committed in one transaction. See [[paid-by]].
 
 ---
@@ -84,8 +84,8 @@ A member is a thin link between a group and a person — it carries no name or i
 **Invariant:** The same real person in two groups is the **same** Person, linked by two member rows. See [[global-people-directory]].
 The member picker excludes memberships present in state; `addMember` checks persisted links and
 inserts atomically, rejecting duplicate memberships even across concurrent calls. `removeMember`
-protects the local user. Referenced-ID existence checks and directory-wide self-deletion protection
-remain incomplete. See [[member-management]].
+protects the local user. Member addition verifies persisted group/person existence in the same
+transaction as duplicate detection and insertion. Directory-wide self deletion is store-protected. See [[member-management]].
 
 ---
 
@@ -108,7 +108,8 @@ remain incomplete. See [[member-management]].
   entries after creation is not exposed as a separate UI.
 - **categoryId is mandatory on every expense** — the user must select a category when adding an expense
 - Categories can be renamed now. The model/store support deactivation; the expense picker excludes
-  inactive categories and creation rejects them. The management toggle remains planned.
+  inactive categories and creation rejects them. Editing may retain its existing inactive category;
+  a different category must be active. The management toggle remains planned.
 - Categories can be **deleted only when no expense references them** — because `categoryId` is mandatory and singular, an in-use category must have all its expenses reassigned to another category before it can be deleted. See [[category-management]]
 
 ---
@@ -129,9 +130,10 @@ remain incomplete. See [[member-management]].
 - Every tag has a required color used as its visual identifier
 - Tags are optional on expenses — an expense stores zero or more tag references in `tagIds[]`
 - Renaming a tag updates one tag record; ID-based expense references need no rewrite. The entry
-  picker shows current tag names/colors, but saved expense list/overview rows do not display tags yet.
-- Deleting a tag atomically removes its record and references selected from hydrated expense
-  state. The cascade does not requery persisted expenses; see [[tag-management]] for its limits.
+  picker and expense detail show current tag names/colors; list/overview rows do not display tags yet.
+- Deleting a tag atomically reads its persisted group expenses, removes the tag, and updates only
+  existing expense tag references. It does not recreate deleted records or overwrite newer edits;
+  after commit, that group's expense state is refreshed. See [[tag-management]].
 - Tags have no `isActive` field; they are either present or deleted
 
 See [[tag-management]] for the full lifecycle.
@@ -167,22 +169,24 @@ Every monetary value in `transactions.paid[]`, `transactions.owes[]`, and adjust
 metadata remain unitless ratios. The currency's ISO 4217 exponent determines the scale; it is not
 always two decimal places. See [[money-representation-and-rounding]].
 
-Expense creation enforces this representation at the form/store boundary. Decimal input is parsed
+Expense creation and editing enforce this representation at the form/store boundary. Decimal input is parsed
 exactly, ratios use scaled integer arithmetic, and the shared formatter consumes minor units.
 
-**Enforced creation invariant:** `sum(paid[].amount)` equals `sum(owes[].amount)` with a positive
+**Enforced create/update invariant:** `sum(paid[].amount)` equals `sum(owes[].amount)` with a positive
 safe-integer total. Members, category, and optional tags are checked against persisted group
-records inside the write transaction. Creation also rejects a save if accumulated group spending
+records inside the write transaction. Creation and editing reject a save if accumulated group spending
 would exceed `Number.MAX_SAFE_INTEGER` minor units, keeping derived balances and spending within
-the supported numeric range. Expense edit/delete remain pending.
+the supported numeric range. An update replaces the old total instead of counting it twice.
 
+- Updates preserve expense/group IDs, creator identity, creation time, and attachment IDs.
 - `createdAt` is set automatically by the app and never shown to or edited by the user
 - `when` is shown in the UI as the expense date — defaults to the current date and time, user can change it
 - `tagIds` is always present but may be empty; every referenced tag must belong to the same group as the expense
 - `splitMeta` is needed for shares, percentage, and adjustment types — the raw input values cannot be derived back from `owes[]` alone. See [[split-types]] for per-type details.
 - `attachmentIds` is always present and creation currently writes an empty array. The separate
   `attachments` table and blob shape exist; ingestion, compression, and lazy-loading UI remain
-  pending. Expense hydration does not load that table.
+  pending. Expense hydration does not load that table. Expense deletion atomically removes owned
+  attachment records using their `expenseId` index.
 
 See [[expense-model-design]] for why both arrays are stored, and [[balance-calculation]] for how they are consumed.
 

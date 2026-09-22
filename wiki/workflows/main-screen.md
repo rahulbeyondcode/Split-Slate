@@ -1,15 +1,15 @@
 ---
 name: main-screen
-description: Current dashboard-to-group navigation, expense recording, and planned balance views
+description: Current dashboard-to-group navigation, expense correction, and balance views
 metadata:
   type: workflows
 ---
 
 # Main Screen
 
-Purpose: distinguish implemented group navigation and expense entry from planned detail and balance views.
+Purpose: describe implemented group navigation, expense recording/correction, and balance views.
 
-Last updated: 2026-09-19
+Last updated: 2026-09-20
 
 ## Current Implementation
 
@@ -23,7 +23,7 @@ also lists groups and currently sorts them by `createdAt` descending.
 ### Group Detail Routes
 
 `/groups/:groupId` is an implemented parent route with nested routes for Overview, Expenses,
-Add Expense, Members, Categories & Tags, and Settings. The parent resolves the active group's
+Add Expense, Expense Detail/Edit, Balances, Members, Categories & Tags, and Settings. The parent resolves the active group's
 members, people, categories, tags, and expenses and supplies them to child screens through the
 router outlet context. An unknown group shows a not-found state with a return link to the dashboard.
 
@@ -32,6 +32,8 @@ The current child screens are:
 - **Overview** — local net position, total spend, category count, members, and up to five recent expenses
 - **Expenses** — a list sorted by `when` descending, showing name, total paid, payer names, date/time, and category
 - **Add Expense** — `/groups/:groupId/expenses/new`, with validated local recording and five split methods
+- **Expense Detail/Edit** — payer/split breakdown and tags, prefilled editing, and confirmed hard deletion
+- **Balances** — every member's net position and deterministic suggested payments
 - **Members** — add existing/new people, edit linked names/icons, and confirmed guarded removal
 - **Categories & Tags** — add, edit, and guarded-delete controls for both record types
 - **Settings** — read-only group name and currency
@@ -57,14 +59,15 @@ target experience. Delivery priorities live in [[product-roadmap]].
 | Tab | Content | Default? |
 |-----|---------|----------|
 | Expenses | Chronological list of all expenses in the group | Planned default |
-| Balances | Net balance per member — who owes whom, amounts only | Planned |
+| Balances | Net balance per member and suggested payments | Available; overview remains default |
 
 - Balances tab is **read-only in MVP** — shows who owes whom and how much, nothing else
 - No settlement action, no mark-as-settled, no notifications in MVP
 - **Settlement design is unresolved:** an earlier V2 proposal paired a binary fully-settled toggle
   with push notifications. The roadmap requires a separate decision comparing that model with
   explicit repayment records, including partial repayment, before implementation.
-- The planned Balances view has no suggested transfers for a solo group (net = 0 with one member).
+- The Balances view has no suggested transfers for a solo group (net = 0 with one member) and
+  explains its personal-spending purpose. Suggested payments do not record repayments.
 
 ### Current Expense List
 
@@ -74,7 +77,8 @@ target experience. Delivery priorities live in [[product-roadmap]].
 - Date (`when` — the actual expense date, not `createdAt`)
 
 Expenses are sorted by `when` descending. Rows now include payer names, date/time, and category
-beside the name and formatted amount. Editing, deletion, and filtering remain pending.
+beside the name and formatted amount. Names link to detail, which offers editing and confirmed
+deletion. Recent overview entries also link to detail. Filtering remains pending.
 
 ### Expense Recording
 
@@ -86,6 +90,17 @@ beside the name and formatted amount. Editing, deletion, and filtering remain pe
   saves the expense plus frequent-payer ranking atomically in IndexedDB.
 - A missing local membership or active category blocks entry. Receipts and inline tag creation
   remain pending. See [[split-types]], [[paid-by]], and [[money-representation-and-rounding]].
+
+### Expense Correction
+
+Editing reuses the entry form, restoring saved paid amounts, participant selections, and split
+metadata. Updates preserve creation metadata and existing attachments. An unchanged inactive
+category may be retained; a different selection must be active. Saving returns to detail;
+cancelling writes nothing. Failed saves retain inputs for retry.
+
+Detail deletion requires confirmation and atomically removes the expense and owned receipts,
+refreshes frequent payers, then returns to the list. All balance displays derive the updated store.
+Missing or cross-group detail/edit IDs show a not-found state. See [[expense-edit-delete]].
 
 ### Planned Group Menu
 
@@ -102,6 +117,6 @@ beside the name and formatted amount. Editing, deletion, and filtering remain pe
 - [[dashboard]] — current dashboard and planned cross-group sections
 - [[layout-architecture]] — current route-aware sidebar/footer and unimplemented navigation stubs
 - [[balance-calculation]] — how the Balances tab derives its data
-- [[solo-group-support]] — implemented zero-net overview and planned solo balance behavior
+- [[solo-group-support]] — implemented zero-net overview and solo balance behavior
 - [[import-export]] — Export and Import options in the group menu
 - [[product-roadmap]] — delivery horizons and the unresolved settlement-model decision

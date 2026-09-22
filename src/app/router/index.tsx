@@ -1,8 +1,10 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 
+import ExpenseDetail from "@/features/expenses/components/expense-detail";
 import ExpenseForm from "@/features/expenses/components/expense-form";
 import CategoriesAndTags from "@/features/group-detail/components/categories-and-tags";
 import ExpenseList from "@/features/group-detail/components/expense-list";
+import GroupBalances from "@/features/group-detail/components/group-balances";
 import GroupOverview from "@/features/group-detail/components/group-overview";
 import GroupSettings from "@/features/group-detail/components/group-settings";
 import MemberList from "@/features/group-detail/components/member-list";
@@ -36,6 +38,9 @@ export const router = createBrowserRouter([
               { index: true, element: <GroupOverview /> },
               { path: "expenses", element: <ExpenseList /> },
               { path: "expenses/new", element: <ExpenseForm /> },
+              { path: "expenses/:expenseId", element: <ExpenseDetail /> },
+              { path: "expenses/:expenseId/edit", element: <ExpenseForm /> },
+              { path: "balances", element: <GroupBalances /> },
               { path: "members", element: <MemberList /> },
               { path: "categories", element: <CategoriesAndTags /> },
               { path: "settings", element: <GroupSettings /> },

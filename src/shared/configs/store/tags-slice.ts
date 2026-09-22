@@ -80,33 +80,30 @@ export const createTagsSlice: SliceCreator<TagsSlice> = (set, get) => ({
   },
 
   removeTag: async (tagId) => {
-    const tag = get().tags.find((item) => item.id === tagId);
-    if (!tag) {
-      throw new Error("Tag not found");
-    }
-
-    const updatedExpenses = get()
-      .expenses.filter(
-        (expense) => expense.groupId === tag.groupId && expense.tagIds.includes(tagId),
-      )
-      .map((expense) => ({
-        ...expense,
-        tagIds: expense.tagIds.filter((expenseTagId) => expenseTagId !== tagId),
-      }));
-
-    await db.transaction("rw", db.tags, db.expenses, async () => {
-      await db.tags.delete(tagId);
-      if (updatedExpenses.length > 0) {
-        await db.expenses.bulkPut(updatedExpenses);
+    const result = await db.transaction("rw", db.tags, db.expenses, async () => {
+      const tag = await db.tags.get(tagId);
+      if (!tag) {
+        throw new Error("Tag not found");
       }
+      const expenses = await db.expenses.where("groupId").equals(tag.groupId).toArray();
+      await db.tags.delete(tagId);
+      for (const expense of expenses) {
+        if (!expense.tagIds.includes(tagId)) continue;
+        const tagIds = expense.tagIds.filter((id) => id !== tagId);
+        // Update only references on existing records; never upsert a hydrated snapshot.
+        await db.expenses.update(expense.expenseId, { tagIds });
+        expense.tagIds = tagIds;
+      }
+      return { groupId: tag.groupId, expenses };
     });
 
-    const updatedById = new Map(
-      updatedExpenses.map((expense) => [expense.expenseId, expense] as const),
-    );
+    // Refresh this group's snapshot so stale deleted rows also disappear from the UI.
     set((state) => ({
       tags: state.tags.filter((item) => item.id !== tagId),
-      expenses: state.expenses.map((expense) => updatedById.get(expense.expenseId) ?? expense),
+      expenses: [
+        ...state.expenses.filter((expense) => expense.groupId !== result.groupId),
+        ...result.expenses,
+      ],
     }));
   },
 });
