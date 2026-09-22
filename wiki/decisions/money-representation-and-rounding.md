@@ -50,6 +50,12 @@ This applies to:
 - future settlement amounts
 
 Shares and percentage metadata are ratios, not money, and therefore do not use minor units.
+Their validated decimal input is stored as text, while computation converts it directly to scaled
+BigInt weights with six fractional digits and a maximum weight of `Number.MAX_SAFE_INTEGER`.
+This preserves values such as `9007199254.740991` that would round if stored as a Number.
+Adjustment metadata remains an integer minor-unit number. Legacy numeric ratio records retain
+their already-stored precision; the fix does not infer missing digits or silently clamp them.
+See [[expense-edit-delete]].
 
 ## Input and Formatting Boundary
 
@@ -57,7 +63,7 @@ Shares and percentage metadata are ratios, not money, and therefore do not use m
   as the accounting representation.
 - Reject precision beyond the selected currency's supported exponent rather than silently storing
   an ambiguous value.
-- Persist and calculate only finite safe integers; validate with `Number.isSafeInteger` at the
+- Persist monetary amounts only as finite safe integers; validate with `Number.isSafeInteger` at the
   write boundary.
 - Convert minor units back to major units only at the display boundary before calling currency
   formatting APIs.
@@ -134,5 +140,6 @@ amount.
 - [[domain-models]] — monetary fields on Expense transactions and adjustment metadata
 - [[split-types]] — formulas that feed deterministic allocation
 - [[expense-model-design]] — why final paid and owed values are persisted
+- [[expense-edit-delete]] — exact ratio edits and legacy numeric metadata limits
 - [[balance-calculation]] — integer transaction amounts consumed by balance helpers
 - [[import-export]] — portable formats must retain integer amounts and currency metadata

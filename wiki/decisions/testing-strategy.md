@@ -153,6 +153,12 @@ update ownership and validation, old-total replacement at the aggregate limit, p
 refresh, timestamp/attachment preservation, attachment cascades, concurrent update/delete, and
 rollback when writes fail.
 
+Ratio regression cases cover exact decimal metadata, minimum and maximum supported shares,
+values that Number would round, preserved decimal zeros, six-decimal percentages, and maximum
+money totals. Form tests cover legacy numeric metadata and reject an already-rounded out-of-range
+legacy ratio without clamping it. Store cases verify hydration and name-only edits preserve
+allocations; desktop/mobile browser journeys verify maximum shares in detail, editing, and reload.
+
 Tag-store integration tests in `src/shared/tests/configs/store/tags.test.ts` cover cleanup using
 persisted tag/group records, stale deleted or edited expenses, references absent from memory,
 preservation of unrelated data and receipts, unused/missing/repeated deletion, concurrent tag

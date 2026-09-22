@@ -15,26 +15,26 @@ Last updated: 2026-09-23
 - [Product Direction and Roadmap](roadmap/product-roadmap.md) — living product compass, delivery horizons, release gates, non-goals, and explicitly uncommitted ideas
 
 ### Architecture
-- [Domain Models](architecture/domain-models.md) — current entity shapes and invariants, with pending tag-display and attachment behavior distinguished
+- [Domain Models](architecture/domain-models.md) — current entity shapes, exact ratio text, monetary invariants, and pending tag-display/attachment behavior
 - [Balance Calculation](architecture/balance-calculation.md) — exact member/group totals, all-member balances, and deterministic suggested transfers
 - [State Management](architecture/state-management.md) — shared and feature-local slices in one hydrated store; persisted tag cleanup, aggregate limits, and remaining cascade boundaries
-- [Split Types](architecture/split-types.md) — 5 implemented split types with exact validation and deterministic rounding; numeric percentage-total display remains pending
+- [Split Types](architecture/split-types.md) — 5 split types with exact ratio storage, validation, and deterministic rounding; numeric percentage-total display remains pending
 - [Layout Architecture](architecture/layout-architecture.md) — current responsive shell and navigation stubs; theme controls remain planned
 
 ### Decisions
 - [Global People Directory](decisions/global-people-directory.md) — device-local friends list; members link to shared people; supersedes per-group members
-- [Expense Model Design](decisions/expense-model-design.md) — creation and editing store paid/owed allocations and split metadata; detail and deletion are implemented
+- [Expense Model Design](decisions/expense-model-design.md) — paid/owed allocations and exact decimal ratio metadata, with numeric legacy read compatibility
 - [Solo Group Support](decisions/solo-group-support.md) — single-member creation and zero-net overview/balances are implemented; onboarding solo-helper copy remains pending
 - [Onboarding Persistence](decisions/onboarding-persistence.md) — per-step save to IndexedDB + resume from a monotonic `lastCompletedStep`; completion gated by an explicit flag, not `localUser` presence
 - [Import / Export Design](decisions/import-export.md) — approved but unimplemented design for three export formats, two import modes, and conflict resolution
-- [Expense Edit and Delete](decisions/expense-edit-delete.md) — implemented editing/deletion and atomic receipt cascades; tag resurrection resolved, shares-precision limitation remains
+- [Expense Edit and Delete](decisions/expense-edit-delete.md) — implemented editing/deletion; tag resurrection and new ratio precision loss resolved; legacy rounded values cannot be recovered automatically
 - [Group Deletion](decisions/group-deletion.md) — approved pending design for permanent deletion with a full related-data cascade and irreversible warning
-- [Money Representation and Rounding](decisions/money-representation-and-rounding.md) — minor-unit parsing/storage/formatting, deterministic largest-remainder allocation, and safe group-spending limits
+- [Money Representation and Rounding](decisions/money-representation-and-rounding.md) — integer minor units, exact ratio text and BigInt weights, deterministic allocation, and safe spending limits
 - [String Input Normalization](decisions/string-input-normalization.md) — required strings reject trimmed blanks; optional expense inputs have explicit blank-value semantics
-- [Testing Strategy](decisions/testing-strategy.md) — Vitest and Playwright suites, tag-cleanup concurrency/rollback regressions, test-only fake IndexedDB, and remaining gaps
+- [Testing Strategy](decisions/testing-strategy.md) — Vitest and Playwright suites, ratio precision and tag-cleanup regressions, test-only fake IndexedDB, and remaining gaps
 
 ### Systems
-- [IndexedDB Schema](systems/indexeddb-schema.md) — current tables, expense-write validation, and active-category behavior; development schema changes require a database reset
+- [IndexedDB Schema](systems/indexeddb-schema.md) — current tables, exact ratio metadata with legacy reads, persisted tag cleanup, and development schema policy
 
 ### Workflows
 - [Development Tools](workflows/development-tools.md) — typed realistic presets, individual creation buttons, collision-free naming, and sequential persistence boundaries
@@ -97,10 +97,11 @@ while development data is disposable. All group-detail destinations have routes,
 lightweight or partial. Dashboard-level footer items for Activity, Unsettled, Analytics, and
 Settings remain unmatched; see [[layout-architecture]].
 
-Tag cleanup now uses persisted references inside its transaction, resolving the review finding
-that stale cleanup could recreate deleted expenses or overwrite newer edits. One review finding
-remains: a shares value accepted at the supported maximum cannot be saved after reopening for
-editing. See [[tag-management]] and [[expense-edit-delete]] for current guarantees and limitations.
+Both reviewed defects are fixed for current writes: persisted tag cleanup cannot recreate deleted
+expenses or overwrite newer edits, and saved ratio text preserves accepted shares through
+reopening and editing. Legacy numeric ratio records remain readable, but digits already lost
+cannot be recovered automatically; invalid legacy inputs need correction before saving. See
+[[tag-management]] and [[expense-edit-delete]].
 
 ---
 
@@ -118,3 +119,4 @@ editing. See [[tag-management]] and [[expense-edit-delete]] for current guarante
 10. A group must have at least one category — enforced at creation (categories step requires ≥1 selected) so every expense can be categorised
 11. Expense creation and editing parse and store currency-aware integer minor units; split calculations use deterministic largest-remainder allocation, and all amount displays convert from minor units
 12. Expense creation and editing reject saves that would push total group spending above `Number.MAX_SAFE_INTEGER` minor units; the check uses BigInt within the expense transaction to protect derived balances and displays, with updates replacing the old expense amount
+13. Shares and percentage metadata are written as validated decimal strings and calculated with scaled BigInt weights; monetary adjustments remain integer minor units. Legacy numeric ratios remain readable without automatic precision recovery

@@ -9,7 +9,7 @@ metadata:
 
 Purpose: explain why expenses retain final allocations and split inputs for later reads.
 
-Last updated: 2026-09-20
+Last updated: 2026-09-23
 
 ## Implementation Status
 
@@ -40,9 +40,15 @@ All four are written together at creation and recomputed together on a validated
 |------------|---------------------------|
 | equal      | empty — not needed         |
 | amount     | empty — owes[] has it      |
-| shares     | share count per member     |
-| percentage | percentage per member      |
+| shares     | share count as a validated decimal string per member |
+| percentage | percentage as a validated decimal string per member |
 | adjustment | adjustment amount in currency minor units per member (can be negative) |
+
+Ratio text is trimmed but never converted to Number for storage. Allocation uses scaled BigInt
+weights, so retaining the text keeps the editor's inputs identical to those used for calculation.
+Numeric ratio metadata from earlier development records is still readable; a successful edit
+writes decimal text. This is read compatibility, not recovery of precision already lost during
+earlier storage. See [[expense-edit-delete]].
 
 ## Tradeoff
 
@@ -60,4 +66,5 @@ Updates exclude the old expense total when checking the group limit and preserve
 
 - [[domain-models]] — full Expense shape
 - [[split-types]] — mechanics and validation rules for all 5 split types
+- [[expense-edit-delete]] — ratio edit compatibility and limits
 - [[balance-calculation]] — how paid[] and owes[] are consumed

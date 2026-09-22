@@ -2,6 +2,7 @@ import "fake-indexeddb/auto";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { expenseFormValues } from "@/features/expenses/utils/expense-form-values";
 import { db } from "@/shared/configs/db";
 import { useStore } from "@/shared/configs/store";
 
@@ -215,6 +216,41 @@ describe("addExpense", () => {
 });
 
 describe("updateExpense", () => {
+  it.each([
+    ["shares", ["9007199254.740991", "0.000001"]],
+    ["shares", ["8589934592.000001", "8589934592.000002"]],
+    ["percentage", ["99.999999", "0.000001"]],
+  ] as const)(
+    "preserves exact %s ratios and allocations across hydration and a name-only edit (%j)",
+    async (method, ratios) => {
+      const data = input();
+      data.values.splitType = method;
+      data.values.participants[0].value = ratios[0];
+      data.values.participants[1].value = ratios[1];
+      const original = await useStore.getState().addExpense(data);
+      expect(original.splitMeta.map((row) => row.value)).toEqual(ratios);
+      useStore.setState({ expenses: [] });
+      await useStore.getState().init();
+      const restored = useStore.getState().expenses[0];
+      const values = expenseFormValues(
+        restored,
+        [
+          { id: "a", name: "Amy" },
+          { id: "b", name: "Bea" },
+        ],
+        "INR",
+      );
+      values.expenseName = "Renamed lunch";
+      const updated = await useStore
+        .getState()
+        .updateExpense(original.expenseId, { ...data, values });
+      expect(updated).toEqual({ ...original, expenseName: "Renamed lunch" });
+      expect(await db.expenses.get(original.expenseId)).toEqual(updated);
+      useStore.setState({ expenses: [] });
+      await useStore.getState().init();
+      expect(useStore.getState().expenses).toEqual([updated]);
+    },
+  );
   it("updates editable fields, preserves identity and attachments, and survives hydration", async () => {
     const original = await useStore.getState().addExpense(input());
     const preciseWhen = original.when + 12345;

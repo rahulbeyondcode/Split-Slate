@@ -116,6 +116,39 @@ for (const method of ["amount", "shares", "percentage", "adjustment"] as const) 
   });
 }
 
+test("preserves maximum shares through reload and a name-only edit", async ({ page }) => {
+  await page.getByLabel("Expense name", { exact: true }).fill("Exact shares");
+  await page.getByLabel("Amount (INR)", { exact: true }).fill("100.01");
+  await page.getByRole("combobox", { name: "Split method", exact: true }).selectOption("shares");
+  await page.getByLabel("Shares for Amy", { exact: true }).fill("9007199254.740991");
+  await page.getByLabel("Shares for Bea", { exact: true }).fill("0.000001");
+  await page.getByRole("button", { name: "Save expense", exact: true }).click();
+  await page.getByRole("link", { name: "Exact shares", exact: true }).click();
+  await page.reload();
+  await expect(page.getByText("9007199254.740991 shares", { exact: true })).toBeVisible();
+  const original = await page.evaluate(async () => {
+    const path = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;
+    return (await db.expenses.toArray())[0];
+  });
+  await page.getByRole("link", { name: "Edit expense", exact: true }).click();
+  await expect(page.getByLabel("Shares for Amy", { exact: true })).toHaveValue("9007199254.740991");
+  await expect(page.getByLabel("Shares for Bea", { exact: true })).toHaveValue("0.000001");
+  await page.getByLabel("Expense name", { exact: true }).fill("Renamed exact shares");
+  await page.getByRole("button", { name: "Save changes", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Renamed exact shares", exact: true }),
+  ).toBeVisible();
+  await page.reload();
+  await expect(page.getByText("9007199254.740991 shares", { exact: true })).toBeVisible();
+  const updated = await page.evaluate(async () => {
+    const path = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;
+    return (await db.expenses.toArray())[0];
+  });
+  expect(updated).toEqual({ ...original, expenseName: "Renamed exact shares" });
+});
+
 test("blocks invalid totals, preserves form data after save rejection, and allows retry", async ({
   page,
 }) => {

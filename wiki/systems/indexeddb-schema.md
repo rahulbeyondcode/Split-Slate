@@ -9,7 +9,7 @@ metadata:
 
 Purpose: describe the persisted records, indexes, and implemented write boundaries.
 
-Last updated: 2026-09-20
+Last updated: 2026-09-23
 
 ## Current Implementation Scope
 
@@ -18,8 +18,9 @@ Last updated: 2026-09-20
 
 All schema revisions are currently declared as Dexie database version `1`. This is intentional
 during active development: after a schema change, the local `split-slate` database is cleared and
-the app starts against a fresh schema. Development data is disposable, so there is no supported
-legacy database shape to migrate or backfill.
+the app starts against a fresh schema. Development data is disposable, so there is no general
+legacy database migration or backfill support. The ratio metadata read compatibility described
+below does not migrate records during bootstrap.
 
 Versioned Dexie upgrades will become necessary only when the project starts preserving user data
 across released schema changes. Until then, the reset-on-schema-change workflow is the supported
@@ -98,7 +99,7 @@ person-deletion guard resolves memberships from hydrated state rather than query
 | createdAt     | number  | unix ms — set automatically by the app, never user-edited          |
 | when          | number  | unix ms — user-entered date + time of the actual expense; defaults to now |
 | splitType     | string  | `'equal' \| 'amount' \| 'shares' \| 'percentage' \| 'adjustment'` |
-| splitMeta     | object[] | `{ memberId: UUID, value: number }[]` — ratios for shares/percentages, integer minor units for adjustments |
+| splitMeta     | object[] | `{ memberId: UUID, value: string \| number }[]` — exact decimal strings for shares/percentages, integer minor units for adjustments; numeric legacy ratios remain readable |
 | transactions  | object  | `{ paid: [], owes: [] }` — monetary amounts use integer minor units |
 | attachmentIds | UUID[]  | references to the attachments table; empty array if none           |
 
@@ -107,6 +108,12 @@ Index: `groupId` — used to fetch all expenses for a group.
 Arrays and objects (`tagIds`, `splitMeta`, `transactions`, `attachmentIds`) are stored directly as
 nested structured data. Expense creation, editing, deletion, detail, bootstrap hydration, and the
 expense list are implemented.
+
+Ratio metadata saves retain the validated decimal text; existing numeric ratios are read as their
+stored value and become text on a successful edit. This representation change does not alter
+Dexie tables/indexes or reset/rewrite the database. Precision already lost in a numeric record
+cannot be recovered automatically; invalid legacy ratios require correction before saving.
+See [[expense-edit-delete]].
 
 Creation and updates validate safe-integer currency minor units and equal paid/owed totals. Within
 one Dexie transaction each save rechecks persisted group, member/person, creator, active-category, and tag
@@ -166,10 +173,11 @@ Index: `groupId` — used to fetch categories for a group.
 
 Index: `groupId` — used to fetch all tags for a group.
 
-Tags are optional from the expense perspective and have no `isActive` field. Tag deletion and
-cleanup of referencing expenses selected from hydrated state commit in one IndexedDB transaction.
-The cascade does not query persisted expenses again; stale-state limitations are documented in
-[[tag-management]].
+Tags are optional from the expense perspective and have no `isActive` field. Tag deletion reads
+the persisted tag and its group expenses in one IndexedDB transaction, then deletes the tag and
+updates only existing expense tag references. It cannot recreate deleted expenses or overwrite
+newer fields from hydrated state. After commit, the group's expense snapshot is refreshed in
+Zustand. See [[tag-management]].
 
 ---
 

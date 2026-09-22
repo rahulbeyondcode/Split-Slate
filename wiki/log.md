@@ -7,6 +7,11 @@ Last updated: 2026-09-23
 ---
 
 ## 2026-09-23
+- UPDATED architecture/domain-models.md, architecture/split-types.md, and decisions/expense-model-design.md — documented exact decimal ratio metadata, integer adjustments, and numeric legacy read compatibility
+- UPDATED decisions/money-representation-and-rounding.md and decisions/expense-edit-delete.md — documented the ratio precision fix and the inability to recover already-rounded legacy inputs automatically
+- UPDATED systems/indexeddb-schema.md — aligned ratio metadata representation and corrected stale tag-cleanup documentation to persisted transactional reads
+- UPDATED decisions/testing-strategy.md — recorded boundary, round-trip, legacy, persistence, and browser ratio regression coverage
+- UPDATED wiki/index.md — marked both reviewed defects resolved for current writes and retained the legacy precision limitation
 - UPDATED workflows/tag-management.md — documented persisted-reference cleanup, rollback, and group expense refresh; retained the resolved resurrection bug's cause
 - UPDATED architecture/state-management.md and architecture/domain-models.md — aligned tag deletion guarantees with transactional persisted reads and reference-only updates
 - UPDATED decisions/expense-edit-delete.md — marked tag resurrection resolved while retaining the shares precision limitation

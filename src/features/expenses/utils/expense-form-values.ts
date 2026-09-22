@@ -55,7 +55,7 @@ export const expenseFormValues = (
         expense.splitType === "amount" && owed
           ? moneyToDecimal(owed.amount, currency)
           : expense.splitType === "adjustment" && meta
-            ? moneyToDecimal(meta.value, currency)
+            ? moneyToDecimal(Number(meta.value), currency)
             : meta
               ? String(meta.value)
               : "",

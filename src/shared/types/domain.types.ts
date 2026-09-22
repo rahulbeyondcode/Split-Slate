@@ -42,7 +42,8 @@ export interface Tag {
 
 export interface SplitMeta {
   memberId: string;
-  value: number;
+  // Ratios retain validated decimal text; numbers are minor-unit adjustments or legacy ratios.
+  value: string | number;
 }
 
 export interface Transaction {

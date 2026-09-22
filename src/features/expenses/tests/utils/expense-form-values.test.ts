@@ -5,7 +5,7 @@ import {
   expenseFormValues,
   localDateTime,
 } from "@/features/expenses/utils/expense-form-values";
-import { expenseTransactions } from "@/features/expenses/utils/expense-schema";
+import { createExpenseSchema, expenseTransactions } from "@/features/expenses/utils/expense-schema";
 import { moneyToDecimal } from "@/shared/utils/money";
 
 import type { Expense, SplitMeta, Transaction } from "@/shared/types/domain.types";
@@ -44,8 +44,8 @@ describe("expenseFormValues", () => {
   it.each([
     ["equal", [5000, 5001], []],
     ["amount", [0, 10001], []],
-    ["shares", [6667, 3334], [2, 1]],
-    ["percentage", [7001, 3000], [70, 30]],
+    ["shares", [6667, 3334], ["2", "1"]],
+    ["percentage", [7001, 3000], ["70", "30"]],
     ["adjustment", [6000, 4001], [1000, -1000]],
   ] as const)(
     "round-trips %s allocations, metadata, and payer order",
@@ -92,13 +92,66 @@ describe("expenseFormValues", () => {
         { memberId: "b", amount: 0 },
       ],
       [
-        { memberId: "a", value: 1.234567 },
-        { memberId: "b", value: 0.000001 },
+        { memberId: "a", value: "1.234567" },
+        { memberId: "b", value: "0.000001" },
       ],
     );
     expect(
       expenseTransactions(expenseFormValues(expense, members, "INR"), "INR").splitMeta,
     ).toEqual(expense.splitMeta);
+  });
+  it("round-trips maximum shares with a maximum total and preserves every minor unit", () => {
+    const expense = saved(
+      "shares",
+      [
+        { memberId: "a", amount: Number.MAX_SAFE_INTEGER - 1 },
+        { memberId: "b", amount: 1 },
+      ],
+      [
+        { memberId: "a", value: "9007199254.740991" },
+        { memberId: "b", value: "0.000001" },
+      ],
+    );
+    expense.transactions.paid = [{ memberId: "a", amount: Number.MAX_SAFE_INTEGER }];
+    const values = expenseFormValues(expense, members, "INR");
+    expect(createExpenseSchema("INR").safeParse(values).success).toBe(true);
+    expect(expenseTransactions(values, "INR")).toEqual({
+      transactions: expense.transactions,
+      splitMeta: expense.splitMeta,
+    });
+  });
+  it.each([
+    ["shares", [2, 1], [6667, 3334]],
+    ["percentage", [70, 30], [7001, 3000]],
+  ] as const)(
+    "reads legacy numeric %s metadata and writes exact text",
+    (method, metadata, amounts) => {
+      const expense = saved(
+        method,
+        [
+          { memberId: "a", amount: amounts[0] },
+          { memberId: "b", amount: amounts[1] },
+        ],
+        metadata.map((value, index) => ({ memberId: index === 0 ? "a" : "b", value })),
+      );
+      const values = expenseFormValues(expense, members, "INR");
+      expect(values.participants.slice(0, 2).map((row) => row.value)).toEqual(metadata.map(String));
+      const result = expenseTransactions(values, "INR");
+      expect(result.transactions).toEqual(expense.transactions);
+      expect(result.splitMeta.map((row) => row.value)).toEqual(metadata.map(String));
+      expect(expense.splitMeta.map((row) => row.value)).toEqual(metadata);
+    },
+  );
+  it("does not silently clamp a legacy ratio whose precision was already lost", () => {
+    const expense = saved(
+      "shares",
+      [{ memberId: "a", amount: 10001 }],
+      [{ memberId: "a", value: 9007199254.740992 }],
+    );
+    const values = expenseFormValues(expense, members, "INR");
+    expect(values.participants[0].value).toBe("9007199254.740992");
+    expect(createExpenseSchema("INR").safeParse(values).success).toBe(false);
+    expect(expense.splitMeta[0].value).toBe(9007199254.740992);
   });
 });
 

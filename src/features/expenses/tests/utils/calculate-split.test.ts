@@ -47,7 +47,7 @@ describe("calculateSplit", () => {
   it("allocates proportional shares and preserves metadata", () => {
     const result = calculateSplit(40000, "shares", members(["1", "1", "2"]), "INR");
     expect(result.owes.map((row) => row.amount)).toEqual([10000, 10000, 20000]);
-    expect(result.splitMeta.map((row) => row.value)).toEqual([1, 1, 2]);
+    expect(result.splitMeta.map((row) => row.value)).toEqual(["1", "1", "2"]);
   });
   it("uses largest fractional remainder before member ID", () => {
     expect(
@@ -57,7 +57,21 @@ describe("calculateSplit", () => {
   it("handles decimal percentages exactly", () => {
     const result = calculateSplit(100, "percentage", members(["33.33", "33.33", "33.34"]), "INR");
     expect(result.owes.map((row) => row.amount)).toEqual([33, 33, 34]);
-    expect(result.splitMeta.map((row) => row.value)).toEqual([33.33, 33.33, 33.34]);
+    expect(result.splitMeta.map((row) => row.value)).toEqual(["33.33", "33.33", "33.34"]);
+  });
+  it.each(["0.000001", "8589934592.000001", "9007199254.740991"])(
+    "preserves the exact accepted shares input %s",
+    (value) => {
+      const result = calculateSplit(100, "shares", members([value, "1"]), "INR");
+      expect(result.splitMeta).toEqual([
+        { memberId: "a", value },
+        { memberId: "b", value: "1" },
+      ]);
+    },
+  );
+  it("trims ratio input without converting its significant or trailing digits", () => {
+    const result = calculateSplit(100, "percentage", members([" 033.330000 ", "66.670000"]), "INR");
+    expect(result.splitMeta.map((row) => row.value)).toEqual(["033.330000", "66.670000"]);
   });
   it("supports positive and negative adjustments", () => {
     const result = calculateSplit(10000, "adjustment", members(["-10", "10"]), "INR");
@@ -82,6 +96,7 @@ describe("calculateSplit", () => {
     ["shares", ["-1", "1"]],
     ["shares", ["Infinity", "1"]],
     ["shares", ["0.0000001", "1"]],
+    ["shares", ["9007199254.740992", "1"]],
   ] as [Expense["splitType"], string[]][])("rejects invalid %s values %j", (method, values) => {
     expect(() => calculateSplit(10000, method, members(values), "INR")).toThrow();
   });

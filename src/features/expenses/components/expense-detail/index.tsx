@@ -117,7 +117,7 @@ const ExpenseDetail = () => {
             const meta = expense.splitMeta.find((item) => item.memberId === row.memberId);
             const detail = meta
               ? expense.splitType === "adjustment"
-                ? `Adjustment: ${formatCurrency(meta.value, group.currency)}`
+                ? `Adjustment: ${formatCurrency(Number(meta.value), group.currency)}`
                 : expense.splitType === "percentage"
                   ? `${meta.value}%`
                   : `${meta.value} shares`

@@ -153,7 +153,7 @@ See [[tag-management]] for the full lifecycle.
   createdAt: number,                         // automatic — when the entry was added to the app
   when: number,                              // user-entered — when the money was actually spent (unix ms, defaults to now, date + time)
   splitType: 'equal' | 'amount' | 'shares' | 'percentage' | 'adjustment',
-  splitMeta: { memberId: UUID, value: number }[],  // stores raw split input for view/edit (shares count / percentage / adjustment amount); empty for equal and amount types
+  splitMeta: { memberId: UUID, value: string | number }[],  // exact decimal text for ratios; integer minor units for adjustments; numeric legacy ratios remain readable
   transactions: {
     paid: [{ memberId: UUID, amount: number }],
     owes: [{ memberId: UUID, amount: number }]
@@ -166,7 +166,10 @@ See [[tag-management]] for the full lifecycle.
 
 Every monetary value in `transactions.paid[]`, `transactions.owes[]`, and adjustment-type
 `splitMeta[]` entries is an integer count of the group's currency minor unit. Shares and percentage
-metadata remain unitless ratios. The currency's ISO 4217 exponent determines the scale; it is not
+metadata remain unitless ratios, saved as validated decimal strings without conversion to Number.
+Equal and amount splits have empty metadata. Legacy numeric ratios remain readable; a validated
+save writes their entered text, but cannot recover digits already lost in the old numeric record.
+See [[expense-edit-delete]] for that limitation. The currency's ISO 4217 exponent determines the scale; it is not
 always two decimal places. See [[money-representation-and-rounding]].
 
 Expense creation and editing enforce this representation at the form/store boundary. Decimal input is parsed

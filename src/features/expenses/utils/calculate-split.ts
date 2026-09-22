@@ -105,7 +105,8 @@ export const calculateSplit = (
       ),
       splitMeta: participants.map((member) => ({
         memberId: member.memberId,
-        value: Number(member.value),
+        // Keep the exact input for editing; converting large ratios to Number loses digits.
+        value: member.value.trim(),
       })),
     };
   }

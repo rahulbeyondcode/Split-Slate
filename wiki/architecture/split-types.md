@@ -9,7 +9,7 @@ metadata:
 
 Purpose: explain implemented split calculations, inputs, rounding, and remaining presentation work.
 
-Last updated: 2026-09-19
+Last updated: 2026-09-23
 
 ## Overview
 
@@ -18,6 +18,13 @@ methods below. Final amounts and the necessary metadata are stored explicitly; o
 not recalculate historical allocations. Shares and percentages accept positive decimal inputs with
 up to six fractional digits, converted to integer weights before allocation. Values outside the
 safe scaled-ratio range are rejected.
+
+Validated shares/percentage inputs are persisted as trimmed decimal strings. Computation still
+uses scaled BigInt weights; storage never converts these ratios to Number. This preserves exact
+digits, including the maximum accepted shares value `9007199254.740991`, through detail, editing,
+and reload. Leading/trailing decimal zeros are retained; surrounding whitespace is removed.
+Older numeric ratio metadata remains readable, but precision already lost in those records cannot
+be recovered automatically. See [[expense-edit-delete]].
 
 In the entry flow, the user selects **which members are affected** — it does not have to be the
 entire group. A group of 10 can split an expense among just 4 selected members.
@@ -90,7 +97,7 @@ member_owes = (member_shares / total_shares) × total
 
 **Example:** Total ₹400. Person A = 1 share, Person B = 1 share, Person C = 2 shares → 4 total shares → A = ₹100, B = ₹100, C = ₹200.
 
-**splitMeta:** Stores `{ memberId, value: shares_count }` for each member — needed to reconstruct the ratio on view/edit.
+**splitMeta:** Stores `{ memberId, value: "shares_count" }` for each member — exact decimal text needed to reconstruct the ratio on view/edit.
 
 **Validation:**
 - All share values must be positive decimals with up to six fractional digits (no zeros, no negatives)
@@ -110,7 +117,7 @@ previews appear when the split is valid. A numeric running percentage-total disp
 member_owes = (member_percentage / 100) × total
 ```
 
-**splitMeta:** Stores `{ memberId, value: percentage }` for each member — needed to reconstruct percentages on view/edit.
+**splitMeta:** Stores `{ memberId, value: "percentage" }` for each member — exact decimal text needed to reconstruct percentages on view/edit.
 
 **Validation:**
 - All percentages must be positive decimals with up to six fractional digits
@@ -153,8 +160,8 @@ member_owes = base_per_member + member_adjustment
 |------------|-----------------|-----|
 | Equal      | No              | Derivable from owes[] |
 | Amount     | No              | owes[] already has final amounts |
-| Shares     | Yes (share count per member) | Ratio cannot be derived from owes[] |
-| Percentage | Yes (percentage per member) | Percentage cannot be derived from owes[] |
+| Shares     | Yes (decimal string per member) | Ratio cannot be derived from owes[] |
+| Percentage | Yes (decimal string per member) | Percentage cannot be derived from owes[] |
 | Adjustment | Yes (adjustment per member) | Adjustment cannot be derived from owes[] |
 
 ---
@@ -163,5 +170,6 @@ member_owes = base_per_member + member_adjustment
 
 - [[domain-models]] — Expense shape (splitType, splitMeta, when fields)
 - [[expense-model-design]] — why owes[] stores final computed amounts
+- [[expense-edit-delete]] — exact ratio round-trips and legacy precision limits
 - [[money-representation-and-rounding]] — minor-unit storage and deterministic rounding
 - [[balance-calculation]] — how owes[] feeds into net balance computation

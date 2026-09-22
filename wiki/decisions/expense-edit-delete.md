@@ -58,15 +58,19 @@ checking the aggregate spending ceiling. The expense and recalculated payer rank
 transaction; memory changes only after commit. Cancellation writes nothing; failures retain input
 and allow retry. Save handlers guard repeated submissions.
 
-### Shares Metadata Precision Limit
+### Resolved: Shares Metadata Precision Loss
 
-Accepted share inputs do not all round-trip exactly through numeric `splitMeta.value`. Creation
-accepts `9007199254.740991`, but storing it as a JavaScript number rounds it to
-`9007199254.740992`. The editor reconstructs that rounded text with `String(meta.value)`; its
-scaled ratio exceeds the supported maximum and update validation rejects even a name-only edit.
-This boundary failure was reproduced through expense creation, form reconstruction, and update.
-The stored expense remains unchanged after rejection. Exact share-input preservation at this
-boundary is unresolved; see [[split-types]] and [[money-representation-and-rounding]].
+New expense saves retain validated shares and percentage inputs as trimmed decimal strings in
+`splitMeta.value`. Display and form reconstruction preserve that text; allocation continues to use
+scaled BigInt weights. The maximum accepted shares value `9007199254.740991` now survives storage,
+reload, and a name-only edit without changing allocations. Monetary adjustment metadata remains
+an integer number of minor units. See [[split-types]] and [[money-representation-and-rounding]].
+
+Earlier numeric ratio metadata is still readable and becomes text on a successful validated save.
+Already-lost precision cannot be reconstructed: for example, an old numeric record containing
+`9007199254.740992` still fails the range check until the user corrects its share input. It is not
+silently clamped or rewritten. Even an in-range legacy ratio may have lost digits; the original
+input must be re-entered if that precision matters. Rejected edits leave persisted data unchanged.
 
 ## Delete Behaviour
 
@@ -84,8 +88,7 @@ after deletion cannot recreate the expense. The UI guards repeated deletion and 
 **Tag-cleanup interaction:** the stale-tag resurrection bug is resolved. `removeTag` now reads
 persisted expenses and updates only existing tag references inside its transaction; it cannot
 insert a deleted expense or overwrite a newer edit from hydrated state. Regression tests cover
-both stale snapshots and overlapping expense/tag mutations. See [[tag-management]]. The shares
-metadata precision limit above remains unresolved.
+both stale snapshots and overlapping expense/tag mutations. See [[tag-management]].
 
 ## When This Changes
 
