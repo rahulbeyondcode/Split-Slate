@@ -9,7 +9,7 @@ metadata:
 
 Purpose: provide a current planning compass without turning exploratory ideas into commitments.
 
-Last updated: 2026-09-20
+Last updated: 2026-09-25
 
 ## How to Read This Page
 
@@ -73,6 +73,7 @@ The following foundation is implemented now:
 - Expense, split, transaction, tag, and attachment storage shapes
 - Expense recording with five split types, one/multiple payers, optional tags, and local persistence
 - Expense-list and group-overview surfaces showing saved records and balances
+- Eight-field, group-local expense filtering with validated date and currency-aware amount bounds
 - Helpers for member/group totals, all-member balances, and suggested payments
 - Expense detail, editing, and confirmed hard deletion with owned-attachment cleanup
 
@@ -116,7 +117,8 @@ app is installed.
 
 Approved or required work:
 
-- Complete expense-history refinements and the planned filters in [[filtering]]; detail display is implemented.
+- Complete the remaining expense-history refinements. The eight planned filters, stale-option
+  cleanup, direct desktop/mobile filter coverage, and detail display are implemented.
 - Finish category activation/deactivation controls; active-category expense-picker behavior is implemented.
 - Implement receipt attachment ingestion, compression, and lazy loading; expense-deletion cascades are implemented.
 - Implement the Link/CSV/ZIP export and the view-only/editable import flows in

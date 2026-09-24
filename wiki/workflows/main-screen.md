@@ -9,7 +9,7 @@ metadata:
 
 Purpose: describe implemented group navigation, expense recording/correction, and balance views.
 
-Last updated: 2026-09-20
+Last updated: 2026-09-25
 
 ## Current Implementation
 
@@ -76,9 +76,12 @@ target experience. Delivery priorities live in [[product-roadmap]].
 - Paid by (member name)
 - Date (`when` — the actual expense date, not `createdAt`)
 
-Expenses are sorted by `when` descending. Rows now include payer names, date/time, and category
-beside the name and formatted amount. Names link to detail, which offers editing and confirmed
-deletion. Recent overview entries also link to detail. Filtering remains pending.
+Expenses are sorted by `when` descending. Rows include payer names, date/time, and category beside
+the name and formatted amount. Names link to detail, which offers editing and confirmed deletion.
+Recent overview entries also link to detail. The list now has real-time name, date, category, tag,
+payer, involved-member, split-type, and amount filters with an active count and clear action.
+Unavailable selected option IDs are pruned when the list remounts, and desktop/mobile browser
+journeys cover the controls; see [[filtering]].
 
 ### Expense Recording
 

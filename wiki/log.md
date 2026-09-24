@@ -2,9 +2,18 @@
 
 Reverse-chronological record of all wiki changes.
 
-Last updated: 2026-09-23
+Last updated: 2026-09-25
 
 ---
+
+## 2026-09-25
+- UPDATED workflows/filtering.md and workflows/main-screen.md — documented automatic stale-option pruning and direct desktop/mobile filter coverage
+- UPDATED roadmap/product-roadmap.md and decisions/testing-strategy.md — marked the filtering gaps resolved and recorded the new unit/browser cases
+- UPDATED wiki/index.md — marked expense list and filtering done and synchronized navigation summaries
+- UPDATED workflows/filtering.md — documented implemented eight-field matching, validation, memory-only scope, utility coverage, and stale deleted-option limitation
+- UPDATED workflows/main-screen.md and roadmap/product-roadmap.md — marked expense filtering implemented while retaining remaining history refinements and direct UI coverage
+- UPDATED decisions/testing-strategy.md — recorded expense-filter utility coverage and the pending direct interaction suite
+- UPDATED wiki/index.md — synchronized filtering navigation and implementation status while retaining the in-progress classification
 
 ## 2026-09-23
 - UPDATED architecture/domain-models.md, architecture/split-types.md, and decisions/expense-model-design.md — documented exact decimal ratio metadata, integer adjustments, and numeric legacy read compatibility

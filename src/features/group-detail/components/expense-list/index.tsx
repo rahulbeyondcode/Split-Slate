@@ -1,21 +1,42 @@
+import { useFormContext, useWatch } from "react-hook-form";
 import { Link, useOutletContext } from "react-router-dom";
 
+import ExpenseFilters from "@/features/expenses/components/expense-filters";
+
+import {
+  createExpenseFilterSchema,
+  filterExpenses,
+} from "@/features/expenses/utils/expense-filters";
 import { formatCurrency } from "@/shared/utils/currency";
 
+import type { ExpenseFilterValues } from "@/features/expenses/types/expense-filters.types";
 import type { GroupDetailContext } from "@/features/group-detail/types/group-detail.types";
 
 const ExpenseList = () => {
   const { group, groupExpenses, groupMembers, groupCategories } =
     useOutletContext<GroupDetailContext>();
-  const sortedExpenses = groupExpenses.slice().sort((a, b) => b.when - a.when);
+  const { control } = useFormContext<ExpenseFilterValues>();
+  const values = useWatch({ control });
+  const parsed = createExpenseFilterSchema(group.currency).safeParse(values);
+  const sortedExpenses = parsed.success
+    ? filterExpenses(groupExpenses, parsed.data, group.currency).sort((a, b) => b.when - a.when)
+    : [];
 
   return (
     <section className="flex flex-col gap-3">
       <h2 className="text-lg font-semibold text-gray-900">Expenses</h2>
-      {sortedExpenses.length === 0 ? (
+      <ExpenseFilters />
+      <p role="status" className="text-sm text-gray-500">
+        {parsed.success
+          ? `${sortedExpenses.length} of ${groupExpenses.length} expenses`
+          : "Correct the highlighted filters to see results."}
+      </p>
+      {!parsed.success ? null : groupExpenses.length === 0 ? (
         <p className="text-sm text-gray-500">No expenses have been added yet.</p>
+      ) : sortedExpenses.length === 0 ? (
+        <p className="text-sm text-gray-500">No expenses match your filters.</p>
       ) : (
-        <ul className="flex flex-col gap-2">
+        <ul aria-label="Expenses" className="flex flex-col gap-2">
           {sortedExpenses.map((expense) => (
             <li key={expense.expenseId} className="rounded border border-gray-200 px-4 py-3">
               <Link

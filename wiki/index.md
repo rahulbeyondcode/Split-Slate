@@ -5,7 +5,7 @@ This wiki is the sole persistent compiled knowledge layer. The implementation in
 authoritative; `app-featureset-context/spec-sheet.md` is a historical baseline where later source
 and approved decisions have superseded it. Changes: [log.md](log.md)
 
-Last updated: 2026-09-23
+Last updated: 2026-09-25
 
 ---
 
@@ -31,7 +31,7 @@ Last updated: 2026-09-23
 - [Group Deletion](decisions/group-deletion.md) — approved pending design for permanent deletion with a full related-data cascade and irreversible warning
 - [Money Representation and Rounding](decisions/money-representation-and-rounding.md) — integer minor units, exact ratio text and BigInt weights, deterministic allocation, and safe spending limits
 - [String Input Normalization](decisions/string-input-normalization.md) — required strings reject trimmed blanks; optional expense inputs have explicit blank-value semantics
-- [Testing Strategy](decisions/testing-strategy.md) — Vitest and Playwright suites, ratio precision and tag-cleanup regressions, test-only fake IndexedDB, and remaining gaps
+- [Testing Strategy](decisions/testing-strategy.md) — Vitest and Playwright suites, filter interactions, ratio precision and tag-cleanup regressions, test-only fake IndexedDB, and remaining gaps
 
 ### Systems
 - [IndexedDB Schema](systems/indexeddb-schema.md) — current tables, exact ratio metadata with legacy reads, persisted tag cleanup, and development schema policy
@@ -46,7 +46,7 @@ Last updated: 2026-09-23
 - [Member Management](workflows/member-management.md) — add/edit/confirmed removal, atomic reference/duplicate guards, and local-user protection; remaining cascade limits are documented
 - [Category Management](workflows/category-management.md) — implemented group category CRUD, delete guards, and active-category expense picker; deactivation UI remains pending
 - [Tag Management](workflows/tag-management.md) — group tags, selection, and detail display; transactional persisted-reference cleanup and group expense refresh; list/overview display remains pending
-- [Filtering](workflows/filtering.md) — planned eight-field filtering; the current date-sorted list links to expense detail/edit/delete
+- [Filtering](workflows/filtering.md) — implemented eight-field, real-time filtering with validated local dates, currency amounts, stale-option cleanup, and desktop/mobile coverage
 - [Dashboard](workflows/dashboard.md) — current groups-list implementation and the planned summaries, analytics, and activity views
 
 ### Ideas (captured, not committed)
@@ -82,7 +82,7 @@ Last updated: 2026-09-23
 | Edit / delete expense             | DONE        |
 | Split types (5 types)              | DONE        |
 | Paid-by (frequent payers UI)       | DONE        |
-| Expense list + filtering           | IN PROGRESS |
+| Expense list + filtering           | DONE        |
 | Balances / who-owes-whom view      | DONE        |
 | Receipt attachments                | PENDING     |
 | Group settings + deletion          | PENDING     |
@@ -102,6 +102,12 @@ expenses or overwrite newer edits, and saved ratio text preserves accepted share
 reopening and editing. Legacy numeric ratio records remain readable, but digits already lost
 cannot be recovered automatically; invalid legacy inputs need correction before saving. See
 [[tag-management]] and [[expense-edit-delete]].
+
+Expense filtering is implemented across eight logical fields with cross-field AND matching,
+within-field OR selection, non-persisted group-local form state, active counts, and distinct empty
+states. Utility coverage is complete for the current predicate and validation contract; direct UI
+interaction coverage exercises every filter on desktop and mobile, and selected IDs deleted on
+another group route are removed automatically when the list remounts. See [[filtering]].
 
 ---
 

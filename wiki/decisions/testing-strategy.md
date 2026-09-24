@@ -10,7 +10,7 @@ metadata:
 Purpose: keep accounting tests fast, make every implemented area verifiable, and reserve real
 browser coverage for behavior that depends on browser storage, navigation, or offline capability.
 
-Last updated: 2026-09-23
+Last updated: 2026-09-25
 
 ## Decision
 
@@ -152,6 +152,12 @@ concurrent duplicate additions, and persisted self-deletion protection. Expense-
 update ownership and validation, old-total replacement at the aggregate limit, payer-ranking
 refresh, timestamp/attachment preservation, attachment cascades, concurrent update/delete, and
 rollback when writes fail.
+
+Expense-filter utility tests cover all eight logical fields, cross-field AND and within-field OR
+matching, local-calendar inclusivity, all five split types, multi-payer totals, currency precision,
+safe amount bounds, active-field counting, empty inputs, invalid date/amount ranges, and stale-option
+pruning. Dedicated desktop/mobile journeys manipulate every filter, assert range validation and
+clear behavior, verify child-route state retention, and confirm deletion removes a selected option.
 
 Ratio regression cases cover exact decimal metadata, minimum and maximum supported shares,
 values that Number would round, preserved decimal zeros, six-decimal percentages, and maximum

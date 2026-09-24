@@ -1,5 +1,7 @@
 import { Link, Navigate, Outlet, useParams } from "react-router-dom";
 
+import ExpenseFilterProvider from "@/features/expenses/components/expense-filter-provider";
+
 import { useStore } from "@/shared/configs/store";
 
 import type { GroupDetailContext } from "@/features/group-detail/types/group-detail.types";
@@ -54,7 +56,9 @@ const GroupDetail = () => {
         </Link>
       </header>
 
-      <Outlet key={group.id} context={context} />
+      <ExpenseFilterProvider key={group.id} currency={group.currency}>
+        <Outlet context={context} />
+      </ExpenseFilterProvider>
     </div>
   );
 };
