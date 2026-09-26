@@ -14,11 +14,14 @@ const Input = ({ name, wrapperClass = "", className = "", ...props }: InputProps
       <input
         {...props}
         {...field}
-        className={`border rounded px-3 py-2 text-sm outline-none focus:border-gray-900 ${
-          fieldState.error ? "border-red-400" : "border-gray-300"
-        } ${className}`}
+        aria-invalid={fieldState.error ? true : undefined}
+        className={`form-input ${className}`}
       />
-      {fieldState.error && <p className="text-xs text-red-500">{fieldState.error.message}</p>}
+      {fieldState.error && (
+        <p role="alert" className="text-xs money-negative">
+          {fieldState.error.message}
+        </p>
+      )}
     </div>
   );
 };

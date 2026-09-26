@@ -15,17 +15,17 @@ const StepGroup = ({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="text-xl font-bold mb-1">{title}</h2>
-        <p className="text-sm text-gray-500">{subtitle}</p>
+        <h2 className="page-title mb-1">{title}</h2>
+        <p className="soft-caption">{subtitle}</p>
       </div>
 
       <div className="flex flex-col gap-2">
-        <label className="text-sm font-medium">Group name</label>
+        <label className="field-label">Group name</label>
         <Input name="group.name" placeholder="e.g. Goa Trip, Flatmates, Family" autoFocus />
       </div>
 
       <div className="flex flex-col gap-2">
-        <label className="text-sm font-medium">Pick an icon</label>
+        <label className="field-label">Group icon</label>
         <EmojiPicker name="group.icon" emojis={GROUP_EMOJIS} />
       </div>
     </div>

@@ -1,5 +1,8 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 
+import Activity from "@/features/dashboard/components/activity";
+import Analytics from "@/features/dashboard/components/analytics";
+import Unsettled from "@/features/dashboard/components/unsettled";
 import ExpenseDetail from "@/features/expenses/components/expense-detail";
 import ExpenseForm from "@/features/expenses/components/expense-form";
 import CategoriesAndTags from "@/features/group-detail/components/categories-and-tags";
@@ -12,6 +15,7 @@ import ImportGroup from "@/features/import-export/components/import-group";
 import FeatureCarousel from "@/features/onboarding/components/feature-carousel";
 import SetupFlow from "@/features/onboarding/components/setup-flow";
 import PeopleList from "@/features/people/components/people-list";
+import AppSettings from "@/features/settings/components/app-settings";
 
 import AppLayout from "@/app/layouts";
 import RouteProtector from "@/app/router/route-protector";
@@ -31,6 +35,10 @@ export const router = createBrowserRouter([
         element: <AppLayout />,
         children: [
           { path: "/dashboard", element: <Dashboard /> },
+          { path: "/activity", element: <Activity /> },
+          { path: "/unsettled", element: <Unsettled /> },
+          { path: "/analytics", element: <Analytics /> },
+          { path: "/settings", element: <AppSettings /> },
           { path: "/friends", element: <PeopleList /> },
           { path: "/groups/new", element: <CreateGroup /> },
           {

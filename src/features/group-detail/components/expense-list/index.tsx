@@ -12,63 +12,87 @@ import { formatCurrency } from "@/shared/utils/currency";
 import type { ExpenseFilterValues } from "@/features/expenses/types/expense-filters.types";
 import type { GroupDetailContext } from "@/features/group-detail/types/group-detail.types";
 
+import Avatar from "@/shared/ui/avatar";
+import EmptyState from "@/shared/ui/empty-state";
+import Surface from "@/shared/ui/surface";
+
 const ExpenseList = () => {
   const { group, groupExpenses, groupMembers, groupCategories } =
     useOutletContext<GroupDetailContext>();
   const { control } = useFormContext<ExpenseFilterValues>();
   const values = useWatch({ control });
   const parsed = createExpenseFilterSchema(group.currency).safeParse(values);
-  const sortedExpenses = parsed.success
+  const sorted = parsed.success
     ? filterExpenses(groupExpenses, parsed.data, group.currency).sort((a, b) => b.when - a.when)
     : [];
-
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="text-lg font-semibold text-gray-900">Expenses</h2>
+      <div className="flex items-center justify-between gap-3">
+        <span role="status" className="soft-caption">
+          {parsed.success
+            ? `${sorted.length} of ${groupExpenses.length} expenses`
+            : "Correct the highlighted filters to see results."}
+        </span>
+        <Link to={`/groups/${group.id}/expenses/new`} className="btn btn-primary max-sm:hidden">
+          ＋ Add expense
+        </Link>
+      </div>
       <ExpenseFilters />
-      <p role="status" className="text-sm text-gray-500">
-        {parsed.success
-          ? `${sortedExpenses.length} of ${groupExpenses.length} expenses`
-          : "Correct the highlighted filters to see results."}
-      </p>
       {!parsed.success ? null : groupExpenses.length === 0 ? (
-        <p className="text-sm text-gray-500">No expenses have been added yet.</p>
-      ) : sortedExpenses.length === 0 ? (
-        <p className="text-sm text-gray-500">No expenses match your filters.</p>
+        <EmptyState
+          icon="🍃"
+          title="No expenses yet"
+          description="The slate is clean. Add the first expense and the math begins."
+          action={
+            <Link to={`/groups/${group.id}/expenses/new`} className="btn btn-primary">
+              ＋ Add expense
+            </Link>
+          }
+        />
+      ) : sorted.length === 0 ? (
+        <EmptyState
+          icon="🔍"
+          title="Nothing matches"
+          description="No expenses match these filters. Loosen one, or start fresh."
+        />
       ) : (
-        <ul aria-label="Expenses" className="flex flex-col gap-2">
-          {sortedExpenses.map((expense) => (
-            <li key={expense.expenseId} className="rounded border border-gray-200 px-4 py-3">
-              <Link
-                to={`/groups/${group.id}/expenses/${expense.expenseId}`}
-                className="text-sm font-medium text-blue-700 hover:underline"
-              >
-                {expense.expenseName}
-              </Link>
-              <p className="text-xs text-gray-500">
-                {formatCurrency(
-                  expense.transactions.paid.reduce((sum, item) => sum + item.amount, 0),
-                  group.currency,
-                )}
-              </p>
-              <p className="mt-1 text-xs text-gray-500">
-                Paid by{" "}
-                {expense.transactions.paid
-                  .map(
-                    (payer) =>
-                      groupMembers.find((member) => member.id === payer.memberId)?.person?.name ??
-                      "Unknown person",
-                  )
-                  .join(", ")}
-                {" · "}
-                {new Date(expense.when).toLocaleString()}
-                {" · "}
-                {groupCategories.find((category) => category.id === expense.categoryId)?.name ??
-                  "Unknown category"}
-              </p>
-            </li>
-          ))}
-        </ul>
+        <Surface className="px-5">
+          <ul aria-label="Expenses">
+            {sorted.map((expense) => {
+              const category = groupCategories.find((item) => item.id === expense.categoryId);
+              const payers = expense.transactions.paid.map(
+                (payer) =>
+                  groupMembers.find((member) => member.id === payer.memberId)?.person?.name ??
+                  "Unknown person",
+              );
+              const total = expense.transactions.paid.reduce((sum, item) => sum + item.amount, 0);
+              return (
+                <li key={expense.expenseId}>
+                  <Link to={`/groups/${group.id}/expenses/${expense.expenseId}`} className="ui-row">
+                    <Avatar icon={category?.icon} square className="!w-10 !h-10 !text-xl" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-bold">{expense.expenseName}</span>
+                      <span className="soft-caption block truncate">
+                        {payers.join(", ")} paid · {expense.splitType}
+                      </span>
+                    </span>
+                    <span className="text-right">
+                      <span className="money block font-bold">
+                        {formatCurrency(total, group.currency)}
+                      </span>
+                      <span className="soft-caption">
+                        {new Intl.DateTimeFormat(undefined, {
+                          day: "numeric",
+                          month: "short",
+                        }).format(expense.when)}
+                      </span>
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </Surface>
       )}
     </section>
   );

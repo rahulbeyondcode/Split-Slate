@@ -109,28 +109,28 @@ const CategoryManagement = () => {
   };
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="surface surface-pad flex flex-col gap-3">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h3 className="text-base font-semibold text-gray-900">Categories</h3>
-          <p className="text-sm text-gray-500">{groupCategories.length} available</p>
+          <h2 className="section-title">Categories</h2>
+          <p className="soft-caption">{groupCategories.length} available</p>
         </div>
         {categoryMode !== "add" && (
-          <button
-            type="button"
-            onClick={handleAddCategoryClick}
-            className="px-4 py-2 bg-gray-900 text-white text-sm rounded shrink-0"
-          >
+          <button type="button" onClick={handleAddCategoryClick} className="btn btn-secondary">
             Add category
           </button>
         )}
       </div>
 
-      {categoryError && <p className="text-sm text-red-500">{categoryError}</p>}
+      {categoryError && (
+        <p role="alert" className="note money-negative">
+          {categoryError}
+        </p>
+      )}
 
       {categoryMode && (
         <FormProvider {...categoryForm}>
-          <form onSubmit={handleSaveCategory} className="flex flex-col gap-2 border rounded p-3">
+          <form onSubmit={handleSaveCategory} className="flex flex-col gap-2 note">
             <p className="text-sm font-medium text-gray-900">{categoryFormTitle}</p>
             <div className="flex gap-2 items-start">
               <EmojiPicker name="icon" emojis={CATEGORY_EMOJIS} />
@@ -145,11 +145,7 @@ const CategoryManagement = () => {
               >
                 Cancel
               </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="px-4 py-2 bg-gray-900 text-white text-sm rounded disabled:opacity-50"
-              >
+              <button type="submit" disabled={isSubmitting} className="btn btn-primary">
                 {isSubmitting ? "Saving..." : categorySubmitLabel}
               </button>
             </div>
@@ -157,27 +153,29 @@ const CategoryManagement = () => {
         </FormProvider>
       )}
 
-      <ul className="flex flex-col gap-2">
+      <ul>
         {groupCategories.map((category) => (
-          <li
-            key={category.id}
-            className="flex items-center justify-between gap-3 rounded border border-gray-200 px-4 py-3"
-          >
-            <span className="text-sm font-medium text-gray-900">
-              {category.icon} {category.name}
+          <li key={category.id} className="ui-row">
+            <span className="flex items-center gap-3 font-bold">
+              <span className="avatar avatar-square !h-9 !w-9 !text-lg">{category.icon}</span>
+              {category.name}
+              <span className="soft-caption">
+                {groupExpenses.filter((expense) => expense.categoryId === category.id).length}{" "}
+                expenses
+              </span>
             </span>
             <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={() => handleEditCategory(category)}
-                className="text-xs font-medium text-gray-600"
+                className="btn btn-secondary !px-3"
               >
                 Edit
               </button>
               <button
                 type="button"
                 onClick={() => handleDeleteCategory(category)}
-                className="text-xs font-medium text-red-500"
+                className="btn btn-danger !px-3"
               >
                 Delete
               </button>

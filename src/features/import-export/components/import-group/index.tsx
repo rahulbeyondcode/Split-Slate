@@ -65,17 +65,21 @@ const ImportGroup = () => {
   };
 
   if (!initialized || loading) {
-    return <main className="mx-auto max-w-3xl px-6 py-10">Validating transfer…</main>;
+    return (
+      <main className="page page-narrow" role="status">
+        Validating transfer…
+      </main>
+    );
   }
 
   return (
-    <main className="mx-auto flex min-h-svh max-w-3xl flex-col gap-6 px-6 py-10">
+    <main className="page page-narrow flex min-h-svh flex-col gap-6">
       {source ? (
         <ImportReview source={source} onImported={handleImported} />
       ) : (
         <>
           <header>
-            <h1 className="text-2xl font-bold">Import a group</h1>
+            <h1 className="page-title">Import a group</h1>
             <p className="mt-2 text-sm text-gray-600">
               Choose a Split Slate CSV or ZIP transfer file. Nothing is written until you review the
               counts and press Import group.
@@ -86,7 +90,7 @@ const ImportGroup = () => {
               {error}
             </p>
           )}
-          <label className="flex cursor-pointer flex-col gap-2 rounded border border-dashed border-gray-400 p-6 text-center">
+          <label className="surface surface-pad flex cursor-pointer flex-col gap-2 border-dashed text-center">
             <span className="font-medium">Choose CSV or ZIP</span>
             <input
               type="file"
@@ -95,7 +99,7 @@ const ImportGroup = () => {
               className="mx-auto text-sm"
             />
           </label>
-          <Link to="/" className="text-sm text-blue-700">
+          <Link to="/" className="btn btn-secondary self-start">
             Back to Split Slate
           </Link>
         </>

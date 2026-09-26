@@ -10,19 +10,18 @@ const StepCurrency = () => {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="text-xl font-bold mb-1">Choose a currency</h2>
+        <h2 className="page-title mb-1">One currency for this group</h2>
         <p className="text-sm text-gray-500">All expenses in this group will use this currency.</p>
       </div>
 
-      <div className="flex flex-col gap-2 overflow-y-auto max-h-72">
+      <div className="flex flex-col gap-2 overflow-y-auto max-h-96">
         {CURRENCIES.map((curr) => (
           <button
             key={curr.code}
             type="button"
             onClick={() => field.onChange(curr.code)}
-            className={`flex items-center gap-3 px-4 py-3 border rounded text-left ${
-              field.value === curr.code ? "border-gray-900 bg-gray-50" : "border-gray-200"
-            }`}
+            aria-pressed={field.value === curr.code}
+            className={`surface flex items-center gap-3 px-4 py-3 text-left ${field.value === curr.code ? "!bg-[var(--brand-soft)] !border-[var(--brand)]" : ""}`}
           >
             <span className="text-lg w-8 text-center">{curr.symbol}</span>
             <span className="text-sm font-medium">{curr.code}</span>

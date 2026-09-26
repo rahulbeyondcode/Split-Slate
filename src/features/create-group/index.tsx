@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import StepCategories from "@/features/create-group/components/step-categories";
 import StepCurrency from "@/features/create-group/components/step-currency";
@@ -109,21 +109,30 @@ const CreateGroupFlow = () => {
 
   return (
     <FormProvider {...methods}>
-      <div className="flex flex-col h-svh p-6 max-w-md mx-auto">
-        <div className="flex gap-1 mb-8">
+      <div className="flex flex-col min-h-svh">
+        <header className="flex items-center gap-3 border-b border-[var(--line)] bg-[var(--surface)] px-6 py-4">
+          <Link to="/dashboard" className="btn btn-secondary !px-3" aria-label="Back to dashboard">
+            ←
+          </Link>
+          <h1 className="section-title">New group</h1>
+          <span className="chip chip-selected">
+            Step {stepIndex + 1} of {CREATE_GROUP_STEPS.length}
+          </span>
+        </header>
+        <div className="mx-auto flex w-full max-w-2xl gap-1 px-6 pt-6">
           {CREATE_GROUP_STEPS.map((step, index) => (
             <div
               key={step}
-              className={`h-1 flex-1 rounded-full ${index <= stepIndex ? "bg-gray-900" : "bg-gray-200"}`}
+              className={`h-1 flex-1 rounded-full ${index <= stepIndex ? "bg-[var(--brand)]" : "bg-[var(--line)]"}`}
             />
           ))}
         </div>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="mx-auto w-full max-w-2xl flex-1 px-6 py-12">
           {currentStep === "group" && (
             <StepGroup
-              title="Create a group"
-              subtitle="A group holds all expenses between a set of people."
+              title="Name your group"
+              subtitle="A trip, a flat, a lunch club — give it a face."
             />
           )}
           {currentStep === "currency" && <StepCurrency />}
@@ -131,21 +140,16 @@ const CreateGroupFlow = () => {
           {currentStep === "members" && <StepMembers />}
         </div>
 
-        <div className="flex items-center justify-between pt-4">
+        <div className="form-toolbar">
           <button
             type="button"
             onClick={handleBack}
-            className={`px-4 py-2 text-sm text-gray-600 ${stepIndex === 0 ? "invisible" : ""}`}
+            className={`btn btn-secondary ${stepIndex === 0 ? "invisible" : ""}`}
           >
             Back
           </button>
-          <button
-            type="button"
-            onClick={handleNext}
-            disabled={saving}
-            className="px-6 py-2 bg-gray-900 text-white text-sm rounded disabled:opacity-30"
-          >
-            {saving ? "Creating…" : isLast ? "Create group" : "Next"}
+          <button type="button" onClick={handleNext} disabled={saving} className="btn btn-primary">
+            {saving ? "Creating…" : isLast ? "Create group" : "Save and Proceed"}
           </button>
         </div>
       </div>

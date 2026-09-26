@@ -22,7 +22,7 @@ const PayerSelector = ({ members, quickIds, currency }: PropsType) => {
 
   return (
     <fieldset className="flex flex-col gap-3">
-      <legend className="mb-2 font-semibold">Paid by</legend>
+      <legend className="field-label">Paid by</legend>
       <div className="flex flex-wrap gap-4 text-sm">
         <label className="flex items-center gap-2">
           <input type="radio" value="single" {...register("payerMode")} />
@@ -39,17 +39,17 @@ const PayerSelector = ({ members, quickIds, currency }: PropsType) => {
             {visibleIds.map((id) => {
               const member = members.find((item) => item.id === id);
               return member ? (
-                <label
-                  key={id}
-                  className="flex items-center gap-2 rounded border border-gray-300 px-3 py-2 text-sm"
-                >
+                <label key={id} className="cursor-pointer">
                   <input
                     type="radio"
                     value={id}
                     aria-label={`Paid by ${member.name}`}
                     {...register("payerId")}
+                    className="peer sr-only"
                   />
-                  {member.name}
+                  <span className="chip peer-checked:!bg-[var(--brand-soft)] peer-checked:!text-[var(--brand-ink)] peer-checked:!border-[var(--brand)]">
+                    {member.name}
+                  </span>
                 </label>
               ) : null;
             })}
@@ -58,7 +58,7 @@ const PayerSelector = ({ members, quickIds, currency }: PropsType) => {
             <button
               type="button"
               onClick={() => setShowAll(true)}
-              className="self-start text-sm text-blue-700"
+              className="btn btn-secondary self-start"
             >
               Show more payers
             </button>

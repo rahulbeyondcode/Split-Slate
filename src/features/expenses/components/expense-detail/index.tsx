@@ -62,33 +62,30 @@ const ExpenseDetail = () => {
 
   return (
     <article className="flex flex-col gap-5">
-      <Link to={`/groups/${group.id}/expenses`} className="text-sm text-blue-700">
-        Back to expenses
+      <Link to={`/groups/${group.id}/expenses`} className="btn btn-secondary self-start">
+        ← Back to expenses
       </Link>
-      <div>
-        <h2 className="break-words text-xl font-semibold">{expense.expenseName}</h2>
-        <p className="mt-2 text-2xl font-semibold">
+      <div className="hero">
+        <h2 className="break-words text-xl font-extrabold">{expense.expenseName}</h2>
+        <p className="hero-number mt-2">
           {formatCurrency(
             expense.transactions.paid.reduce((sum, row) => sum + row.amount, 0),
             group.currency,
           )}
         </p>
-        <p className="mt-2 text-sm text-gray-600">{new Date(expense.when).toLocaleString()}</p>
-        <p className="text-sm text-gray-600">
+        <p className="mt-2 text-sm text-white/85">{new Date(expense.when).toLocaleString()}</p>
+        <p className="text-sm text-white/85">
           {category?.icon} {category?.name ?? "Unknown category"}
           {category && !category.isActive ? " (inactive)" : ""}
         </p>
-        <p className="text-sm text-gray-600">Recorded by {memberName(expense.createdBy)}</p>
+        <p className="text-sm text-white/85">Recorded by {memberName(expense.createdBy)}</p>
       </div>
       {expense.tagIds.length > 0 && (
         <ul aria-label="Tags" className="flex flex-wrap gap-2">
           {expense.tagIds.map((id) => {
             const tag = groupTags.find((item) => item.id === id);
             return tag ? (
-              <li
-                key={id}
-                className="flex items-center gap-2 rounded border border-gray-200 px-2 py-1 text-sm"
-              >
+              <li key={id} className="chip">
                 <span className="h-3 w-3 rounded-full" style={{ backgroundColor: tag.color }} />
                 {tag.name}
               </li>
@@ -96,23 +93,20 @@ const ExpenseDetail = () => {
           })}
         </ul>
       )}
-      <section className="flex flex-col gap-2" aria-label="Paid by">
-        <h3 className="font-semibold">Paid by</h3>
-        <ul className="flex flex-col gap-2">
+      <section className="surface surface-pad flex flex-col gap-2" aria-label="Paid by">
+        <h3 className="section-title">Paid by</h3>
+        <ul>
           {expense.transactions.paid.map((row) => (
-            <li
-              key={row.memberId}
-              className="flex justify-between gap-3 rounded border border-gray-200 p-3"
-            >
+            <li key={row.memberId} className="ui-row justify-between">
               <span>{memberName(row.memberId)}</span>
               <span>{formatCurrency(row.amount, group.currency)}</span>
             </li>
           ))}
         </ul>
       </section>
-      <section className="flex flex-col gap-2" aria-label="Split breakdown">
-        <h3 className="font-semibold">Split: {splitNames[expense.splitType]}</h3>
-        <ul className="flex flex-col gap-2">
+      <section className="surface surface-pad flex flex-col gap-2" aria-label="Split breakdown">
+        <h3 className="section-title">Split: {splitNames[expense.splitType]}</h3>
+        <ul>
           {expense.transactions.owes.map((row) => {
             const meta = expense.splitMeta.find((item) => item.memberId === row.memberId);
             const detail = meta
@@ -123,10 +117,7 @@ const ExpenseDetail = () => {
                   : `${meta.value} shares`
               : "";
             return (
-              <li
-                key={row.memberId}
-                className="flex justify-between gap-3 rounded border border-gray-200 p-3"
-              >
+              <li key={row.memberId} className="ui-row justify-between">
                 <div>
                   {memberName(row.memberId)}
                   {detail && <p className="text-xs text-gray-500">{detail}</p>}
@@ -140,7 +131,7 @@ const ExpenseDetail = () => {
       {confirmingId === expense.expenseId ? (
         <section
           aria-label="Confirm expense deletion"
-          className="flex flex-col gap-3 rounded border border-red-300 p-4"
+          className="surface surface-pad flex flex-col gap-3 !border-[var(--negative)]"
         >
           <h3 className="font-semibold">Delete this expense permanently?</h3>
           <p className="text-sm">
@@ -157,7 +148,7 @@ const ExpenseDetail = () => {
               type="button"
               disabled={deleting}
               onClick={() => setConfirmingId(null)}
-              className="rounded border border-gray-300 px-4 py-2 text-sm"
+              className="btn btn-secondary"
             >
               Keep expense
             </button>
@@ -165,7 +156,7 @@ const ExpenseDetail = () => {
               type="button"
               disabled={deleting}
               onClick={handleDelete}
-              className="rounded bg-red-700 px-4 py-2 text-sm text-white disabled:opacity-60"
+              className="btn btn-danger"
             >
               {deleting ? "Deleting…" : "Delete permanently"}
             </button>
@@ -175,15 +166,11 @@ const ExpenseDetail = () => {
         <div className="flex flex-wrap gap-4">
           <Link
             to={`/groups/${group.id}/expenses/${expense.expenseId}/edit`}
-            className="rounded bg-gray-900 px-4 py-2 text-sm text-white"
+            className="btn btn-primary"
           >
             Edit expense
           </Link>
-          <button
-            type="button"
-            onClick={handleConfirm}
-            className="rounded border border-red-300 px-4 py-2 text-sm text-red-700"
-          >
+          <button type="button" onClick={handleConfirm} className="btn btn-danger">
             Delete expense
           </button>
         </div>

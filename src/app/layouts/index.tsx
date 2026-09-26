@@ -1,4 +1,5 @@
-import { Outlet } from "react-router-dom";
+import { useEffect } from "react";
+import { Outlet, useLocation } from "react-router-dom";
 
 import { useViewport } from "@/shared/hooks/use-viewport";
 
@@ -8,15 +9,25 @@ import AppSidebar from "@/app/layouts/sidebar";
 
 const AppLayout = () => {
   const { isMobile, isDesktop } = useViewport();
+  const { pathname } = useLocation();
+  const isExpenseForm = /^\/groups\/[^/]+\/expenses\/(new|[^/]+\/edit)$/.test(pathname);
+  const showActivity = pathname === "/dashboard" || /^\/groups\/[^/]+(\/expenses)?$/.test(pathname);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme =
+      localStorage.getItem("split-slate-theme") === "dark" ? "dark" : "light";
+  }, []);
 
   return (
-    <div className="flex h-svh overflow-hidden">
-      {!isMobile && <AppSidebar />}
-      <main className="flex-1 overflow-y-auto">
+    <div className="app-shell">
+      {!isMobile && !isExpenseForm && <AppSidebar />}
+      <main className="app-main" id="main-content">
         <Outlet />
       </main>
-      {isDesktop && <ActivityPanel />}
-      {isMobile && <AppFooter />}
+      {isDesktop && !isExpenseForm && (pathname === "/groups/new" || showActivity) && (
+        <ActivityPanel />
+      )}
+      {isMobile && !isExpenseForm && <AppFooter />}
     </div>
   );
 };

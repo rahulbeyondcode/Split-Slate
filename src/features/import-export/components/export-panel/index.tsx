@@ -161,8 +161,8 @@ const ExportPanel = ({ groupId, groupName, attachmentCount }: PropsType) => {
     <FormProvider {...methods}>
       <section aria-labelledby="export-heading" className="flex flex-col gap-4">
         <div>
-          <h3 id="export-heading" className="text-lg font-semibold text-gray-900">
-            Transfer group
+          <h3 id="export-heading" className="section-title">
+            Export group
           </h3>
           <p className="mt-1 text-sm text-gray-600">
             Create an independent editable copy of selected group data on another device.
@@ -189,7 +189,7 @@ const ExportPanel = ({ groupId, groupName, attachmentCount }: PropsType) => {
         )}
 
         <div className="grid gap-3 lg:grid-cols-3">
-          <article className="flex flex-col gap-3 rounded border border-gray-200 p-4">
+          <article className="surface surface-pad flex flex-col gap-3">
             <div>
               <h4 className="font-semibold">Transfer link</h4>
               <p className="mt-1 text-sm text-gray-600">
@@ -204,13 +204,13 @@ const ExportPanel = ({ groupId, groupName, attachmentCount }: PropsType) => {
               type="button"
               disabled={busy || attachmentsSelected}
               onClick={handleCreateLink}
-              className="mt-auto rounded bg-gray-900 px-4 py-2 text-sm text-white disabled:opacity-60"
+              className="btn btn-primary mt-auto"
             >
               {operation === "link" ? "Creating…" : "Create transfer link"}
             </button>
           </article>
 
-          <article className="flex flex-col gap-3 rounded border border-gray-200 p-4">
+          <article className="surface surface-pad flex flex-col gap-3">
             <div>
               <h4 className="font-semibold">CSV file</h4>
               <p className="mt-1 text-sm text-gray-600">
@@ -221,13 +221,13 @@ const ExportPanel = ({ groupId, groupName, attachmentCount }: PropsType) => {
               type="button"
               disabled={busy || attachmentsSelected}
               onClick={handleDownloadCsv}
-              className="mt-auto rounded border border-gray-300 px-4 py-2 text-sm disabled:opacity-60"
+              className="btn btn-secondary mt-auto"
             >
               {operation === "csv" ? "Preparing…" : "Download CSV"}
             </button>
           </article>
 
-          <article className="flex flex-col gap-3 rounded border border-gray-200 p-4">
+          <article className="surface surface-pad flex flex-col gap-3">
             <div>
               <h4 className="font-semibold">ZIP file</h4>
               <p className="mt-1 text-sm text-gray-600">
@@ -238,7 +238,7 @@ const ExportPanel = ({ groupId, groupName, attachmentCount }: PropsType) => {
               type="button"
               disabled={busy}
               onClick={handleDownloadZip}
-              className="mt-auto rounded border border-gray-300 px-4 py-2 text-sm disabled:opacity-60"
+              className="btn btn-secondary mt-auto"
             >
               {operation === "zip" ? "Preparing…" : "Download ZIP"}
             </button>
@@ -255,13 +255,13 @@ const ExportPanel = ({ groupId, groupName, attachmentCount }: PropsType) => {
               readOnly
               value={transferLink.value}
               onFocus={(event) => event.currentTarget.select()}
-              className="min-w-0 rounded border border-gray-300 px-3 py-2 text-sm"
+              className="form-input min-w-0"
             />
             <button
               type="button"
               disabled={busy}
               onClick={handleCopyLink}
-              className="self-start rounded border border-gray-300 px-4 py-2 text-sm disabled:opacity-60"
+              className="btn btn-secondary self-start"
             >
               {operation === "copy" ? "Copying…" : "Copy link"}
             </button>

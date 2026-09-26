@@ -35,7 +35,7 @@ const StepMembers = () => {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="text-xl font-bold mb-1">Add members</h2>
+        <h2 className="page-title mb-1">Who's coming along?</h2>
         <p className="text-sm text-gray-500">
           You're already in this group. Pick from your friends or add someone new — you can always
           add them later.
@@ -53,7 +53,7 @@ const StepMembers = () => {
                 key={person.id}
                 type="button"
                 onClick={() => handlePick(person)}
-                className="flex items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-1.5 text-sm hover:bg-gray-50"
+                className="chip"
               >
                 <span>{person.icon}</span>
                 <span>{person.name}</span>
@@ -81,15 +81,15 @@ const StepMembers = () => {
         </button>
       )}
 
-      <ul className="flex flex-col gap-2">
-        <li className="flex items-center justify-between px-3 py-2 border rounded bg-gray-50">
+      <ul className="surface px-4">
+        <li className="ui-row">
           <span className="text-sm">
             {localUser?.icon} {localUser?.name}
           </span>
           <span className="text-xs text-gray-400">You</span>
         </li>
         {fields.map((f, i) => (
-          <li key={f._key} className="flex items-center justify-between px-3 py-2 border rounded">
+          <li key={f._key} className="ui-row">
             <span className="text-sm">
               {f.icon} {f.name}
             </span>

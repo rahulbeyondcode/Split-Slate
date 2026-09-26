@@ -122,70 +122,108 @@ const ExpenseForm = () => {
 
   return (
     <FormProvider {...methods}>
-      <form onSubmit={handleSave} noValidate className="flex flex-col gap-5">
-        <h2 className="text-lg font-semibold">{expense ? "Edit expense" : "Add expense"}</h2>
+      <form onSubmit={handleSave} noValidate className="min-h-[calc(100svh-72px)] flex flex-col">
         <fieldset
           disabled={methods.formState.isSubmitting}
-          className="flex min-w-0 flex-col gap-5 disabled:opacity-60"
+          className="mx-auto grid w-full max-w-6xl flex-1 min-w-0 gap-6 px-5 py-8 md:grid-cols-2 md:items-start disabled:opacity-60"
         >
-          <label className="flex flex-col gap-1 text-sm">
-            Expense name
-            <Input name="expenseName" placeholder="Dinner, groceries, taxi…" autoFocus />
-          </label>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <label className="flex flex-col gap-1 text-sm">
-              Amount ({group.currency})<Input name="amount" inputMode="decimal" placeholder="0" />
+          <div className="surface form-card flex flex-col gap-5">
+            <label className="block">
+              <span className="field-label">Expense name</span>
+              <Input name="expenseName" placeholder="Expense name…" autoFocus />
             </label>
-            <label className="flex flex-col gap-1 text-sm">
-              Date and time
-              <Input name="when" type="datetime-local" />
+            <label className="block">
+              <span className="field-label">Amount ({group.currency})</span>
+              <Input
+                name="amount"
+                inputMode="decimal"
+                placeholder="0"
+                className="!bg-[var(--brand-soft)] !border-0 !py-4 !text-3xl !font-extrabold money"
+              />
             </label>
-          </div>
-          <label className="flex flex-col gap-1 text-sm">
-            Category
-            <select
-              {...methods.register("categoryId")}
-              className="rounded border border-gray-300 px-3 py-2"
-            >
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.icon} {category.name}
-                  {category.isActive ? "" : " (inactive)"}
-                </option>
-              ))}
-            </select>
-            {errors.categoryId && (
-              <span role="alert" className="text-red-600">
-                {errors.categoryId.message}
-              </span>
-            )}
-          </label>
-          <PayerSelector members={payerMembers} quickIds={quickIds} currency={group.currency} />
-          <SplitEditor members={members} currency={group.currency} />
-          {groupTags.length > 0 && (
-            <fieldset className="flex flex-col gap-2">
-              <legend className="mb-2 text-sm font-semibold">Tags (optional)</legend>
-              <div className="flex flex-wrap gap-3">
-                {groupTags.map((tag) => (
-                  <label key={tag.id} className="flex items-center gap-2 text-sm">
-                    <input type="checkbox" value={tag.id} {...methods.register("tagIds")} />
-                    <span className="h-3 w-3 rounded-full" style={{ backgroundColor: tag.color }} />
-                    {tag.name}
+            <fieldset>
+              <legend className="field-label">Category</legend>
+              <div className="flex flex-wrap gap-2">
+                {categories.map((category) => (
+                  <label key={category.id} className="cursor-pointer">
+                    <input
+                      type="radio"
+                      value={category.id}
+                      {...methods.register("categoryId")}
+                      className="peer sr-only"
+                    />
+                    <span className="chip peer-checked:!bg-[var(--brand-soft)] peer-checked:!border-[var(--brand)] peer-checked:!text-[var(--brand-ink)]">
+                      {category.icon} {category.name}
+                      {category.isActive ? "" : " (inactive)"}
+                    </span>
                   </label>
                 ))}
               </div>
+              {errors.categoryId && (
+                <span role="alert" className="money-negative text-xs">
+                  {errors.categoryId.message}
+                </span>
+              )}
             </fieldset>
-          )}
-          {formError && (
-            <p role="alert" className="text-sm text-red-600">
-              {formError}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <fieldset className="flex flex-col gap-2">
+                <legend className="field-label">Tags (optional)</legend>
+                {groupTags.length ? (
+                  <div className="flex flex-wrap gap-2">
+                    {groupTags.map((tag) => (
+                      <label key={tag.id} className="chip cursor-pointer">
+                        <input
+                          type="checkbox"
+                          value={tag.id}
+                          {...methods.register("tagIds")}
+                          className="accent-[var(--brand)]"
+                        />
+                        <span
+                          className="h-2 w-2 rounded-full"
+                          style={{ backgroundColor: tag.color }}
+                        />
+                        {tag.name}
+                      </label>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="soft-caption">No tags in this group yet.</p>
+                )}
+              </fieldset>
+              <label className="block">
+                <span className="field-label">When</span>
+                <Input name="when" type="datetime-local" />
+              </label>
+            </div>
+            <p className="soft-caption">
+              Notes and new attachments are not available yet. Existing expense data is preserved.
             </p>
-          )}
-          <div className="flex items-center justify-end gap-4">
-            <Link to={cancelPath} className="text-sm text-gray-600">
+          </div>
+          <div className="surface form-card flex flex-col gap-5">
+            <PayerSelector members={payerMembers} quickIds={quickIds} currency={group.currency} />
+            <div className="border-t border-[var(--line)] pt-4">
+              <SplitEditor members={members} currency={group.currency} />
+            </div>
+            {formError && (
+              <p role="alert" className="note money-negative">
+                {formError}
+              </p>
+            )}
+          </div>
+        </fieldset>
+        <div className="form-toolbar">
+          <span className="soft-caption max-sm:hidden">
+            Expenses update balances as soon as they are saved.
+          </span>
+          <div className="flex gap-2 ml-auto">
+            <Link to={cancelPath} className="btn btn-secondary">
               Cancel
             </Link>
-            <button type="submit" className="rounded bg-gray-900 px-4 py-2 text-sm text-white">
+            <button
+              disabled={methods.formState.isSubmitting}
+              type="submit"
+              className="btn btn-primary"
+            >
               {methods.formState.isSubmitting
                 ? "Saving…"
                 : expense
@@ -193,7 +231,7 @@ const ExpenseForm = () => {
                   : "Save expense"}
             </button>
           </div>
-        </fieldset>
+        </div>
       </form>
     </FormProvider>
   );

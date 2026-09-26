@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 
 import { slides } from "@/features/onboarding/components/feature-carousel/slide-data";
 
+import AppLogo from "@/shared/ui/app-logo";
+
 const FeatureCarousel = () => {
   const [current, setCurrent] = useState(0);
   const navigate = useNavigate();
@@ -20,19 +22,22 @@ const FeatureCarousel = () => {
   };
 
   return (
-    <div className="flex flex-col h-svh p-6 max-w-md mx-auto">
-      <div className="flex justify-end h-8">
+    <div className="mx-auto flex min-h-svh max-w-md flex-col px-6 py-7">
+      <div className="flex items-center justify-between">
+        <AppLogo />
         {!isLast && (
-          <button className="text-sm text-gray-500" onClick={() => navigate("/onboarding/setup")}>
+          <button className="soft-caption" onClick={() => navigate("/onboarding/setup")}>
             Skip
           </button>
         )}
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center text-center gap-4">
-        <div className="text-6xl">{slide.icon}</div>
-        <h2 className="text-2xl font-bold">{slide.title}</h2>
-        <p className="text-gray-600 text-base leading-relaxed max-w-xs">{slide.description}</p>
+        <div className="hero !rounded-[52px] flex h-40 w-40 items-center justify-center !p-0 !text-6xl">
+          {slide.icon}
+        </div>
+        <h1 className="page-title mt-5">{slide.title}</h1>
+        <p className="muted text-sm leading-relaxed max-w-xs">{slide.description}</p>
       </div>
 
       <div className="flex justify-center gap-2 mb-6">
@@ -40,28 +45,26 @@ const FeatureCarousel = () => {
           <button
             key={i}
             onClick={() => setCurrent(i)}
-            className={`w-2 h-2 rounded-full ${i === current ? "bg-gray-900" : "bg-gray-300"}`}
+            className={`h-2 rounded-full ${i === current ? "w-5 bg-[var(--brand)]" : "w-2 bg-[var(--line)]"}`}
             aria-label={`Go to slide ${i + 1}`}
           />
         ))}
       </div>
 
-      <div className="flex justify-between items-center">
-        <button
-          onClick={() => setCurrent((c) => c - 1)}
-          disabled={isFirst}
-          className="px-4 py-2 text-sm disabled:opacity-30"
-        >
-          Previous
+      <div className="flex flex-col gap-2">
+        <button onClick={handleNext} className="btn btn-primary w-full !py-3">
+          {isLast ? "Get started" : "Next"}
         </button>
-        <button onClick={handleNext} className="px-6 py-2 bg-gray-900 text-white text-sm rounded">
-          {isLast ? "Get Started" : "Next"}
-        </button>
+        {!isFirst && (
+          <button onClick={() => setCurrent((c) => c - 1)} className="btn btn-secondary">
+            Previous
+          </button>
+        )}
       </div>
       <button
         type="button"
         onClick={() => navigate("/import")}
-        className="mt-3 text-sm text-blue-700"
+        className="mt-3 text-xs text-[var(--brand-ink)]"
       >
         Import an existing group instead
       </button>

@@ -128,27 +128,26 @@ const MemberList = () => {
     <section className="flex flex-col gap-3">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">Members</h2>
-          <p className="text-sm text-gray-500">{groupMembers.length} in this group</p>
+          <p className="soft-caption">{groupMembers.length} in this group</p>
         </div>
         {mode?.type !== "add" && (
-          <button
-            type="button"
-            onClick={handleOpenAdd}
-            className="shrink-0 rounded bg-gray-900 px-4 py-2 text-sm text-white"
-          >
+          <button type="button" onClick={handleOpenAdd} className="btn btn-primary">
             Add member
           </button>
         )}
       </div>
 
-      {memberError && <p className="text-sm text-red-500">{memberError}</p>}
+      {memberError && (
+        <p role="alert" className="note money-negative">
+          {memberError}
+        </p>
+      )}
 
       {mode?.type === "add" && (
         <fieldset
           disabled={isAddingMember}
           aria-busy={isAddingMember}
-          className="flex min-w-0 flex-col gap-3 rounded border border-gray-200 p-3 disabled:opacity-60"
+          className="surface surface-pad flex min-w-0 flex-col gap-3 disabled:opacity-60"
         >
           {availablePeople.length > 0 && (
             <div className="flex flex-col gap-2">
@@ -161,7 +160,7 @@ const MemberList = () => {
                     key={person.id}
                     type="button"
                     onClick={() => handleAddExistingPerson(person)}
-                    className="flex items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-1.5 text-sm hover:bg-gray-50"
+                    className="chip"
                   >
                     <span>{person.icon}</span>
                     <span>{person.name}</span>
@@ -200,7 +199,7 @@ const MemberList = () => {
         </fieldset>
       )}
 
-      <ul className="flex flex-col gap-2">
+      <ul className="surface px-5">
         {groupMembers.map((member) =>
           mode?.type === "edit" && mode.memberId === member.id && member.person ? (
             <li key={member.id}>
@@ -212,12 +211,9 @@ const MemberList = () => {
               />
             </li>
           ) : (
-            <li
-              key={member.id}
-              className="flex items-center justify-between gap-3 rounded border px-4 py-3"
-            >
+            <li key={member.id} className="ui-row">
               <span className="flex items-center gap-3">
-                <span className="text-xl">{member.person?.icon}</span>
+                <span className="avatar">{member.person?.icon}</span>
                 <span className="text-sm font-medium text-gray-900">
                   {member.person?.name ?? "Unknown person"}
                   {member.personId === localUser?.id && (
@@ -230,7 +226,7 @@ const MemberList = () => {
                   type="button"
                   onClick={() => handleOpenEdit(member.id)}
                   disabled={isAddingMember || !member.person}
-                  className="text-xs font-medium text-gray-600 disabled:opacity-50"
+                  className="btn btn-secondary"
                 >
                   Edit
                 </button>
@@ -239,7 +235,7 @@ const MemberList = () => {
                     type="button"
                     onClick={() => handleDeleteMember(member)}
                     disabled={isAddingMember}
-                    className="text-xs font-medium text-red-500 disabled:opacity-50"
+                    className="btn btn-danger"
                   >
                     Delete
                   </button>

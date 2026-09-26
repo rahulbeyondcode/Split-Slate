@@ -101,28 +101,28 @@ const TagManagement = () => {
   };
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="surface surface-pad flex flex-col gap-3">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h3 className="text-base font-semibold text-gray-900">Tags</h3>
-          <p className="text-sm text-gray-500">{groupTags.length} available</p>
+          <h2 className="section-title">Tags</h2>
+          <p className="soft-caption">free-form · group-scoped</p>
         </div>
         {tagMode !== "add" && (
-          <button
-            type="button"
-            onClick={handleAddTagClick}
-            className="px-4 py-2 bg-gray-900 text-white text-sm rounded shrink-0"
-          >
+          <button type="button" onClick={handleAddTagClick} className="btn btn-secondary">
             Add tag
           </button>
         )}
       </div>
 
-      {tagError && <p className="text-sm text-red-500">{tagError}</p>}
+      {tagError && (
+        <p role="alert" className="note money-negative">
+          {tagError}
+        </p>
+      )}
 
       {tagMode && (
         <FormProvider {...tagForm}>
-          <form onSubmit={handleSaveTag} className="flex flex-col gap-2 border rounded p-3">
+          <form onSubmit={handleSaveTag} className="note flex flex-col gap-2">
             <p className="text-sm font-medium text-gray-900">{tagFormTitle}</p>
             <Input name="name" placeholder="Tag name" autoFocus />
             <ColorPicker name="color" label="Tag color" />
@@ -135,11 +135,7 @@ const TagManagement = () => {
               >
                 Cancel
               </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="px-4 py-2 bg-gray-900 text-white text-sm rounded disabled:opacity-50"
-              >
+              <button type="submit" disabled={isSubmitting} className="btn btn-primary">
                 {isSubmitting ? "Saving..." : tagSubmitLabel}
               </button>
             </div>
@@ -148,12 +144,9 @@ const TagManagement = () => {
       )}
 
       {groupTags.length > 0 ? (
-        <ul className="flex flex-col gap-2">
+        <ul>
           {groupTags.map((tag) => (
-            <li
-              key={tag.id}
-              className="flex items-center justify-between gap-3 rounded border border-gray-200 px-4 py-3"
-            >
+            <li key={tag.id} className="ui-row">
               <span className="flex items-center gap-2 text-sm font-medium text-gray-900">
                 <span
                   className="h-3 w-3 rounded-full"
@@ -166,14 +159,14 @@ const TagManagement = () => {
                 <button
                   type="button"
                   onClick={() => handleEditTag(tag)}
-                  className="text-xs font-medium text-gray-600"
+                  className="btn btn-secondary !px-3"
                 >
                   Edit
                 </button>
                 <button
                   type="button"
                   onClick={() => handleDeleteTag(tag)}
-                  className="text-xs font-medium text-red-500"
+                  className="btn btn-danger !px-3"
                 >
                   Delete
                 </button>

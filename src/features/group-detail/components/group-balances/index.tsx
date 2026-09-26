@@ -5,10 +5,14 @@ import { formatCurrency } from "@/shared/utils/currency";
 
 import type { GroupDetailContext } from "@/features/group-detail/types/group-detail.types";
 
+import Avatar from "@/shared/ui/avatar";
+import EmptyState from "@/shared/ui/empty-state";
+import Surface from "@/shared/ui/surface";
+
 const GroupBalances = () => {
   const { group, groupMembers, groupExpenses } = useOutletContext<GroupDetailContext>();
-  let balances;
-  let transfers;
+  let balances: Map<string, number>;
+  let transfers: ReturnType<typeof suggestTransfers>;
   try {
     balances = calculateBalances(
       groupExpenses,
@@ -17,72 +21,69 @@ const GroupBalances = () => {
     transfers = suggestTransfers(balances);
   } catch (error) {
     return (
-      <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-semibold">Balances</h2>
-        <p role="alert">
-          {error instanceof Error ? error.message : "Could not calculate balances"}
-        </p>
-      </section>
+      <p role="alert" className="note money-negative">
+        {error instanceof Error ? error.message : "Could not calculate balances"}
+      </p>
     );
   }
-  const name = (id: string) =>
-    groupMembers.find((member) => member.id === id)?.person?.name ?? "Unknown person";
-
+  const person = (id: string) => groupMembers.find((member) => member.id === id)?.person;
   return (
-    <section className="flex flex-col gap-5">
-      <h2 className="text-lg font-semibold">Balances</h2>
-      {!groupExpenses.length && (
-        <p className="text-sm text-gray-600">
-          No expenses yet. Add an expense to see who owes whom.
-        </p>
-      )}
-      {groupMembers.length === 1 && (
-        <p className="text-sm text-gray-600">
-          This is a solo group. Your expenses track personal spending; there is no one to repay.
-        </p>
-      )}
-      <ul aria-label="Member balances" className="flex flex-col gap-2">
-        {groupMembers.map((member) => {
-          const net = balances.get(member.id) ?? 0;
-          return (
-            <li
-              key={member.id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded border border-gray-200 p-3"
-            >
-              <span>
-                {member.person?.icon} {name(member.id)}
-              </span>
-              <span className="text-sm">
-                {net === 0
-                  ? "No balance"
-                  : `${net > 0 ? "Is owed" : "Owes"} ${formatCurrency(Math.abs(net), group.currency)}`}
-              </span>
-            </li>
-          );
-        })}
-      </ul>
-      <section aria-label="Suggested payments" className="flex flex-col gap-3">
-        <h3 className="font-semibold">Suggested payments</h3>
-        <p className="text-sm text-gray-600">
-          One way to settle the current balances. These suggestions do not record a payment.
-        </p>
-        {transfers.length ? (
-          <ul className="flex flex-col gap-2">
-            {transfers.map((transfer) => (
-              <li
-                key={`${transfer.fromMemberId}-${transfer.toMemberId}`}
-                className="rounded border border-gray-200 p-3 text-sm"
-              >
-                {name(transfer.fromMemberId)} pays {name(transfer.toMemberId)}{" "}
-                <strong>{formatCurrency(transfer.amount, group.currency)}</strong>
+    <div className="responsive-grid">
+      <Surface className="surface-pad">
+        <h2 className="section-title mb-3">Net per member</h2>
+        <ul aria-label="Member balances">
+          {groupMembers.map((member) => {
+            const net = balances.get(member.id) ?? 0;
+            return (
+              <li key={member.id} className="ui-row">
+                <Avatar icon={member.person?.icon} name={member.person?.name} />
+                <span className="flex-1 font-bold">{member.person?.name ?? "Unknown person"}</span>
+                <span
+                  className={`money font-bold ${net > 0 ? "money-positive" : net < 0 ? "money-negative" : "muted"}`}
+                >
+                  {net > 0 ? "+" : net < 0 ? "−" : ""}
+                  {formatCurrency(Math.abs(net), group.currency)}
+                </span>
               </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-sm text-gray-600">No payments needed.</p>
-        )}
-      </section>
-    </section>
+            );
+          })}
+        </ul>
+      </Surface>
+      <Surface className="surface-pad">
+        <h2 className="section-title mb-3">Who owes whom</h2>
+        <section aria-label="Suggested payments">
+          {transfers.length ? (
+            <ul>
+              {transfers.map((transfer) => (
+                <li key={`${transfer.fromMemberId}-${transfer.toMemberId}`} className="ui-row">
+                  <Avatar icon={person(transfer.fromMemberId)?.icon} />
+                  <span aria-hidden="true">→</span>
+                  <Avatar icon={person(transfer.toMemberId)?.icon} />
+                  <span className="flex-1 truncate text-xs font-bold">
+                    {person(transfer.fromMemberId)?.name ?? "Unknown"} →{" "}
+                    {person(transfer.toMemberId)?.name ?? "Unknown"}
+                  </span>
+                  <strong className="money text-xs">
+                    {formatCurrency(transfer.amount, group.currency)}
+                  </strong>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <EmptyState
+              icon="🧘"
+              title="All square!"
+              description={
+                groupMembers.length === 1
+                  ? "Solo spending has no one to repay."
+                  : "No payments needed."
+              }
+            />
+          )}
+        </section>
+        <p className="note mt-4">Suggested transfers only — no payment is recorded.</p>
+      </Surface>
+    </div>
   );
 };
 

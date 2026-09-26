@@ -4,62 +4,41 @@ import { useStore } from "@/shared/configs/store";
 import { calculateMemberNet } from "@/shared/utils/balances";
 import { formatCurrency } from "@/shared/utils/currency";
 
+import Avatar from "@/shared/ui/avatar";
+
 interface PropsType {
   groupId: string;
 }
 
 const GroupListItem = ({ groupId }: PropsType) => {
-  const { groupId: urlGroupId } = useParams();
-  const { groups, people, members, expenses, localUser } = useStore();
-
-  const group = groups.find((g) => g.id === groupId);
-  // Members link to people; resolve each member's icon through the directory.
-  const groupMembers = members
-    .filter((m) => m.groupId === groupId)
-    .map((m) => ({ id: m.id, icon: people.find((p) => p.id === m.personId)?.icon ?? "" }));
-  const groupExpenses = expenses.filter((e) => e.groupId === groupId);
-  const expenseCount = groupExpenses.length;
-  const isActive = urlGroupId === groupId;
-
+  const { groupId: currentId } = useParams();
+  const { groups, members, expenses, localUser } = useStore();
+  const group = groups.find((item) => item.id === groupId);
   if (!group) return null;
-
-  const localMember = members.find((m) => m.groupId === groupId && m.personId === localUser?.id);
-  const balance = localMember ? calculateMemberNet(groupExpenses, localMember.id) : 0;
-  const balanceColor =
-    balance > 0 ? "text-green-600" : balance < 0 ? "text-red-500" : "text-gray-400";
-  const balancePrefix = balance > 0 ? "+" : balance < 0 ? "−" : "";
-
-  const visibleMembers = groupMembers.slice(0, 3);
-  const overflow = groupMembers.length - visibleMembers.length;
-
+  const entries = expenses.filter((expense) => expense.groupId === groupId);
+  const person = members.find(
+    (member) => member.groupId === groupId && member.personId === localUser?.id,
+  );
+  const amount = person ? calculateMemberNet(entries, person.id) : 0;
   return (
     <Link
       to={`/groups/${groupId}`}
-      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors border ${
-        isActive ? "bg-gray-100 border-gray-300" : "border-gray-200 hover:bg-gray-50"
-      }`}
+      className={`side-group ${currentId === groupId ? "active" : ""}`}
     >
-      <span className="text-xl shrink-0">{group.icon}</span>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-900 truncate">{group.name}</p>
-        <div className="flex items-center mt-1">
-          {visibleMembers.map((m, i) => (
-            <span
-              key={m.id}
-              className="w-6 h-6 flex items-center justify-center text-sm rounded-full border-2 border-white bg-gray-300 leading-none shrink-0"
-              style={{ marginLeft: i === 0 ? 0 : "-12px", zIndex: i }}
-            >
-              {m.icon}
-            </span>
-          ))}
-          {overflow > 0 && <span className="text-xs text-gray-400 ml-2">+{overflow} more</span>}
-        </div>
-        <p className="text-xs text-gray-400 mt-0.5">{expenseCount} expenses</p>
-      </div>
-      <div className={`text-xs font-medium shrink-0 ${balanceColor}`}>
-        {balancePrefix}
-        {formatCurrency(Math.abs(balance), group.currency)}
-      </div>
+      <Avatar icon={group.icon} square className="!h-9 !w-9 !text-lg" />
+      <span className="flex-1 min-w-0">
+        <span className="block truncate text-xs font-bold">{group.name}</span>
+        <span className="soft-caption block truncate">
+          {members.filter((member) => member.groupId === groupId).length} members · {entries.length}{" "}
+          expenses
+        </span>
+      </span>
+      <strong
+        className={`money text-xs ${amount > 0 ? "money-positive" : amount < 0 ? "money-negative" : "muted"}`}
+      >
+        {amount > 0 ? "+" : amount < 0 ? "−" : ""}
+        {formatCurrency(Math.abs(amount), group.currency)}
+      </strong>
     </Link>
   );
 };

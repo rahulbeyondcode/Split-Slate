@@ -1,31 +1,35 @@
-import { Link, Navigate, Outlet, useParams } from "react-router-dom";
+import { Link, Navigate, Outlet, useLocation, useParams } from "react-router-dom";
 
 import ExpenseFilterProvider from "@/features/expenses/components/expense-filter-provider";
 
 import { useStore } from "@/shared/configs/store";
+import { calculateGroupTotal, calculateMemberNet } from "@/shared/utils/balances";
+import { formatCurrency } from "@/shared/utils/currency";
 
 import type { GroupDetailContext } from "@/features/group-detail/types/group-detail.types";
 
+import Avatar from "@/shared/ui/avatar";
+import BalanceHero from "@/shared/ui/balance-hero";
+import SegmentedControl from "@/shared/ui/segmented-control";
+
 const GroupDetail = () => {
   const { groupId } = useParams();
-  const { groups, members, people, categories, tags, expenses } = useStore();
-
+  const { pathname } = useLocation();
+  const { groups, members, people, categories, tags, expenses, localUser } = useStore();
   if (!groupId) return <Navigate to="/dashboard" replace />;
-
   const group = groups.find((item) => item.id === groupId);
-  if (!group) {
+  if (!group)
     return (
-      <div className="max-w-3xl mx-auto px-6 py-8">
-        <div className="flex flex-col gap-3 rounded border border-gray-200 p-5">
-          <h1 className="text-xl font-semibold text-gray-900">Group not found</h1>
-          <p className="text-sm text-gray-500">This group is not available on this device.</p>
-          <Link to="/dashboard" className="text-sm font-medium text-blue-600">
+      <div className="page page-narrow">
+        <div className="surface empty-state">
+          <h1 className="section-title">Group not found</h1>
+          <p>This group is not available on this device.</p>
+          <Link to="/dashboard" className="btn btn-secondary mt-4">
             Back to dashboard
           </Link>
         </div>
       </div>
     );
-  }
 
   const context: GroupDetailContext = {
     group,
@@ -39,27 +43,113 @@ const GroupDetail = () => {
     groupTags: tags.filter((tag) => tag.groupId === group.id),
     groupExpenses: expenses.filter((expense) => expense.groupId === group.id),
   };
+  const isExpenseForm = pathname.endsWith("/new") || pathname.endsWith("/edit");
+  const showHero = [
+    `/groups/${groupId}`,
+    `/groups/${groupId}/expenses`,
+    `/groups/${groupId}/balances`,
+  ].includes(pathname);
+  const person = context.groupMembers.find((item) => item.personId === localUser?.id);
+  const net = person ? calculateMemberNet(context.groupExpenses, person.id) : 0;
+  const total = calculateGroupTotal(context.groupExpenses);
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-8 pb-24 flex flex-col gap-6">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <p className="text-4xl leading-none mb-3">{group.icon}</p>
-          <h1 className="text-2xl font-bold text-gray-900">{group.name}</h1>
-          <p className="text-sm text-gray-500">{group.currency} group</p>
-        </div>
-        <Link
-          to={`/groups/${group.id}/expenses/new`}
-          className="px-4 py-2 bg-gray-900 text-white text-sm rounded self-start"
-        >
-          Add expense
-        </Link>
-      </header>
-
-      <ExpenseFilterProvider key={group.id} currency={group.currency}>
+    <ExpenseFilterProvider key={group.id} currency={group.currency}>
+      <div className={isExpenseForm ? "min-h-svh" : "page flex flex-col gap-5"}>
+        {isExpenseForm ? (
+          <div className="flex items-center justify-between gap-3 border-b border-[var(--line)] bg-[var(--surface)] px-5 py-4">
+            <div className="flex items-center gap-3">
+              <Link
+                to={`/groups/${group.id}/expenses`}
+                className="btn btn-secondary !px-3"
+                aria-label="Back to expenses"
+              >
+                ←
+              </Link>
+              <h1 className="section-title">
+                {pathname.endsWith("/edit") ? "Edit expense" : "Add expense"}
+              </h1>
+              <span className="chip chip-selected">
+                {group.icon} {group.name}
+              </span>
+            </div>
+          </div>
+        ) : showHero ? (
+          <>
+            <header className="flex flex-wrap items-center gap-4">
+              <Avatar icon={group.icon} square className="!h-16 !w-16 !text-3xl" />
+              <div className="flex-1 min-w-0">
+                <h1 className="page-title">{group.name}</h1>
+                <p className="soft-caption">
+                  {context.groupMembers.length} members · {context.groupExpenses.length} expenses ·{" "}
+                  {formatCurrency(total, group.currency)} total · {group.currency}
+                </p>
+              </div>
+              <div className="flex -space-x-2 max-sm:hidden">
+                {context.groupMembers.slice(0, 5).map((member) => (
+                  <Avatar
+                    icon={member.person?.icon}
+                    name={member.person?.name}
+                    key={member.id}
+                    className="border-2 border-[var(--page)]"
+                  />
+                ))}
+              </div>
+              <Link
+                to={`/groups/${group.id}/settings`}
+                className="btn btn-secondary !px-3"
+                aria-label="Group settings"
+              >
+                ⋯
+              </Link>
+            </header>
+            <BalanceHero
+              label="Your position in this group"
+              amount={`${net < 0 ? "−" : net > 0 ? "+" : ""}${formatCurrency(Math.abs(net), group.currency)}`}
+              description={
+                net < 0
+                  ? "↑ you owe in this group"
+                  : net > 0
+                    ? "↓ you are owed in this group"
+                    : "All square in this group"
+              }
+            />
+            <div className="flex items-center justify-between">
+              <SegmentedControl
+                items={[
+                  { label: "Expenses", to: `/groups/${group.id}/expenses` },
+                  { label: "Balances", to: `/groups/${group.id}/balances` },
+                ]}
+              />
+              <span className="soft-caption max-sm:hidden">
+                {context.groupExpenses.length} entries · newest first
+              </span>
+            </div>
+          </>
+        ) : (
+          <header>
+            <h1 className="page-title">
+              {pathname.endsWith("/members")
+                ? "Members"
+                : pathname.endsWith("/categories")
+                  ? "Categories & Tags"
+                  : pathname.endsWith("/settings")
+                    ? "Group settings"
+                    : "Expense detail"}
+            </h1>
+            <p className="soft-caption">
+              {group.icon} {group.name}
+            </p>
+          </header>
+        )}
         <Outlet context={context} />
-      </ExpenseFilterProvider>
-    </div>
+        {showHero && (
+          <Link className="mobile-cta" to={`/groups/${group.id}/expenses/new`}>
+            ＋ Add expense
+          </Link>
+        )}
+      </div>
+    </ExpenseFilterProvider>
   );
 };
 

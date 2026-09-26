@@ -58,13 +58,58 @@ const ExpenseFilters = () => {
       noValidate
       onSubmit={handleSubmit}
       onChange={handleChange}
-      className="flex flex-col gap-3 rounded border border-gray-200 p-4"
+      className="flex flex-col gap-3"
     >
-      <label className="flex flex-col gap-1 text-sm font-medium">
-        Search expenses
-        <Input name="name" type="search" placeholder="Search by name" />
-      </label>
-      <div className="flex items-center justify-between gap-3 text-sm">
+      <div className="flex flex-wrap items-center gap-2">
+        <label className="flex-1 min-w-[160px]">
+          <span className="sr-only">Search expenses</span>
+          <Input name="name" type="search" placeholder="⌕  Search expenses…" />
+        </label>
+        <details className="group relative">
+          <summary className="btn btn-secondary list-none cursor-pointer">
+            ⚲ Filters {count > 0 ? `(${count})` : ""}
+          </summary>
+          <div className="surface surface-pad absolute top-11 right-0 z-10 max-h-[70svh] w-[min(85vw,560px)] overflow-auto flex flex-col gap-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <label className="min-w-0 text-sm">
+                From date
+                <Input name="dateFrom" type="date" className="min-w-0" />
+              </label>
+              <label className="min-w-0 text-sm">
+                To date
+                <Input name="dateTo" type="date" className="min-w-0" />
+              </label>
+              <label className="min-w-0 text-sm">
+                Minimum amount ({group.currency})<Input name="minAmount" inputMode="decimal" />
+              </label>
+              <label className="min-w-0 text-sm">
+                Maximum amount ({group.currency})<Input name="maxAmount" inputMode="decimal" />
+              </label>
+            </div>
+            <ExpenseFilterOptions
+              name="categoryIds"
+              label="Categories"
+              options={groupCategories.map((category) => ({
+                value: category.id,
+                label: `${category.name}${category.isActive ? "" : " (inactive)"}`,
+              }))}
+            />
+            <ExpenseFilterOptions
+              name="tagIds"
+              label="Tags"
+              options={groupTags.map((tag) => ({ value: tag.id, label: tag.name }))}
+            />
+            <ExpenseFilterOptions name="payerIds" label="Paid by" options={members} />
+            <ExpenseFilterOptions name="memberIds" label="Member involved" options={members} />
+            <ExpenseFilterOptions
+              name="splitTypes"
+              label="Split types"
+              options={SPLIT_FILTER_OPTIONS}
+            />
+          </div>
+        </details>
+      </div>
+      <div className="flex items-center justify-between gap-3 text-xs">
         <span>
           {count} active {count === 1 ? "filter" : "filters"}
         </span>
@@ -77,47 +122,6 @@ const ExpenseFilters = () => {
           Clear all filters
         </button>
       </div>
-      <details>
-        <summary className="cursor-pointer text-sm font-medium">More filters</summary>
-        <div className="mt-4 flex flex-col gap-4">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <label className="min-w-0 text-sm">
-              From date
-              <Input name="dateFrom" type="date" className="min-w-0" />
-            </label>
-            <label className="min-w-0 text-sm">
-              To date
-              <Input name="dateTo" type="date" className="min-w-0" />
-            </label>
-            <label className="min-w-0 text-sm">
-              Minimum amount ({group.currency})<Input name="minAmount" inputMode="decimal" />
-            </label>
-            <label className="min-w-0 text-sm">
-              Maximum amount ({group.currency})<Input name="maxAmount" inputMode="decimal" />
-            </label>
-          </div>
-          <ExpenseFilterOptions
-            name="categoryIds"
-            label="Categories"
-            options={groupCategories.map((category) => ({
-              value: category.id,
-              label: `${category.name}${category.isActive ? "" : " (inactive)"}`,
-            }))}
-          />
-          <ExpenseFilterOptions
-            name="tagIds"
-            label="Tags"
-            options={groupTags.map((tag) => ({ value: tag.id, label: tag.name }))}
-          />
-          <ExpenseFilterOptions name="payerIds" label="Paid by" options={members} />
-          <ExpenseFilterOptions name="memberIds" label="Member involved" options={members} />
-          <ExpenseFilterOptions
-            name="splitTypes"
-            label="Split types"
-            options={SPLIT_FILTER_OPTIONS}
-          />
-        </div>
-      </details>
     </form>
   );
 };

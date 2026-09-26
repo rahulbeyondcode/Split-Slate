@@ -35,13 +35,14 @@ const SplitEditor = ({ members, currency }: PropsType) => {
     previewError = (error as Error).message;
   }
 
-  const handleSplitChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    const value = event.target.value;
+  const changeSplit = (value: string) => {
     setValue(
       "participants",
       getValues("participants").map((row) => ({ ...row, value: value === "shares" ? "1" : "" })),
     );
   };
+  const handleSplitChange = (event: ChangeEvent<HTMLSelectElement>) =>
+    changeSplit(event.target.value);
   const inputLabel =
     splitType === "shares"
       ? "Shares"
@@ -53,13 +54,34 @@ const SplitEditor = ({ members, currency }: PropsType) => {
 
   return (
     <fieldset className="flex flex-col gap-3">
-      <legend className="mb-2 font-semibold">Split between</legend>
-      <label className="flex flex-col gap-1 text-sm">
+      <legend className="field-label">Split between</legend>
+      <div className="segmented flex flex-wrap !rounded-2xl" role="group" aria-label="Split method">
+        {(
+          [
+            ["equal", "Equal"],
+            ["amount", "Amount"],
+            ["shares", "Shares"],
+            ["percentage", "%"],
+            ["adjustment", "Adjust"],
+          ] as const
+        ).map(([value, label]) => (
+          <button
+            key={value}
+            type="button"
+            aria-pressed={splitType === value}
+            onClick={() => {
+              setValue("splitType", value, { shouldValidate: true });
+              changeSplit(value);
+            }}
+            className={splitType === value ? "active" : ""}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      <label className="sr-only">
         Split method
-        <select
-          {...register("splitType", { onChange: handleSplitChange })}
-          className="rounded border border-gray-300 px-3 py-2"
-        >
+        <select {...register("splitType", { onChange: handleSplitChange })} className="form-input">
           <option value="equal">Equally</option>
           <option value="amount">Exact amounts</option>
           <option value="shares">Shares</option>
@@ -83,12 +105,13 @@ const SplitEditor = ({ members, currency }: PropsType) => {
       {members.map((member, index) => {
         const share = preview.find((row) => row.memberId === member.id);
         return (
-          <div
-            key={member.id}
-            className="flex flex-wrap items-center justify-between gap-3 rounded border border-gray-200 p-3"
-          >
+          <div key={member.id} className="ui-row">
             <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" {...register(`participants.${index}.selected`)} />
+              <input
+                type="checkbox"
+                {...register(`participants.${index}.selected`)}
+                className="accent-[var(--brand)]"
+              />
               {member.name}
             </label>
             {participants[index]?.selected && (
@@ -110,7 +133,7 @@ const SplitEditor = ({ members, currency }: PropsType) => {
                 )}
                 {share && (
                   <span
-                    className="text-sm text-gray-600"
+                    className="money text-sm font-semibold"
                     aria-label={`${member.name} owes ${formatCurrency(share.amount, currency)}`}
                   >
                     {formatCurrency(share.amount, currency)}

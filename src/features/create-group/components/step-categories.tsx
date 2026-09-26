@@ -41,7 +41,7 @@ const StepCategories = () => {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="text-xl font-bold mb-1">Choose categories</h2>
+        <h2 className="page-title mb-1">What will you spend on?</h2>
         <p className="text-sm text-gray-500">
           Pick the categories that make sense for this group. You can always add more later.
         </p>
@@ -56,11 +56,8 @@ const StepCategories = () => {
               key={chip.name}
               type="button"
               onClick={() => handleToggle(chip)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded border ${
-                isSelected
-                  ? "bg-gray-900 text-white border-gray-900"
-                  : "border-gray-300 text-gray-700"
-              } ${isCustom ? "border-dashed border-white" : ""}`}
+              aria-pressed={isSelected}
+              className={`chip ${isSelected ? "chip-selected" : ""} ${isCustom ? "border-dashed" : ""}`}
             >
               <span>{chip.icon}</span>
               <span>{chip.name}</span>

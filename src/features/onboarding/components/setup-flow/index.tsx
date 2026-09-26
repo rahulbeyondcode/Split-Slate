@@ -151,17 +151,20 @@ const SetupFlow = () => {
 
   return (
     <FormProvider {...methods}>
-      <div className="flex flex-col h-svh p-6 max-w-md mx-auto">
+      <div className="mx-auto flex min-h-svh max-w-md flex-col p-6">
+        <p className="eyebrow mb-3">
+          Step {currentIndex + 1} of {SETUP_STEPS.length}
+        </p>
         <div className="flex gap-1 mb-8">
           {SETUP_STEPS.map((step, index) => (
             <div
               key={step}
-              className={`h-1 flex-1 rounded-full ${index <= currentIndex ? "bg-gray-900" : "bg-gray-200"}`}
+              className={`h-1 flex-1 rounded-full ${index <= currentIndex ? "bg-[var(--brand)]" : "bg-[var(--line)]"}`}
             />
           ))}
         </div>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto py-8">
           {onboardingStep === "identity" && <StepIdentity />}
           {onboardingStep === "group" && <StepGroup />}
           {onboardingStep === "currency" && <StepCurrency />}
@@ -173,7 +176,7 @@ const SetupFlow = () => {
           <button
             type="button"
             onClick={handleBack}
-            className={`px-4 py-2 text-sm text-gray-600 ${currentIndex === 0 ? "invisible" : ""}`}
+            className={`btn btn-secondary ${currentIndex === 0 ? "invisible" : ""}`}
           >
             Back
           </button>
@@ -181,7 +184,7 @@ const SetupFlow = () => {
             type="button"
             onClick={handleSaveAndProceed}
             disabled={saving}
-            className="px-6 py-2 bg-gray-900 text-white text-sm rounded disabled:opacity-30"
+            className="btn btn-primary"
           >
             {saving ? "Saving…" : isLast ? "Save and Finish" : "Save and Proceed"}
           </button>

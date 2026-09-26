@@ -1,104 +1,103 @@
 import { Link, useOutletContext } from "react-router-dom";
 
-import { useStore } from "@/shared/configs/store";
-import { calculateGroupTotal, calculateMemberNet } from "@/shared/utils/balances";
+import { calculateBalances, suggestTransfers } from "@/shared/utils/balances";
 import { formatCurrency } from "@/shared/utils/currency";
 
 import type { GroupDetailContext } from "@/features/group-detail/types/group-detail.types";
 
+import Avatar from "@/shared/ui/avatar";
+import EmptyState from "@/shared/ui/empty-state";
+import Surface from "@/shared/ui/surface";
+
 const GroupOverview = () => {
   const { group, groupMembers, groupCategories, groupExpenses } =
     useOutletContext<GroupDetailContext>();
-  const localUser = useStore((state) => state.localUser);
-  const localMember = groupMembers.find((member) => member.personId === localUser?.id);
-  const localNet = localMember ? calculateMemberNet(groupExpenses, localMember.id) : 0;
-  const totalSpend = calculateGroupTotal(groupExpenses);
-  const recentExpenses = groupExpenses
+  const recent = groupExpenses
     .slice()
     .sort((a, b) => b.when - a.when)
     .slice(0, 5);
-
+  const transfers = suggestTransfers(
+    calculateBalances(
+      groupExpenses,
+      groupMembers.map((member) => member.id),
+    ),
+  );
   return (
-    <div className="flex flex-col gap-6">
-      <section className="grid gap-3 sm:grid-cols-3">
-        <div className="rounded border border-gray-200 p-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-gray-400">Your position</p>
-          <p className="mt-2 text-2xl font-semibold text-gray-900">
-            {localNet === 0 ? "" : localNet > 0 ? "+" : "−"}
-            {formatCurrency(Math.abs(localNet), group.currency)}
+    <div className="flex flex-col gap-5">
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="section-title">Recent expenses</h2>
+        <Link to={`/groups/${group.id}/expenses/new`} className="btn btn-primary max-sm:hidden">
+          ＋ Add expense
+        </Link>
+      </div>
+      {recent.length ? (
+        <Surface className="px-5">
+          {recent.map((expense) => {
+            const category = groupCategories.find((item) => item.id === expense.categoryId);
+            return (
+              <Link
+                key={expense.expenseId}
+                to={`/groups/${group.id}/expenses/${expense.expenseId}`}
+                className="ui-row"
+              >
+                <Avatar icon={category?.icon} square className="!h-10 !w-10 !text-xl" />
+                <div className="flex-1">
+                  <p className="font-bold">{expense.expenseName}</p>
+                  <p className="soft-caption">
+                    {category?.name ?? "Category"} · {expense.splitType}
+                  </p>
+                </div>
+                <span className="money font-bold">
+                  {formatCurrency(
+                    expense.transactions.paid.reduce((sum, row) => sum + row.amount, 0),
+                    group.currency,
+                  )}
+                </span>
+              </Link>
+            );
+          })}
+        </Surface>
+      ) : (
+        <EmptyState
+          icon="🍃"
+          title="No expenses yet"
+          description="The slate is clean. Add the first expense and the math begins."
+          action={
+            <Link to={`/groups/${group.id}/expenses/new`} className="btn btn-primary">
+              ＋ Add expense
+            </Link>
+          }
+        />
+      )}
+      <div className="responsive-grid">
+        <Surface className="surface-pad">
+          <h2 className="section-title mb-4">Members</h2>
+          <div className="flex flex-wrap gap-2">
+            {groupMembers.map((member) => (
+              <Link key={member.id} to={`/groups/${group.id}/members`} className="chip">
+                <Avatar
+                  icon={member.person?.icon}
+                  name={member.person?.name}
+                  className="!w-7 !h-7 !text-sm"
+                />
+                {member.person?.name ?? "Unknown"}
+              </Link>
+            ))}
+          </div>
+        </Surface>
+        <Surface className="surface-pad">
+          <h2 className="section-title">Suggested transfers</h2>
+          <p className="soft-caption mt-1">These suggestions do not record payments.</p>
+          <p className="mt-4 font-bold">
+            {transfers.length
+              ? `${transfers.length} ${transfers.length === 1 ? "transfer" : "transfers"} to settle`
+              : "All square!"}
           </p>
-        </div>
-        <div className="rounded border border-gray-200 p-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-gray-400">Total spend</p>
-          <p className="mt-2 text-2xl font-semibold text-gray-900">
-            {formatCurrency(totalSpend, group.currency)}
-          </p>
-        </div>
-        <div className="rounded border border-gray-200 p-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-gray-400">Categories</p>
-          <p className="mt-2 text-2xl font-semibold text-gray-900">{groupCategories.length}</p>
-        </div>
-      </section>
-
-      <Link to={`/groups/${group.id}/balances`} className="text-sm text-blue-700">
-        View all balances
-      </Link>
-      <section className="flex flex-col gap-3">
-        <h2 className="text-sm font-semibold text-gray-900">Members</h2>
-        <ul className="flex flex-col gap-2">
-          {groupMembers.map((member) => (
-            <li
-              key={member.id}
-              className="flex items-center gap-2 rounded border border-gray-200 px-3 py-2"
-            >
-              <span>{member.person?.icon}</span>
-              <span className="text-sm text-gray-900">
-                {member.person?.name ?? "Unknown person"}
-              </span>
-              {member.personId === localUser?.id && (
-                <span className="text-xs text-gray-400">You</span>
-              )}
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section className="flex flex-col gap-3">
-        <h2 className="text-sm font-semibold text-gray-900">Recent expenses</h2>
-        {recentExpenses.length === 0 ? (
-          <p className="text-sm text-gray-500">No expenses in this group yet.</p>
-        ) : (
-          <ul className="flex flex-col gap-2">
-            {recentExpenses.map((expense) => {
-              const category = groupCategories.find((item) => item.id === expense.categoryId);
-              const paidTotal = expense.transactions.paid.reduce(
-                (sum, transaction) => sum + transaction.amount,
-                0,
-              );
-
-              return (
-                <li
-                  key={expense.expenseId}
-                  className="flex items-center justify-between gap-3 rounded border border-gray-200 px-3 py-2"
-                >
-                  <div className="min-w-0">
-                    <Link
-                      to={`/groups/${group.id}/expenses/${expense.expenseId}`}
-                      className="block truncate text-sm font-medium text-blue-700 hover:underline"
-                    >
-                      {expense.expenseName}
-                    </Link>
-                    <p className="text-xs text-gray-500">{category?.name ?? "Unknown category"}</p>
-                  </div>
-                  <span className="shrink-0 text-sm font-medium text-gray-900">
-                    {formatCurrency(paidTotal, group.currency)}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
+          <Link to={`/groups/${group.id}/balances`} className="btn btn-secondary mt-4">
+            View all balances →
+          </Link>
+        </Surface>
+      </div>
     </div>
   );
 };

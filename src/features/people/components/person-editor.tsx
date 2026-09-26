@@ -34,16 +34,23 @@ const PersonEditor = ({
 
   return (
     <FormProvider {...methods}>
-      <form onSubmit={handleSave} className="flex flex-col gap-2 border rounded p-3">
+      <form onSubmit={handleSave} className="surface surface-pad flex flex-col gap-4">
         <div className="flex gap-2 items-start">
           <EmojiPicker name="icon" emojis={PERSON_EMOJIS} />
-          <Input name="name" placeholder="Name" wrapperClass="flex-1" autoFocus />
+          <label className="flex-1">
+            <span className="field-label">Name</span>
+            <Input name="name" placeholder="Name" autoFocus />
+          </label>
         </div>
         <div className="flex gap-2 justify-end">
-          <button type="button" onClick={onCancel} className="px-4 py-2 text-sm text-gray-500">
+          <button type="button" onClick={onCancel} className="btn btn-secondary">
             Cancel
           </button>
-          <button type="submit" className="px-4 py-2 bg-gray-900 text-white text-sm rounded">
+          <button
+            type="submit"
+            disabled={methods.formState.isSubmitting}
+            className="btn btn-primary"
+          >
             {submitLabel}
           </button>
         </div>
