@@ -1,9 +1,11 @@
 import { useOutletContext } from "react-router-dom";
 
+import ExportPanel from "@/features/import-export/components/export-panel";
+
 import type { GroupDetailContext } from "@/features/group-detail/types/group-detail.types";
 
 const GroupSettings = () => {
-  const { group } = useOutletContext<GroupDetailContext>();
+  const { group, groupExpenses } = useOutletContext<GroupDetailContext>();
 
   return (
     <section className="flex flex-col gap-3">
@@ -18,6 +20,16 @@ const GroupSettings = () => {
           <dd className="mt-1 text-sm text-gray-900">{group.currency}</dd>
         </div>
       </dl>
+      <div className="mt-5 border-t border-gray-200 pt-5">
+        <ExportPanel
+          groupId={group.id}
+          groupName={group.name}
+          attachmentCount={groupExpenses.reduce(
+            (count, expense) => count + expense.attachmentIds.length,
+            0,
+          )}
+        />
+      </div>
     </section>
   );
 };

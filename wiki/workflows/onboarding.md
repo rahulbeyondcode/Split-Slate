@@ -7,9 +7,9 @@ metadata:
 
 # Onboarding Flow
 
-Purpose: describe the implemented first-launch flow, persistence, and planned import alternatives.
+Purpose: describe the implemented standard and import-based first-launch flows.
 
-Last updated: 2026-09-19
+Last updated: 2026-09-26
 
 ## Standard First-Launch Flow
 
@@ -57,21 +57,21 @@ See [[onboarding-persistence]] for the full rationale, the step→save mapping, 
 
 ---
 
-## Planned Alternative Entry Points (not implemented)
+## Import-Based First Launch
 
-The import/export design includes alternative ways to enter the app without first completing the
-standard onboarding flow:
+The welcome carousel links to the public `/import` route. A fresh device may open a Transfer Link or
+choose a Split Slate CSV/ZIP instead of creating an empty group through standard onboarding.
 
-- **Link** — the target behavior is to read shared data and open the group in view-only mode.
-- **CSV / ZIP** — the target behavior is to import the file and show the group in view-only mode.
-- If the user later chooses "Import as my group," the target flow requires a local name and icon,
-  prompting for identity first when necessary.
+The app validates the complete package first, then shows only the group name and included counts.
+If members were transferred, the recipient chooses which member represents them or chooses **I'm
+not listed**. With no selected transferred member, a short import-specific name/icon form creates
+the recipient and adds them to the group. It does not replay unrelated group, currency, category,
+or member setup screens.
 
-These entry points are planned only. The current app has no shared-link handler, import parser,
-temporary view-only group mode, or import screen, so onboarding cannot currently be bypassed this
-way.
-
-See [[import-export]] for full details on import modes.
+No categories in the package causes configured default categories to be created. The complete
+identity and group import is one transaction; successful commit marks onboarding complete and opens
+the new editable group. A validation or write failure leaves onboarding and domain data unchanged.
+See [[import-export]] and [[onboarding-persistence]].
 
 ---
 

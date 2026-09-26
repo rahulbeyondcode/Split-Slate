@@ -9,7 +9,7 @@ metadata:
 
 Purpose: map store ownership, persistence order, and the exact validation and transaction boundaries.
 
-Last updated: 2026-09-23
+Last updated: 2026-09-26
 
 ## Technology
 
@@ -26,6 +26,8 @@ into the same store. Expense state defaults and hydration remain in the shared a
 - `tags-slice.ts` — group-scoped tag records and atomic expense-reference cleanup
 - `src/features/expenses/store/index.ts` — expense creation/edit/deletion, persisted-reference validation, and
   atomic expense/frequent-payer writes with attachment deletion cascades, composed into the same public store
+- `src/features/import-export/store/index.ts` — consistent export reads and atomic fresh-ID group
+  imports; these are feature operations rather than a Zustand slice
 - `onboarding-slice.ts` — onboarding flow state and progress actions
 - `group-draft-slice.ts` — memory-only create-group draft for live preview
 
@@ -167,6 +169,12 @@ Two deliberate shape decisions:
 - Expense deletion checks persisted ownership, removes owned attachment rows by `expenseId`, deletes
   the expense, and updates payer ranking in one transaction on groups, members, people, expenses,
   and attachments. Memory updates only after commit. Later edits cannot resurrect a deleted row.
+- Group import validates the complete portable package and receipt-file agreement before opening a
+  read-write transaction across LocalUser, groups, people, members, categories, tags, expenses,
+  attachments, and settings. It generates a new group ID plus new group-owned record IDs, rewrites
+  all references, creates destination defaults when categories were omitted, and verifies persisted
+  counts before commit. Any failure rolls back the complete import. The caller runs `init()` only
+  after commit to rehydrate Zustand; no partially imported state is exposed. See [[import-export]].
 - Other composed operations are sequential rather than atomic. Examples include creating a group
   and its creator member, mirroring the local user into `people`, deleting a person and cleaning up
   member/group references, and the standalone group-creation submission. If a later write fails,

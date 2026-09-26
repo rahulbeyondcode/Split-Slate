@@ -7,7 +7,7 @@ metadata:
 
 # Onboarding Persistence — Per-Step Save + Resume
 
-Last updated: 2026-08-20
+Last updated: 2026-09-26
 
 ## Decision
 
@@ -71,6 +71,19 @@ member rows are loaded back into the form.
 
 ### Resume
 On launch, `init()` hydrates the onboarding row into the store; the setup flow renders the step after `lastCompletedStep` (or `identity` when it is `null`). Arriving at the intro page with an in-progress, incomplete session redirects straight into `/onboarding/setup` (auto-resume). Every completed step's data is already saved, so resume never re-asks for it; only in-progress input on the current, unconfirmed step is not retained across a reload. Successful completion redirects to `/dashboard`.
+
+### Import-specific completion
+
+Group transfer is an implemented alternative to the standard five-step setup. `/import` remains
+outside `RouteProtector`, so a fresh device can validate a transfer before it has a LocalUser or a
+completed onboarding row. The count-only review then asks the recipient to identify a transferred
+member or complete the short name/icon identity form.
+
+The import transaction creates the identity, new group, membership, selected content, and any
+default categories together. A fresh or incomplete device writes the onboarding row as complete and
+points it at the imported group only after the full import succeeds. An already-completed device
+keeps its existing onboarding progress row. Import therefore cannot expose a partially-created
+group or undo completion state. See [[import-export]].
 
 ## Related
 

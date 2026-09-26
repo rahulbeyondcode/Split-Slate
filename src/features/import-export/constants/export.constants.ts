@@ -1,0 +1,35 @@
+export const EXPORT_SCHEMA_VERSION = 1 as const;
+export const MAX_TRANSFER_URL_LENGTH = 32_000;
+export const MAX_DECODED_LINK_BYTES = 256 * 1024;
+
+export const EXPORT_CSV_COLUMNS = [
+  "schemaVersion",
+  "recordType",
+  "id",
+  "groupId",
+  "name",
+  "icon",
+  "currency",
+  "createdAt",
+  "frequentPayerIds",
+  "personId",
+  "isActive",
+  "color",
+  "expenseName",
+  "createdBy",
+  "categoryId",
+  "when",
+  "splitType",
+  "splitMeta",
+  "paid",
+  "owes",
+  "tagIds",
+  "attachmentIds",
+  "expenseId",
+  "mimeType",
+  "selection",
+  "sourceCounts",
+  "includedCounts",
+  "integrityAlgorithm",
+  "integrityDigest",
+] as const;

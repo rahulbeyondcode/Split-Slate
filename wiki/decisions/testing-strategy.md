@@ -10,7 +10,7 @@ metadata:
 Purpose: keep accounting tests fast, make every implemented area verifiable, and reserve real
 browser coverage for behavior that depends on browser storage, navigation, or offline capability.
 
-Last updated: 2026-09-25
+Last updated: 2026-09-26
 
 ## Decision
 
@@ -54,8 +54,9 @@ src/
 
 Only directories that contain tests are committed because Git does not retain empty directories.
 Unit/integration test files use the production filename followed by `.test.ts` or `.test.tsx`.
-Playwright journeys use `.e2e.ts` under `src/features/expenses/tests/browser/`, as configured in
-`playwright.config.ts`. Cross-directory imports continue to use the `@/` alias.
+Playwright journeys use `.e2e.ts` under each feature's `tests/browser/` directory. The Playwright
+root is `src/features`, so expense and import/export journeys share the same desktop/mobile project
+configuration. Cross-directory imports continue to use the `@/` alias.
 
 ## Test Boundaries
 
@@ -139,7 +140,7 @@ rejection, and rollback when either write fails.
 in-memory IndexedDB implementation in Node so the real Dexie/store code can exercise persistence
 and rollback. The application uses browser IndexedDB; Playwright also uses real browser storage.
 
-Playwright expense suites are configured for Chromium at desktop and mobile sizes. They cover
+Playwright suites are configured for Chromium at desktop and mobile sizes. Expense journeys cover
 form recording and editing across all five split methods, multiple payers, detail navigation, tags,
 confirmed deletion, list/balance updates, reload persistence, cancellation, retry after rejection,
 inactive historical categories, solo balances, and missing/cross-group expense routes. Test data lives in isolated browser contexts. Run `pnpm test:e2e` after
@@ -171,6 +172,21 @@ preservation of unrelated data and receipts, unused/missing/repeated deletion, c
 removals, and overlapping expense creation/editing/deletion in both orders. Write-failure cases
 verify rollback of the tag and earlier expense changes, unchanged memory, and successful retry.
 These tests use fake IndexedDB; stale snapshots simulate another tab's retained state.
+
+Import/export utility and integration suites cover consistent persisted snapshot reads, independent
+content selection, expense/receipt dependency closure, omitted-reference cleanup, cross-record and
+count validation, paid/owed and aggregate limits, canonical SHA-256 checks, and malformed/tampered
+payload rejection. Link cases cover Unicode round-trips, the 32,000-character and 256 KiB guards,
+file fallback, and a fixed 25-member/25-category/25-tag/50-expense acceptance fixture. CSV cases
+cover deterministic typed rows and spreadsheet escaping. ZIP cases verify manifest/CSV agreement,
+declared paths, receipt hashes, missing/surplus/corrupt files, and archives without receipts.
+
+Import-store cases use fake IndexedDB to verify fresh group-owned IDs, internal-reference rewrites,
+recipient identity mapping, default categories, same-name numbering, receipt persistence,
+preservation of completed onboarding state, post-write counts, and full transaction rollback.
+Dedicated desktop/mobile browser journeys exercise questionnaire defaults and dependency dialogs,
+format availability, Link/CSV/ZIP generation, fresh-device Link/CSV import, existing-device ZIP
+import, identity setup, count-only review, same-name import, and receipt-byte persistence.
 
 This is an inventory of existing suites, not a substitute for running them. Direct browser coverage
 for the member-management repeated-add UI guard remains pending; store-level concurrent membership

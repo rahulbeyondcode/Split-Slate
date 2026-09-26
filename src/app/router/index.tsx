@@ -8,6 +8,7 @@ import GroupBalances from "@/features/group-detail/components/group-balances";
 import GroupOverview from "@/features/group-detail/components/group-overview";
 import GroupSettings from "@/features/group-detail/components/group-settings";
 import MemberList from "@/features/group-detail/components/member-list";
+import ImportGroup from "@/features/import-export/components/import-group";
 import FeatureCarousel from "@/features/onboarding/components/feature-carousel";
 import SetupFlow from "@/features/onboarding/components/setup-flow";
 import PeopleList from "@/features/people/components/people-list";
@@ -19,6 +20,7 @@ import Dashboard from "@/features/dashboard";
 import GroupDetail from "@/features/group-detail";
 
 export const router = createBrowserRouter([
+  { path: "/import", element: <ImportGroup /> },
   {
     element: <RouteProtector />,
     children: [

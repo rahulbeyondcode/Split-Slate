@@ -14,12 +14,17 @@ const Dashboard = () => {
           </h1>
           <p className="text-sm text-gray-500">Your groups</p>
         </div>
-        <Link
-          to="/groups/new"
-          className="px-4 py-2 bg-gray-900 text-white text-sm rounded shrink-0"
-        >
-          New group
-        </Link>
+        <div className="flex flex-wrap justify-end gap-2">
+          <Link to="/import" className="px-4 py-2 border text-sm rounded shrink-0">
+            Import group
+          </Link>
+          <Link
+            to="/groups/new"
+            className="px-4 py-2 bg-gray-900 text-white text-sm rounded shrink-0"
+          >
+            New group
+          </Link>
+        </div>
       </div>
 
       {groups.length === 0 ? (
@@ -27,6 +32,9 @@ const Dashboard = () => {
           <p className="text-sm text-gray-500">No groups yet.</p>
           <Link to="/groups/new" className="px-4 py-2 bg-gray-900 text-white text-sm rounded">
             Create your first group
+          </Link>
+          <Link to="/import" className="text-sm text-blue-700">
+            Import an existing group
           </Link>
         </div>
       ) : (

@@ -1,6 +1,6 @@
 # Dashboard View
 
-Last updated: 2026-08-16
+Last updated: 2026-09-26
 
 **Purpose:** Record the current dashboard implementation and the target cross-group summary design.
 
@@ -10,6 +10,7 @@ The dashboard currently renders:
 
 - A static `"Hi, {name}"` greeting using the local user's name and icon
 - A New Group link
+- An Import Group link to the public Link/CSV/ZIP intake route
 - An empty-state prompt when there are no groups
 - A simple group list showing icon, name, and currency
 - Links from each group row to that group's Overview route
@@ -19,6 +20,10 @@ renders groups in store order rather than by recent activity. The desktop right 
 hardcoded sample activity; tablet renders no activity section. Each group link opens the committed
 nested group-detail route. Its overview shows the local user's net position, total group spend,
 category count, member list, and up to five recent expenses.
+
+The empty state offers both **Create your first group** and **Import an existing group**. Import
+validates the package, shows count-only review and identity selection, and creates a separate
+editable group. See [[import-export]].
 
 ## Target Design
 
@@ -120,3 +125,4 @@ item also links to the Overview and detects the active `groupId`.
 - [[layout-architecture]] — three-pane vs two-pane layout, breakpoints, sidebar structure
 - [[main-screen]] — in-group navigation and tabs
 - [[balance-calculation]] — how net balances are computed
+- [[import-export]] — dashboard import entry and fresh-copy behavior

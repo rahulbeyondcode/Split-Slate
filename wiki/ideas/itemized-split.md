@@ -9,7 +9,7 @@ metadata:
 
 Purpose: preserve an uncommitted receipt-item split concept without implying a delivery schedule.
 
-Last updated: 2026-09-19
+Last updated: 2026-09-26
 
 **Status: exploratory, not committed.** Itemized entry and receipt OCR remain ideas under
 [[product-roadmap]], with no approved version or delivery date.
@@ -74,5 +74,5 @@ This is in addition to `splitMeta` and `owes[]`.
 ## Related
 
 - [[split-types]] — the 5 split types supported in MVP
-- [[import-export]] — approved but pending receipt-attachment design
+- [[import-export]] — implemented receipt-file transfer is separate from exploratory receipt OCR
 - [[product-roadmap]] — exploration status and delivery priorities

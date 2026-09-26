@@ -1,152 +1,171 @@
 ---
 name: import-export
-description: Data sharing design — three export formats, two import modes, conflict resolution strategy
+description: Durable group transfer through selective Link, CSV, and ZIP snapshots
 metadata:
   type: decisions
 ---
 
 # Decision: Import / Export Design
 
-Last updated: 2026-08-20
+Purpose: define the implemented offline group-transfer contract and distinguish it from future
+settlement sharing.
 
-## Implementation Status
+Last updated: 2026-09-26
 
-Approved design, not implemented. There is no export serializer, shared-link handler, import parser,
-ZIP/attachment pipeline, view-only session mode, or conflict-resolution UI. Every behavior below is
-a target unless explicitly described as an existing data-model constraint.
+## Decision
 
-## Why This Exists
+Import/export is a **durable group-transfer mechanism**. A recipient validates the package and
+creates a new editable local group; there is no temporary read-only share mode. Transfer is a
+snapshot, not synchronization: later changes on either device do not propagate or merge.
 
-split-slate is offline-first with no backend in MVP. Import/export is the only mechanism for sharing group data between devices. The core marketing promise: **members who don't have the app installed can view expense data with zero hassle.**
+Future settlement sharing is a separate concern. Human-readable Link/PDF/Excel settlement summaries
+must not reuse this group-transfer workflow or be described as group import. See
+[[product-roadmap]].
 
----
+## Export Questionnaire
+
+Group Settings first reads a consistent persisted snapshot and rejects missing, duplicate, surplus,
+or cross-expense receipt references even when receipts will be omitted. This keeps source and
+omission counts trustworthy. It starts with only **Group information** selected. That required option includes the
+group name, icon, currency, and creation metadata and cannot be unchecked. The sender may
+independently select:
+
+- categories
+- tags
+- members (with the referenced Person snapshots)
+- expenses
+- receipt attachments, shown only when an expense references at least one receipt
+
+Expenses depend on categories and members. Selecting expenses automatically selects and locks both,
+with an explanatory dialog; deselecting expenses unlocks them without clearing their current
+selection. Tags remain optional, and omitted tag references are removed from transferred expenses.
+
+Receipts depend on expenses. Selecting receipts automatically selects and locks expenses, which in
+turn selects and locks categories and members. Deselecting receipts leaves the dependency content
+selected but unlocks expenses. When receipts are omitted, transferred expenses contain no dangling
+attachment references. The manifest records source and included counts so omission is explicit.
 
 ## Portable Dataset Contract
 
-Every export must be self-contained enough to reconstruct the exported group without consulting
-the source device. The logical dataset includes:
+Schema version `1` carries:
 
-- an export schema version
-- the group, including its UUID, currency, icon, and creation metadata
-- snapshots of every referenced Person plus the group's Member links
-- group categories and tags
-- expenses, including IDs, dates, creator, category, tags, split type, split metadata, paid entries,
-  owed entries, and attachment references
-- attachment metadata; ZIP additionally carries the image blobs
+- the required group snapshot and selection manifest
+- source and included counts for categories, tags, members, expenses, and attachments
+- selected categories and tags
+- selected Member records and snapshots of their referenced global Person records
+- selected expenses with paid/owed rows and exact split metadata
+- selected attachment metadata; ZIP additionally carries the receipt blobs
+- a SHA-256 digest of the canonical logical dataset
 
-Monetary values use integer minor units under [[money-representation-and-rounding]]. UUIDs are
-preserved so re-import and future reconciliation can distinguish the same records from new ones.
+All formats reconstruct and validate the same logical contract. Validation covers schema version,
+selection dependencies, declared counts, unique IDs, group ownership, complete references,
+paid/owed equality, split metadata, and aggregate safe-integer spending. Any digest, schema, count,
+or reference mismatch rejects the complete package before writes. Monetary values remain integer
+minor units under [[money-representation-and-rounding]].
 
-“CSV” describes the user-facing portable option, not yet a finalized wire schema. The exact
-multi-entity CSV layout, escaping rules, schema-version envelope, and ZIP manifest still require an
-implementation design before a serializer or parser is built.
+Source IDs remain in the package so its internal relationships can be validated. Import always
+creates a fresh group UUID and fresh IDs for group-owned Member, Category, Tag, Expense, and
+Attachment records, then rewrites every internal reference. The source group is never overwritten
+or merged.
 
-An import must validate the complete dataset before durable writes: schema compatibility, required
-records, group ownership of references, unique IDs where required, and the paid/owed invariant.
-The **Add new expenses only** mode must also bring in or reconcile every missing dependency needed
-by an accepted expense. Precise behavior for same-ID dependency records whose content differs is a
-remaining conflict-design decision; silently creating dangling references is never valid.
+## Formats
 
----
+### Transfer Link
 
-## Export Formats
-
-### Link
-- Group data is encoded as a hash fragment at the end of the URL (`#<encoded-data>`)
-- Recipient clicks the link → web app opens → reads the hash → populates UI automatically
-- No import step — zero hassle for the recipient
-- **Size limitation:** Browser URL length limits vary across browsers. The app maintains an optimal data ceiling comfortable across most browsers. Groups whose data exceeds this ceiling are offered CSV/ZIP only — no link option is shown.
+- Validated JSON is zlib-compressed, base64url-encoded, and placed after `/import#v1.`.
+- Link transfer is available only when receipts are not selected.
+- The complete generated URL is capped at **32,000 characters** and decoded JSON at **256 KiB**.
+- A regression fixture proves that 25 members, 25 categories, 25 tags, and 50 realistic expenses
+  fit beneath the implemented URL limit.
+- Current major browser engines support this size, but no guarantee is possible for every chat,
+  email, SMS, scanner, or embedded webview. CSV or ZIP is the fallback when generation exceeds the
+  limit or the chosen channel cannot carry the link.
+- A truncated or changed payload fails decoding, integrity, or schema validation; partial data is
+  never imported.
+- The fragment is client-side but not encrypted. Anyone holding the link can decode the selected
+  group data, so the UI displays a privacy warning.
 
 ### CSV
-- Full reconstructable group dataset described above
-- No image attachments included
-- Works for any group size
-- Recipient shares via their own communication channel (WhatsApp, email, etc.)
-- Recipient opens the app and imports the CSV manually
+
+CSV is a reconstructable typed-row transfer without receipt blobs. It has one fixed union header and
+typed rows for the manifest, group, people, members, categories, tags, expenses, and selected
+attachment metadata. Nested values use JSON cells. Every cell is quoted, embedded quotes/newlines
+follow CSV escaping, UTF-8 output starts with a BOM, and formula-leading text is tab-prefixed and
+restored by the parser.
+
+The export UI disables CSV while receipts are selected. A standalone CSV import also rejects a
+manifest that claims to carry receipts because receipt bytes require ZIP.
 
 ### ZIP
-- CSV bundled with all receipt images from the group
-- Offered when one or more expenses have image attachments
-- The app auto-detects whether ZIP is needed — if no attachments exist, only CSV/Link are offered
-- On import, app loads both data and images together
 
----
+ZIP is always available and is the only format enabled when receipts are selected. It contains:
 
-## Two Import Modes
+- `manifest.json` — canonical versioned dataset
+- `group.csv` — the same logical dataset as typed rows
+- `README.txt`
+- `attachments/index.json`
+- selected receipt blobs under sanitized `attachments/` paths
 
-### 1. View-Only (Zero Hassle)
+Creation rejects missing or surplus receipt files. Import requires the manifest and CSV to describe
+the same dataset, checks the declared archive paths, verifies each receipt's SHA-256 digest, and
+rejects undeclared files. A ZIP without receipts remains a valid transfer option.
 
-- No split-slate account required
-- **Link:** data auto-populates on open — nothing to do
-- **CSV/ZIP:** user imports the file, data loads in read-only mode
-- Can view: expense list, expense details, member balances
-- Cannot add, edit, or delete anything
-- **Storage:** Session storage only — data persists on tab reload, lost on tab close
-- App warns the user before closing the tab that data will be lost
-- To recover: click the link again, or re-import the CSV/ZIP
+## Import Flow
 
-### 2. Import as Your Group (Editable)
+`/import` is public so a fresh device can open a Link or choose a CSV/ZIP before standard onboarding.
+The same route is reachable from the welcome carousel and the dashboard.
 
-For users who want to add or edit expenses after receiving shared data.
+After complete validation, review shows the group name and included counts for categories, tags,
+members, expenses, and receipts; it does not reveal item details or receipt previews. It also states
+the destination name, omitted receipt count when applicable, identity choice, and default-category
+behavior before the single **Import group** action.
 
-**Steps:**
-1. User must have split-slate set up (name + icon configured)
-2. Open the link or import the CSV/ZIP
-3. Choose "Import as my group" from the view-only screen
-4. Pick which member they are from the group's member list:
-   - All existing members are listed (name + icon)
-   - A **"New Member"** option is always available at the end — for someone not originally in the group
-   - Selecting "New Member" uses the user's registered split-slate name, or prompts for a name if not yet set up
-5. Group is added to their groups list
+Identity behavior:
 
----
+- When members were transferred, the recipient chooses which member represents them or chooses
+  **I'm not listed**.
+- On a fresh device, selecting a transferred member creates LocalUser from that snapshot.
+- On a fresh device with no transferred member selection, the import-specific identity form asks
+  for name and icon and adds the recipient as a member.
+- On an existing device, the current LocalUser is mapped to the chosen member or added as a new
+  member when **I'm not listed** is selected.
 
-## People Reconciliation
+If no categories were transferred, the device's configured default categories are created. No tags
+or expenses are created when those sections were omitted. If the destination already has the same
+group name, import uses `Name (2)`, then `Name (3)`, and so on. Existing groups are never replaced.
 
-People live in a global device-local directory, not inside the group (see [[global-people-directory]]). A group therefore does **not** embed its members' identities — so export must **snapshot** the people the group references (id + name + icon) alongside the group data.
+## People Reconciliation and Atomicity
 
-On **import as your group**, each snapshotted person is reconciled against the local directory:
+People are global device-local records rather than group-owned records; see
+[[global-people-directory]]. The member selected as the recipient is mapped to LocalUser's self
+Person. For other transferred people, an existing identical ID/name/icon record is reused. An ID
+collision with different details creates a new Person ID instead of overwriting local data; an
+absent ID is inserted from the snapshot.
 
-- **Same person id already in the directory** — reuse it; the member link points at the existing person.
-- **Id not present** — create the person in the local directory, then link.
+The complete import runs in one Dexie transaction across identity, groups, people, members,
+categories, tags, expenses, attachments, and settings. It validates receipt metadata before the
+transaction, remaps IDs, writes every selected record, verifies persisted collection counts, and
+then commits. Any failure rolls back all import writes. Zustand is rehydrated only after commit.
 
-This keeps cross-group identity intact on the importing device. View-only import resolves names from the snapshot directly and writes nothing to the directory.
+A fresh or incomplete device is marked onboarding-complete and opens the imported group. An
+already-completed device retains its existing onboarding progress record.
 
----
+## Deliberate Limits
 
-## Group Conflict Resolution
-
-The exported data always includes the group's UUID. On import as your group:
-
-| Scenario | Behaviour |
-|----------|-----------|
-| Same UUID already on device | Offer: Add new expenses only, or Replace completely |
-| Different UUID, same group name | Offer: Replace existing group, or save as new group with `_1` appended (e.g. "Goa Trip_1") |
-| Different UUID, different name | Add as new group — no conflict |
-
-### When Same UUID Is Found (re-import of the same group)
-
-- **Add new expenses only** — compares by `expenseId`; imports only expenses not already present. Safe, non-destructive. Any local additions are preserved.
-- **Replace completely** — overwrites the entire group with the imported version. User is clearly warned that local additions will be lost before proceeding.
-
-Full merge (tracking edits, deletions, conflict resolution) is deferred to V3 — it requires versioning and sync infrastructure that is out of scope for MVP.
-
----
-
-## Receipt Attachments
-
-- Attachments are optional on any expense
-- No hard limit on the number of attachments per expense
-- Images are compressed on ingest (resized to a max dimension of ~1920px) before being stored in IndexedDB — prevents silent device storage bloat
-- Stored as blobs in a dedicated `attachments` IndexedDB table (separate from the expense record) — allows lazy loading; expenses load without pulling all image blobs
-- ZIP export bundles all receipt images from all expenses in the group
-
----
+- Importing the same transfer twice creates two independent groups; there is no merge, replacement,
+  or add-new-expenses mode.
+- Integrity digests detect accidental change or corruption; they are not signatures or encryption.
+- Transfer links are bounded client-side payloads, not server-hosted short links.
+- Receipt ingestion/compression in the expense form remains pending even though valid existing
+  attachment rows can be transferred in ZIP.
 
 ## Related
 
-- [[domain-models]] — Expense shape with `attachmentIds[]`
-- [[money-representation-and-rounding]] — portable integer amount representation
-- [[indexeddb-schema]] — `attachments` table structure
-- [[global-people-directory]] — why people are global and must be snapshotted on export
-- [[solo-group-support]] — solo groups can also be exported and imported
+- [[domain-models]] — transferred entity shapes
+- [[state-management]] — atomic import and rehydration boundary
+- [[onboarding]] — fresh-device import identity path
+- [[indexeddb-schema]] — destination tables
+- [[global-people-directory]] — Person reconciliation
+- [[money-representation-and-rounding]] — portable amount invariants
+- [[main-screen]] — Group Settings export workflow
+- [[product-roadmap]] — snapshot transfer and separate future settlement sharing

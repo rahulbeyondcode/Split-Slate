@@ -5,7 +5,7 @@ This wiki is the sole persistent compiled knowledge layer. The implementation in
 authoritative; `app-featureset-context/spec-sheet.md` is a historical baseline where later source
 and approved decisions have superseded it. Changes: [log.md](log.md)
 
-Last updated: 2026-09-25
+Last updated: 2026-09-26
 
 ---
 
@@ -17,7 +17,7 @@ Last updated: 2026-09-25
 ### Architecture
 - [Domain Models](architecture/domain-models.md) — current entity shapes, exact ratio text, monetary invariants, and pending tag-display/attachment behavior
 - [Balance Calculation](architecture/balance-calculation.md) — exact member/group totals, all-member balances, and deterministic suggested transfers
-- [State Management](architecture/state-management.md) — shared and feature-local slices in one hydrated store; persisted tag cleanup, aggregate limits, and remaining cascade boundaries
+- [State Management](architecture/state-management.md) — hydrated Zustand slices plus persisted mutation boundaries, including all-or-nothing fresh-ID group import
 - [Split Types](architecture/split-types.md) — 5 split types with exact ratio storage, validation, and deterministic rounding; numeric percentage-total display remains pending
 - [Layout Architecture](architecture/layout-architecture.md) — current responsive shell and navigation stubs; theme controls remain planned
 
@@ -25,33 +25,34 @@ Last updated: 2026-09-25
 - [Global People Directory](decisions/global-people-directory.md) — device-local friends list; members link to shared people; supersedes per-group members
 - [Expense Model Design](decisions/expense-model-design.md) — paid/owed allocations and exact decimal ratio metadata, with numeric legacy read compatibility
 - [Solo Group Support](decisions/solo-group-support.md) — single-member creation and zero-net overview/balances are implemented; onboarding solo-helper copy remains pending
-- [Onboarding Persistence](decisions/onboarding-persistence.md) — per-step save to IndexedDB + resume from a monotonic `lastCompletedStep`; completion gated by an explicit flag, not `localUser` presence
-- [Import / Export Design](decisions/import-export.md) — approved but unimplemented design for three export formats, two import modes, and conflict resolution
-- [Expense Edit and Delete](decisions/expense-edit-delete.md) — implemented editing/deletion; tag resurrection and new ratio precision loss resolved; legacy rounded values cannot be recovered automatically
+- [Onboarding Persistence](decisions/onboarding-persistence.md) — resumable per-step standard setup plus atomic import-specific completion for fresh devices
+- [Import / Export Design](decisions/import-export.md) — implemented selective, integrity-checked Link/CSV/ZIP transfer that creates a fresh editable group
+- [Expense Edit and Delete](decisions/expense-edit-delete.md) — implemented editing/deletion for local and imported groups; tag resurrection and current ratio precision loss are resolved
 - [Group Deletion](decisions/group-deletion.md) — approved pending design for permanent deletion with a full related-data cascade and irreversible warning
 - [Money Representation and Rounding](decisions/money-representation-and-rounding.md) — integer minor units, exact ratio text and BigInt weights, deterministic allocation, and safe spending limits
 - [String Input Normalization](decisions/string-input-normalization.md) — required strings reject trimmed blanks; optional expense inputs have explicit blank-value semantics
-- [Testing Strategy](decisions/testing-strategy.md) — Vitest and Playwright suites, filter interactions, ratio precision and tag-cleanup regressions, test-only fake IndexedDB, and remaining gaps
+- [Testing Strategy](decisions/testing-strategy.md) — Vitest and desktop/mobile Playwright coverage for accounting, filtering, persistence, and complete group-transfer paths
 
 ### Systems
 - [IndexedDB Schema](systems/indexeddb-schema.md) — current tables, exact ratio metadata with legacy reads, persisted tag cleanup, and development schema policy
 
 ### Workflows
+- [Standalone Design Artifact](workflows/design-artifact.md) — canonical visual target and repeatable browser/Playwright rendering workflow for Claude Design HTML files
 - [Development Tools](workflows/development-tools.md) — typed realistic presets, individual creation buttons, collision-free naming, and sequential persistence boundaries
-- [Onboarding](workflows/onboarding.md) — implemented first-launch flow and membership guards, ending at `/dashboard`; import-based bypasses are planned
+- [Onboarding](workflows/onboarding.md) — implemented resumable setup plus Link/CSV/ZIP first-launch import with a short identity path
 - [Group Creation](workflows/group-creation.md) — standalone 4-step flow; writes begin only on final submission and then run sequentially
-- [Main Screen](workflows/main-screen.md) — implemented expense create/detail/edit/delete, group-switch state reset, and balance views
+- [Main Screen](workflows/main-screen.md) — implemented expense workflows, filtering, balances, and selective group transfer
 - [Paid-By](workflows/paid-by.md) — implemented frequent-payer selection, atomic ranking updates, recent-payer defaults, and multi-payer entry
 - [People Directory](workflows/people-directory.md) — global friends list; manage people; pick them when building a group
 - [Member Management](workflows/member-management.md) — add/edit/confirmed removal, atomic reference/duplicate guards, and local-user protection; remaining cascade limits are documented
 - [Category Management](workflows/category-management.md) — implemented group category CRUD, delete guards, and active-category expense picker; deactivation UI remains pending
 - [Tag Management](workflows/tag-management.md) — group tags, selection, and detail display; transactional persisted-reference cleanup and group expense refresh; list/overview display remains pending
 - [Filtering](workflows/filtering.md) — implemented eight-field, real-time filtering with validated local dates, currency amounts, stale-option cleanup, and desktop/mobile coverage
-- [Dashboard](workflows/dashboard.md) — current groups-list implementation and the planned summaries, analytics, and activity views
+- [Dashboard](workflows/dashboard.md) — groups list with create/import entry points plus planned summaries, analytics, and activity views
 
 ### Ideas (captured, not committed)
 - [Rewarded Ads](ideas/rewarded-ads.md) — optional ad-watch → credits → Pro unlock mechanic; fully opt-in
-- [Itemized Split](ideas/itemized-split.md) — exploratory sixth split type for receipt-item assignment, with no committed delivery version
+- [Itemized Split](ideas/itemized-split.md) — exploratory receipt-item assignment/OCR idea, separate from implemented receipt-file transfer
 - [Category Settings UI](ideas/category-settings-ui.md) — data layer built (DB-backed master/default category lists); settings screen still TODO
 
 ### Research
@@ -86,8 +87,8 @@ Last updated: 2026-09-25
 | Balances / who-owes-whom view      | DONE        |
 | Receipt attachments                | PENDING     |
 | Group settings + deletion          | PENDING     |
-| Export (Link / CSV / ZIP)          | PENDING     |
-| Import (view-only + as your group) | PENDING     |
+| Group transfer (Link / CSV / ZIP)  | DONE        |
+| Settlement sharing                | PENDING     |
 | Installable/offline PWA support    | PENDING     |
 | Automated tests                    | IN PROGRESS |
 
@@ -109,6 +110,13 @@ states. Utility coverage is complete for the current predicate and validation co
 interaction coverage exercises every filter on desktop and mobile, and selected IDs deleted on
 another group route are removed automatically when the list remounts. See [[filtering]].
 
+Group transfer is implemented as selective snapshot export and fresh editable import. Link is
+bounded to 32,000 characters without receipts; CSV carries typed data without blobs; ZIP optionally
+carries verified receipts. Fresh group-owned IDs, count/reference/integrity validation, recipient
+identity mapping, default categories, same-name numbering, and the complete IndexedDB transaction
+are covered on desktop and mobile. Settlement Link/PDF/Excel sharing remains separate and pending.
+See [[import-export]].
+
 ---
 
 ## Key Invariants (Quick Reference)
@@ -126,3 +134,4 @@ another group route are removed automatically when the list remounts. See [[filt
 11. Expense creation and editing parse and store currency-aware integer minor units; split calculations use deterministic largest-remainder allocation, and all amount displays convert from minor units
 12. Expense creation and editing reject saves that would push total group spending above `Number.MAX_SAFE_INTEGER` minor units; the check uses BigInt within the expense transaction to protect derived balances and displays, with updates replacing the old expense amount
 13. Shares and percentage metadata are written as validated decimal strings and calculated with scaled BigInt weights; monetary adjustments remain integer minor units. Legacy numeric ratios remain readable without automatic precision recovery
+14. Export rejects inconsistent persisted receipt ownership before counting omissions; import never overwrites or merges a source group, creates fresh group-owned IDs in one transaction, and rehydrates Zustand only after commit

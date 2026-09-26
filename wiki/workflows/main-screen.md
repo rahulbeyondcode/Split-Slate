@@ -7,9 +7,9 @@ metadata:
 
 # Main Screen
 
-Purpose: describe implemented group navigation, expense recording/correction, and balance views.
+Purpose: describe implemented group navigation, expense workflows, balances, and group transfer.
 
-Last updated: 2026-09-25
+Last updated: 2026-09-26
 
 ## Current Implementation
 
@@ -36,7 +36,7 @@ The current child screens are:
 - **Balances** — every member's net position and deterministic suggested payments
 - **Members** — add existing/new people, edit linked names/icons, and confirmed guarded removal
 - **Categories & Tags** — add, edit, and guarded-delete controls for both record types
-- **Settings** — read-only group name and currency
+- **Settings** — read-only group name/currency plus the selective Link/CSV/ZIP transfer questionnaire
 
 The group header's Add Expense link opens the entry form. Successful saves return to the expense
 list and update overview/sidebar balances through the shared store. Failed saves retain form inputs
@@ -105,10 +105,18 @@ Detail deletion requires confirmation and atomically removes the expense and own
 refreshes frequent payers, then returns to the list. All balance displays derive the updated store.
 Missing or cross-group detail/edit IDs show a not-found state. See [[expense-edit-delete]].
 
-### Planned Group Menu
+### Group Settings and Planned Menu
 
-- Export (Link / CSV / ZIP depending on group size and whether attachments exist)
-- Import CSV / ZIP
+- Group transfer is implemented in Settings. Only required group information is initially selected;
+  the sender can add categories, tags, members, expenses, and available receipt attachments.
+- Expenses automatically select and lock categories and members. Receipts automatically select and
+  lock expenses and its dependencies. Explanatory dialogs state why; deselection releases the locks.
+- Link, CSV, and ZIP are available without receipts. Receipt selection disables Link/CSV and leaves
+  ZIP as the complete transfer. Link generation has a 32,000-character ceiling and displays a
+  privacy warning; all formats validate the same versioned snapshot. See [[import-export]].
+- CSV/ZIP import is available from `/import`, reached from welcome or dashboard rather than Group
+  Settings. Transfer always creates a new editable group.
+- Human-readable Link/PDF/Excel settlement sharing remains a separate future settlement feature.
 - Settings
 - Help
 

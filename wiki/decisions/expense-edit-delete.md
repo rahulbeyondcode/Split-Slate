@@ -9,7 +9,7 @@ metadata:
 
 Purpose: document expense correction, permanent deletion, and their persistence guarantees.
 
-Last updated: 2026-09-23
+Last updated: 2026-09-26
 
 ## Implementation Status
 
@@ -102,5 +102,5 @@ or pricing commitments; see [[product-roadmap]].
 - [[domain-models]] — Expense shape
 - [[indexeddb-schema]] — attachments cascade on expense delete
 - [[tag-management]] — persisted-reference cleanup prevents deleted-expense resurrection
-- [[import-export]] — view-only import mode is already read-only by design (separate from edit/delete controls)
+- [[import-export]] — imported groups are fresh editable copies and use the same correction controls
 - [[product-roadmap]] — current delivery horizons and uncommitted online capabilities

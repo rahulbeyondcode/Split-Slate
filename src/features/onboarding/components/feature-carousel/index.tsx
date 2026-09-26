@@ -58,6 +58,13 @@ const FeatureCarousel = () => {
           {isLast ? "Get Started" : "Next"}
         </button>
       </div>
+      <button
+        type="button"
+        onClick={() => navigate("/import")}
+        className="mt-3 text-sm text-blue-700"
+      >
+        Import an existing group instead
+      </button>
     </div>
   );
 };

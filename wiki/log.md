@@ -2,11 +2,29 @@
 
 Reverse-chronological record of all wiki changes.
 
-Last updated: 2026-09-25
+Last updated: 2026-09-26
 
 ---
 
+## 2026-09-26
+- UPDATED decisions/import-export.md and wiki/index.md — documented source receipt-reference validation so omission counts cannot hide missing or surplus files
+- UPDATED decisions/expense-edit-delete.md and ideas/itemized-split.md — removed stale view-only import and pending receipt-transfer cross-references
+- UPDATED wiki/index.md — synchronized the corrected edit/delete and itemized-split summaries
+- UPDATED decisions/import-export.md — replaced the temporary read-only sharing design with the implemented selective, integrity-checked, fresh-ID editable group-transfer contract
+- UPDATED decisions/onboarding-persistence.md and workflows/onboarding.md — documented the atomic fresh-device import identity and completion path
+- UPDATED architecture/state-management.md — documented complete import transaction, ID remapping, count verification, and post-commit rehydration
+- UPDATED workflows/main-screen.md and workflows/dashboard.md — documented the transfer questionnaire, format dependencies, and welcome/dashboard import entry points
+- UPDATED decisions/testing-strategy.md — recorded transfer-size, integrity, dependency, rollback, and desktop/mobile Link/CSV/ZIP coverage
+- UPDATED roadmap/product-roadmap.md — marked editable group transfer implemented and separated future settlement Link/PDF/Excel sharing
+- UPDATED wiki/index.md — synchronized transfer status, navigation summaries, and import invariant
+- CREATED workflows/design-artifact.md — recorded the standalone Claude Design HTML as the canonical visual target and documented the proven browser and Playwright render paths
+- UPDATED wiki/index.md — linked the standalone design-artifact workflow
+
 ## 2026-09-25
+- UPDATED decisions/import-export.md — finalized and documented the version-1 Link, typed-row CSV, ZIP manifest, URL/decoded-size ceilings, attachment boundaries, and current import split
+- UPDATED workflows/main-screen.md and roadmap/product-roadmap.md — marked all three export formats and anonymous Link viewing implemented while retaining pending file/editable import
+- UPDATED decisions/testing-strategy.md — recorded export validation, round-trip, archive, download, and desktop/mobile anonymous-view coverage
+- UPDATED wiki/index.md — marked export done and synchronized import/export and main-screen navigation summaries
 - UPDATED workflows/filtering.md and workflows/main-screen.md — documented automatic stale-option pruning and direct desktop/mobile filter coverage
 - UPDATED roadmap/product-roadmap.md and decisions/testing-strategy.md — marked the filtering gaps resolved and recorded the new unit/browser cases
 - UPDATED wiki/index.md — marked expense list and filtering done and synchronized navigation summaries

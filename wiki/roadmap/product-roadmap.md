@@ -9,7 +9,7 @@ metadata:
 
 Purpose: provide a current planning compass without turning exploratory ideas into commitments.
 
-Last updated: 2026-09-25
+Last updated: 2026-09-26
 
 ## How to Read This Page
 
@@ -74,6 +74,8 @@ The following foundation is implemented now:
 - Expense recording with five split types, one/multiple payers, optional tags, and local persistence
 - Expense-list and group-overview surfaces showing saved records and balances
 - Eight-field, group-local expense filtering with validated date and currency-aware amount bounds
+- Selective versioned Link/typed-CSV/receipt-aware ZIP group transfer with validated editable import
+  on fresh and existing devices
 - Helpers for member/group totals, all-member balances, and suggested payments
 - Expense detail, editing, and confirmed hard deletion with owned-attachment cleanup
 
@@ -121,8 +123,9 @@ Approved or required work:
   cleanup, direct desktop/mobile filter coverage, and detail display are implemented.
 - Finish category activation/deactivation controls; active-category expense-picker behavior is implemented.
 - Implement receipt attachment ingestion, compression, and lazy loading; expense-deletion cascades are implemented.
-- Implement the Link/CSV/ZIP export and the view-only/editable import flows in
-  [[import-export]].
+- Continue hardening the implemented Link/CSV/ZIP editable snapshot transfer in [[import-export]].
+  Selective export, integrity validation, fresh-ID atomic import, identity mapping, and
+  receipt-aware ZIP round-trips are implemented. Merge and synchronization are deliberate non-goals.
 - Add explicit backup/export reminders without making them spammy.
 - Add installable PWA metadata, service-worker caching, offline-start verification, and an
   update/recovery experience. IndexedDB alone does not make the application an offline PWA.
@@ -149,6 +152,8 @@ Candidates, ordered roughly by dependency and user value:
   creation.
 - Add restrained local reminders for recurring items, unsettled balances, and backups.
 - Add settlement recording after the settlement model decision below is resolved.
+- Design settlement-specific human sharing (Link/PDF/Excel) separately from reconstructable group
+  transfer after the settlement data model is approved.
 - Consider cross-group balances between the same global Person only after per-group balances are
   trustworthy.
 
@@ -164,6 +169,10 @@ This roadmap does not silently choose between them. Before settlement work start
 separate decision covering the data model, full versus partial repayment, editing/deletion,
 interaction with suggested transfers, and import/export behavior. A dedicated Settlements tab is
 not required merely because settlement records exist.
+
+Any future Link/PDF/Excel settlement output is a human-readable balance or repayment summary. It
+must not be conflated with [[import-export]], whose purpose is reconstructing an editable group on a
+different device.
 
 ## Horizon 4 — Optional Online Convenience
 
@@ -225,7 +234,8 @@ be reintroduced:
   their own lifecycle.
 - Onboarding currently finishes at the dashboard. Last-opened-group launch behavior is not an
   approved current feature.
-- Portable sharing is no longer described as CSV-only; Link and ZIP modes are also approved.
+- Portable transfer is no longer CSV-only or read-only; selective Link, CSV, and ZIP snapshots create
+  new editable groups with fresh group-owned IDs.
 - PWA installation and offline application caching are pending, even though entity data already
   lives in IndexedDB.
 
