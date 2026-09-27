@@ -5,7 +5,7 @@ This wiki is the sole persistent compiled knowledge layer. The implementation in
 authoritative; `app-featureset-context/spec-sheet.md` is a historical baseline where later source
 and approved decisions have superseded it. Changes: [log.md](log.md)
 
-Last updated: 2026-09-26
+Last updated: 2026-09-27
 
 ---
 
@@ -37,8 +37,7 @@ Last updated: 2026-09-26
 - [IndexedDB Schema](systems/indexeddb-schema.md) — current tables, exact ratio metadata with legacy reads, persisted tag cleanup, and development schema policy
 
 ### Workflows
-- [Standalone Design Artifact](workflows/design-artifact.md) — canonical visual target and repeatable browser/Playwright rendering workflow for Claude Design HTML files
-- [Development Tools](workflows/development-tools.md) — typed realistic presets, individual creation buttons, collision-free naming, and sequential persistence boundaries
+- [Development Tools](workflows/development-tools.md) — typed realistic presets, randomized onboarding contacts, individual creation buttons, and persistence boundaries
 - [Onboarding](workflows/onboarding.md) — implemented resumable setup plus Link/CSV/ZIP first-launch import with a short identity path
 - [Group Creation](workflows/group-creation.md) — standalone 4-step flow; writes begin only on final submission and then run sequentially
 - [Main Screen](workflows/main-screen.md) — implemented expense workflows, filtering, balances, and selective group transfer

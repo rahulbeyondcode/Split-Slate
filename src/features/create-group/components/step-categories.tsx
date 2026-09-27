@@ -8,7 +8,11 @@ import type { CreateGroupFormValues } from "@/features/create-group/helpers/sche
 
 type Chip = { name: string; icon: string };
 
-const StepCategories = () => {
+interface PropsType {
+  showHeading?: boolean;
+}
+
+const StepCategories = ({ showHeading = true }: PropsType) => {
   const masterCategories = useStore((s) => s.masterCategories);
   const { field: categoriesField, fieldState } = useController<CreateGroupFormValues, "categories">(
     {
@@ -40,12 +44,14 @@ const StepCategories = () => {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h2 className="page-title mb-1">What will you spend on?</h2>
-        <p className="text-sm text-gray-500">
-          Pick the categories that make sense for this group. You can always add more later.
-        </p>
-      </div>
+      {showHeading && (
+        <div>
+          <h2 className="page-title mb-1">What will you spend on?</h2>
+          <p className="text-sm text-gray-500">
+            Pick the categories that make sense for this group. You can always add more later.
+          </p>
+        </div>
+      )}
 
       <div className="flex flex-wrap gap-2 overflow-y-auto max-h-48">
         {visibleChips.map((chip) => {
@@ -76,7 +82,7 @@ const StepCategories = () => {
         <button
           type="button"
           onClick={() => setAddingNewCategory(true)}
-          className="px-4 py-2 text-sm border border-dashed border-gray-400 rounded text-gray-600 self-start"
+          className="btn btn-quiet self-start"
         >
           + Add new category
         </button>

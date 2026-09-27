@@ -25,6 +25,7 @@ const PersonEditor = ({
 }: PropsType) => {
   const methods = useForm<PersonEditorValues>({
     resolver: zodResolver(createPersonSchema(existingNames)),
+    mode: "onChange",
     defaultValues: initial ?? { name: "", icon: PERSON_EMOJIS[0] },
   });
 
@@ -34,15 +35,28 @@ const PersonEditor = ({
 
   return (
     <FormProvider {...methods}>
-      <form onSubmit={handleSave} className="surface surface-pad flex flex-col gap-4">
-        <div className="flex gap-2 items-start">
-          <EmojiPicker name="icon" emojis={PERSON_EMOJIS} />
-          <label className="flex-1">
-            <span className="field-label">Name</span>
-            <Input name="name" placeholder="Name" autoFocus />
+      <form onSubmit={handleSave} className="surface flex min-w-0 flex-col gap-5 p-4 sm:p-5">
+        <h3 className="section-title">{initial ? "Edit person" : "Add a person"}</h3>
+
+        <div className="min-w-0">
+          <label className="field-label" htmlFor="person-name">
+            Name
           </label>
+          <Input
+            id="person-name"
+            name="name"
+            placeholder="e.g. Karan"
+            wrapperClass="w-full"
+            autoFocus
+          />
         </div>
-        <div className="flex gap-2 justify-end">
+
+        <div className="min-w-0">
+          <span className="field-label">Choose an icon</span>
+          <EmojiPicker name="icon" emojis={PERSON_EMOJIS} />
+        </div>
+
+        <div className="flex flex-wrap gap-2 justify-end">
           <button type="button" onClick={onCancel} className="btn btn-secondary">
             Cancel
           </button>

@@ -37,17 +37,33 @@ const CategoryEditor = ({ existingNames, onAdd, onCancel }: PropsType) => {
 
   return (
     <FormProvider {...editorForm}>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-2 border rounded p-3">
-        <div className="flex gap-2 items-start">
-          <EmojiPicker name="icon" emojis={CATEGORY_EMOJIS} />
-          <Input name="category" placeholder="Category name" wrapperClass="flex-1" autoFocus />
+      <form onSubmit={handleSubmit} className="surface flex min-w-0 flex-col gap-5 p-4 sm:p-5">
+        <h3 className="section-title">Add a category</h3>
+
+        <div className="min-w-0">
+          <label className="field-label" htmlFor="category-name">
+            Category name
+          </label>
+          <Input
+            id="category-name"
+            name="category"
+            placeholder="e.g. Coffee runs"
+            wrapperClass="w-full"
+            autoFocus
+          />
         </div>
-        <div className="flex gap-2 justify-end">
-          <button type="button" onClick={onCancel} className="px-4 py-2 text-sm text-gray-500">
+
+        <div className="min-w-0">
+          <span className="field-label">Choose an icon</span>
+          <EmojiPicker name="icon" emojis={CATEGORY_EMOJIS} />
+        </div>
+
+        <div className="flex flex-wrap gap-2 justify-end">
+          <button type="button" onClick={onCancel} className="btn btn-secondary">
             Cancel
           </button>
-          <button type="submit" className="px-4 py-2 bg-gray-900 text-white text-sm rounded">
-            Add
+          <button type="submit" className="btn btn-primary">
+            Add category
           </button>
         </div>
       </form>

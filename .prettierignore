@@ -6,6 +6,3 @@ public
 # Docs and wiki are prose, not code — keep them out of the formatter
 *.md
 wiki
-
-# Canonical, immutable design reference
-Split Slate (Standalone).html

@@ -31,15 +31,14 @@ export const onboardUser = async () => {
     name: "Rahul R",
     icon: "🧑‍💻",
   };
-  const people: Person[] = [
-    localUser,
-    { id: uuid(), name: "Dracu", icon: "🧛" },
-    { id: uuid(), name: "Zombuu", icon: "🧟" },
-    { id: uuid(), name: "Geniee", icon: "🧜" },
-    { id: uuid(), name: "Pandu", icon: "🐼" },
-    { id: uuid(), name: "Foxxy", icon: "🦊" },
-    { id: uuid(), name: "Simba", icon: "🦁" },
-  ];
+  const people: Person[] = [localUser];
+  for (let index = 0; index < 6; index += 1) {
+    const { name, icon } = getRandomDevData(
+      "person",
+      people.map((person) => person.name),
+    );
+    people.push({ id: uuid(), name, icon });
+  }
   const groupId = uuid();
   const members: Member[] = people.map((person) => ({
     id: uuid(),

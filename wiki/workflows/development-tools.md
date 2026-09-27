@@ -2,7 +2,7 @@
 
 Purpose: describe realistic development presets, individual creation actions, and their persistence boundaries.
 
-Last updated: 2026-09-19
+Last updated: 2026-09-27
 
 ## Presets and naming
 
@@ -50,10 +50,11 @@ an expense failure after category creation leaves the category. Those later-step
 which record remains available. Underlying store transaction limits still apply; see
 [[state-management]].
 
-The existing **Onboard user** action replaces the database with its fixed onboarding fixture in
-one transaction. **Clear database** deletes the database. Both reload the app after success and
-remain distinct from individual creation. They do not use the random preset pools. Onboarding
-fixture category IDs, like other generated IDs, use UUIDs.
+The **Onboard user** action replaces the database in one transaction. It keeps the local user
+(`Rahul R`), group, categories, and tags fixed, but chooses six distinct sample contacts from the
+person presets, excluding names already chosen. Each person and group-owned record receives a fresh
+UUID. **Clear database** deletes the database. Both actions reload the app after success and remain
+distinct from individual creation.
 
 ## Related
 

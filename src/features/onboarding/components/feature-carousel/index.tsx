@@ -3,8 +3,6 @@ import { useNavigate } from "react-router-dom";
 
 import { slides } from "@/features/onboarding/components/feature-carousel/slide-data";
 
-import AppLogo from "@/shared/ui/app-logo";
-
 const FeatureCarousel = () => {
   const [current, setCurrent] = useState(0);
   const navigate = useNavigate();
@@ -20,55 +18,79 @@ const FeatureCarousel = () => {
       setCurrent((c) => c + 1);
     }
   };
+  const handlePrevious = () => setCurrent((index) => index - 1);
+  const handleSkip = () => navigate("/onboarding/setup");
+  const handleImport = () => navigate("/import");
 
   return (
-    <div className="mx-auto flex min-h-svh max-w-md flex-col px-6 py-7">
-      <div className="flex items-center justify-between">
-        <AppLogo />
-        {!isLast && (
-          <button className="soft-caption" onClick={() => navigate("/onboarding/setup")}>
-            Skip
-          </button>
-        )}
-      </div>
-
-      <div className="flex-1 flex flex-col items-center justify-center text-center gap-4">
-        <div className="hero !rounded-[52px] flex h-40 w-40 items-center justify-center !p-0 !text-6xl">
-          {slide.icon}
+    <main className="intro-layout">
+      <section className="intro-visual" aria-label="Welcome to SplitSlate">
+        <div className="intro-topbar">
+          <div className="intro-brand">
+            <span className="intro-brand-mark" aria-hidden="true" />
+            <span>SplitSlate</span>
+          </div>
+          {!isLast && (
+            <button type="button" onClick={handleSkip} className="intro-skip">
+              Skip intro <span aria-hidden="true">↗</span>
+            </button>
+          )}
         </div>
-        <h1 className="page-title mt-5">{slide.title}</h1>
-        <p className="muted text-sm leading-relaxed max-w-xs">{slide.description}</p>
-      </div>
 
-      <div className="flex justify-center gap-2 mb-6">
-        {slides.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => setCurrent(i)}
-            className={`h-2 rounded-full ${i === current ? "w-5 bg-[var(--brand)]" : "w-2 bg-[var(--line)]"}`}
-            aria-label={`Go to slide ${i + 1}`}
-          />
-        ))}
-      </div>
+        <div className="intro-visual-content">
+          <div className="intro-orbit" aria-hidden="true">
+            <span className="intro-orbit-icon" key={current}>
+              {slide.icon}
+            </span>
+            <span className="intro-orbit-note intro-orbit-note-top">✦ Shared expenses</span>
+            <span className="intro-orbit-note intro-orbit-note-bottom">✓ Clear balances</span>
+          </div>
+          <div className="intro-visual-copy">
+            <p className="intro-visual-eyebrow">THE WAY FRIENDS SPLIT</p>
+            <h2>Good times. Clear tabs.</h2>
+            <p>Keep the memories, not the mental maths. Every shared expense in one calm place.</p>
+          </div>
+        </div>
 
-      <div className="flex flex-col gap-2">
-        <button onClick={handleNext} className="btn btn-primary w-full !py-3">
-          {isLast ? "Get started" : "Next"}
-        </button>
-        {!isFirst && (
-          <button onClick={() => setCurrent((c) => c - 1)} className="btn btn-secondary">
-            Previous
+        <p className="intro-visual-footnote">🔒 No accounts · no cloud · works offline</p>
+      </section>
+
+      <section className="intro-panel" aria-label="Introduction">
+        <div className="intro-slide" key={current}>
+          <p className="eyebrow">Discover SplitSlate · {String(current + 1).padStart(2, "0")}</p>
+          <h1>{slide.title}</h1>
+          <p className="intro-description">{slide.description}</p>
+        </div>
+
+        <div className="intro-footer">
+          <div className="intro-progress" aria-label="Introduction slides">
+            {slides.map((item, index) => (
+              <button
+                key={item.title}
+                type="button"
+                onClick={() => setCurrent(index)}
+                aria-label={`Go to slide ${index + 1}: ${item.title}`}
+                aria-current={index === current ? "step" : undefined}
+                className={index === current ? "intro-dot is-current" : "intro-dot"}
+              />
+            ))}
+          </div>
+          <div className="intro-actions">
+            {!isFirst && (
+              <button type="button" onClick={handlePrevious} className="btn btn-secondary">
+                Previous
+              </button>
+            )}
+            <button type="button" onClick={handleNext} className="btn btn-primary intro-next">
+              {isLast ? "Get started" : "Next"}
+            </button>
+          </div>
+          <button type="button" onClick={handleImport} className="intro-import">
+            Already have a group? <span>Import it instead →</span>
           </button>
-        )}
-      </div>
-      <button
-        type="button"
-        onClick={() => navigate("/import")}
-        className="mt-3 text-xs text-[var(--brand-ink)]"
-      >
-        Import an existing group instead
-      </button>
-    </div>
+        </div>
+      </section>
+    </main>
   );
 };
 

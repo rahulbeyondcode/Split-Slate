@@ -48,11 +48,13 @@ const PeopleList = () => {
       setError(failure instanceof Error ? failure.message : "Could not delete this person");
     }
   };
-  const visible = people.filter(
-    (person) =>
-      person.id !== localUser?.id &&
-      person.name.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()),
-  );
+  const visible = people
+    .filter(
+      (person) =>
+        person.id !== localUser?.id &&
+        person.name.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()),
+    )
+    .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
 
   return (
     <div className="page page-narrow flex flex-col gap-5">
@@ -143,33 +145,42 @@ const PeopleList = () => {
                         {balances.slice(0, 3).map(
                           ({ group }) =>
                             group && (
-                              <Link
-                                aria-label={`Open ${group.name}`}
-                                key={group.id}
-                                to={`/groups/${group.id}/members`}
-                                className="chip !px-2"
-                              >
-                                {group.icon}
-                              </Link>
+                              <span key={group.id} className="group relative inline-flex">
+                                <Link
+                                  aria-label={`Open ${group.name}`}
+                                  to={`/groups/${group.id}/members`}
+                                  className="chip !px-2"
+                                >
+                                  {group.icon}
+                                </Link>
+                                <span
+                                  aria-hidden="true"
+                                  className="pointer-events-none invisible absolute bottom-[calc(100%+8px)] left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-lg bg-[var(--ink)] px-2.5 py-1.5 text-xs font-semibold text-[var(--surface)] opacity-0 shadow-md transition-opacity group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
+                                >
+                                  {group.name}
+                                </span>
+                              </span>
                             ),
                         )}
                       </div>
-                      <button
-                        type="button"
-                        className="btn btn-secondary !px-3"
-                        onClick={() => setMode({ type: "edit", id: person.id })}
-                        aria-label={`Edit ${person.name}`}
-                      >
-                        ✎
-                      </button>
-                      <button
-                        type="button"
-                        className="btn btn-danger !px-3"
-                        onClick={() => void handleDelete(person.id)}
-                        aria-label={`Delete ${person.name}`}
-                      >
-                        ×
-                      </button>
+                      <div className="ml-auto flex shrink-0 items-center gap-2">
+                        <button
+                          type="button"
+                          className="btn btn-secondary !px-3"
+                          onClick={() => setMode({ type: "edit", id: person.id })}
+                          aria-label={`Edit ${person.name}`}
+                        >
+                          ✎
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-danger !px-3"
+                          onClick={() => void handleDelete(person.id)}
+                          aria-label={`Delete ${person.name}`}
+                        >
+                          ×
+                        </button>
+                      </div>
                     </div>
                   )}
                 </li>

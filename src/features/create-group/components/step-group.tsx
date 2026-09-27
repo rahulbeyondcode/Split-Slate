@@ -6,18 +6,22 @@ import { GROUP_EMOJIS } from "@/shared/constants/emojis";
 interface PropsType {
   title?: string;
   subtitle?: string;
+  showHeading?: boolean;
 }
 
 const StepGroup = ({
   title = "Create your first group",
   subtitle = "A group holds all expenses between a set of people.",
+  showHeading = true,
 }: PropsType) => {
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h2 className="page-title mb-1">{title}</h2>
-        <p className="soft-caption">{subtitle}</p>
-      </div>
+      {showHeading && (
+        <div>
+          <h2 className="page-title mb-1">{title}</h2>
+          <p className="soft-caption">{subtitle}</p>
+        </div>
+      )}
 
       <div className="flex flex-col gap-2">
         <label className="field-label">Group name</label>

@@ -25,7 +25,20 @@ const MemberList = () => {
   const addingMember = useRef(false);
 
   const groupPersonIds = new Set(groupMembers.map((member) => member.personId));
-  const availablePeople = people.filter((person) => !groupPersonIds.has(person.id));
+  const availablePeople = people
+    .filter((person) => !groupPersonIds.has(person.id))
+    .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
+  const sortedMembers = [...groupMembers].sort((a, b) => {
+    if (a.personId === localUser?.id) return -1;
+    if (b.personId === localUser?.id) return 1;
+    return (a.person?.name ?? "Unknown person").localeCompare(
+      b.person?.name ?? "Unknown person",
+      undefined,
+      { sensitivity: "base" },
+    );
+  });
+  const editingMember =
+    mode?.type === "edit" ? groupMembers.find((member) => member.id === mode.memberId) : undefined;
   const existingNames = (personId?: string) =>
     people.filter((person) => person.id !== personId).map((person) => person.name);
 
@@ -199,51 +212,51 @@ const MemberList = () => {
         </fieldset>
       )}
 
+      {editingMember?.person && (
+        <div className="py-2">
+          <PersonEditor
+            existingNames={existingNames(editingMember.personId)}
+            initial={{ name: editingMember.person.name, icon: editingMember.person.icon }}
+            onSave={handleEditMember(editingMember)}
+            onCancel={closeEditor}
+          />
+        </div>
+      )}
+
       <ul className="surface px-5">
-        {groupMembers.map((member) =>
-          mode?.type === "edit" && mode.memberId === member.id && member.person ? (
-            <li key={member.id}>
-              <PersonEditor
-                existingNames={existingNames(member.personId)}
-                initial={{ name: member.person.name, icon: member.person.icon }}
-                onSave={handleEditMember(member)}
-                onCancel={closeEditor}
-              />
-            </li>
-          ) : (
-            <li key={member.id} className="ui-row">
-              <span className="flex items-center gap-3">
-                <span className="avatar">{member.person?.icon}</span>
-                <span className="text-sm font-medium text-gray-900">
-                  {member.person?.name ?? "Unknown person"}
-                  {member.personId === localUser?.id && (
-                    <span className="ml-2 text-xs text-gray-400">You</span>
-                  )}
-                </span>
-              </span>
-              <span className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => handleOpenEdit(member.id)}
-                  disabled={isAddingMember || !member.person}
-                  className="btn btn-secondary"
-                >
-                  Edit
-                </button>
-                {member.personId !== localUser?.id && (
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteMember(member)}
-                    disabled={isAddingMember}
-                    className="btn btn-danger"
-                  >
-                    Delete
-                  </button>
+        {sortedMembers.map((member) => (
+          <li key={member.id} className="ui-row">
+            <span className="flex min-w-0 flex-1 items-center gap-3">
+              <span className="avatar">{member.person?.icon}</span>
+              <span className="min-w-0 truncate text-sm font-medium text-gray-900">
+                {member.person?.name ?? "Unknown person"}
+                {member.personId === localUser?.id && (
+                  <span className="ml-2 text-xs text-gray-400">You</span>
                 )}
               </span>
-            </li>
-          ),
-        )}
+            </span>
+            <span className="ml-auto flex shrink-0 items-center gap-3">
+              <button
+                type="button"
+                onClick={() => handleOpenEdit(member.id)}
+                disabled={isAddingMember || !member.person}
+                className="btn btn-secondary"
+              >
+                Edit
+              </button>
+              {member.personId !== localUser?.id && (
+                <button
+                  type="button"
+                  onClick={() => handleDeleteMember(member)}
+                  disabled={isAddingMember}
+                  className="btn btn-danger"
+                >
+                  Delete
+                </button>
+              )}
+            </span>
+          </li>
+        ))}
       </ul>
     </section>
   );

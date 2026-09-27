@@ -2,9 +2,15 @@
 
 Reverse-chronological record of all wiki changes.
 
-Last updated: 2026-09-26
+Last updated: 2026-09-27
 
 ---
+
+## 2026-09-27
+- REMOVED workflows/design-artifact.md — retired obsolete standalone visual-reference instructions after implementation
+- UPDATED wiki/index.md — removed the retired workflow from navigation
+- UPDATED workflows/development-tools.md — documented unique preset-based contacts in the Onboard user fixture while retaining its fixed local user and other fixture records
+- UPDATED wiki/index.md — synchronized the development-tools summary
 
 ## 2026-09-26
 - UPDATED decisions/import-export.md and wiki/index.md — documented source receipt-reference validation so omission counts cannot hide missing or surplus files
@@ -17,8 +23,6 @@ Last updated: 2026-09-26
 - UPDATED decisions/testing-strategy.md — recorded transfer-size, integrity, dependency, rollback, and desktop/mobile Link/CSV/ZIP coverage
 - UPDATED roadmap/product-roadmap.md — marked editable group transfer implemented and separated future settlement Link/PDF/Excel sharing
 - UPDATED wiki/index.md — synchronized transfer status, navigation summaries, and import invariant
-- CREATED workflows/design-artifact.md — recorded the standalone Claude Design HTML as the canonical visual target and documented the proven browser and Playwright render paths
-- UPDATED wiki/index.md — linked the standalone design-artifact workflow
 
 ## 2026-09-25
 - UPDATED decisions/import-export.md — finalized and documented the version-1 Link, typed-row CSV, ZIP manifest, URL/decoded-size ceilings, attachment boundaries, and current import split

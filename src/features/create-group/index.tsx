@@ -50,6 +50,7 @@ const CreateGroupFlow = () => {
 
   const methods = useForm<CreateGroupFormValues>({
     resolver: zodResolver(createGroupSchema),
+    mode: "onChange",
     defaultValues: {
       group: { name: "", icon: GROUP_EMOJIS[0] },
       currency: "INR",

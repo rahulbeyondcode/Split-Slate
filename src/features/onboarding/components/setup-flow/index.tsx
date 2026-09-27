@@ -17,7 +17,51 @@ import {
   STEP_FIELDS,
 } from "@/features/onboarding/helpers/setup-schema";
 
-import { GROUP_EMOJIS, PERSON_EMOJIS } from "@/shared/constants/emojis";
+import { GROUP_EMOJIS } from "@/shared/constants/emojis";
+
+const STEP_PRESENTATION = {
+  identity: {
+    label: "Your identity",
+    icon: "👋",
+    title: "First, a face for the ledger.",
+    description: "Your name and emoji appear next to everything you pay and owe.",
+    formTitle: "What do people call you?",
+    formDescription: "Just a name and a face — this stays on your device.",
+  },
+  group: {
+    label: "First group",
+    icon: "✨",
+    title: "Make a space for your people.",
+    description: "Give your first group a name. You can always create more later.",
+    formTitle: "Create your first group",
+    formDescription: "A group holds all expenses between a set of people.",
+  },
+  currency: {
+    label: "Currency",
+    icon: "💸",
+    title: "Keep every total clear.",
+    description: "Choose the currency your group will use for its expenses.",
+    formTitle: "One currency for this group",
+    formDescription: "All expenses in this group will use this currency.",
+  },
+  categories: {
+    label: "Categories",
+    icon: "🗂️",
+    title: "Make sense of the spending.",
+    description: "Pick the categories that fit your group. You can change them later.",
+    formTitle: "What will you spend on?",
+    formDescription:
+      "Pick the categories that make sense for this group. You can always add more later.",
+  },
+  members: {
+    label: "Members",
+    icon: "🫶",
+    title: "Bring your people together.",
+    description: "Add friends now, or start solo and invite them later.",
+    formTitle: "Who's coming along?",
+    formDescription: "Optional — adding members can wait.",
+  },
+};
 
 const SetupFlow = () => {
   const {
@@ -29,6 +73,7 @@ const SetupFlow = () => {
     masterCategories,
     defaultGroupCategories,
     onboardingStep,
+    onboardingLastCompletedStep,
     onboardingGroupId,
     setOnboardingStep,
     advanceOnboarding,
@@ -67,8 +112,9 @@ const SetupFlow = () => {
 
   const methods = useForm<SetupFormValues>({
     resolver: zodResolver(setupSchema),
+    mode: "onChange",
     defaultValues: {
-      identity: { name: localUser?.name ?? "", icon: localUser?.icon ?? PERSON_EMOJIS[0] },
+      identity: { name: localUser?.name ?? "", icon: localUser?.icon ?? "🦊" },
       group: { name: group?.name ?? "", icon: group?.icon ?? GROUP_EMOJIS[0] },
       currency: group?.currency ?? "INR",
       categories: existingCategories.length ? existingCategories : defaultCategories,
@@ -77,7 +123,10 @@ const SetupFlow = () => {
   });
 
   const currentIndex = SETUP_STEPS.indexOf(onboardingStep);
+  const lastCompletedIndex =
+    onboardingLastCompletedStep === null ? -1 : SETUP_STEPS.indexOf(onboardingLastCompletedStep);
   const isLast = onboardingStep === "members";
+  const presentation = STEP_PRESENTATION[onboardingStep];
 
   const handleBack = () => setOnboardingStep(prevStep(onboardingStep));
 
@@ -151,45 +200,82 @@ const SetupFlow = () => {
 
   return (
     <FormProvider {...methods}>
-      <div className="mx-auto flex min-h-svh max-w-md flex-col p-6">
-        <p className="eyebrow mb-3">
-          Step {currentIndex + 1} of {SETUP_STEPS.length}
-        </p>
-        <div className="flex gap-1 mb-8">
-          {SETUP_STEPS.map((step, index) => (
+      <main className="onboarding-layout">
+        <aside className="onboarding-panel" aria-label="Setup progress">
+          <div className="onboarding-brand">
+            <span className="onboarding-brand-mark" aria-hidden="true" />
+            <span>SplitSlate</span>
+          </div>
+
+          <div className="onboarding-story" key={onboardingStep}>
+            <span className="onboarding-story-icon" aria-hidden="true">
+              {presentation.icon}
+            </span>
+            <h2>{presentation.title}</h2>
+            <p>{presentation.description}</p>
+          </div>
+
+          <div className="onboarding-panel-footer">
+            <ol className="onboarding-progress" aria-label="Setup steps">
+              {SETUP_STEPS.map((step, index) => {
+                const isComplete = index <= lastCompletedIndex;
+                return (
+                  <li
+                    key={step}
+                    className={`${index === currentIndex ? "is-current" : ""} ${isComplete ? "is-complete" : ""}`}
+                    aria-current={index === currentIndex ? "step" : undefined}
+                  >
+                    <span className="onboarding-progress-number" aria-hidden="true">
+                      {isComplete ? "✓" : index + 1}
+                    </span>
+                    {isComplete && <span className="sr-only">Completed: </span>}
+                    <span>{STEP_PRESENTATION[step].label}</span>
+                  </li>
+                );
+              })}
+            </ol>
+            <p className="onboarding-privacy">🔒 No accounts · no cloud · works offline</p>
+          </div>
+        </aside>
+
+        <section className="onboarding-main" aria-label={`${presentation.label} setup`}>
+          <div className="onboarding-content">
+            <header className="onboarding-header">
+              <p className="eyebrow onboarding-step-count">
+                Step {currentIndex + 1} of {SETUP_STEPS.length}
+              </p>
+              <h1>{presentation.formTitle}</h1>
+              <p className="onboarding-form-description">{presentation.formDescription}</p>
+            </header>
             <div
-              key={step}
-              className={`h-1 flex-1 rounded-full ${index <= currentIndex ? "bg-[var(--brand)]" : "bg-[var(--line)]"}`}
-            />
-          ))}
-        </div>
+              className={`onboarding-step-content ${onboardingStep === "currency" ? "onboarding-step-content--currency" : ""}`}
+              key={onboardingStep}
+            >
+              {onboardingStep === "identity" && <StepIdentity />}
+              {onboardingStep === "group" && <StepGroup showHeading={false} />}
+              {onboardingStep === "currency" && <StepCurrency showHeading={false} />}
+              {onboardingStep === "categories" && <StepCategories showHeading={false} />}
+              {onboardingStep === "members" && <StepMembers showHeading={false} />}
+            </div>
 
-        <div className="flex-1 overflow-y-auto py-8">
-          {onboardingStep === "identity" && <StepIdentity />}
-          {onboardingStep === "group" && <StepGroup />}
-          {onboardingStep === "currency" && <StepCurrency />}
-          {onboardingStep === "categories" && <StepCategories />}
-          {onboardingStep === "members" && <StepMembers />}
-        </div>
-
-        <div className="flex items-center justify-between pt-4">
-          <button
-            type="button"
-            onClick={handleBack}
-            className={`btn btn-secondary ${currentIndex === 0 ? "invisible" : ""}`}
-          >
-            Back
-          </button>
-          <button
-            type="button"
-            onClick={handleSaveAndProceed}
-            disabled={saving}
-            className="btn btn-primary"
-          >
-            {saving ? "Saving…" : isLast ? "Save and Finish" : "Save and Proceed"}
-          </button>
-        </div>
-      </div>
+            <div className="onboarding-actions">
+              {currentIndex > 0 && (
+                <button type="button" onClick={handleBack} className="btn btn-secondary">
+                  Back
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handleSaveAndProceed}
+                disabled={saving}
+                className="btn btn-primary onboarding-continue"
+              >
+                {saving ? "Saving…" : isLast ? "Save and Finish" : "Save and Proceed"}
+              </button>
+            </div>
+          </div>
+        </section>
+      </main>
     </FormProvider>
   );
 };

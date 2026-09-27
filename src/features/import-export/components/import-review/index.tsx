@@ -71,48 +71,48 @@ const ImportReview = ({ source, onImported }: PropsType) => {
 
   const counts = bundle.manifest.includedCounts;
   const omittedReceipts = bundle.manifest.sourceCounts.attachments - counts.attachments;
+  const countItems = [
+    { label: "Categories", value: counts.categories },
+    { label: "Tags", value: counts.tags },
+    { label: "Members", value: counts.members },
+    { label: "Expenses", value: counts.expenses },
+    { label: "Receipts", value: counts.attachments },
+  ];
 
   return (
     <FormProvider {...methods}>
-      <form onSubmit={methods.handleSubmit(handleImport)} className="flex flex-col gap-6">
-        <header>
-          <p className="text-4xl" aria-hidden="true">
+      <form onSubmit={methods.handleSubmit(handleImport)} className="flex min-w-0 flex-col gap-5">
+        <header className="flex min-w-0 items-center gap-4">
+          <span className="import-group-icon" aria-hidden="true">
             {bundle.group.icon}
-          </p>
-          <h1 className="mt-2 text-2xl font-bold">Import {bundle.group.name}</h1>
-          <p className="mt-1 text-sm text-gray-600">
-            A new editable group named <strong>{destinationName}</strong> will be created.
-          </p>
+          </span>
+          <div className="min-w-0">
+            <p className="eyebrow mb-1">TRANSFER REVIEW</p>
+            <h1 className="page-title break-words">Import {bundle.group.name}</h1>
+            <p className="mt-2 text-sm text-[var(--muted)]">
+              A new editable group named{" "}
+              <strong className="text-[var(--ink)]">{destinationName}</strong> will be created.
+            </p>
+          </div>
         </header>
 
-        <section aria-labelledby="import-counts-heading" className="rounded border p-4">
-          <h2 id="import-counts-heading" className="font-semibold">
+        <section aria-labelledby="import-counts-heading" className="surface surface-pad">
+          <h2 id="import-counts-heading" className="section-title">
             Verified transfer contents
           </h2>
-          <dl className="mt-3 grid grid-cols-2 gap-3 text-sm sm:grid-cols-5">
-            <div>
-              <dt className="text-gray-500">Categories</dt>
-              <dd>{counts.categories}</dd>
-            </div>
-            <div>
-              <dt className="text-gray-500">Tags</dt>
-              <dd>{counts.tags}</dd>
-            </div>
-            <div>
-              <dt className="text-gray-500">Members</dt>
-              <dd>{counts.members}</dd>
-            </div>
-            <div>
-              <dt className="text-gray-500">Expenses</dt>
-              <dd>{counts.expenses}</dd>
-            </div>
-            <div>
-              <dt className="text-gray-500">Receipts</dt>
-              <dd>{counts.attachments}</dd>
-            </div>
+          <p className="soft-caption mt-1">
+            Only the selected contents in this transfer will be imported.
+          </p>
+          <dl className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {countItems.map((item) => (
+              <div key={item.label} className="rounded-xl bg-[var(--surface-soft)] px-3 py-3">
+                <dt className="soft-caption">{item.label}</dt>
+                <dd className="mt-1 text-xl font-bold tabular">{item.value}</dd>
+              </div>
+            ))}
           </dl>
           {omittedReceipts > 0 && (
-            <p className="mt-3 text-sm text-amber-800">
+            <p className="note mt-4">
               {omittedReceipts} source receipt {omittedReceipts === 1 ? "was" : "were"}{" "}
               intentionally omitted when this transfer was created.
             </p>
@@ -120,20 +120,34 @@ const ImportReview = ({ source, onImported }: PropsType) => {
         </section>
 
         {bundle.members.length > 0 && (
-          <fieldset className="flex flex-col gap-2 rounded border p-4">
-            <legend className="px-1 font-semibold">Which member are you?</legend>
-            {bundle.members.map((member) => (
-              <label key={member.id} className="flex items-center gap-2 text-sm">
-                <input type="radio" value={member.id} {...methods.register("memberId")} />
-                {memberName(member.id)}
+          <fieldset className="surface surface-pad min-w-0">
+            <legend className="sr-only">Which member are you?</legend>
+            <h2 className="section-title">Which member are you?</h2>
+            <p className="soft-caption mt-1">Choose your name so your balances stay with you.</p>
+            <div className="mt-4 flex flex-col gap-2">
+              {bundle.members.map((member) => (
+                <label key={member.id} className="import-member-option">
+                  <input
+                    type="radio"
+                    value={member.id}
+                    {...methods.register("memberId")}
+                    className="accent-[var(--brand)]"
+                  />
+                  <span className="min-w-0 truncate font-semibold">{memberName(member.id)}</span>
+                </label>
+              ))}
+              <label className="import-member-option">
+                <input
+                  type="radio"
+                  value="new"
+                  {...methods.register("memberId")}
+                  className="accent-[var(--brand)]"
+                />
+                <span className="font-semibold">I’m not listed</span>
               </label>
-            ))}
-            <label className="flex items-center gap-2 text-sm">
-              <input type="radio" value="new" {...methods.register("memberId")} />
-              I’m not listed
-            </label>
+            </div>
             {methods.formState.errors.memberId && (
-              <p role="alert" className="text-sm text-red-700">
+              <p role="alert" className="mt-3 text-sm money-negative">
                 {methods.formState.errors.memberId.message}
               </p>
             )}
@@ -141,45 +155,46 @@ const ImportReview = ({ source, onImported }: PropsType) => {
         )}
 
         {memberId === "new" && !localUser && (
-          <section className="flex flex-col gap-4 rounded border p-4">
+          <section className="surface surface-pad flex min-w-0 flex-col gap-4">
             <div>
-              <h2 className="font-semibold">Create your identity</h2>
-              <p className="text-sm text-gray-600">You will be added as a member of this group.</p>
+              <h2 className="section-title">Create your identity</h2>
+              <p className="soft-caption mt-1">You will be added as a member of this group.</p>
             </div>
-            <label className="text-sm font-medium">
-              Your name
-              <Input name="name" placeholder="Enter your name" wrapperClass="mt-1" />
-            </label>
             <div>
-              <p className="text-sm font-medium">Pick an icon</p>
+              <label className="field-label" htmlFor="import-identity-name">
+                Your name
+              </label>
+              <Input id="import-identity-name" name="name" placeholder="Enter your name" />
+            </div>
+            <div>
+              <p className="field-label">Pick an icon</p>
               <EmojiPicker name="icon" emojis={PERSON_EMOJIS} />
             </div>
           </section>
         )}
 
         {memberId === "new" && localUser && (
-          <p className="rounded border border-blue-200 p-3 text-sm text-blue-800">
+          <p className="note">
             {localUser.name} will be added as a new member of the imported group.
           </p>
         )}
         {!bundle.categories.length && (
-          <p className="rounded border border-blue-200 p-3 text-sm text-blue-800">
+          <p className="note">
             No categories were transferred. Your default categories will be created.
           </p>
         )}
         {error && (
-          <p role="alert" className="text-sm text-red-700">
+          <p role="alert" className="note money-negative">
             {error}
           </p>
         )}
 
-        <button
-          type="submit"
-          disabled={importing}
-          className="self-start rounded bg-gray-900 px-5 py-2 text-sm text-white disabled:opacity-60"
-        >
-          {importing ? "Importing…" : "Import group"}
-        </button>
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+          <p className="soft-caption">Nothing is imported until you confirm.</p>
+          <button type="submit" disabled={importing} className="btn btn-primary !px-7">
+            {importing ? "Importing…" : "Import group"}
+          </button>
+        </div>
       </form>
     </FormProvider>
   );
