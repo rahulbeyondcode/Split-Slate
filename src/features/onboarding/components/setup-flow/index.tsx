@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 
 import StepCategories from "@/features/create-group/components/step-categories";
@@ -19,10 +19,17 @@ import {
 
 import { GROUP_EMOJIS } from "@/shared/constants/emojis";
 
+import heartHandsAnimation from "@/assets/images/noto-heart-hands.webp";
+import moneyAnimation from "@/assets/images/noto-money-with-wings.webp";
+import shoppingCartAnimation from "@/assets/images/noto-shopping-cart.webp";
+import sparklesAnimation from "@/assets/images/noto-sparkles.webp";
+import waveAnimation from "@/assets/images/noto-wave.webp";
+
 const STEP_PRESENTATION = {
   identity: {
     label: "Your identity",
     icon: "👋",
+    animatedIcon: waveAnimation,
     title: "First, a face for the ledger.",
     description: "Your name and emoji appear next to everything you pay and owe.",
     formTitle: "What do people call you?",
@@ -31,6 +38,7 @@ const STEP_PRESENTATION = {
   group: {
     label: "First group",
     icon: "✨",
+    animatedIcon: sparklesAnimation,
     title: "Make a space for your people.",
     description: "Give your first group a name. You can always create more later.",
     formTitle: "Create your first group",
@@ -39,6 +47,7 @@ const STEP_PRESENTATION = {
   currency: {
     label: "Currency",
     icon: "💸",
+    animatedIcon: moneyAnimation,
     title: "Keep every total clear.",
     description: "Choose the currency your group will use for its expenses.",
     formTitle: "One currency for this group",
@@ -46,7 +55,8 @@ const STEP_PRESENTATION = {
   },
   categories: {
     label: "Categories",
-    icon: "🗂️",
+    icon: "🛒",
+    animatedIcon: shoppingCartAnimation,
     title: "Make sense of the spending.",
     description: "Pick the categories that fit your group. You can change them later.",
     formTitle: "What will you spend on?",
@@ -56,6 +66,7 @@ const STEP_PRESENTATION = {
   members: {
     label: "Members",
     icon: "🫶",
+    animatedIcon: heartHandsAnimation,
     title: "Bring your people together.",
     description: "Add friends now, or start solo and invite them later.",
     formTitle: "Who's coming along?",
@@ -88,6 +99,14 @@ const SetupFlow = () => {
   } = useStore();
   const finishOnboarding = useFinishOnboarding();
   const [saving, setSaving] = useState(false);
+  const [loadedAnimation, setLoadedAnimation] = useState<string | null>(null);
+
+  useEffect(() => {
+    Object.values(STEP_PRESENTATION).forEach(({ animatedIcon }) => {
+      const image = new Image();
+      image.src = animatedIcon;
+    });
+  }, []);
 
   const group = groups.find((grp) => grp.id === onboardingGroupId);
   const creatorId = group?.frequentPayerIds[0];
@@ -208,8 +227,17 @@ const SetupFlow = () => {
           </div>
 
           <div className="onboarding-story" key={onboardingStep}>
-            <span className="onboarding-story-icon" aria-hidden="true">
-              {presentation.icon}
+            <span
+              className={`onboarding-story-icon ${loadedAnimation === presentation.animatedIcon ? "is-animated" : ""}`}
+              aria-hidden="true"
+            >
+              <span className="onboarding-story-icon-static">{presentation.icon}</span>
+              <img
+                className="onboarding-story-icon-animation"
+                src={presentation.animatedIcon}
+                alt=""
+                onLoad={() => setLoadedAnimation(presentation.animatedIcon)}
+              />
             </span>
             <h2>{presentation.title}</h2>
             <p>{presentation.description}</p>

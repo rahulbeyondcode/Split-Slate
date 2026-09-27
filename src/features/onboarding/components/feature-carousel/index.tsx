@@ -1,11 +1,22 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { slides } from "@/features/onboarding/components/feature-carousel/slide-data";
 
+import { useOrbitNotes } from "@/features/onboarding/hooks/use-orbit-notes";
+
 const FeatureCarousel = () => {
   const [current, setCurrent] = useState(0);
+  const [loadedAnimation, setLoadedAnimation] = useState<string | null>(null);
+  const notes = useOrbitNotes();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    slides.forEach(({ animatedIcon }) => {
+      const image = new Image();
+      image.src = animatedIcon;
+    });
+  }, []);
 
   const isFirst = current === 0;
   const isLast = current === slides.length - 1;
@@ -39,11 +50,20 @@ const FeatureCarousel = () => {
 
         <div className="intro-visual-content">
           <div className="intro-orbit" aria-hidden="true">
-            <span className="intro-orbit-icon" key={current}>
-              {slide.icon}
+            <span
+              className={`intro-orbit-icon ${loadedAnimation === slide.animatedIcon ? "is-animated" : ""}`}
+              key={current}
+            >
+              <span className="intro-orbit-static">{slide.icon}</span>
+              <img
+                className="intro-orbit-animation"
+                src={slide.animatedIcon}
+                alt=""
+                onLoad={() => setLoadedAnimation(slide.animatedIcon)}
+              />
             </span>
-            <span className="intro-orbit-note intro-orbit-note-top">✦ Shared expenses</span>
-            <span className="intro-orbit-note intro-orbit-note-bottom">✓ Clear balances</span>
+            <span className="intro-orbit-note intro-orbit-note-top">✦ {notes[0]}</span>
+            <span className="intro-orbit-note intro-orbit-note-bottom">✓ {notes[1]}</span>
           </div>
           <div className="intro-visual-copy">
             <p className="intro-visual-eyebrow">THE WAY FRIENDS SPLIT</p>

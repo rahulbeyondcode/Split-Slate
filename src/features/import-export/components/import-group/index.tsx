@@ -77,10 +77,7 @@ const ImportGroup = () => {
           </div>
           <p className="import-panel-eyebrow">PICK UP WHERE YOU LEFT OFF</p>
           <h2>Bring your group along.</h2>
-          <p>
-            From someone else's device to yours. Your people and shared history, ready to keep
-            going.
-          </p>
+          <p>Bring a group from another device—yours or someone else’s—and keep going here.</p>
         </div>
         <p className="import-panel-footnote">🔒 Your transfer stays on this device</p>
       </aside>
