@@ -18,11 +18,13 @@ const ExpenseFilterOptions = ({ name, label, options }: PropsType) => {
       <legend className="mb-2 text-sm font-medium">{label}</legend>
       <div className="flex flex-wrap gap-2">
         {options.map((option) => (
-          <label
-            key={option.value}
-            className="flex items-center gap-2 rounded border border-gray-200 px-3 py-2 text-sm"
-          >
-            <input type="checkbox" value={option.value} {...register(name)} />
+          <label key={option.value} className="choice-option choice-option-compact">
+            <input
+              type="checkbox"
+              value={option.value}
+              {...register(name)}
+              className="choice-control"
+            />
             {option.label}
           </label>
         ))}

@@ -1,3 +1,4 @@
+import { ArrowRight, CircleCheck } from "lucide-react";
 import { useOutletContext } from "react-router-dom";
 
 import { calculateBalances, suggestTransfers } from "@/shared/utils/balances";
@@ -7,6 +8,7 @@ import type { GroupDetailContext } from "@/features/group-detail/types/group-det
 
 import Avatar from "@/shared/ui/avatar";
 import EmptyState from "@/shared/ui/empty-state";
+import Icon from "@/shared/ui/icon";
 import Surface from "@/shared/ui/surface";
 
 const GroupBalances = () => {
@@ -57,7 +59,7 @@ const GroupBalances = () => {
               {transfers.map((transfer) => (
                 <li key={`${transfer.fromMemberId}-${transfer.toMemberId}`} className="ui-row">
                   <Avatar icon={person(transfer.fromMemberId)?.icon} />
-                  <span aria-hidden="true">→</span>
+                  <Icon icon={ArrowRight} size={18} className="text-[var(--muted)]" />
                   <Avatar icon={person(transfer.toMemberId)?.icon} />
                   <span className="flex-1 truncate text-xs font-bold">
                     {person(transfer.fromMemberId)?.name ?? "Unknown"} →{" "}
@@ -71,7 +73,7 @@ const GroupBalances = () => {
             </ul>
           ) : (
             <EmptyState
-              icon="🧘"
+              icon={CircleCheck}
               title="All square!"
               description={
                 groupMembers.length === 1

@@ -1,10 +1,13 @@
+import { ArrowLeft } from "lucide-react";
 import { useRef, useState } from "react";
-import { Link, useNavigate, useOutletContext, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useOutletContext, useParams } from "react-router-dom";
 
 import { useStore } from "@/shared/configs/store";
 import { formatCurrency } from "@/shared/utils/currency";
 
 import type { GroupDetailContext } from "@/features/group-detail/types/group-detail.types";
+
+import Icon from "@/shared/ui/icon";
 
 const ExpenseDetail = () => {
   const { expenseId } = useParams();
@@ -13,6 +16,7 @@ const ExpenseDetail = () => {
   const expense = groupExpenses.find((item) => item.expenseId === expenseId);
   const removeExpense = useStore((state) => state.removeExpense);
   const navigate = useNavigate();
+  const { search } = useLocation();
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const deletingRef = useRef(false);
@@ -26,7 +30,7 @@ const ExpenseDetail = () => {
     setError("");
     try {
       await removeExpense(expense.expenseId, group.id);
-      navigate(`/groups/${group.id}/expenses`, { replace: true });
+      navigate(`/groups/${group.id}/expenses${search}`, { replace: true });
     } catch (failure) {
       setError(
         failure instanceof Error ? failure.message : "Could not delete expense. Please try again.",
@@ -46,7 +50,7 @@ const ExpenseDetail = () => {
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">Expense not found</h2>
         <p>This expense is not available in this group.</p>
-        <Link to={`/groups/${group.id}/expenses`} className="text-blue-700">
+        <Link to={`/groups/${group.id}/expenses${search}`} className="text-blue-700">
           Back to expenses
         </Link>
       </section>
@@ -62,8 +66,8 @@ const ExpenseDetail = () => {
 
   return (
     <article className="flex flex-col gap-5">
-      <Link to={`/groups/${group.id}/expenses`} className="btn btn-secondary self-start">
-        ← Back to expenses
+      <Link to={`/groups/${group.id}/expenses${search}`} className="btn btn-secondary self-start">
+        <Icon icon={ArrowLeft} size={18} /> Back to expenses
       </Link>
       <div className="hero">
         <h2 className="break-words text-xl font-extrabold">{expense.expenseName}</h2>
@@ -165,7 +169,7 @@ const ExpenseDetail = () => {
       ) : (
         <div className="flex flex-wrap gap-4">
           <Link
-            to={`/groups/${group.id}/expenses/${expense.expenseId}/edit`}
+            to={`/groups/${group.id}/expenses/${expense.expenseId}/edit${search}`}
             className="btn btn-primary"
           >
             Edit expense

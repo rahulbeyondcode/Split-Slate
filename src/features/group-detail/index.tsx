@@ -1,3 +1,4 @@
+import { ArrowLeft, Ellipsis, Plus } from "lucide-react";
 import { Link, Navigate, Outlet, useLocation, useParams } from "react-router-dom";
 
 import ExpenseFilterProvider from "@/features/expenses/components/expense-filter-provider";
@@ -10,11 +11,11 @@ import type { GroupDetailContext } from "@/features/group-detail/types/group-det
 
 import Avatar from "@/shared/ui/avatar";
 import BalanceHero from "@/shared/ui/balance-hero";
-import SegmentedControl from "@/shared/ui/segmented-control";
+import Icon from "@/shared/ui/icon";
 
 const GroupDetail = () => {
   const { groupId } = useParams();
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   const { groups, members, people, categories, tags, expenses, localUser } = useStore();
   if (!groupId) return <Navigate to="/dashboard" replace />;
   const group = groups.find((item) => item.id === groupId);
@@ -44,11 +45,12 @@ const GroupDetail = () => {
     groupExpenses: expenses.filter((expense) => expense.groupId === group.id),
   };
   const isExpenseForm = pathname.endsWith("/new") || pathname.endsWith("/edit");
-  const showHero = [
+  const showGroupNavigation = [
     `/groups/${groupId}`,
     `/groups/${groupId}/expenses`,
     `/groups/${groupId}/balances`,
   ].includes(pathname);
+  const isOverview = pathname === `/groups/${groupId}`;
   const person = context.groupMembers.find((item) => item.personId === localUser?.id);
   const net = person ? calculateMemberNet(context.groupExpenses, person.id) : 0;
   const total = calculateGroupTotal(context.groupExpenses);
@@ -60,11 +62,11 @@ const GroupDetail = () => {
           <div className="flex items-center justify-between gap-3 border-b border-[var(--line)] bg-[var(--surface)] px-5 py-4">
             <div className="flex items-center gap-3">
               <Link
-                to={`/groups/${group.id}/expenses`}
+                to={`/groups/${group.id}/expenses${search}`}
                 className="btn btn-secondary !px-3"
                 aria-label="Back to expenses"
               >
-                ←
+                <Icon icon={ArrowLeft} size={20} />
               </Link>
               <h1 className="section-title">
                 {pathname.endsWith("/edit") ? "Edit expense" : "Add expense"}
@@ -74,7 +76,7 @@ const GroupDetail = () => {
               </span>
             </div>
           </div>
-        ) : showHero ? (
+        ) : showGroupNavigation ? (
           <>
             <header className="flex flex-wrap items-center gap-4">
               <Avatar icon={group.icon} square className="!h-16 !w-16 !text-3xl" />
@@ -100,31 +102,22 @@ const GroupDetail = () => {
                 className="btn btn-secondary !px-3"
                 aria-label="Group settings"
               >
-                ⋯
+                <Icon icon={Ellipsis} size={21} />
               </Link>
             </header>
-            <BalanceHero
-              label="Your position in this group"
-              amount={`${net < 0 ? "−" : net > 0 ? "+" : ""}${formatCurrency(Math.abs(net), group.currency)}`}
-              description={
-                net < 0
-                  ? "↑ you owe in this group"
-                  : net > 0
-                    ? "↓ you are owed in this group"
-                    : "All square in this group"
-              }
-            />
-            <div className="flex items-center justify-between">
-              <SegmentedControl
-                items={[
-                  { label: "Expenses", to: `/groups/${group.id}/expenses` },
-                  { label: "Balances", to: `/groups/${group.id}/balances` },
-                ]}
+            {isOverview && (
+              <BalanceHero
+                label="Your position in this group"
+                amount={`${net < 0 ? "−" : net > 0 ? "+" : ""}${formatCurrency(Math.abs(net), group.currency)}`}
+                description={
+                  net < 0
+                    ? "↑ you owe in this group"
+                    : net > 0
+                      ? "↓ you are owed in this group"
+                      : "All square in this group"
+                }
               />
-              <span className="soft-caption max-sm:hidden">
-                {context.groupExpenses.length} entries · newest first
-              </span>
-            </div>
+            )}
           </>
         ) : (
           <header>
@@ -143,9 +136,9 @@ const GroupDetail = () => {
           </header>
         )}
         <Outlet context={context} />
-        {showHero && (
-          <Link className="mobile-cta" to={`/groups/${group.id}/expenses/new`}>
-            ＋ Add expense
+        {showGroupNavigation && (
+          <Link className="mobile-cta" to={`/groups/${group.id}/expenses/new${search}`}>
+            <Icon icon={Plus} size={20} /> Add expense
           </Link>
         )}
       </div>

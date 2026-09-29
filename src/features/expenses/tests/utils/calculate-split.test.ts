@@ -26,10 +26,21 @@ describe("calculateSplit", () => {
     ]);
     expect(result.splitMeta).toEqual([]);
   });
-  it.each(["INR", "JPY", "BHD"])("preserves a one-minor-unit total in %s", (currency) => {
+  it.each(["INR", "JPY", "BHD"])("preserves a one-hundredth total in %s", (currency) => {
     expect(
       calculateSplit(1, "equal", members(["", "", ""]), currency).owes.map((row) => row.amount),
     ).toEqual([1, 0, 0]);
+  });
+  it("interprets exact and adjustment amounts as hundredths in JPY", () => {
+    expect(
+      calculateSplit(12345, "amount", members(["23.45", "100"]), "JPY").owes.map(
+        (row) => row.amount,
+      ),
+    ).toEqual([2345, 10000]);
+    expect(calculateSplit(10000, "adjustment", members(["-10", "10"]), "JPY").splitMeta).toEqual([
+      { memberId: "a", value: -1000 },
+      { memberId: "b", value: 1000 },
+    ]);
   });
   it("supports solo groups", () => {
     expect(calculateSplit(123, "equal", members([""]), "INR").owes[0].amount).toBe(123);

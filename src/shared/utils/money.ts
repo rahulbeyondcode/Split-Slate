@@ -1,32 +1,11 @@
 import { CURRENCIES } from "@/shared/constants/currencies";
 
-// ISO 4217 accounting precision, independent of locale-specific display defaults.
-const ZERO_DECIMAL_CURRENCIES = new Set([
-  "BIF",
-  "CLP",
-  "DJF",
-  "GNF",
-  "ISK",
-  "JPY",
-  "KMF",
-  "KRW",
-  "PYG",
-  "RWF",
-  "UGX",
-  "UYI",
-  "VND",
-  "VUV",
-  "XAF",
-  "XOF",
-  "XPF",
-]);
-const THREE_DECIMAL_CURRENCIES = new Set(["BHD", "IQD", "JOD", "KWD", "LYD", "OMR", "TND"]);
+// Monetary values always use integer hundredths, independently of the currency label.
+const MONEY_DECIMALS = 2;
 
 export const currencyDecimals = (currency: string): number => {
   if (!CURRENCIES.some((item) => item.code === currency)) throw new Error("Unsupported currency");
-  if (ZERO_DECIMAL_CURRENCIES.has(currency)) return 0;
-  if (THREE_DECIMAL_CURRENCIES.has(currency)) return 3;
-  return 2;
+  return MONEY_DECIMALS;
 };
 
 export const parseMoney = (text: string, currency: string, signed = false): number => {

@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Check, LockKeyhole } from "lucide-react";
 import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 
@@ -24,6 +25,7 @@ import moneyAnimation from "@/assets/images/noto-money-with-wings.webp";
 import shoppingCartAnimation from "@/assets/images/noto-shopping-cart.webp";
 import sparklesAnimation from "@/assets/images/noto-sparkles.webp";
 import waveAnimation from "@/assets/images/noto-wave.webp";
+import Icon from "@/shared/ui/icon";
 
 const STEP_PRESENTATION = {
   identity: {
@@ -99,6 +101,7 @@ const SetupFlow = () => {
   } = useStore();
   const finishOnboarding = useFinishOnboarding();
   const [saving, setSaving] = useState(false);
+  const [memberEditorOpen, setMemberEditorOpen] = useState(false);
   const [loadedAnimation, setLoadedAnimation] = useState<string | null>(null);
 
   useEffect(() => {
@@ -147,7 +150,10 @@ const SetupFlow = () => {
   const isLast = onboardingStep === "members";
   const presentation = STEP_PRESENTATION[onboardingStep];
 
-  const handleBack = () => setOnboardingStep(prevStep(onboardingStep));
+  const handleBack = () => {
+    setMemberEditorOpen(false);
+    setOnboardingStep(prevStep(onboardingStep));
+  };
 
   const persistCategories = async (categoryList: SetupFormValues["categories"]) => {
     if (!group) return;
@@ -172,6 +178,7 @@ const SetupFlow = () => {
   };
 
   const handleSaveAndProceed = async () => {
+    if (onboardingStep === "members" && memberEditorOpen) return;
     const valid = await methods.trigger(STEP_FIELDS[onboardingStep]);
     if (!valid) return;
 
@@ -254,7 +261,7 @@ const SetupFlow = () => {
                     aria-current={index === currentIndex ? "step" : undefined}
                   >
                     <span className="onboarding-progress-number" aria-hidden="true">
-                      {isComplete ? "✓" : index + 1}
+                      {isComplete ? <Icon icon={Check} size={16} /> : index + 1}
                     </span>
                     {isComplete && <span className="sr-only">Completed: </span>}
                     <span>{STEP_PRESENTATION[step].label}</span>
@@ -262,7 +269,9 @@ const SetupFlow = () => {
                 );
               })}
             </ol>
-            <p className="onboarding-privacy">🔒 No accounts · no cloud · works offline</p>
+            <p className="onboarding-privacy inline-flex items-center gap-2">
+              <Icon icon={LockKeyhole} size={16} /> No accounts · no cloud · works offline
+            </p>
           </div>
         </aside>
 
@@ -276,14 +285,16 @@ const SetupFlow = () => {
               <p className="onboarding-form-description">{presentation.formDescription}</p>
             </header>
             <div
-              className={`onboarding-step-content ${onboardingStep === "currency" ? "onboarding-step-content--currency" : ""}`}
+              className={`onboarding-step-content ${onboardingStep === "currency" ? "onboarding-step-content--currency" : ""} ${onboardingStep === "members" ? "onboarding-step-content--members" : ""}`}
               key={onboardingStep}
             >
               {onboardingStep === "identity" && <StepIdentity />}
               {onboardingStep === "group" && <StepGroup showHeading={false} />}
               {onboardingStep === "currency" && <StepCurrency showHeading={false} />}
               {onboardingStep === "categories" && <StepCategories showHeading={false} />}
-              {onboardingStep === "members" && <StepMembers showHeading={false} />}
+              {onboardingStep === "members" && (
+                <StepMembers showHeading={false} onEditorOpenChange={setMemberEditorOpen} />
+              )}
             </div>
 
             <div className="onboarding-actions">
@@ -295,7 +306,7 @@ const SetupFlow = () => {
               <button
                 type="button"
                 onClick={handleSaveAndProceed}
-                disabled={saving}
+                disabled={saving || (isLast && memberEditorOpen)}
                 className="btn btn-primary onboarding-continue"
               >
                 {saving ? "Saving…" : isLast ? "Save and Finish" : "Save and Proceed"}

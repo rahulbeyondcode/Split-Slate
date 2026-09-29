@@ -9,7 +9,7 @@ metadata:
 
 Purpose: describe implemented tag management, expense references, and cascade boundaries.
 
-Last updated: 2026-09-23
+Last updated: 2026-09-29
 
 ## What Tags Are
 
@@ -24,8 +24,9 @@ Tag names are trimmed and case-insensitively unique within a group. Every tag al
 Tags can be created from the group's **Categories & Tags** screen by entering a name and choosing a color. The reusable color picker offers 10 named presets (stored as hex values) plus synchronized custom native-picker and manual hex-code controls. Valid output is always a six-digit hex code. Expense entry can select existing group tags. Inline tag creation from that form remains pending; new tags are created in Categories & Tags.
 
 Editing a tag can change its name, color, or both. Expenses reference the tag by ID, so no expense
-rewrite is needed. The expense-entry picker shows current tag names/colors. Saved expense list and
-overview rows do not yet render tags; displaying tags there remains pending.
+  rewrite is needed. The expense-entry picker shows current tag names/colors. The full expense list
+  and recent Overview rows show up to three colored tag chips per expense; Show more reveals the
+  remaining tags and Show less collapses them. The controls do not navigate to expense detail.
 
 ---
 

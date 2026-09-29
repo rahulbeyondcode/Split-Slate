@@ -6,8 +6,9 @@ describe("money conversion", () => {
   it.each([
     ["INR", "123.45", 12345],
     ["USD", "0.01", 1],
-    ["JPY", "500", 500],
-    ["BHD", "1.250", 1250],
+    ["JPY", "500", 50000],
+    ["JPY", "123.45", 12345],
+    ["BHD", "1.25", 125],
     ["AFN", "1.23", 123],
     ["IRR", "1.23", 123],
     ["INR", " 00012.5 ", 1250],
@@ -21,9 +22,11 @@ describe("money conversion", () => {
       expect(() => parseMoney(value, "INR")).toThrow();
     },
   );
-  it("rejects precision beyond the currency exponent", () => {
-    expect(() => parseMoney("1.0", "JPY")).toThrow("0 decimal");
-    expect(() => parseMoney("1.0001", "BHD")).toThrow("3 decimal");
+  it("rejects more than two decimals for every currency", () => {
+    expect(() => parseMoney("1.001", "JPY")).toThrow("2 decimal");
+    expect(() => parseMoney("1.250", "BHD")).toThrow("2 decimal");
+    expect(currencyDecimals("JPY")).toBe(2);
+    expect(currencyDecimals("BHD")).toBe(2);
   });
   it("handles signed adjustments", () => {
     expect(parseMoney("-1.25", "INR", true)).toBe(-125);
@@ -35,10 +38,10 @@ describe("money conversion", () => {
     expect(moneyToDecimal(Number.MAX_SAFE_INTEGER, "INR")).toBe(value);
     expect(() => parseMoney("90071992547409.92", "INR")).toThrow("too large");
   });
-  it("formats exact input strings at every supported precision", () => {
+  it("formats fixed hundredths for every currency", () => {
     expect(moneyToDecimal(1, "INR")).toBe("0.01");
-    expect(moneyToDecimal(1, "BHD")).toBe("0.001");
-    expect(moneyToDecimal(1, "JPY")).toBe("1");
+    expect(moneyToDecimal(1, "BHD")).toBe("0.01");
+    expect(moneyToDecimal(1, "JPY")).toBe("0.01");
     expect(() => moneyToDecimal(0.1, "INR")).toThrow();
   });
   it("rejects unsupported currencies", () => {

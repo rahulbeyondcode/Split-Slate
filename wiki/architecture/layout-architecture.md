@@ -9,7 +9,7 @@ metadata:
 
 Purpose: document the implemented responsive shell and distinguish navigation stubs from working routes.
 
-Last updated: 2026-09-20
+Last updated: 2026-09-29
 
 ## Viewport States
 
@@ -30,11 +30,10 @@ page content. No theme toggle is implemented; the target design places it in Set
 | Context | Items |
 |---------|-------|
 | Home | Groups, Activity, Unsettled, Analytics, Settings |
-| Inside a group | Overview, Expenses, Balances, Members, Categories & Tags, Settings |
+| Inside a group | Overview, Expenses, Members, Categories & Tags, Settings |
 
-The Groups destination works. The dashboard-level Activity, Unsettled, Analytics, and Settings
-destinations are navigation stubs whose routes have not been registered. All six in-group footer
-destinations resolve to nested group-detail routes, although several screens remain lightweight.
+The dashboard-level Activity, Unsettled, Analytics, and Settings destinations have routes, although
+some remain lightweight. All five in-group footer destinations resolve to nested group-detail routes.
 There is no FAB; the New Group action lives inside the dashboard.
 
 **No sidebar.** Mobile navigation is handled by the context-aware bottom nav and route content;
@@ -52,9 +51,12 @@ there is no persistent top bar.
 - Activity panel is visible as a dedicated third column
 - No footer
 
-The desktop activity panel currently shows hardcoded sample activity. On the create-group route it
-is replaced by the live group-draft preview. The matcher anticipates a future edit route, but the
-router does not register one. A real activity data model/feed has not been implemented.
+The desktop activity panel shows recent recorded expenses from the store (limited to the current
+group on its Overview and Expenses routes), with compact rows. On the create-group route it is
+replaced by the live group-draft preview; there is no separate persisted activity entity.
+Its compact activity list is not wrapped in the shared `Surface`: the unlayered `.surface` rules
+take precedence over Tailwind's layered `border-0` and `shadow-none` utilities, leaving an unwanted
+card border/shadow around otherwise unpadded rows. The full Activity page still uses `Surface`.
 
 ---
 
@@ -72,27 +74,28 @@ The sidebar is present on tablet and desktop routes rendered inside the post-onb
 On dashboard routes, top to bottom:
 
 1. **App logo** — always at the top
-2. **Dashboard menu items** — Dashboard and All Friends
+2. **Dashboard menu items** — Dashboard, Contacts, and Settings
 3. **Groups list** — scrollable list of group item components
 4. **Add new group link** — beside the groups-list heading
-5. **Profile + settings icon** — always at the bottom
+5. **Profile link** — anchored at the bottom
 
 Inside a group, top to bottom:
 
 1. **App logo** — always at the top
 2. **Back to dashboard** — returns to the dashboard groups list
 3. **Current group summary** — non-clickable group icon/name/currency plus member and expense counts
-4. **Group menu items** — Overview, Expenses, Balances, Members, Categories & Tags, Settings
-5. **Profile + settings icon** — always at the bottom
+4. **Group menu items** — Overview, Expenses, Members, Categories & Tags, Settings
+5. **Profile link** — anchored at the bottom
 
-All groups are not listed while inside a group; the sidebar focuses on the active group context.
+The groups list and new-group action appear only on dashboard-context routes; inside any group the
+sidebar instead shows the return link, current-group summary, and group navigation.
 
 ### Context-aware menu items by route
 
 | Route | Menu items |
 |-------|-----------|
-| Home (Dashboard) | Dashboard, All Friends |
-| Inside a group | Overview, Expenses, Balances, Members, Categories & Tags, Settings |
+| Home (Dashboard) | Dashboard, Contacts, Settings |
+| Inside a group | Overview, Expenses, Members, Categories & Tags, Settings |
 
 ---
 
@@ -114,25 +117,25 @@ Route content is shared across viewport states. The navigation chrome differs:
 
 - **Footer** — mobile only; route-aware; switches its content based on the current path
 - **Sidebar** — tablet and desktop only; always visible
-- **Activity panel** — desktop only (1080px+); currently sample data except for the create-group live preview
+- **Activity panel** — desktop only (1080px+); recorded expense activity except for the create-group live preview
 
 ### Bottom nav behaviour by route (mobile)
 
 | Route | Bottom nav items |
 |-------|-----------------|
 | Home | Groups, Activity, Unsettled, Analytics, Settings |
-| Inside a group | Overview, Expenses, Balances, Members, Categories & Tags, Settings |
+| Inside a group | Overview, Expenses, Members, Categories & Tags, Settings |
 
-All in-group destinations resolve to nested routes. On the dashboard footer, only Groups resolves;
-Activity, Unsettled, Analytics, and Settings still lead to unmatched routes.
+All in-group destinations resolve to nested routes. Dashboard footer destinations also have routes,
+though some screens are still lightweight.
 
 ---
 
 ## Expense Routes
 
 Saved expense links open detail at `/groups/:groupId/expenses/:expenseId`; editing uses its `/edit`
-path. The existing `/expenses/new` route remains creation. Balances is available in both navigation
-layouts and from the overview at `/groups/:groupId/balances`.
+path. The existing `/expenses/new` route remains creation. Balances is linked from the overview at
+`/groups/:groupId/balances` rather than listed in the sidebar or footer.
 
 ## Related
 

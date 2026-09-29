@@ -1,9 +1,12 @@
+import { ArrowRight, ArrowUpRight, Check, LockKeyhole, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { slides } from "@/features/onboarding/components/feature-carousel/slide-data";
 
 import { useOrbitNotes } from "@/features/onboarding/hooks/use-orbit-notes";
+
+import Icon from "@/shared/ui/icon";
 
 const FeatureCarousel = () => {
   const [current, setCurrent] = useState(0);
@@ -43,7 +46,7 @@ const FeatureCarousel = () => {
           </div>
           {!isLast && (
             <button type="button" onClick={handleSkip} className="intro-skip">
-              Skip intro <span aria-hidden="true">↗</span>
+              Skip intro <Icon icon={ArrowUpRight} size={17} />
             </button>
           )}
         </div>
@@ -62,8 +65,12 @@ const FeatureCarousel = () => {
                 onLoad={() => setLoadedAnimation(slide.animatedIcon)}
               />
             </span>
-            <span className="intro-orbit-note intro-orbit-note-top">✦ {notes[0]}</span>
-            <span className="intro-orbit-note intro-orbit-note-bottom">✓ {notes[1]}</span>
+            <span className="intro-orbit-note intro-orbit-note-top inline-flex items-center gap-1">
+              <Icon icon={Sparkles} size={16} /> {notes[0]}
+            </span>
+            <span className="intro-orbit-note intro-orbit-note-bottom inline-flex items-center gap-1">
+              <Icon icon={Check} size={16} /> {notes[1]}
+            </span>
           </div>
           <div className="intro-visual-copy">
             <p className="intro-visual-eyebrow">THE WAY FRIENDS SPLIT</p>
@@ -72,7 +79,9 @@ const FeatureCarousel = () => {
           </div>
         </div>
 
-        <p className="intro-visual-footnote">🔒 No accounts · no cloud · works offline</p>
+        <p className="intro-visual-footnote inline-flex items-center gap-2">
+          <Icon icon={LockKeyhole} size={16} /> No accounts · no cloud · works offline
+        </p>
       </section>
 
       <section className="intro-panel" aria-label="Introduction">
@@ -106,7 +115,10 @@ const FeatureCarousel = () => {
             </button>
           </div>
           <button type="button" onClick={handleImport} className="intro-import">
-            Already have a group? <span>Import it instead →</span>
+            Already have a group?{" "}
+            <span>
+              Import it instead <Icon icon={ArrowRight} size={16} />
+            </span>
           </button>
         </div>
       </section>

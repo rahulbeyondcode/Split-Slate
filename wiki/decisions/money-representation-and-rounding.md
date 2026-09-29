@@ -10,36 +10,49 @@ metadata:
 Purpose: prevent floating-point accounting errors while guaranteeing that every computed split
 adds back to its expense total.
 
-Last updated: 2026-09-23
+Last updated: 2026-09-29
 
 ## Implementation Status
 
-Implemented for expense creation and editing. `shared/utils/money.ts` parses decimal strings with BigInt
-arithmetic and derives ISO accounting precision for the supported currency list; locale display
-defaults do not determine the accounting unit. Monetary outputs are safe integers. The shared
-formatter consumes minor units, including existing overview and sidebar displays.
+Implemented for expense creation, editing, filtering, display, and group currency relabeling.
+`shared/utils/money.ts` parses decimal strings with BigInt arithmetic into fixed integer
+hundredths for every supported currency. The formatter always shows two decimal places, regardless
+of locale or ISO defaults. Monetary outputs remain safe integers.
 
 The split calculator uses exact integer quotas, largest remainders, and ascending member IDs for
 ties. Shares/percentage inputs allow six decimal places and use scaled integer ratios. The form
 and store reject invalid amounts and unbalanced contributions for creation and updates.
 
-Existing development data is not automatically converted from major units. The project still uses
-the documented disposable-development database lifecycle in [[indexeddb-schema]].
+The app is undeployed and its development IndexedDB was cleared before this change. No legacy
+records or transfer files required migration or compatibility handling; the current transfer
+schema retained its version. See [[indexeddb-schema]].
+
+## Currency-Independent Hundredths
+
+- Accept at most two fractional digits for monetary input in every supported currency. Persist
+  and calculate amounts as safe integer hundredths, including paid/owed rows and adjustment
+  metadata; preserve exact integer allocation and balanced-split guarantees.
+- Treat group currency as a display/grouping label, not the scale of persisted monetary amounts.
+  Changing it when expenses exist requires confirmation that existing numeric amounts will be
+  relabeled without exchange conversion. A saved `500.00` stays numerically `500.00`.
+- Parsing, display, validation, and transfer use the same fixed scale. There is no automatic FX
+  conversion and no per-expense currency field.
+
+This decision favors understandable user-controlled currency labels over ISO-specific decimal
+precision while keeping integer accounting rather than floating-point arithmetic.
 
 ## Decision
 
-Every persisted or derived **monetary** amount uses an integer count of the group's currency minor
-unit.
+Every persisted or derived **monetary** amount uses integer hundredths, independent of currency.
 
 Examples:
 
-- INR 123.45 is stored as `12345` paise
-- USD 12.50 is stored as `1250` cents
-- JPY 500 is stored as `500` because JPY has no decimal minor unit
-- BHD 1.250 is stored as `1250` fils because BHD uses three decimal places
+- INR 123.45 is stored as `12345`
+- USD 12.50 is stored as `1250`
+- JPY 500.00 is stored as `50000`
+- BHD 1.25 is stored as `125`
 
-The conversion factor comes from the currency's ISO 4217 minor-unit exponent; the application must
-not assume that every currency has two decimals.
+The scale is always 100. A currency label change does not change the stored integers.
 
 This applies to:
 
@@ -49,28 +62,27 @@ This applies to:
 - adjustment split values in `splitMeta[]`
 - future settlement amounts
 
-Shares and percentage metadata are ratios, not money, and therefore do not use minor units.
+Shares and percentage metadata are ratios, not money, and therefore do not use hundredths.
 Their validated decimal input is stored as text, while computation converts it directly to scaled
 BigInt weights with six fractional digits and a maximum weight of `Number.MAX_SAFE_INTEGER`.
 This preserves values such as `9007199254.740991` that would round if stored as a Number.
-Adjustment metadata remains an integer minor-unit number. Legacy numeric ratio records retain
+Adjustment metadata remains an integer hundredths number. Legacy numeric ratio records retain
 their already-stored precision; the fix does not infer missing digits or silently clamp them.
 See [[expense-edit-delete]].
 
 ## Input and Formatting Boundary
 
-- Parse user-entered decimal text into minor units without using binary floating-point arithmetic
+- Parse user-entered decimal text into hundredths without using binary floating-point arithmetic
   as the accounting representation.
-- Reject precision beyond the selected currency's supported exponent rather than silently storing
-  an ambiguous value.
+- Reject more than two fractional digits for every supported currency.
 - Persist monetary amounts only as finite safe integers; validate with `Number.isSafeInteger` at the
   write boundary.
-- Convert minor units back to major units only at the display boundary before calling currency
+- Convert hundredths back to entered numeric amounts only at the display boundary before calling currency
   formatting APIs.
 
 ## Aggregate Limit
 
-Expense creation and editing cap total group spending at `Number.MAX_SAFE_INTEGER` minor units. The store
+Expense creation and editing cap total group spending at `Number.MAX_SAFE_INTEGER` hundredths. The store
 sums persisted paid amounts and the proposed expense with BigInt inside the same transaction as
 the expense and payer-ranking writes. A total above the limit rejects the save with a visible
 error and leaves the expense history and ranking unchanged; the form retains its inputs. Updates
@@ -86,13 +98,13 @@ Future imports must enforce the same limit. See [[state-management]].
 
 ## Deterministic Split Rounding
 
-Equal, shares, percentage, and adjustment splits may produce fractional minor units. Split Slate
+Equal, shares, percentage, and adjustment splits may produce fractional hundredths. Split Slate
 uses the **largest remainder method**:
 
 1. Compute each participant's exact mathematical quota from the integer total.
-2. Give each participant the floor of that quota in minor units.
-3. Calculate how many minor units remain unallocated.
-4. Assign one remaining unit at a time to participants in descending order of fractional
+2. Give each participant the floor of that quota in hundredths.
+3. Calculate how many hundredths remain unallocated.
+4. Assign one remaining hundredth at a time to participants in descending order of fractional
    remainder.
 5. Break equal fractional remainders by ascending `memberId` so the result is stable across runs and
    devices.
@@ -101,7 +113,7 @@ The resulting `owes[]` values are stored explicitly. They are not recomputed dur
 
 For adjustment splits, validate the exact final quotas as non-negative, then apply the same
 allocation method to those final quotas. Exact-amount splits and payer contributions are already
-entered in minor units and must sum exactly; they do not need calculated remainder allocation.
+entered in hundredths and must sum exactly; they do not need calculated remainder allocation.
 
 ## Required Invariants
 
@@ -112,7 +124,7 @@ At an expense write boundary:
 - every referenced member belongs to the expense's group
 - `sum(paid[].amount) == sum(owes[].amount)`
 - the common sum is the expense total
-- total group spending after the write must not exceed `Number.MAX_SAFE_INTEGER` minor units
+- total group spending after the write must not exceed `Number.MAX_SAFE_INTEGER` hundredths
 
 Intermediate adjustment metadata may be negative, but it cannot produce a negative final owed
 amount.
@@ -127,11 +139,10 @@ amount.
 
 ## Consequences
 
-- Currency metadata must include or derive the ISO minor-unit exponent.
-- Form parsing and currency formatting need explicit minor-unit conversion helpers.
-- Split calculations need tests for zero-, two-, and three-decimal currencies.
-- Import validation must reject non-integer monetary data in the current schema version or migrate
-  it through an explicitly versioned legacy rule.
+- Form parsing and currency formatting use a fixed hundredths scale for every currency label.
+- Split calculations and filtering are tested with zero-, two-, and three-decimal ISO currency
+  labels while accepting at most two decimal places for all of them.
+- Import validation rejects non-integer monetary data in the current transfer schema.
 - Mixed-currency expenses remain out of scope; one group currency defines the unit for every
   expense in that group.
 

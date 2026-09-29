@@ -1,3 +1,4 @@
+import { Plus } from "lucide-react";
 import { useState } from "react";
 import { useController } from "react-hook-form";
 
@@ -5,6 +6,8 @@ import CategoryEditor from "@/features/create-group/components/category-editor";
 
 import { useStore } from "@/shared/configs/store";
 import type { CreateGroupFormValues } from "@/features/create-group/helpers/schema";
+
+import Icon from "@/shared/ui/icon";
 
 type Chip = { name: string; icon: string };
 
@@ -84,7 +87,7 @@ const StepCategories = ({ showHeading = true }: PropsType) => {
           onClick={() => setAddingNewCategory(true)}
           className="btn btn-quiet self-start"
         >
-          + Add new category
+          <Icon icon={Plus} size={18} /> Add new category
         </button>
       )}
 

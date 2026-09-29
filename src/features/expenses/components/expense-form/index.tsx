@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { FormEvent } from "react";
 import { useRef, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
-import { Link, useNavigate, useOutletContext, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useOutletContext, useParams } from "react-router-dom";
 
 import PayerSelector from "@/features/expenses/components/payer-selector";
 import SplitEditor from "@/features/expenses/components/split-editor";
@@ -28,6 +28,7 @@ const ExpenseForm = () => {
   const expense = groupExpenses.find((item) => item.expenseId === expenseId);
   const [openedAt] = useState(Date.now);
   const navigate = useNavigate();
+  const { search } = useLocation();
   const saving = useRef(false);
   const members = expenseFormMembers(
     groupMembers
@@ -61,8 +62,8 @@ const ExpenseForm = () => {
     members.filter((member) => member.id === payer.memberId),
   );
   const cancelPath = expense
-    ? `/groups/${group.id}/expenses/${expense.expenseId}`
-    : `/groups/${group.id}/expenses`;
+    ? `/groups/${group.id}/expenses/${expense.expenseId}${search}`
+    : `/groups/${group.id}/expenses${search}`;
   const quickIds = groupExpenses.length
     ? group.frequentPayerIds
     : [...new Set([creatorId, ...rankPayers(members, [])])].filter(Boolean).slice(0, 5);
@@ -76,10 +77,10 @@ const ExpenseForm = () => {
           const input = { groupId: group.id, currency: group.currency, values };
           if (expenseId) {
             await updateExpense(expenseId, input);
-            navigate(`/groups/${group.id}/expenses/${expenseId}`);
+            navigate(`/groups/${group.id}/expenses/${expenseId}${search}`);
           } else {
             await addExpense(input);
-            navigate(`/groups/${group.id}/expenses`);
+            navigate(`/groups/${group.id}/expenses${search}`);
           }
         } catch (error) {
           methods.setError("root", {
@@ -101,7 +102,7 @@ const ExpenseForm = () => {
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">Expense not found</h2>
         <p>This expense is not available in this group.</p>
-        <Link to={`/groups/${group.id}/expenses`} className="text-blue-700">
+        <Link to={`/groups/${group.id}/expenses${search}`} className="text-blue-700">
           Back to expenses
         </Link>
       </section>
@@ -152,7 +153,7 @@ const ExpenseForm = () => {
                       {...methods.register("categoryId")}
                       className="peer sr-only"
                     />
-                    <span className="chip peer-checked:!bg-[var(--brand-soft)] peer-checked:!border-[var(--brand)] peer-checked:!text-[var(--brand-ink)]">
+                    <span className="chip choice-chip">
                       {category.icon} {category.name}
                       {category.isActive ? "" : " (inactive)"}
                     </span>
@@ -171,12 +172,12 @@ const ExpenseForm = () => {
                 {groupTags.length ? (
                   <div className="flex flex-wrap gap-2">
                     {groupTags.map((tag) => (
-                      <label key={tag.id} className="chip cursor-pointer">
+                      <label key={tag.id} className="chip choice-pill">
                         <input
                           type="checkbox"
                           value={tag.id}
                           {...methods.register("tagIds")}
-                          className="accent-[var(--brand)]"
+                          className="choice-control"
                         />
                         <span
                           className="h-2 w-2 rounded-full"

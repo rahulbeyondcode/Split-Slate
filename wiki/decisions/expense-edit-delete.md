@@ -9,7 +9,7 @@ metadata:
 
 Purpose: document expense correction, permanent deletion, and their persistence guarantees.
 
-Last updated: 2026-09-26
+Last updated: 2026-09-29
 
 ## Implementation Status
 
@@ -64,7 +64,7 @@ New expense saves retain validated shares and percentage inputs as trimmed decim
 `splitMeta.value`. Display and form reconstruction preserve that text; allocation continues to use
 scaled BigInt weights. The maximum accepted shares value `9007199254.740991` now survives storage,
 reload, and a name-only edit without changing allocations. Monetary adjustment metadata remains
-an integer number of minor units. See [[split-types]] and [[money-representation-and-rounding]].
+an integer number of hundredths. See [[split-types]] and [[money-representation-and-rounding]].
 
 Earlier numeric ratio metadata is still readable and becomes text on a successful validated save.
 Already-lost precision cannot be reconstructed: for example, an old numeric record containing

@@ -331,7 +331,7 @@ export const portableGroupSchema = z
           context.addIssue({
             code: "custom",
             path: ["expenses", index, "splitMeta"],
-            message: "Adjustments must be safe integer minor-unit amounts",
+            message: "Adjustments must be safe integer hundredths",
           });
         }
       } else {

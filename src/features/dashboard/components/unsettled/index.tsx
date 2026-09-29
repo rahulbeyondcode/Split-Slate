@@ -1,3 +1,4 @@
+import { CircleCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { dashboardPositions, dashboardTransfers } from "@/features/dashboard/utils/dashboard-data";
@@ -59,7 +60,7 @@ const Unsettled = () => {
         </Surface>
       ) : (
         <EmptyState
-          icon="🧘"
+          icon={CircleCheck}
           title="All square!"
           description="No unsettled balances. Go split something."
         />

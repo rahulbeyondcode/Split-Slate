@@ -2,9 +2,49 @@
 
 Reverse-chronological record of all wiki changes.
 
-Last updated: 2026-09-27
+Last updated: 2026-09-29
 
 ---
+
+## 2026-09-29
+- UPDATED decisions/import-export.md — clarified that the dependency modal separates chosen content from automatically included content
+- UPDATED wiki/index.md — refreshed import/export summary for the visual dependency flow
+- UPDATED decisions/import-export.md — documented styled native dependency explanations for auto-selected export content
+- UPDATED wiki/index.md — reflected the dependency-modal UX in the import/export summary
+- UPDATED decisions/import-export.md and decisions/selection-controls.md — documented size-aware link guidance and visibly locked export choices
+- UPDATED workflows/tag-management.md and workflows/main-screen.md — documented expandable tag previews in the ledger and Overview
+- UPDATED wiki/index.md — synchronized transfer, controls, expense-list, and tag-management summaries
+- CREATED decisions/selection-controls.md — document native-input semantics and shared selection styling
+- UPDATED wiki/index.md — linked selection-controls decision
+- CREATED decisions/confirmation-dialogs.md — document in-app destructive confirmations and cancellation/failure behavior
+- UPDATED workflows/category-management.md — clarify guarded deletion uses the shared confirmation dialog
+- UPDATED wiki/index.md — linked the confirmation decision and refreshed category-management summary
+- CREATED decisions/iconography.md — define consistent vector interface icons without replacing domain emoji identities
+- UPDATED wiki/index.md — added iconography decision to navigation
+- UPDATED workflows/people-directory.md and workflows/member-management.md — documented per-group expense links for blocked contact deletion
+- UPDATED wiki/index.md — synchronized the people-directory summary
+- UPDATED workflows/filtering.md and workflows/member-management.md — documented URL-backed filters and the blocked-member expense shortcut; refreshed page date
+- UPDATED wiki/index.md — synchronized filtering and member-management summaries
+- UPDATED architecture/layout-architecture.md — documented why compact activity rows avoid the shared Surface CSS cascade
+- UPDATED wiki/index.md — aligned the layout summary with the unboxed activity list
+- UPDATED architecture/layout-architecture.md — documented the contextual group sidebar and live compact activity panel; corrected stale route/menu claims
+- UPDATED wiki/index.md — synchronized the layout architecture description
+- UPDATED workflows/main-screen.md — documented the six-member payer-frequency preview and corrected stale tab terminology
+- UPDATED wiki/index.md — synchronized the Overview member-preview and navigation summary
+- UPDATED workflows/main-screen.md — removed the redundant group-view tabs; documented direct Overview links and existing navigation
+- UPDATED wiki/index.md — synchronized the main-screen navigation summary
+- UPDATED workflows/main-screen.md — distinguished group overview snapshot, complete expense ledger, and balance navigation
+- UPDATED wiki/index.md — synchronized the main-screen summary with the group-view distinction
+- UPDATED decisions/import-export.md, decisions/testing-strategy.md, workflows/filtering.md, and workflows/main-screen.md — documented fixed-scale transfers, tests, filters, and Settings relabeling
+- UPDATED wiki/index.md — synchronized transfer, test, filtering, and main-screen summaries
+- UPDATED architecture/split-types.md, architecture/balance-calculation.md, decisions/expense-model-design.md, decisions/expense-edit-delete.md, and systems/indexeddb-schema.md — aligned allocations, balances, adjustments, and persisted rows with fixed hundredths
+- UPDATED wiki/index.md — synchronized accounting and schema page summaries and monetary invariants
+- UPDATED decisions/money-representation-and-rounding.md and architecture/domain-models.md — marked fixed-hundredths money and confirmed no-conversion currency relabeling implemented
+- UPDATED wiki/index.md — synchronized monetary representation and group currency semantics
+- UPDATED decisions/money-representation-and-rounding.md — removed the hypothetical migration requirement after confirmation that the undeployed local database and transfer data are empty
+- UPDATED wiki/index.md — reflected the approved no-migration scope of the pending redesign
+- UPDATED decisions/money-representation-and-rounding.md — recorded the approved pending fixed-hundredths, no-exchange currency-label redesign while retaining current-code behavior
+- UPDATED wiki/index.md — distinguished the pending money redesign from the current implementation
 
 ## 2026-09-27
 - REMOVED workflows/design-artifact.md — retired obsolete standalone visual-reference instructions after implementation

@@ -10,7 +10,7 @@ metadata:
 Purpose: define the implemented offline group-transfer contract and distinguish it from future
 settlement sharing.
 
-Last updated: 2026-09-26
+Last updated: 2026-09-29
 
 ## Decision
 
@@ -37,11 +37,16 @@ independently select:
 - receipt attachments, shown only when an expense references at least one receipt
 
 Expenses depend on categories and members. Selecting expenses automatically selects and locks both,
-with an explanatory dialog; deselecting expenses unlocks them without clearing their current
-selection. Tags remain optional, and omitted tag references are removed from transferred expenses.
+with an app-styled native modal that distinguishes the chosen content from the categories and members
+added automatically. Deselecting expenses unlocks them without clearing their current selection.
+Locked selections use muted rows and explanatory copy so they look unavailable even when
+the user points at their labels. Tags remain optional, and omitted tag references are removed from
+transferred expenses.
 
 Receipts depend on expenses. Selecting receipts automatically selects and locks expenses, which in
-turn selects and locks categories and members. Deselecting receipts leaves the dependency content
+turn selects and locks categories and members. The same modal shows receipts as the chosen content
+and expenses, categories, and members as automatically included content. The modal can be
+dismissed with its button or Escape. Deselecting receipts leaves the dependency content
 selected but unlocks expenses. When receipts are omitted, transferred expenses contain no dangling
 attachment references. The manifest records source and included counts so omission is explicit.
 
@@ -61,7 +66,8 @@ All formats reconstruct and validate the same logical contract. Validation cover
 selection dependencies, declared counts, unique IDs, group ownership, complete references,
 paid/owed equality, split metadata, and aggregate safe-integer spending. Any digest, schema, count,
 or reference mismatch rejects the complete package before writes. Monetary values remain integer
-minor units under [[money-representation-and-rounding]].
+hundredths under [[money-representation-and-rounding]]. The transfer version is unchanged because
+no pre-redesign transfer files or links need compatibility handling.
 
 Source IDs remain in the package so its internal relationships can be validated. Import always
 creates a fresh group UUID and fresh IDs for group-owned Member, Category, Tag, Expense, and
@@ -75,6 +81,10 @@ or merged.
 - Validated JSON is zlib-compressed, base64url-encoded, and placed after `/import#v1.`.
 - Link transfer is available only when receipts are not selected.
 - The complete generated URL is capped at **32,000 characters** and decoded JSON at **256 KiB**.
+- Group Settings checks link availability as the selected content changes. An oversized selection
+  presents the link action as unavailable; selecting it opens an in-app explanation to download CSV
+  or ZIP, or select less content. The actual creation still checks the current persisted snapshot
+  before yielding a link. The UI does not present the character count to users.
 - A regression fixture proves that 25 members, 25 categories, 25 tags, and 50 realistic expenses
   fit beneath the implemented URL limit.
 - Current major browser engines support this size, but no guarantee is possible for every chat,
@@ -82,6 +92,8 @@ or merged.
   limit or the chosen channel cannot carry the link.
 - A truncated or changed payload fails decoding, integrity, or schema validation; partial data is
   never imported.
+- When receipts are selected, the link action remains explanatory rather than generating a link:
+  it directs the user to ZIP or to deselect receipt files.
 - The fragment is client-side but not encrypted. Anyone holding the link can decode the selected
   group data, so the UI displays a privacy warning.
 

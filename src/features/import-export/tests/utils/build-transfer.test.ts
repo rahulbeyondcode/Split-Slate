@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { buildGroupTransfer } from "@/features/import-export/utils/build-transfer";
 import { verifyPortableGroup } from "@/features/import-export/utils/transfer-integrity";
+import { moneyToDecimal } from "@/shared/utils/money";
 
 import {
   createExportSource,
@@ -62,5 +63,26 @@ describe("buildGroupTransfer", () => {
     });
     expect(result.bundle.attachments).toHaveLength(1);
     expect(result.attachmentFiles).toHaveLength(1);
+  });
+  it("keeps the same numeric amount under a different currency label", async () => {
+    const source = createExportSource();
+    source.group.currency = "JPY";
+    const result = await buildGroupTransfer(source, {
+      categories: true,
+      tags: false,
+      members: true,
+      expenses: true,
+      attachments: false,
+    });
+    expect(result.bundle.expenses[0].transactions.paid).toEqual(
+      source.expenses[0].transactions.paid,
+    );
+    expect(
+      moneyToDecimal(
+        result.bundle.expenses[0].transactions.paid[0].amount,
+        result.bundle.group.currency,
+      ),
+    ).toBe(moneyToDecimal(source.expenses[0].transactions.paid[0].amount, "INR"));
+    await expect(verifyPortableGroup(result.bundle)).resolves.toEqual(result.bundle);
   });
 });

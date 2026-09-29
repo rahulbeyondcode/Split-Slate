@@ -1,3 +1,4 @@
+import { Search } from "lucide-react";
 import type { ChangeEvent } from "react";
 import { useRef, useState } from "react";
 import { useController } from "react-hook-form";
@@ -5,6 +6,8 @@ import { useController } from "react-hook-form";
 import type { CreateGroupFormValues } from "@/features/create-group/helpers/schema";
 
 import { CURRENCIES } from "@/shared/constants/currencies";
+
+import Icon from "@/shared/ui/icon";
 
 const FREQUENT_CURRENCY_CODES = ["INR", "USD", "AED", "GBP", "SGD"];
 const FREQUENT_CURRENCIES = CURRENCIES.filter((currency) =>
@@ -51,12 +54,17 @@ const StepCurrency = ({ showHeading = true }: PropsType) => {
           Search currencies
         </label>
         <div className="relative">
+          <Icon
+            icon={Search}
+            size={19}
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)]"
+          />
           <input
             id="currency-search"
             type="text"
             role="searchbox"
             inputMode="search"
-            className="form-input pr-18"
+            className="form-input currency-search-input"
             placeholder="Search by name, code or symbol"
             value={search}
             onChange={handleSearchChange}

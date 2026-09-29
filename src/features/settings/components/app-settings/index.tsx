@@ -1,3 +1,4 @@
+import { ChevronRight, LockKeyhole, MoonStar, Pencil } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -6,6 +7,7 @@ import PersonEditor from "@/features/people/components/person-editor";
 import { useStore } from "@/shared/configs/store";
 
 import Avatar from "@/shared/ui/avatar";
+import Icon from "@/shared/ui/icon";
 import Surface from "@/shared/ui/surface";
 
 const AppSettings = () => {
@@ -45,14 +47,16 @@ const AppSettings = () => {
             <p className="soft-caption">Your identity · no account needed</p>
           </div>
           <button type="button" className="btn btn-secondary" onClick={() => setEditing(true)}>
-            ✎ Edit
+            <Icon icon={Pencil} size={18} /> Edit
           </button>
         </Surface>
       )}
       <section>
         <p className="eyebrow mb-2">Appearance</p>
         <Surface className="surface-pad flex items-center gap-3">
-          <Avatar icon="🌗" square />
+          <span className="avatar avatar-square text-[var(--brand-ink)]">
+            <Icon icon={MoonStar} size={26} />
+          </span>
           <div className="flex-1">
             <p className="font-bold">Dark theme</p>
             <p className="soft-caption">
@@ -83,14 +87,15 @@ const AppSettings = () => {
                 <strong>{group.name}</strong>
                 <span className="block soft-caption">export · import · details</span>
               </span>
-              <span aria-hidden="true">›</span>
+              <Icon icon={ChevronRight} size={20} className="text-[var(--muted)]" />
             </Link>
           ))}
           {groups.length === 0 && <p className="py-5 muted">Your groups will appear here.</p>}
         </Surface>
       </section>
-      <p className="note">
-        🔒 No accounts or cloud sync. Export a group anytime to move or back it up.
+      <p className="note flex items-start gap-2">
+        <Icon icon={LockKeyhole} size={18} />
+        <span>No accounts or cloud sync. Export a group anytime to move or back it up.</span>
       </p>
     </div>
   );

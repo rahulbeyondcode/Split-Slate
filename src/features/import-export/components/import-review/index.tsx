@@ -131,7 +131,7 @@ const ImportReview = ({ source, onImported }: PropsType) => {
                     type="radio"
                     value={member.id}
                     {...methods.register("memberId")}
-                    className="accent-[var(--brand)]"
+                    className="choice-control"
                   />
                   <span className="min-w-0 truncate font-semibold">{memberName(member.id)}</span>
                 </label>
@@ -141,7 +141,7 @@ const ImportReview = ({ source, onImported }: PropsType) => {
                   type="radio"
                   value="new"
                   {...methods.register("memberId")}
-                  className="accent-[var(--brand)]"
+                  className="choice-control"
                 />
                 <span className="font-semibold">I’m not listed</span>
               </label>

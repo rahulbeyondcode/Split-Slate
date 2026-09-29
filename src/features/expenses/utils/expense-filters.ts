@@ -39,6 +39,37 @@ export const createExpenseFilterDefaults = (): ExpenseFilterValues => ({
   maxAmount: "",
 });
 
+const OPTION_FIELDS = ["categoryIds", "tagIds", "payerIds", "memberIds", "splitTypes"] as const;
+const TEXT_FIELDS = ["name", "dateFrom", "dateTo", "minAmount", "maxAmount"] as const;
+
+export const readExpenseFilterParams = (params: URLSearchParams): ExpenseFilterValues => {
+  const values = createExpenseFilterDefaults();
+  for (const field of TEXT_FIELDS) values[field] = params.get(field) ?? "";
+  for (const field of OPTION_FIELDS) {
+    const selected = [...new Set(params.getAll(field).filter(Boolean))];
+    if (field === "splitTypes") {
+      values.splitTypes = selected.filter(
+        (value): value is ExpenseFilterValues["splitTypes"][number] =>
+          SPLIT_FILTER_OPTIONS.some((option) => option.value === value),
+      );
+    } else {
+      values[field] = selected;
+    }
+  }
+  return values;
+};
+
+export const writeExpenseFilterParams = (values: ExpenseFilterValues): URLSearchParams => {
+  const params = new URLSearchParams();
+  for (const field of TEXT_FIELDS) {
+    if (values[field]) params.set(field, values[field]);
+  }
+  for (const field of OPTION_FIELDS) {
+    for (const value of values[field]) params.append(field, value);
+  }
+  return params;
+};
+
 const isCalendarDate = (value: string): boolean => {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
   const [year, month, day] = value.split("-").map(Number);
@@ -154,6 +185,7 @@ export const filterExpenses = (
       (!values.payerIds.length ||
         expense.transactions.paid.some((row) => values.payerIds.includes(row.memberId))) &&
       (!values.memberIds.length ||
+        values.memberIds.includes(expense.createdBy) ||
         [...expense.transactions.paid, ...expense.transactions.owes].some((row) =>
           values.memberIds.includes(row.memberId),
         )) &&

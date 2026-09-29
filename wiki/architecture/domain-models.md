@@ -9,7 +9,7 @@ metadata:
 
 Purpose: describe persisted domain shapes and their implemented invariants.
 
-Last updated: 2026-09-23
+Last updated: 2026-09-29
 
 ## LocalUser (Device Owner)
 
@@ -58,8 +58,9 @@ A single device-local directory of people ("friends list"), reused across every 
 ```
 
 **Currency** is singular per group (MVP: no multi-currency). Onboarding and standalone creation set
-it, defaulting to INR, and all expense amounts are assumed to use it. There is no dedicated
-post-creation currency editor, although the generic `updateGroup` patch action can change it.
+it, defaulting to INR. Settings can change its display/grouping label; if expenses exist, the user
+confirms that their numeric amounts will not be exchanged or rewritten. Every amount uses fixed
+hundredths regardless of this label.
 
 **Initial value of `frequentPayerIds`** on group creation: `[creatorMemberId]`. Other members are added after the group row exists, but the creator remains the only frequent payer until expense history exists.
 
@@ -153,7 +154,7 @@ See [[tag-management]] for the full lifecycle.
   createdAt: number,                         // automatic — when the entry was added to the app
   when: number,                              // user-entered — when the money was actually spent (unix ms, defaults to now, date + time)
   splitType: 'equal' | 'amount' | 'shares' | 'percentage' | 'adjustment',
-  splitMeta: { memberId: UUID, value: string | number }[],  // exact decimal text for ratios; integer minor units for adjustments; numeric legacy ratios remain readable
+  splitMeta: { memberId: UUID, value: string | number }[],  // exact decimal text for ratios; integer hundredths for adjustments; numeric legacy ratios remain readable
   transactions: {
     paid: [{ memberId: UUID, amount: number }],
     owes: [{ memberId: UUID, amount: number }]
@@ -165,20 +166,20 @@ See [[tag-management]] for the full lifecycle.
 ### Money representation
 
 Every monetary value in `transactions.paid[]`, `transactions.owes[]`, and adjustment-type
-`splitMeta[]` entries is an integer count of the group's currency minor unit. Shares and percentage
+`splitMeta[]` entries is an integer count of hundredths independent of currency. Shares and percentage
 metadata remain unitless ratios, saved as validated decimal strings without conversion to Number.
 Equal and amount splits have empty metadata. Legacy numeric ratios remain readable; a validated
 save writes their entered text, but cannot recover digits already lost in the old numeric record.
-See [[expense-edit-delete]] for that limitation. The currency's ISO 4217 exponent determines the scale; it is not
-always two decimal places. See [[money-representation-and-rounding]].
+See [[expense-edit-delete]] for that limitation. The app uses two decimal places for every
+currency label rather than its ISO exponent. See [[money-representation-and-rounding]].
 
 Expense creation and editing enforce this representation at the form/store boundary. Decimal input is parsed
-exactly, ratios use scaled integer arithmetic, and the shared formatter consumes minor units.
+exactly, ratios use scaled integer arithmetic, and the shared formatter consumes hundredths.
 
 **Enforced create/update invariant:** `sum(paid[].amount)` equals `sum(owes[].amount)` with a positive
 safe-integer total. Members, category, and optional tags are checked against persisted group
 records inside the write transaction. Creation and editing reject a save if accumulated group spending
-would exceed `Number.MAX_SAFE_INTEGER` minor units, keeping derived balances and spending within
+would exceed `Number.MAX_SAFE_INTEGER` hundredths, keeping derived balances and spending within
 the supported numeric range. An update replaces the old total instead of counting it twice.
 
 - Updates preserve expense/group IDs, creator identity, creation time, and attachment IDs.
@@ -198,7 +199,7 @@ See [[expense-model-design]] for why both arrays are stored, and [[balance-calcu
 ## Related
 
 - [[balance-calculation]] — how net balances are derived from expenses
-- [[money-representation-and-rounding]] — integer minor units and deterministic remainder allocation
+- [[money-representation-and-rounding]] — fixed hundredths and deterministic remainder allocation
 - [[indexeddb-schema]] — how these models map to IndexedDB tables
 - [[state-management]] — Zustand store shape
 - [[tag-management]] — group tag lifecycle and optional expense references

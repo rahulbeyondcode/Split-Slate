@@ -1,3 +1,4 @@
+import { Plus, X } from "lucide-react";
 import { useState } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 
@@ -10,12 +11,14 @@ import type { PersonEditorValues } from "@/features/people/helpers/schema";
 import type { Person } from "@/shared/types/domain.types";
 
 import Avatar from "@/shared/ui/avatar";
+import Icon from "@/shared/ui/icon";
 
 interface PropsType {
   showHeading?: boolean;
+  onEditorOpenChange?: (open: boolean) => void;
 }
 
-const StepMembers = ({ showHeading = true }: PropsType) => {
+const StepMembers = ({ showHeading = true, onEditorOpenChange }: PropsType) => {
   const localUser = useStore((s) => s.localUser);
   const people = useStore((s) => s.people);
   const { control } = useFormContext<CreateGroupFormValues>();
@@ -41,7 +44,94 @@ const StepMembers = ({ showHeading = true }: PropsType) => {
   const handleAddNew = (values: PersonEditorValues) => {
     append({ name: values.name, icon: values.icon });
     setAddingNew(false);
+    onEditorOpenChange?.(false);
   };
+
+  const handleOpenEditor = () => {
+    setAddingNew(true);
+    onEditorOpenChange?.(true);
+  };
+
+  const handleCancelEditor = () => {
+    setAddingNew(false);
+    onEditorOpenChange?.(false);
+  };
+
+  const memberList = (
+    <ul className="surface overflow-hidden px-4 sm:px-5" aria-label="Group members">
+      <li className="flex min-w-0 items-center gap-3 border-b border-[var(--line)] py-3">
+        <Avatar icon={localUser?.icon} name={localUser?.name} />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-bold">
+            {localUser?.name ?? "You"}{" "}
+            <span className="font-medium text-[var(--muted)]">(you)</span>
+          </p>
+          <p className="soft-caption">Group creator</p>
+        </div>
+        <span className="shrink-0 rounded-full bg-[var(--surface-soft)] px-2 py-1 text-[10px] font-semibold text-[var(--muted)]">
+          Auto-added
+        </span>
+      </li>
+      {sortedFields.map(({ member, index }) => (
+        <li
+          key={member._key}
+          className="flex min-w-0 items-center gap-3 border-b border-[var(--line)] py-3 last:border-0"
+        >
+          <Avatar icon={member.icon} name={member.name} />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-bold">{member.name}</p>
+            <p className="soft-caption">{member.id ? "Already in group" : "Ready to add"}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => remove(index)}
+            aria-label={`Remove ${member.name} from group`}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-lg text-[var(--muted)] hover:bg-[var(--negative-soft)] hover:text-[var(--negative)]"
+          >
+            <Icon icon={X} size={19} />
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+
+  const friendPicker = available.length > 0 && (
+    <div className="flex flex-col gap-2">
+      <p className="field-label">Add from your friends</p>
+      <div className="flex flex-wrap gap-2">
+        {available.map((person) => (
+          <button key={person.id} type="button" onClick={() => handlePick(person)} className="chip">
+            <span>{person.icon}</span>
+            <span>{person.name}</span>
+            <Icon icon={Plus} size={17} className="text-[var(--brand-ink)]" />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
+  const editor = addingNew ? (
+    <PersonEditor
+      existingNames={existingNames}
+      onSave={handleAddNew}
+      onCancel={handleCancelEditor}
+      submitLabel="Add person"
+    />
+  ) : (
+    <button
+      type="button"
+      onClick={handleOpenEditor}
+      className="flex w-full items-center gap-3 rounded-2xl border border-dashed border-[var(--brand)] bg-[var(--brand-soft)] px-4 py-2.5 text-left text-[var(--brand-ink)] transition-colors hover:border-[var(--brand-ink)] hover:bg-[var(--surface)]"
+    >
+      <span
+        aria-hidden="true"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--surface)]"
+      >
+        <Icon icon={Plus} size={20} />
+      </span>
+      <span className="font-bold">Add another member</span>
+    </button>
+  );
 
   return (
     <div className="flex flex-col gap-4">
@@ -51,81 +141,18 @@ const StepMembers = ({ showHeading = true }: PropsType) => {
           <p className="text-sm text-gray-500">Optional — adding members can wait.</p>
         </div>
       )}
-
-      <ul className="surface overflow-hidden px-4 sm:px-5" aria-label="Group members">
-        <li className="flex min-w-0 items-center gap-3 border-b border-[var(--line)] py-3">
-          <Avatar icon={localUser?.icon} name={localUser?.name} />
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-bold">
-              {localUser?.name ?? "You"}{" "}
-              <span className="font-medium text-[var(--muted)]">(you)</span>
-            </p>
-            <p className="soft-caption">Group creator</p>
-          </div>
-          <span className="shrink-0 rounded-full bg-[var(--surface-soft)] px-2 py-1 text-[10px] font-semibold text-[var(--muted)]">
-            Auto-added
-          </span>
-        </li>
-        {sortedFields.map(({ member, index }) => (
-          <li
-            key={member._key}
-            className="flex min-w-0 items-center gap-3 border-b border-[var(--line)] py-3 last:border-0"
-          >
-            <Avatar icon={member.icon} name={member.name} />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-bold">{member.name}</p>
-              <p className="soft-caption">{member.id ? "Already in group" : "Ready to add"}</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => remove(index)}
-              aria-label={`Remove ${member.name} from group`}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-lg text-[var(--muted)] hover:bg-[var(--negative-soft)] hover:text-[var(--negative)]"
-            >
-              ×
-            </button>
-          </li>
-        ))}
-      </ul>
-
-      {available.length > 0 && (
-        <div className="flex flex-col gap-2">
-          <p className="field-label">Add from your friends</p>
-          <div className="flex flex-wrap gap-2">
-            {available.map((person) => (
-              <button
-                key={person.id}
-                type="button"
-                onClick={() => handlePick(person)}
-                className="chip"
-              >
-                <span>{person.icon}</span>
-                <span>{person.name}</span>
-                <span className="text-[var(--brand-ink)]">+</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {addingNew ? (
-        <PersonEditor
-          existingNames={existingNames}
-          onSave={handleAddNew}
-          onCancel={() => setAddingNew(false)}
-          submitLabel="Add person"
-        />
+      {showHeading ? (
+        <>
+          {memberList}
+          {friendPicker}
+          {editor}
+        </>
       ) : (
-        <button
-          type="button"
-          onClick={() => setAddingNew(true)}
-          className="flex w-full items-center justify-between gap-3 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-4 py-3 text-left text-sm text-[var(--muted)] hover:border-[var(--brand)] hover:text-[var(--brand-ink)]"
-        >
-          <span>Add another member</span>
-          <span aria-hidden="true" className="text-lg leading-none text-[var(--brand-ink)]">
-            +
-          </span>
-        </button>
+        <>
+          {editor}
+          {friendPicker}
+          {memberList}
+        </>
       )}
     </div>
   );

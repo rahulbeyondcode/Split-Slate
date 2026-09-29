@@ -87,10 +87,10 @@ const ColorPicker = ({ name, label = "Color" }: PropsType) => {
   const errorMessage = hexDraft.error ?? fieldState.error?.message;
 
   return (
-    <fieldset className="flex flex-col gap-3">
-      <legend className="text-sm font-medium text-gray-900">{label}</legend>
+    <fieldset className="flex min-w-0 flex-col gap-3">
+      <legend className="field-label !mb-0">{label}</legend>
 
-      <div className="grid grid-cols-5 gap-2 sm:grid-cols-10">
+      <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">
         {PRESET_COLORS.map((color) => {
           const isSelected = selectedColor === color.value;
           return (
@@ -101,10 +101,10 @@ const ColorPicker = ({ name, label = "Color" }: PropsType) => {
               aria-label={`${color.name} ${color.value}`}
               aria-pressed={isSelected}
               title={`${color.name} (${color.value})`}
-              className={`flex flex-col items-center gap-1 rounded border p-2 text-[10px] transition-colors ${
+              className={`flex min-w-0 flex-col items-center gap-1 rounded-xl border p-1.5 text-[10px] font-semibold leading-tight transition-colors ${
                 isSelected
-                  ? "border-gray-900 bg-gray-50 text-gray-900"
-                  : "border-gray-200 text-gray-500 hover:bg-gray-50"
+                  ? "border-[var(--brand)] bg-[var(--brand-soft)] text-[var(--brand-ink)]"
+                  : "border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] hover:bg-[var(--brand-soft)]"
               }`}
             >
               <span
@@ -118,22 +118,29 @@ const ColorPicker = ({ name, label = "Color" }: PropsType) => {
         })}
       </div>
 
-      <div className="flex flex-col gap-2 rounded border border-gray-200 p-3 sm:flex-row sm:items-end">
+      <div className="flex flex-col gap-3 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-3 sm:flex-row sm:items-end">
         <div className="flex flex-col gap-1">
-          <label htmlFor={`${name}-native`} className="text-xs text-gray-500">
+          <label htmlFor={`${name}-native`} className="text-xs text-[var(--muted)]">
             Custom picker
           </label>
-          <input
-            id={`${name}-native`}
-            type="color"
-            value={nativePickerColor}
-            onChange={handleNativeColor}
-            className="h-10 w-16 cursor-pointer rounded border border-gray-300 p-1"
-          />
+          <div className="relative h-11 w-16 overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--surface)] p-1 focus-within:border-[var(--brand)] focus-within:ring-2 focus-within:ring-[var(--brand-soft)]">
+            <span
+              className="block h-full w-full rounded-lg"
+              style={{ backgroundColor: nativePickerColor }}
+              aria-hidden="true"
+            />
+            <input
+              id={`${name}-native`}
+              type="color"
+              value={nativePickerColor}
+              onChange={handleNativeColor}
+              className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+            />
+          </div>
         </div>
 
-        <div className="flex flex-1 flex-col gap-1">
-          <label htmlFor={`${name}-hex`} className="text-xs text-gray-500">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <label htmlFor={`${name}-hex`} className="text-xs text-[var(--muted)]">
             Hex code
           </label>
           <input
@@ -150,8 +157,8 @@ const ColorPicker = ({ name, label = "Color" }: PropsType) => {
             placeholder="#6366f1"
             autoComplete="off"
             spellCheck={false}
-            className={`rounded border px-3 py-2 font-mono text-sm uppercase outline-none focus:border-gray-900 ${
-              errorMessage ? "border-red-400" : "border-gray-300"
+            className={`min-h-11 w-full min-w-0 rounded-xl border bg-[var(--surface)] px-3 py-2 font-mono text-sm uppercase text-[var(--ink)] outline-none focus:border-[var(--brand)] ${
+              errorMessage ? "border-[var(--negative)]" : "border-[var(--line)]"
             }`}
           />
         </div>

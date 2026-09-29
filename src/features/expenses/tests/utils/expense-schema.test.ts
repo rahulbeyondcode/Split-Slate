@@ -35,6 +35,15 @@ describe("expense schema", () => {
       ],
     });
   });
+  it.each(["JPY", "BHD"])("uses hundredths for %s expenses", (currency) => {
+    const parsed = createExpenseSchema(currency).parse(values());
+    expect(expenseTransactions(parsed, currency).transactions.paid).toEqual([
+      { memberId: "a", amount: 10001 },
+    ]);
+    expect(
+      createExpenseSchema(currency).safeParse({ ...values(), amount: "100.001" }).success,
+    ).toBe(false);
+  });
   it.each([
     { expenseName: " " },
     { amount: "0" },

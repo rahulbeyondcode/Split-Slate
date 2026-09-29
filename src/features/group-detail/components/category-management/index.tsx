@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { useOutletContext } from "react-router-dom";
@@ -14,6 +15,9 @@ import { CATEGORY_EMOJIS } from "@/shared/constants/emojis";
 import type { GroupDetailContext } from "@/features/group-detail/types/group-detail.types";
 import type { Category } from "@/shared/types/domain.types";
 
+import ConfirmationDialog from "@/shared/ui/confirmation-dialog";
+import Icon from "@/shared/ui/icon";
+
 const categoryFormSchema = z.object({
   name: createRequiredStringSchema("Category name is required"),
   icon: createRequiredStringSchema("Category icon is required"),
@@ -27,6 +31,7 @@ const CategoryManagement = () => {
   const { addCategory, updateCategory, removeCategory } = useStore();
   const [categoryMode, setCategoryMode] = useState<CategoryMode>(null);
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
+  const [confirmCategoryId, setConfirmCategoryId] = useState<string | null>(null);
   const [categoryError, setCategoryError] = useState<string | null>(null);
   const categoryForm = useForm<CategoryFormValues>({
     resolver: zodResolver(categoryFormSchema),
@@ -83,7 +88,7 @@ const CategoryManagement = () => {
     }
   });
 
-  const handleDeleteCategory = async (category: Category) => {
+  const handleDeleteCategory = (category: Category) => {
     setCategoryError(null);
     const isInUse = groupExpenses.some((expense) => expense.categoryId === category.id);
     if (isInUse) {
@@ -97,16 +102,16 @@ const CategoryManagement = () => {
       return;
     }
 
-    const confirmed = window.confirm(`Delete “${category.name}”? This cannot be undone.`);
-    if (!confirmed) return;
-
-    try {
-      await removeCategory(category.id);
-      if (editingCategoryId === category.id) handleCancelCategoryForm();
-    } catch (error) {
-      setCategoryError(error instanceof Error ? error.message : "Could not delete this category");
-    }
+    setConfirmCategoryId(category.id);
   };
+
+  const handleConfirmDelete = async () => {
+    if (!confirmCategoryId) return;
+    await removeCategory(confirmCategoryId);
+    if (editingCategoryId === confirmCategoryId) handleCancelCategoryForm();
+    setConfirmCategoryId(null);
+  };
+  const confirmCategory = groupCategories.find((category) => category.id === confirmCategoryId);
 
   return (
     <div className="surface surface-pad flex flex-col gap-3">
@@ -117,7 +122,7 @@ const CategoryManagement = () => {
         </div>
         {categoryMode !== "add" && (
           <button type="button" onClick={handleAddCategoryClick} className="btn btn-secondary">
-            Add category
+            <Icon icon={Plus} size={18} /> Add category
           </button>
         )}
       </div>
@@ -155,34 +160,42 @@ const CategoryManagement = () => {
 
       <ul>
         {groupCategories.map((category) => (
-          <li key={category.id} className="ui-row">
-            <span className="flex items-center gap-3 font-bold">
+          <li key={category.id} className="ui-row flex-wrap">
+            <span className="flex min-w-0 flex-1 basis-40 items-center gap-3 font-bold">
               <span className="avatar avatar-square !h-9 !w-9 !text-lg">{category.icon}</span>
-              {category.name}
-              <span className="soft-caption">
+              <span className="min-w-0 truncate">{category.name}</span>
+              <span className="soft-caption shrink-0">
                 {groupExpenses.filter((expense) => expense.categoryId === category.id).length}{" "}
                 expenses
               </span>
             </span>
-            <div className="flex items-center gap-3">
+            <div className="ml-auto flex shrink-0 items-center gap-3">
               <button
                 type="button"
                 onClick={() => handleEditCategory(category)}
                 className="btn btn-secondary !px-3"
               >
-                Edit
+                <Icon icon={Pencil} size={17} /> Edit
               </button>
               <button
                 type="button"
                 onClick={() => handleDeleteCategory(category)}
                 className="btn btn-danger !px-3"
               >
-                Delete
+                <Icon icon={Trash2} size={17} /> Delete
               </button>
             </div>
           </li>
         ))}
       </ul>
+      <ConfirmationDialog
+        open={Boolean(confirmCategory)}
+        title={`Delete ${confirmCategory?.name ?? "category"}?`}
+        description="This category will be permanently deleted. This cannot be undone."
+        confirmLabel="Delete category"
+        onCancel={() => setConfirmCategoryId(null)}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 };

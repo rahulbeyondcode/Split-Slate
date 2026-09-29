@@ -88,6 +88,10 @@ test("enforces questionnaire dependencies and receipt-aware format availability"
 }) => {
   await expect(page.getByLabel(/Group information/)).toBeChecked();
   await expect(page.getByLabel(/Group information/)).toBeDisabled();
+  await expect(page.getByLabel(/Group information/)).toHaveClass(/choice-control/u);
+  await expect(page.getByLabel(/Group information/).locator("xpath=..")).toHaveClass(
+    /choice-option/u,
+  );
   await expect(page.getByLabel(/^Categories/)).not.toBeChecked();
   await expect(page.getByLabel(/^Tags/)).not.toBeChecked();
   await expect(page.getByLabel(/^Members/)).not.toBeChecked();
@@ -96,29 +100,116 @@ test("enforces questionnaire dependencies and receipt-aware format availability"
   await expect(page.getByText(/Anyone holding this unencrypted link/)).toBeVisible();
 
   await page.getByLabel(/^Expenses/).check();
-  await expect(page.getByRole("dialog", { name: "Related content included" })).toContainText(
-    "Expenses reference categories and members",
+  const dependencyNotice = page.getByRole("dialog", { name: "Included automatically" });
+  await expect(dependencyNotice).toHaveJSProperty("open", true);
+  await expect(dependencyNotice).toHaveAttribute("aria-describedby", "dependency-description");
+  await expect(dependencyNotice).toHaveCSS("border-radius", "28px");
+  const includedContent = dependencyNotice.getByRole("group", { name: "Included content" });
+  await expect(includedContent.getByText("You selected", { exact: true })).toBeVisible();
+  await expect(includedContent.getByText("Added automatically", { exact: true })).toBeVisible();
+  await expect(includedContent.getByText("Also included", { exact: true })).toHaveCount(0);
+  await expect(includedContent).toContainText("Expenses");
+  await expect(includedContent).toContainText("Categories");
+  await expect(includedContent).toContainText("Members");
+  await expect(dependencyNotice).toContainText(
+    "Categories and members stay selected while expenses are included.",
   );
-  await page.getByRole("button", { name: "Got it" }).click();
+  await page.keyboard.press("Escape");
+  await expect(dependencyNotice).not.toBeVisible();
   await expect(page.getByLabel(/^Categories/)).toBeChecked();
   await expect(page.getByLabel(/^Categories/)).toBeDisabled();
+  await expect(page.getByLabel(/^Categories/).locator("xpath=..")).toHaveClass(/choice-option/u);
+  const lockedColor = await page
+    .getByLabel(/^Categories/)
+    .locator("xpath=..")
+    .evaluate((row) => getComputedStyle(row).backgroundColor);
+  const availableColor = await page
+    .getByLabel(/^Tags/)
+    .locator("xpath=..")
+    .evaluate((row) => getComputedStyle(row).backgroundColor);
+  expect(lockedColor).not.toBe(availableColor);
+  await expect(page.getByLabel(/^Categories/).locator("xpath=..")).toHaveCSS(
+    "cursor",
+    "not-allowed",
+  );
   await expect(page.getByLabel(/^Members/)).toBeChecked();
   await expect(page.getByLabel(/^Members/)).toBeDisabled();
 
   await page.getByLabel(/^Receipt attachments/).check();
-  await expect(page.getByRole("dialog", { name: "Related content included" })).toContainText(
-    "Receipt files belong to expenses",
+  await expect(includedContent).toContainText("Receipts");
+  await expect(includedContent).toContainText("Expenses");
+  await expect(dependencyNotice).toContainText(
+    "Expenses, categories and members stay selected while receipts are included.",
   );
-  await page.getByRole("button", { name: "Got it" }).click();
+  await dependencyNotice.getByRole("button", { name: "Got it" }).click();
+  await expect(dependencyNotice).not.toBeVisible();
   await expect(page.getByLabel(/^Expenses/)).toBeDisabled();
-  await expect(page.getByRole("button", { name: "Create transfer link" })).toBeDisabled();
+  const linkButton = page.getByRole("button", { name: "Create transfer link" });
+  await expect(linkButton).toHaveAttribute("data-unavailable", "true");
+  await linkButton.click();
+  await expect(page.getByRole("dialog", { name: "Transfer link unavailable" })).toContainText(
+    "Download ZIP",
+  );
+  await page
+    .getByRole("dialog", { name: "Transfer link unavailable" })
+    .getByRole("button", { name: "Got it" })
+    .click();
   await expect(page.getByRole("button", { name: "Download CSV" })).toBeDisabled();
   await expect(page.getByRole("button", { name: "Download ZIP" })).toBeEnabled();
 
   await page.getByLabel(/^Receipt attachments/).uncheck();
   await expect(page.getByLabel(/^Expenses/)).toBeEnabled();
-  await expect(page.getByRole("button", { name: "Create transfer link" })).toBeEnabled();
+  await expect(linkButton).toHaveAttribute("data-unavailable", "false");
   await expect(page.getByRole("button", { name: "Download CSV" })).toBeEnabled();
+});
+
+test("explains when selected content is too large for a link", async ({ page }) => {
+  await page.evaluate(async () => {
+    const modulePath = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ modulePath)) as typeof DbModule;
+    await db.expenses.bulkPut(
+      Array.from({ length: 200 }, (_, index) => {
+        let seed = (index + 1) * 2654435761;
+        const name = Array.from({ length: 260 }, () => {
+          seed ^= seed << 13;
+          seed ^= seed >>> 17;
+          seed ^= seed << 5;
+          return String.fromCharCode(33 + ((seed >>> 0) % 90));
+        }).join("");
+        return {
+          expenseId: `extra-${index}`,
+          groupId: "trip",
+          expenseName: name,
+          categoryId: "food",
+          createdBy: "a",
+          createdAt: index + 5,
+          when: index + 5,
+          splitType: "equal" as const,
+          splitMeta: [],
+          tagIds: [],
+          attachmentIds: [],
+          transactions: {
+            paid: [{ memberId: "a", amount: 100 }],
+            owes: [{ memberId: "a", amount: 100 }],
+          },
+        };
+      }),
+    );
+  });
+  await page.reload();
+  await page.getByRole("button", { name: "Export group" }).click();
+  await page.getByLabel(/^Expenses/).check();
+  await page.getByRole("button", { name: "Got it" }).click();
+  const linkButton = page.getByRole("button", { name: "Create transfer link" });
+  await expect(linkButton).toHaveAttribute("data-unavailable", "true");
+  await expect(page.getByText("Too much selected for a link.", { exact: false })).toBeVisible();
+  await linkButton.click();
+  const explanation = page.getByRole("dialog", { name: "Transfer link unavailable" });
+  await expect(explanation).toContainText("Download CSV or ZIP instead");
+  await explanation.getByRole("button", { name: "Got it" }).click();
+  await expect(page.getByRole("button", { name: "Download CSV" })).toBeEnabled();
+  await expect(page.getByRole("button", { name: "Download ZIP" })).toBeEnabled();
+  await expect(page.getByText("32,000 characters")).toHaveCount(0);
 });
 
 test("creates a durable import link and downloads a selected typed CSV", async ({ page }) => {

@@ -10,7 +10,7 @@ metadata:
 Purpose: keep accounting tests fast, make every implemented area verifiable, and reserve real
 browser coverage for behavior that depends on browser storage, navigation, or offline capability.
 
-Last updated: 2026-09-26
+Last updated: 2026-09-29
 
 ## Decision
 
@@ -147,7 +147,7 @@ inactive historical categories, solo balances, and missing/cross-group expense r
 `pnpm exec playwright install chromium`. Traces/results are written under `/tmp/split-slate-playwright`.
 Other feature/component/browser coverage remains pending.
 
-Additional Vitest suites cover form-value round-trips and currency precision; all-member balances,
+Additional Vitest suites cover form-value round-trips and fixed two-decimal precision across currency labels; all-member balances,
 transfer conservation, ID tie-breaking, and safe-integer boundaries; member reference checks,
 concurrent duplicate additions, and persisted self-deletion protection. Expense-store tests cover
 update ownership and validation, old-total replacement at the aggregate limit, payer-ranking
@@ -155,10 +155,14 @@ refresh, timestamp/attachment preservation, attachment cascades, concurrent upda
 rollback when writes fail.
 
 Expense-filter utility tests cover all eight logical fields, cross-field AND and within-field OR
-matching, local-calendar inclusivity, all five split types, multi-payer totals, currency precision,
+matching, local-calendar inclusivity, all five split types, multi-payer totals, fixed precision,
 safe amount bounds, active-field counting, empty inputs, invalid date/amount ranges, and stale-option
 pruning. Dedicated desktop/mobile journeys manipulate every filter, assert range validation and
 clear behavior, verify child-route state retention, and confirm deletion removes a selected option.
+
+Group-settings browser coverage checks that dismissing the currency warning makes no change,
+accepting it relabels an expense without rewriting saved paid/owed amounts, and the UI shows two
+decimal places for JPY. Fixed-scale utilities and transfer round-trips have unit coverage.
 
 Ratio regression cases cover exact decimal metadata, minimum and maximum supported shares,
 values that Number would round, preserved decimal zeros, six-decimal percentages, and maximum

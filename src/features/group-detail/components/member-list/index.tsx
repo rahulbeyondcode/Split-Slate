@@ -1,5 +1,6 @@
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useRef, useState } from "react";
-import { useOutletContext } from "react-router-dom";
+import { Link, useOutletContext } from "react-router-dom";
 
 import PersonEditor from "@/features/people/components/person-editor";
 
@@ -12,6 +13,9 @@ import type {
 } from "@/features/group-detail/types/group-detail.types";
 import type { Person } from "@/shared/types/domain.types";
 
+import ConfirmationDialog from "@/shared/ui/confirmation-dialog";
+import Icon from "@/shared/ui/icon";
+
 type MemberMode = { type: "add" } | { type: "edit"; memberId: string } | null;
 
 const MemberList = () => {
@@ -22,7 +26,10 @@ const MemberList = () => {
   const [isCreatingPerson, setIsCreatingPerson] = useState(false);
   const [memberError, setMemberError] = useState<string | null>(null);
   const [isAddingMember, setIsAddingMember] = useState(false);
+  const [blockedMemberId, setBlockedMemberId] = useState<string | null>(null);
+  const [confirmMemberId, setConfirmMemberId] = useState<string | null>(null);
   const addingMember = useRef(false);
+  const blockedDialogRef = useRef<HTMLDialogElement>(null);
 
   const groupPersonIds = new Set(groupMembers.map((member) => member.personId));
   const availablePeople = people
@@ -106,35 +113,31 @@ const MemberList = () => {
       }
     };
 
-  const isMemberInUse = (memberId: string) =>
-    groupExpenses.some(
+  const memberExpenseCount = (memberId: string) =>
+    groupExpenses.filter(
       (expense) =>
         expense.createdBy === memberId ||
         expense.transactions.paid.some((transaction) => transaction.memberId === memberId) ||
         expense.transactions.owes.some((transaction) => transaction.memberId === memberId),
-    );
+    ).length;
+  const blockedMember = groupMembers.find((member) => member.id === blockedMemberId);
+  const confirmMember = groupMembers.find((member) => member.id === confirmMemberId);
 
-  const handleDeleteMember = async (member: GroupMemberWithPerson) => {
+  const handleDeleteMember = (member: GroupMemberWithPerson) => {
     setMemberError(null);
-    const memberName = member.person?.name ?? "this member";
-    if (isMemberInUse(member.id)) {
-      setMemberError(
-        `“${memberName}” is involved in an expense. Reassign those expenses before removing them.`,
-      );
+    if (memberExpenseCount(member.id)) {
+      setBlockedMemberId(member.id);
+      blockedDialogRef.current?.showModal();
       return;
     }
+    setConfirmMemberId(member.id);
+  };
 
-    const confirmed = window.confirm(
-      `Remove “${memberName}” from “${group.name}”? They will remain in your friends list.`,
-    );
-    if (!confirmed) return;
-
-    try {
-      await removeMember(member.id);
-      if (mode?.type === "edit" && mode.memberId === member.id) closeEditor();
-    } catch (error) {
-      setMemberError(error instanceof Error ? error.message : "Could not remove this member");
-    }
+  const handleConfirmDelete = async () => {
+    if (!confirmMemberId) return;
+    await removeMember(confirmMemberId);
+    if (mode?.type === "edit" && mode.memberId === confirmMemberId) closeEditor();
+    setConfirmMemberId(null);
   };
 
   return (
@@ -145,7 +148,7 @@ const MemberList = () => {
         </div>
         {mode?.type !== "add" && (
           <button type="button" onClick={handleOpenAdd} className="btn btn-primary">
-            Add member
+            <Icon icon={Plus} size={18} /> Add member
           </button>
         )}
       </div>
@@ -177,7 +180,7 @@ const MemberList = () => {
                   >
                     <span>{person.icon}</span>
                     <span>{person.name}</span>
-                    <span className="text-gray-400">+</span>
+                    <Icon icon={Plus} size={16} className="text-[var(--brand-ink)]" />
                   </button>
                 ))}
               </div>
@@ -205,7 +208,7 @@ const MemberList = () => {
                 onClick={() => setIsCreatingPerson(true)}
                 className="rounded border border-dashed border-gray-400 px-4 py-2 text-sm text-gray-600"
               >
-                + Add new person
+                <Icon icon={Plus} size={17} /> Add new person
               </button>
             </div>
           )}
@@ -242,22 +245,79 @@ const MemberList = () => {
                 disabled={isAddingMember || !member.person}
                 className="btn btn-secondary"
               >
-                Edit
+                <Icon icon={Pencil} size={17} /> Edit
               </button>
               {member.personId !== localUser?.id && (
-                <button
-                  type="button"
-                  onClick={() => handleDeleteMember(member)}
-                  disabled={isAddingMember}
-                  className="btn btn-danger"
-                >
-                  Delete
-                </button>
+                <>
+                  {memberExpenseCount(member.id) > 0 && (
+                    <span id={`blocked-member-${member.id}`} className="sr-only">
+                      Cannot remove while this member is in an expense. Select to learn why.
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteMember(member)}
+                    disabled={isAddingMember}
+                    aria-describedby={
+                      memberExpenseCount(member.id) ? `blocked-member-${member.id}` : undefined
+                    }
+                    aria-label={`Delete ${member.person?.name ?? "member"}`}
+                    className={`btn ${memberExpenseCount(member.id) ? "btn-blocked" : "btn-danger"}`}
+                  >
+                    <Icon icon={Trash2} size={17} /> Delete
+                  </button>
+                </>
               )}
             </span>
           </li>
         ))}
       </ul>
+      <dialog
+        ref={blockedDialogRef}
+        aria-labelledby="blocked-member-title"
+        aria-describedby="blocked-member-description"
+        onClose={() => setBlockedMemberId(null)}
+        className="m-auto w-full max-w-md rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-6 text-[var(--ink)] shadow-2xl backdrop:bg-black/60"
+      >
+        <h2 id="blocked-member-title" className="section-title">
+          Cannot remove {blockedMember?.person?.name ?? "this member"}
+        </h2>
+        <p id="blocked-member-description" className="mt-3 text-sm leading-relaxed">
+          {blockedMember?.person?.name ?? "This member"} is referenced by{" "}
+          {blockedMember ? memberExpenseCount(blockedMember.id) : 0} group{" "}
+          {blockedMember && memberExpenseCount(blockedMember.id) === 1 ? "expense" : "expenses"} as
+          a creator, payer, or split participant. Edit those references or delete the expenses
+          before removing this member. An expense they created must be deleted, since its creator
+          cannot be reassigned.
+        </p>
+        <div className="mt-5 flex flex-wrap justify-end gap-2">
+          <button
+            type="button"
+            autoFocus
+            onClick={() => blockedDialogRef.current?.close()}
+            className="btn btn-secondary"
+          >
+            Close
+          </button>
+          {blockedMember && (
+            <Link
+              to={`/groups/${group.id}/expenses?${new URLSearchParams({ memberIds: blockedMember.id })}`}
+              className="btn btn-primary"
+            >
+              View {blockedMember.person?.name ?? "member"}'s expenses
+            </Link>
+          )}
+        </div>
+      </dialog>
+      <ConfirmationDialog
+        open={Boolean(confirmMember)}
+        title={`Remove ${confirmMember?.person?.name ?? "member"}?`}
+        description={`They will be removed from “${group.name}” but remain in your contacts.`}
+        confirmLabel="Remove member"
+        pendingLabel="Removing…"
+        onCancel={() => setConfirmMemberId(null)}
+        onConfirm={handleConfirmDelete}
+      />
     </section>
   );
 };

@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { useOutletContext } from "react-router-dom";
@@ -11,6 +12,9 @@ import { useStore } from "@/shared/configs/store";
 
 import type { GroupDetailContext } from "@/features/group-detail/types/group-detail.types";
 import type { Tag } from "@/shared/types/domain.types";
+
+import ConfirmationDialog from "@/shared/ui/confirmation-dialog";
+import Icon from "@/shared/ui/icon";
 
 const tagFormSchema = z.object({
   name: z.string().trim().min(1, "Tag name is required"),
@@ -30,6 +34,7 @@ const TagManagement = () => {
   const { addTag, updateTag, removeTag } = useStore();
   const [tagMode, setTagMode] = useState<TagMode>(null);
   const [editingTagId, setEditingTagId] = useState<string | null>(null);
+  const [confirmTagId, setConfirmTagId] = useState<string | null>(null);
   const [tagError, setTagError] = useState<string | null>(null);
   const tagForm = useForm<TagFormValues>({
     resolver: zodResolver(tagFormSchema),
@@ -84,21 +89,21 @@ const TagManagement = () => {
     }
   });
 
-  const handleDeleteTag = async (tag: Tag) => {
+  const handleDeleteTag = (tag: Tag) => {
     setTagError(null);
-    const expenseCount = groupExpenses.filter((expense) => expense.tagIds.includes(tag.id)).length;
-    const confirmed = window.confirm(
-      `This tag will be removed from ${expenseCount} expense(s). The expenses will not be deleted.`,
-    );
-    if (!confirmed) return;
-
-    try {
-      await removeTag(tag.id);
-      if (editingTagId === tag.id) handleCancelTagForm();
-    } catch (error) {
-      setTagError(error instanceof Error ? error.message : "Could not delete this tag");
-    }
+    setConfirmTagId(tag.id);
   };
+
+  const handleConfirmDelete = async () => {
+    if (!confirmTagId) return;
+    await removeTag(confirmTagId);
+    if (editingTagId === confirmTagId) handleCancelTagForm();
+    setConfirmTagId(null);
+  };
+  const confirmTag = groupTags.find((tag) => tag.id === confirmTagId);
+  const confirmTagExpenseCount = groupExpenses.filter((expense) =>
+    expense.tagIds.includes(confirmTagId ?? ""),
+  ).length;
 
   return (
     <div className="surface surface-pad flex flex-col gap-3">
@@ -109,7 +114,7 @@ const TagManagement = () => {
         </div>
         {tagMode !== "add" && (
           <button type="button" onClick={handleAddTagClick} className="btn btn-secondary">
-            Add tag
+            <Icon icon={Plus} size={18} /> Add tag
           </button>
         )}
       </div>
@@ -119,6 +124,14 @@ const TagManagement = () => {
           {tagError}
         </p>
       )}
+      <ConfirmationDialog
+        open={Boolean(confirmTag)}
+        title={`Delete ${confirmTag?.name ?? "tag"}?`}
+        description={`This tag will be removed from ${confirmTagExpenseCount} ${confirmTagExpenseCount === 1 ? "expense" : "expenses"}. The expenses will not be deleted.`}
+        confirmLabel="Delete tag"
+        onCancel={() => setConfirmTagId(null)}
+        onConfirm={handleConfirmDelete}
+      />
 
       {tagMode && (
         <FormProvider {...tagForm}>
@@ -146,29 +159,29 @@ const TagManagement = () => {
       {groupTags.length > 0 ? (
         <ul>
           {groupTags.map((tag) => (
-            <li key={tag.id} className="ui-row">
-              <span className="flex items-center gap-2 text-sm font-medium text-gray-900">
+            <li key={tag.id} className="ui-row flex-wrap">
+              <span className="flex min-w-0 flex-1 basis-40 items-center gap-2 text-sm font-medium text-gray-900">
                 <span
-                  className="h-3 w-3 rounded-full"
+                  className="h-3 w-3 shrink-0 rounded-full"
                   style={{ backgroundColor: tag.color }}
                   aria-hidden="true"
                 />
-                {tag.name}
+                <span className="min-w-0 truncate">{tag.name}</span>
               </span>
-              <div className="flex items-center gap-3">
+              <div className="ml-auto flex shrink-0 items-center gap-3">
                 <button
                   type="button"
                   onClick={() => handleEditTag(tag)}
                   className="btn btn-secondary !px-3"
                 >
-                  Edit
+                  <Icon icon={Pencil} size={17} /> Edit
                 </button>
                 <button
                   type="button"
                   onClick={() => handleDeleteTag(tag)}
                   className="btn btn-danger !px-3"
                 >
-                  Delete
+                  <Icon icon={Trash2} size={17} /> Delete
                 </button>
               </div>
             </li>

@@ -9,7 +9,7 @@ metadata:
 
 Purpose: explain why expenses retain final allocations and split inputs for later reads.
 
-Last updated: 2026-09-23
+Last updated: 2026-09-29
 
 ## Implementation Status
 
@@ -42,7 +42,7 @@ All four are written together at creation and recomputed together on a validated
 | amount     | empty — owes[] has it      |
 | shares     | share count as a validated decimal string per member |
 | percentage | percentage as a validated decimal string per member |
-| adjustment | adjustment amount in currency minor units per member (can be negative) |
+| adjustment | adjustment amount in fixed hundredths per member (can be negative) |
 
 Ratio text is trimmed but never converted to Number for storage. Allocation uses scaled BigInt
 weights, so retaining the text keeps the editor's inputs identical to those used for calculation.
@@ -58,7 +58,7 @@ earlier storage. See [[expense-edit-delete]].
 ## Invariant
 
 `sum(paid[].amount)` must equal `sum(owes[].amount)`. The React Hook Form/Zod expense form and the
-store's independent validation enforce this for creation and updates using integer minor units. The save also
+store's independent validation enforce this for creation and updates using integer hundredths. The save also
 enforces a positive total, valid persisted references, and the aggregate group-spending limit.
 Updates exclude the old expense total when checking the group limit and preserve creation metadata. See [[money-representation-and-rounding]].
 

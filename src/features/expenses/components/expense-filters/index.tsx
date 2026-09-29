@@ -1,7 +1,8 @@
+import { ListFilter, Search } from "lucide-react";
 import type { FormEvent } from "react";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
-import { useOutletContext } from "react-router-dom";
+import { useOutletContext, useSearchParams } from "react-router-dom";
 
 import ExpenseFilterOptions from "@/features/expenses/components/expense-filter-options";
 import Input from "@/shared/components/form-elements/input";
@@ -11,12 +12,17 @@ import {
   createExpenseFilterDefaults,
   pruneUnavailableExpenseFilterOptions,
   SPLIT_FILTER_OPTIONS,
+  writeExpenseFilterParams,
 } from "@/features/expenses/utils/expense-filters";
 
 import type { ExpenseFilterValues } from "@/features/expenses/types/expense-filters.types";
 import type { GroupDetailContext } from "@/features/group-detail/types/group-detail.types";
 
+import Icon from "@/shared/ui/icon";
+
 const ExpenseFilters = () => {
+  const filtersRef = useRef<HTMLDetailsElement>(null);
+  const [, setSearchParams] = useSearchParams();
   const { group, groupCategories, groupTags, groupMembers } =
     useOutletContext<GroupDetailContext>();
   const { control, getValues, reset, setValue, trigger } = useFormContext<ExpenseFilterValues>();
@@ -39,16 +45,40 @@ const ExpenseFilters = () => {
       memberIds,
     });
 
+    let pruned = false;
     for (const field of ["categoryIds", "tagIds", "payerIds", "memberIds"] as const) {
       if (current[field].length !== next[field].length) {
         setValue(field, next[field], { shouldValidate: true });
+        pruned = true;
       }
     }
-  }, [categoryIds, getValues, memberIds, setValue, tagIds]);
+    if (pruned) {
+      setSearchParams(writeExpenseFilterParams(next), { replace: true, preventScrollReset: true });
+    }
+  }, [categoryIds, getValues, memberIds, setSearchParams, setValue, tagIds]);
 
-  const handleClear = () => reset(createExpenseFilterDefaults());
+  useEffect(() => {
+    const handleOutsideClick = (event: PointerEvent) => {
+      const filters = filtersRef.current;
+      if (filters?.open && event.target instanceof Node && !filters.contains(event.target)) {
+        filters.open = false;
+      }
+    };
+
+    document.addEventListener("pointerdown", handleOutsideClick);
+    return () => document.removeEventListener("pointerdown", handleOutsideClick);
+  }, []);
+
+  const handleClear = () => {
+    reset(createExpenseFilterDefaults());
+    setSearchParams(new URLSearchParams(), { replace: true, preventScrollReset: true });
+  };
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => event.preventDefault();
   const handleChange = () => {
+    setSearchParams(writeExpenseFilterParams(getValues()), {
+      replace: true,
+      preventScrollReset: true,
+    });
     void trigger();
   };
 
@@ -61,13 +91,18 @@ const ExpenseFilters = () => {
       className="flex flex-col gap-3"
     >
       <div className="flex flex-wrap items-center gap-2">
-        <label className="flex-1 min-w-[160px]">
+        <label className="relative block flex-1 min-w-[160px]">
           <span className="sr-only">Search expenses</span>
-          <Input name="name" type="search" placeholder="⌕  Search expenses…" />
+          <Icon
+            icon={Search}
+            size={19}
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)]"
+          />
+          <Input name="name" type="search" placeholder="Search expenses…" className="!pl-10" />
         </label>
-        <details className="group relative">
+        <details ref={filtersRef} className="group relative">
           <summary className="btn btn-secondary list-none cursor-pointer">
-            ⚲ Filters {count > 0 ? `(${count})` : ""}
+            <Icon icon={ListFilter} size={18} /> Filters {count > 0 ? `(${count})` : ""}
           </summary>
           <div className="surface surface-pad absolute top-11 right-0 z-10 max-h-[70svh] w-[min(85vw,560px)] overflow-auto flex flex-col gap-4">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -113,14 +148,11 @@ const ExpenseFilters = () => {
         <span>
           {count} active {count === 1 ? "filter" : "filters"}
         </span>
-        <button
-          type="button"
-          onClick={handleClear}
-          disabled={!count}
-          className="text-blue-700 disabled:text-gray-400"
-        >
-          Clear all filters
-        </button>
+        {count > 0 && (
+          <button type="button" onClick={handleClear} className="text-[var(--brand-ink)]">
+            Clear all filters
+          </button>
+        )}
       </div>
     </form>
   );

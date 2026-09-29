@@ -9,7 +9,7 @@ metadata:
 
 Purpose: document member management, persisted membership guards, and remaining recovery limits.
 
-Last updated: 2026-09-20
+Last updated: 2026-09-29
 
 A member is a link from a group to a person in the global directory. See [[global-people-directory]] and [[people-directory]].
 
@@ -21,9 +21,10 @@ member appears in an expense and removes a successfully deleted member ID from
 involvement and otherwise cleans up that person's member links and payer references.
 
 The group Members route supports adding existing or new people, editing the linked person's
-name/icon, and confirmed removal. It explains blocked removals before asking for confirmation.
-Expense editing and deletion are available through detail. Filtering and a filter-to-fix shortcut
-remain pending.
+name/icon, and confirmed removal. A member with expense references has a greyed-out but clickable
+Delete button that opens an explanation and links to the expense list prefiltered by that member's
+ID. The filter covers creator, paid, and owed references, so it includes every removal blocker.
+Expense editing and deletion are available through detail.
 
 `addMember` checks persisted group/person existence and `(groupId, personId)` links, then inserts
 within one read-write transaction spanning groups, people, and members. Concurrent calls cannot
@@ -62,6 +63,8 @@ Deletes only the member link for that group; the person stays in the directory. 
 ### Delete from the directory
 
 Removes the person everywhere. Allowed only if the person is referenced by **no expense in any group**. On delete, all their member links and any `frequentPayerIds` references are pruned. See [[global-people-directory]].
+Blocked directory deletion offers one member-filtered expense link per affected group, since a person
+has a different member ID in each group. See [[people-directory]].
 
 If they appear in one or more expenses, the relevant removal is blocked.
 Both removal scopes protect the device owner. The directory guard reads persisted LocalUser before
@@ -69,13 +72,13 @@ any deletion, rather than relying only on hidden UI controls or hydrated identit
 
 ### Blocked-Removal Recovery
 
-1. The app blocks removal and explains expense involvement before confirmation.
-2. Open the relevant expenses from the list. Edit their paid-by and split references or delete the
-   expenses with confirmation.
+1. The app blocks removal and explains expense involvement in a popup. Its link opens the list with
+   the member-involved URL filter applied.
+2. Edit their paid-by and split references or delete the expenses with confirmation.
 3. Once no expense references the member, removal becomes available.
 
 Editing preserves `createdBy`; creator references cannot be reassigned. An expense whose creator
-must be removed must itself be deleted. There is no filter-to-fix shortcut yet.
+must be removed must itself be deleted. The filter link also includes creator-only references.
 
 ### Why No Force-Delete
 

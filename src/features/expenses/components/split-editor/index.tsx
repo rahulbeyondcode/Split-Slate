@@ -106,11 +106,11 @@ const SplitEditor = ({ members, currency }: PropsType) => {
         const share = preview.find((row) => row.memberId === member.id);
         return (
           <div key={member.id} className="ui-row">
-            <label className="flex items-center gap-2 text-sm">
+            <label className="flex cursor-pointer items-center gap-2 text-sm">
               <input
                 type="checkbox"
                 {...register(`participants.${index}.selected`)}
-                className="accent-[var(--brand)]"
+                className="choice-control"
               />
               {member.name}
             </label>

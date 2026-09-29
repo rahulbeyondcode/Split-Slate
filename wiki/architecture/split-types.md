@@ -9,7 +9,7 @@ metadata:
 
 Purpose: explain implemented split calculations, inputs, rounding, and remaining presentation work.
 
-Last updated: 2026-09-23
+Last updated: 2026-09-29
 
 ## Overview
 
@@ -33,11 +33,10 @@ The selected members and the computed amounts are stored in `transactions.owes[]
 
 ## Implemented Rounding Policy
 
-All monetary results use integer currency minor units. Equal, shares, percentage, and adjustment
+All monetary results use integer hundredths regardless of currency. Equal, shares, percentage, and adjustment
 calculations allocate indivisible remainders with the largest-remainder method and break exact ties
 by ascending `memberId`. This guarantees that the final stored owed amounts sum to the expense
-total. See [[money-representation-and-rounding]] for the complete input, validation, and currency
-exponent rules.
+total. See [[money-representation-and-rounding]] for fixed two-decimal input and validation rules.
 
 ---
 
@@ -171,5 +170,5 @@ member_owes = base_per_member + member_adjustment
 - [[domain-models]] — Expense shape (splitType, splitMeta, when fields)
 - [[expense-model-design]] — why owes[] stores final computed amounts
 - [[expense-edit-delete]] — exact ratio round-trips and legacy precision limits
-- [[money-representation-and-rounding]] — minor-unit storage and deterministic rounding
+- [[money-representation-and-rounding]] — fixed-hundredths storage and deterministic rounding
 - [[balance-calculation]] — how owes[] feeds into net balance computation

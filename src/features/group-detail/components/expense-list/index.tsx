@@ -1,7 +1,9 @@
+import { Plus, ReceiptText, SearchX } from "lucide-react";
 import { useFormContext, useWatch } from "react-hook-form";
-import { Link, useOutletContext } from "react-router-dom";
+import { Link, useLocation, useOutletContext } from "react-router-dom";
 
 import ExpenseFilters from "@/features/expenses/components/expense-filters";
+import ExpenseTags from "@/features/group-detail/components/expense-tags";
 
 import {
   createExpenseFilterSchema,
@@ -14,10 +16,12 @@ import type { GroupDetailContext } from "@/features/group-detail/types/group-det
 
 import Avatar from "@/shared/ui/avatar";
 import EmptyState from "@/shared/ui/empty-state";
+import Icon from "@/shared/ui/icon";
 import Surface from "@/shared/ui/surface";
 
 const ExpenseList = () => {
-  const { group, groupExpenses, groupMembers, groupCategories } =
+  const { search } = useLocation();
+  const { group, groupExpenses, groupMembers, groupCategories, groupTags } =
     useOutletContext<GroupDetailContext>();
   const { control } = useFormContext<ExpenseFilterValues>();
   const values = useWatch({ control });
@@ -26,32 +30,39 @@ const ExpenseList = () => {
     ? filterExpenses(groupExpenses, parsed.data, group.currency).sort((a, b) => b.when - a.when)
     : [];
   return (
-    <section className="flex flex-col gap-3">
-      <div className="flex items-center justify-between gap-3">
-        <span role="status" className="soft-caption">
-          {parsed.success
-            ? `${sorted.length} of ${groupExpenses.length} expenses`
-            : "Correct the highlighted filters to see results."}
-        </span>
-        <Link to={`/groups/${group.id}/expenses/new`} className="btn btn-primary max-sm:hidden">
-          ＋ Add expense
+    <section className="flex flex-col gap-4">
+      <header className="flex items-center justify-between gap-3">
+        <div>
+          <h2 className="section-title">All expenses</h2>
+          <p className="soft-caption mt-1">Search and filter your complete expense history.</p>
+        </div>
+        <Link
+          to={`/groups/${group.id}/expenses/new${search}`}
+          className="btn btn-primary max-sm:hidden"
+        >
+          <Icon icon={Plus} size={18} /> Add expense
         </Link>
-      </div>
+      </header>
       <ExpenseFilters />
+      <span role="status" className="soft-caption">
+        {parsed.success
+          ? `${sorted.length} of ${groupExpenses.length} expenses`
+          : "Correct the highlighted filters to see results."}
+      </span>
       {!parsed.success ? null : groupExpenses.length === 0 ? (
         <EmptyState
-          icon="🍃"
+          icon={ReceiptText}
           title="No expenses yet"
           description="The slate is clean. Add the first expense and the math begins."
           action={
-            <Link to={`/groups/${group.id}/expenses/new`} className="btn btn-primary">
-              ＋ Add expense
+            <Link to={`/groups/${group.id}/expenses/new${search}`} className="btn btn-primary">
+              <Icon icon={Plus} size={18} /> Add expense
             </Link>
           }
         />
       ) : sorted.length === 0 ? (
         <EmptyState
-          icon="🔍"
+          icon={SearchX}
           title="Nothing matches"
           description="No expenses match these filters. Loosen one, or start fresh."
         />
@@ -67,8 +78,14 @@ const ExpenseList = () => {
               );
               const total = expense.transactions.paid.reduce((sum, item) => sum + item.amount, 0);
               return (
-                <li key={expense.expenseId}>
-                  <Link to={`/groups/${group.id}/expenses/${expense.expenseId}`} className="ui-row">
+                <li
+                  key={expense.expenseId}
+                  className="border-b border-[var(--line)] last:border-b-0"
+                >
+                  <Link
+                    to={`/groups/${group.id}/expenses/${expense.expenseId}${search}`}
+                    className="flex min-w-0 items-center gap-3 py-3"
+                  >
                     <Avatar icon={category?.icon} square className="!w-10 !h-10 !text-xl" />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate font-bold">{expense.expenseName}</span>
@@ -88,6 +105,12 @@ const ExpenseList = () => {
                       </span>
                     </span>
                   </Link>
+                  <ExpenseTags
+                    tagIds={expense.tagIds}
+                    tags={groupTags}
+                    expenseName={expense.expenseName}
+                    className="mb-3 pl-[52px]"
+                  />
                 </li>
               );
             })}

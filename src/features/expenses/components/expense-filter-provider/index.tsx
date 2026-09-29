@@ -1,10 +1,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { ReactNode } from "react";
+import { useEffect } from "react";
 import { FormProvider, useForm } from "react-hook-form";
+import { useSearchParams } from "react-router-dom";
 
 import {
-  createExpenseFilterDefaults,
   createExpenseFilterSchema,
+  readExpenseFilterParams,
 } from "@/features/expenses/utils/expense-filters";
 
 import type { ExpenseFilterValues } from "@/features/expenses/types/expense-filters.types";
@@ -15,11 +17,17 @@ interface PropsType {
 }
 
 const ExpenseFilterProvider = ({ currency, children }: PropsType) => {
+  const [searchParams] = useSearchParams();
   const methods = useForm<ExpenseFilterValues>({
-    defaultValues: createExpenseFilterDefaults(),
+    defaultValues: readExpenseFilterParams(searchParams),
+    values: readExpenseFilterParams(searchParams),
     resolver: zodResolver(createExpenseFilterSchema(currency)),
     mode: "onChange",
   });
+  const { trigger } = methods;
+  useEffect(() => {
+    void trigger();
+  }, [searchParams, trigger]);
   return <FormProvider {...methods}>{children}</FormProvider>;
 };
 

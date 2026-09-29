@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
@@ -18,6 +19,8 @@ import {
 
 import { GROUP_EMOJIS } from "@/shared/constants/emojis";
 import type { GroupDraft } from "@/shared/types/domain.types";
+
+import Icon from "@/shared/ui/icon";
 
 // Flattens the form shape into the memory-only draft the live preview subscribes to.
 const toGroupDraft = (values: CreateGroupFormValues): GroupDraft => ({
@@ -113,7 +116,7 @@ const CreateGroupFlow = () => {
       <div className="flex flex-col min-h-svh">
         <header className="flex items-center gap-3 border-b border-[var(--line)] bg-[var(--surface)] px-6 py-4">
           <Link to="/dashboard" className="btn btn-secondary !px-3" aria-label="Back to dashboard">
-            ←
+            <Icon icon={ArrowLeft} size={20} />
           </Link>
           <h1 className="section-title">New group</h1>
           <span className="chip chip-selected">

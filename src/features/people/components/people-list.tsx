@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { ArrowRight, LockKeyhole, Pencil, Plus, Search, Trash2, UsersRound } from "lucide-react";
+import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
 import PersonEditor from "@/features/people/components/person-editor";
@@ -8,7 +9,9 @@ import { calculateMemberNet } from "@/shared/utils/balances";
 import type { PersonEditorValues } from "@/features/people/helpers/schema";
 
 import Avatar from "@/shared/ui/avatar";
+import ConfirmationDialog from "@/shared/ui/confirmation-dialog";
 import EmptyState from "@/shared/ui/empty-state";
+import Icon from "@/shared/ui/icon";
 import Surface from "@/shared/ui/surface";
 
 type EditorMode = { type: "add" } | { type: "edit"; id: string } | null;
@@ -27,9 +30,26 @@ const PeopleList = () => {
   } = useStore();
   const [mode, setMode] = useState<EditorMode>(null);
   const [query, setQuery] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [blockedPersonId, setBlockedPersonId] = useState<string | null>(null);
+  const [confirmPersonId, setConfirmPersonId] = useState<string | null>(null);
+  const blockedDialogRef = useRef<HTMLDialogElement>(null);
   const namesExcept = (id?: string) =>
     people.filter((person) => person.id !== id).map((person) => person.name);
+  const blockingGroupsFor = (personId: string) =>
+    members
+      .filter((member) => member.personId === personId)
+      .flatMap((member) => {
+        const group = groups.find((item) => item.id === member.groupId);
+        const count = expenses.filter(
+          (expense) =>
+            expense.groupId === member.groupId &&
+            (expense.createdBy === member.id ||
+              expense.transactions.paid.some((row) => row.memberId === member.id) ||
+              expense.transactions.owes.some((row) => row.memberId === member.id)),
+        ).length;
+        return group && count ? [{ group, memberId: member.id, count }] : [];
+      })
+      .sort((a, b) => a.group.name.localeCompare(b.group.name));
   const handleAdd = async (values: PersonEditorValues) => {
     await addPerson(values.name, values.icon);
     setMode(null);
@@ -39,14 +59,18 @@ const PeopleList = () => {
     else await updatePerson(id, values);
     setMode(null);
   };
-  const handleDelete = async (id: string) => {
-    setError(null);
-    if (!window.confirm("Remove this contact from your device? This cannot be undone.")) return;
-    try {
-      await removePerson(id);
-    } catch (failure) {
-      setError(failure instanceof Error ? failure.message : "Could not delete this person");
+  const handleDelete = (id: string) => {
+    if (blockingGroupsFor(id).length) {
+      setBlockedPersonId(id);
+      blockedDialogRef.current?.showModal();
+      return;
     }
+    setConfirmPersonId(id);
+  };
+  const handleConfirmDelete = async () => {
+    if (!confirmPersonId) return;
+    await removePerson(confirmPersonId);
+    setConfirmPersonId(null);
   };
   const visible = people
     .filter(
@@ -55,6 +79,9 @@ const PeopleList = () => {
         person.name.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()),
     )
     .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
+  const blockedPerson = people.find((person) => person.id === blockedPersonId);
+  const confirmPerson = people.find((person) => person.id === confirmPersonId);
+  const blockedGroups = blockedPerson ? blockingGroupsFor(blockedPerson.id) : [];
 
   return (
     <div className="page page-narrow flex flex-col gap-5">
@@ -68,29 +95,28 @@ const PeopleList = () => {
             className="btn btn-primary max-sm:hidden"
             type="button"
             onClick={() => {
-              setError(null);
               setMode({ type: "add" });
             }}
           >
-            ＋ New contact
+            <Icon icon={Plus} size={18} /> New contact
           </button>
         )}
       </header>
-      <label className="max-w-sm">
+      <label className="relative block max-w-sm">
         <span className="sr-only">Search contacts</span>
+        <Icon
+          icon={Search}
+          size={19}
+          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)]"
+        />
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           type="search"
-          placeholder="⌕  Search contacts…"
-          className="form-input"
+          placeholder="Search contacts…"
+          className="form-input !pl-10"
         />
       </label>
-      {error && (
-        <p role="alert" className="note money-negative">
-          {error}
-        </p>
-      )}
       {mode?.type === "add" && (
         <PersonEditor
           existingNames={namesExcept()}
@@ -105,15 +131,8 @@ const PeopleList = () => {
             {visible.map((person) => {
               const linked = members.filter((member) => member.personId === person.id);
               const groupIds = new Set(linked.map((member) => member.groupId));
-              const count = expenses.filter((expense) =>
-                linked.some(
-                  (member) =>
-                    expense.groupId === member.groupId &&
-                    (expense.createdBy === member.id ||
-                      expense.transactions.paid.some((row) => row.memberId === member.id) ||
-                      expense.transactions.owes.some((row) => row.memberId === member.id)),
-                ),
-              ).length;
+              const blockingGroups = blockingGroupsFor(person.id);
+              const count = blockingGroups.reduce((total, item) => total + item.count, 0);
               const balances = linked.map((member) => ({
                 group: groups.find((group) => group.id === member.groupId),
                 net: calculateMemberNet(
@@ -170,16 +189,22 @@ const PeopleList = () => {
                           onClick={() => setMode({ type: "edit", id: person.id })}
                           aria-label={`Edit ${person.name}`}
                         >
-                          ✎
+                          <Icon icon={Pencil} size={18} />
                         </button>
                         <button
                           type="button"
-                          className="btn btn-danger !px-3"
-                          onClick={() => void handleDelete(person.id)}
+                          className={`btn !px-3 ${count ? "btn-blocked" : "btn-danger"}`}
+                          onClick={() => handleDelete(person.id)}
                           aria-label={`Delete ${person.name}`}
+                          aria-describedby={count ? `blocked-contact-${person.id}` : undefined}
                         >
-                          ×
+                          <Icon icon={Trash2} size={18} />
                         </button>
+                        {count > 0 && (
+                          <span id={`blocked-contact-${person.id}`} className="sr-only">
+                            Cannot delete while this contact is in an expense. Select to learn why.
+                          </span>
+                        )}
                       </div>
                     </div>
                   )}
@@ -190,7 +215,7 @@ const PeopleList = () => {
         </Surface>
       ) : (
         <EmptyState
-          icon="🦋"
+          icon={UsersRound}
           title={query ? "No matching contacts" : "No contacts yet"}
           description={
             query
@@ -199,13 +224,67 @@ const PeopleList = () => {
           }
         />
       )}
-      <p className="note">
-        🔒 A contact is one person across the whole app. Edits apply everywhere; removal requires
-        that person to leave their groups first.
+      <p className="note flex items-start gap-2">
+        <Icon icon={LockKeyhole} size={18} />
+        <span>
+          A contact is one person across the whole app. Edits apply everywhere; removal requires
+          that person to leave their groups first.
+        </span>
       </p>
+      <dialog
+        ref={blockedDialogRef}
+        aria-labelledby="blocked-contact-title"
+        aria-describedby="blocked-contact-description"
+        onClose={() => setBlockedPersonId(null)}
+        className="m-auto w-full max-w-md rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-6 text-[var(--ink)] shadow-2xl backdrop:bg-black/60"
+      >
+        <h2 id="blocked-contact-title" className="section-title">
+          Cannot delete {blockedPerson?.name ?? "this contact"}
+        </h2>
+        <p id="blocked-contact-description" className="mt-3 text-sm leading-relaxed">
+          {blockedPerson?.name ?? "This contact"} is referenced as a creator, payer, or split
+          participant in expenses across the groups below. Edit those references or delete the
+          expenses before removing this contact. An expense they created must be deleted, since its
+          creator cannot be reassigned.
+        </p>
+        <div className="mt-4 flex flex-col gap-2">
+          {blockedGroups.map(({ group, memberId, count }) => (
+            <Link
+              key={memberId}
+              to={`/groups/${group.id}/expenses?${new URLSearchParams({ memberIds: memberId })}`}
+              className="btn btn-secondary justify-between !rounded-xl"
+            >
+              <span className="min-w-0 truncate">
+                {group.icon} {group.name}
+              </span>
+              <span className="shrink-0">
+                {count} {count === 1 ? "expense" : "expenses"} <Icon icon={ArrowRight} size={16} />
+              </span>
+            </Link>
+          ))}
+        </div>
+        <div className="mt-5 flex justify-end">
+          <button
+            type="button"
+            autoFocus
+            onClick={() => blockedDialogRef.current?.close()}
+            className="btn btn-secondary"
+          >
+            Close
+          </button>
+        </div>
+      </dialog>
+      <ConfirmationDialog
+        open={Boolean(confirmPerson)}
+        title={`Delete ${confirmPerson?.name ?? "contact"}?`}
+        description="This removes the contact from your device and any groups they belong to. This cannot be undone."
+        confirmLabel="Delete contact"
+        onCancel={() => setConfirmPersonId(null)}
+        onConfirm={handleConfirmDelete}
+      />
       {mode?.type !== "add" && (
         <button type="button" className="mobile-cta" onClick={() => setMode({ type: "add" })}>
-          ＋ New contact
+          <Icon icon={Plus} size={20} /> New contact
         </button>
       )}
     </div>

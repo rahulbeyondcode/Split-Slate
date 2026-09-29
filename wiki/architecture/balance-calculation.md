@@ -9,7 +9,7 @@ metadata:
 
 Purpose: explain exact member balances and deterministic suggested transfers.
 
-Last updated: 2026-09-20
+Last updated: 2026-09-29
 
 ## Implementation Status
 
@@ -24,8 +24,9 @@ The overview and sidebar use the first two helpers. The `/groups/:groupId/balanc
 all-member balances and suggested payments, updating after expense creation, editing, or deletion.
 Solo groups show zero net and no suggested payments, with explanatory personal-spending copy.
 
-Accumulation uses BigInt internally and returns safe-integer minor units; currency conversion is
-only for display. All-member calculation rejects missing member references and invalid allocations.
+Accumulation uses BigInt internally and returns safe-integer hundredths; changing a group's
+currency relabels the same numeric balance without exchange conversion. All-member calculation
+rejects missing member references and invalid allocations.
 Transfer calculation rejects unsafe/fractional balances and nonzero sums instead of silently
 showing incomplete settlements. Neither helper mutates inputs.
 

@@ -9,7 +9,7 @@ metadata:
 
 Purpose: describe the persisted records, indexes, and implemented write boundaries.
 
-Last updated: 2026-09-23
+Last updated: 2026-09-29
 
 ## Current Implementation Scope
 
@@ -99,8 +99,8 @@ person-deletion guard resolves memberships from hydrated state rather than query
 | createdAt     | number  | unix ms — set automatically by the app, never user-edited          |
 | when          | number  | unix ms — user-entered date + time of the actual expense; defaults to now |
 | splitType     | string  | `'equal' \| 'amount' \| 'shares' \| 'percentage' \| 'adjustment'` |
-| splitMeta     | object[] | `{ memberId: UUID, value: string \| number }[]` — exact decimal strings for shares/percentages, integer minor units for adjustments; numeric legacy ratios remain readable |
-| transactions  | object  | `{ paid: [], owes: [] }` — monetary amounts use integer minor units |
+| splitMeta     | object[] | `{ memberId: UUID, value: string \| number }[]` — exact decimal strings for shares/percentages, integer hundredths for adjustments; numeric legacy ratios remain readable |
+| transactions  | object  | `{ paid: [], owes: [] }` — monetary amounts use integer hundredths regardless of currency |
 | attachmentIds | UUID[]  | references to the attachments table; empty array if none           |
 
 Index: `groupId` — used to fetch all expenses for a group.
@@ -115,12 +115,12 @@ Dexie tables/indexes or reset/rewrite the database. Precision already lost in a 
 cannot be recovered automatically; invalid legacy ratios require correction before saving.
 See [[expense-edit-delete]].
 
-Creation and updates validate safe-integer currency minor units and equal paid/owed totals. Within
+Creation and updates validate safe-integer hundredths and equal paid/owed totals. Within
 one Dexie transaction each save rechecks persisted group, member/person, creator, active-category, and tag
 references, checks the aggregate group-spending limit, and writes the expense and payer ranking.
 Updates retain creation metadata and attachment IDs, replace the old amount for the spending-limit
-check, and may retain the expense's current inactive category. The formatter consumes minor units,
-including currencies with zero or three decimal places. See
+check, and may retain the expense's current inactive category. The formatter consumes hundredths
+and displays two decimal places even for currencies with different ISO defaults. See
 [[money-representation-and-rounding]] and [[state-management]].
 
 ---

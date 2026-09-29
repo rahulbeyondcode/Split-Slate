@@ -1,3 +1,4 @@
+import { ArrowLeft, FolderOpen, LockKeyhole, PackageOpen, Upload } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
@@ -9,6 +10,8 @@ import { useStore } from "@/shared/configs/store";
 
 import type { GroupTransferSource } from "@/features/import-export/types/import-export.types";
 import type { Group } from "@/shared/types/domain.types";
+
+import Icon from "@/shared/ui/icon";
 
 const ImportGroup = () => {
   const initialized = useStore((state) => state.initialized);
@@ -73,13 +76,15 @@ const ImportGroup = () => {
         </div>
         <div className="import-panel-story">
           <div className="import-panel-icon" aria-hidden="true">
-            📦
+            <Icon icon={PackageOpen} size={54} />
           </div>
           <p className="import-panel-eyebrow">PICK UP WHERE YOU LEFT OFF</p>
           <h2>Bring your group along.</h2>
           <p>Bring a group from another device—yours or someone else’s—and keep going here.</p>
         </div>
-        <p className="import-panel-footnote">🔒 Your transfer stays on this device</p>
+        <p className="import-panel-footnote flex items-center gap-2">
+          <Icon icon={LockKeyhole} size={17} /> Your transfer stays on this device
+        </p>
       </aside>
 
       <section className="import-main" aria-label="Import a group">
@@ -87,7 +92,7 @@ const ImportGroup = () => {
           {!initialized || loading ? (
             <div role="status" className="import-loading surface surface-pad">
               <span className="import-loading-icon" aria-hidden="true">
-                📂
+                <Icon icon={FolderOpen} size={40} />
               </span>
               <h1 className="section-title">Validating transfer…</h1>
               <p className="soft-caption">
@@ -115,7 +120,7 @@ const ImportGroup = () => {
 
               <label className="import-file-picker surface">
                 <span className="import-file-icon" aria-hidden="true">
-                  ↑
+                  <Icon icon={Upload} size={28} />
                 </span>
                 <span className="import-file-title">Choose a transfer file</span>
                 <span className="soft-caption">
@@ -134,7 +139,7 @@ const ImportGroup = () => {
                 group.
               </p>
               <Link to="/" className="btn btn-secondary self-start">
-                ← Back to SplitSlate
+                <Icon icon={ArrowLeft} size={18} /> Back to SplitSlate
               </Link>
             </div>
           )}

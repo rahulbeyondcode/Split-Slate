@@ -7,7 +7,7 @@ metadata:
 
 # Category Management
 
-Last updated: 2026-09-19
+Last updated: 2026-09-29
 
 ## Implementation Status
 
@@ -79,7 +79,7 @@ the master list after group creation is not currently exposed as a separate UI.
 - The planned deactivation UI also allows categories to be reactivated
 - Categories can be **deleted only when no expense references them**. Because `categoryId` is mandatory and singular on every expense, a category that is in use cannot be deleted outright — the user must first **reassign every expense** carrying that category to a different category, after which the now-unreferenced category can be deleted. A category with zero referencing expenses (e.g. one just added during onboarding, or never used) can be deleted directly.
 - A group must keep at least one category; the last remaining category cannot be deleted.
-- Delete eligibility is checked before confirmation. In-use and last-category attempts show their blocking reason without a confirmation prompt; an eligible delete requires explicit irreversible-action confirmation.
+- Delete eligibility is checked before confirmation. In-use and last-category attempts show their blocking reason without a confirmation dialog; an eligible delete requires explicit irreversible-action confirmation in the shared in-app modal. See [[confirmation-dialogs]].
 
 **Delete vs deactivate:** deactivate when a category is still on historical expenses but you no longer want it offered for new entries; delete when you want it gone entirely and it is not referenced by any expense.
 

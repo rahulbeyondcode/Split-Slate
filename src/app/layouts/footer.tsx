@@ -1,6 +1,7 @@
 import { NavLink, useParams } from "react-router-dom";
 
 import { FOOTER_NAV } from "@/app/layouts/nav-config";
+import Icon from "@/shared/ui/icon";
 
 const AppFooter = () => {
   const { groupId } = useParams();
@@ -18,7 +19,7 @@ const AppFooter = () => {
           className={({ isActive }) => (isActive ? "active" : "")}
         >
           <span className="nav-icon" aria-hidden="true">
-            {item.icon}
+            <Icon icon={item.icon} size={22} />
           </span>
           <span>{item.label}</span>
         </NavLink>

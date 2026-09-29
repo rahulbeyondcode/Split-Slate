@@ -52,10 +52,17 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("records an equal expense, updates balances, and survives reload", async ({ page }) => {
+  const tag = page.getByLabel("Holiday", { exact: true });
+  await expect(tag).toHaveClass(/choice-control/u);
+  await expect(page.getByLabel("One person", { exact: true })).toBeChecked();
+  await expect(page.getByLabel("One person", { exact: true })).toHaveClass(/choice-control/u);
+  await expect(page.getByLabel("Paid by Amy", { exact: true })).toBeChecked();
+  await expect(page.getByRole("radio", { name: /Food/u })).toBeChecked();
   await page.getByLabel("Expense name", { exact: true }).fill(" Dinner ");
   await page.getByLabel("Amount (INR)", { exact: true }).fill("100");
   await page.getByLabel("Date and time", { exact: true }).fill("2026-09-19T18:30");
-  await page.getByLabel("Holiday", { exact: true }).check();
+  await tag.check();
+  await expect(tag).toBeChecked();
   await expect(page.getByRole("option", { name: "📦 Old category" })).toHaveCount(0);
   await page.getByRole("button", { name: "Save expense" }).click();
   await expect(page).toHaveURL(/\/groups\/trip\/expenses$/);

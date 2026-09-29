@@ -23,13 +23,23 @@ const PayerSelector = ({ members, quickIds, currency }: PropsType) => {
   return (
     <fieldset className="flex flex-col gap-3">
       <legend className="field-label">Paid by</legend>
-      <div className="flex flex-wrap gap-4 text-sm">
-        <label className="flex items-center gap-2">
-          <input type="radio" value="single" {...register("payerMode")} />
+      <div className="flex flex-wrap gap-2 text-sm">
+        <label className="choice-option choice-option-compact">
+          <input
+            type="radio"
+            value="single"
+            {...register("payerMode")}
+            className="choice-control"
+          />
           One person
         </label>
-        <label className="flex items-center gap-2">
-          <input type="radio" value="multiple" {...register("payerMode")} />
+        <label className="choice-option choice-option-compact">
+          <input
+            type="radio"
+            value="multiple"
+            {...register("payerMode")}
+            className="choice-control"
+          />
           Multiple payers
         </label>
       </div>
@@ -47,9 +57,7 @@ const PayerSelector = ({ members, quickIds, currency }: PropsType) => {
                     {...register("payerId")}
                     className="peer sr-only"
                   />
-                  <span className="chip peer-checked:!bg-[var(--brand-soft)] peer-checked:!text-[var(--brand-ink)] peer-checked:!border-[var(--brand)]">
-                    {member.name}
-                  </span>
+                  <span className="chip choice-chip">{member.name}</span>
                 </label>
               ) : null;
             })}

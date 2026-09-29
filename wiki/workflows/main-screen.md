@@ -9,7 +9,7 @@ metadata:
 
 Purpose: describe implemented group navigation, expense workflows, balances, and group transfer.
 
-Last updated: 2026-09-26
+Last updated: 2026-09-29
 
 ## Current Implementation
 
@@ -29,14 +29,31 @@ router outlet context. An unknown group shows a not-found state with a return li
 
 The current child screens are:
 
-- **Overview** — local net position, total spend, category count, members, and up to five recent expenses
-- **Expenses** — a list sorted by `when` descending, showing name, total paid, payer names, date/time, and category
+- **Overview** — the group's snapshot: local net position, group total in the header, up to six
+  members ranked by the number of expenses they paid for, suggested-transfer count, and a preview
+  of the three most recent expenses with links to the full members, balances, and expenses views
+- **Expenses** — the complete searchable, filterable ledger sorted by `when` descending, showing
+  name, total paid, payer names, date/time, and category; the large local-balance hero is not shown
 - **Add Expense** — `/groups/:groupId/expenses/new`, with validated local recording and five split methods
 - **Expense Detail/Edit** — payer/split breakdown and tags, prefilled editing, and confirmed hard deletion
 - **Balances** — every member's net position and deterministic suggested payments
 - **Members** — add existing/new people, edit linked names/icons, and confirmed guarded removal
 - **Categories & Tags** — add, edit, and guarded-delete controls for both record types
-- **Settings** — read-only group name/currency plus the selective Link/CSV/ZIP transfer questionnaire
+- **Settings** — editable group name/icon and currency plus the selective Link/CSV/ZIP transfer questionnaire
+
+The group's default route opens Overview. Its "View all expenses" and "View all balances" links open
+the full ledger and per-member balances respectively; Expenses is also available through the sidebar
+and mobile navigation. There is no additional group-view tab bar. The large local-balance hero appears
+only on Overview.
+
+The Overview member preview counts each expense once per member with a positive paid contribution,
+even when multiple members pay for the same expense. Higher counts appear first; equal counts and
+members with no payments are ordered alphabetically by name. Only six members are shown; the Members
+route still lists the entire group.
+
+Changing currency when expenses exist requires confirmation: saved amounts retain their numeric
+values and are displayed under the new currency label without exchange conversion. The same
+integer hundredths are used for every group currency. See [[money-representation-and-rounding]].
 
 The group header's Add Expense link opens the entry form. Successful saves return to the expense
 list and update overview/sidebar balances through the shared store. Failed saves retain form inputs
@@ -56,12 +73,10 @@ target experience. Delivery priorities live in [[product-roadmap]].
 
 ### Expense and Balance Views
 
-| Tab | Content | Default? |
-|-----|---------|----------|
-| Expenses | Chronological list of all expenses in the group | Planned default |
-| Balances | Net balance per member and suggested payments | Available; overview remains default |
+Overview is the default route. Expenses shows the chronological list of all group expenses; Balances
+shows net positions and suggested payments. Neither view uses an in-page tab bar.
 
-- Balances tab is **read-only in MVP** — shows who owes whom and how much, nothing else
+- Balances is **read-only in MVP** — shows who owes whom and how much, nothing else
 - No settlement action, no mark-as-settled, no notifications in MVP
 - **Settlement design is unresolved:** an earlier V2 proposal paired a binary fully-settled toggle
   with push notifications. The roadmap requires a separate decision comparing that model with
@@ -78,7 +93,8 @@ target experience. Delivery priorities live in [[product-roadmap]].
 
 Expenses are sorted by `when` descending. Rows include payer names, date/time, and category beside
 the name and formatted amount. Names link to detail, which offers editing and confirmed deletion.
-Recent overview entries also link to detail. The list now has real-time name, date, category, tag,
+The full ledger and recent Overview entries show up to three colored tags and reveal further tags
+with a separate Show more control. The list now has real-time name, date, category, tag,
 payer, involved-member, split-type, and amount filters with an active count and clear action.
 Unavailable selected option IDs are pruned when the list remounts, and desktop/mobile browser
 journeys cover the controls; see [[filtering]].

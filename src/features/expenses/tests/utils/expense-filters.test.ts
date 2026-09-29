@@ -6,6 +6,8 @@ import {
   createExpenseFilterSchema,
   filterExpenses,
   pruneUnavailableExpenseFilterOptions,
+  readExpenseFilterParams,
+  writeExpenseFilterParams,
 } from "@/features/expenses/utils/expense-filters";
 
 import type { ExpenseFilterValues } from "@/features/expenses/types/expense-filters.types";
@@ -41,6 +43,46 @@ const values = (patch: Partial<ExpenseFilterValues> = {}) => ({
 });
 
 describe("expense filters", () => {
+  it("round-trips text, dates, amounts, and repeated option IDs through the URL", () => {
+    const selected = values({
+      name: "  dinner ",
+      dateFrom: "2026-09-20",
+      dateTo: "2026-09-21",
+      categoryIds: ["food", "travel"],
+      tagIds: ["holiday"],
+      payerIds: ["b"],
+      memberIds: ["a"],
+      splitTypes: ["equal", "shares"],
+      minAmount: "12.50",
+      maxAmount: "100.00",
+    });
+    const params = writeExpenseFilterParams(selected);
+    expect(params.getAll("categoryIds")).toEqual(["food", "travel"]);
+    expect(readExpenseFilterParams(params)).toEqual(selected);
+    expect(writeExpenseFilterParams(createExpenseFilterDefaults()).toString()).toBe("");
+  });
+
+  it("ignores unknown URL fields and invalid or duplicate split options", () => {
+    const params = new URLSearchParams(
+      "memberIds=a&memberIds=a&splitTypes=other&splitTypes=equal&splitTypes=equal&unused=1",
+    );
+    expect(readExpenseFilterParams(params)).toEqual(
+      values({ memberIds: ["a"], splitTypes: ["equal"] }),
+    );
+  });
+
+  it("includes creator-only references when filtering by involved member", () => {
+    const recorded = expense({
+      createdBy: "c",
+      transactions: {
+        paid: [{ memberId: "a", amount: 100 }],
+        owes: [{ memberId: "b", amount: 100 }],
+      },
+    });
+    expect(filterExpenses([recorded], values({ memberIds: ["c"] }), "INR")).toEqual([recorded]);
+    expect(filterExpenses([recorded], values({ payerIds: ["c"] }), "INR")).toEqual([]);
+  });
+
   it("returns all expenses without mutating the source, and trims case-insensitive search", () => {
     const source = [expense(), expense({ expenseId: "taxi", expenseName: "Taxi" })];
     expect(filterExpenses(source, values(), "INR")).toEqual(source);
@@ -120,9 +162,9 @@ describe("expense filters", () => {
   });
 
   it.each([
-    ["JPY", "10001"],
-    ["KWD", "10.001"],
-  ])("respects %s precision", (currency, amount) => {
+    ["JPY", "100.01"],
+    ["KWD", "100.01"],
+  ])("filters using fixed hundredths in %s", (currency, amount) => {
     expect(
       filterExpenses([expense()], values({ minAmount: amount, maxAmount: amount }), currency),
     ).toHaveLength(1);
@@ -206,12 +248,15 @@ describe("filter validation", () => {
     }
   });
 
-  it("rejects excess currency precision", () => {
+  it("rejects more than two decimals for every currency", () => {
     expect(createExpenseFilterSchema("JPY").safeParse(values({ minAmount: "1.0" })).success).toBe(
+      true,
+    );
+    expect(createExpenseFilterSchema("JPY").safeParse(values({ minAmount: "1.001" })).success).toBe(
       false,
     );
-    expect(
-      createExpenseFilterSchema("KWD").safeParse(values({ maxAmount: "1.0001" })).success,
-    ).toBe(false);
+    expect(createExpenseFilterSchema("KWD").safeParse(values({ maxAmount: "1.001" })).success).toBe(
+      false,
+    );
   });
 });

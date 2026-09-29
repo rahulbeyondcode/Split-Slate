@@ -128,12 +128,15 @@ test("filters expenses through every field, validates ranges, and clears all con
 }) => {
   await expect(page.getByRole("status")).toHaveText("3 of 3 expenses");
   await page.getByLabel("Search expenses", { exact: true }).fill(" dinner ");
-  await page.getByText("More filters", { exact: true }).click();
+  await page.locator("summary").click();
   await page.getByLabel("From date", { exact: true }).fill("2026-09-20");
   await page.getByLabel("To date", { exact: true }).fill("2026-09-20");
   await page.getByLabel("Minimum amount (INR)", { exact: true }).fill("100.01");
   await page.getByLabel("Maximum amount (INR)", { exact: true }).fill("100.01");
   await page.getByRole("group", { name: "Categories" }).getByLabel("Food").check();
+  await expect(page.getByRole("group", { name: "Categories" }).getByLabel("Food")).toHaveClass(
+    /choice-control/u,
+  );
   await page.getByRole("group", { name: "Tags" }).getByLabel("Holiday").check();
   await page.getByRole("group", { name: "Paid by" }).getByLabel("Amy").check();
   await page.getByRole("group", { name: "Member involved" }).getByLabel("Cal").check();
@@ -141,8 +144,18 @@ test("filters expenses through every field, validates ranges, and clears all con
 
   await expect(page.getByText("8 active filters", { exact: true })).toBeVisible();
   await expect(page.getByRole("status")).toHaveText("1 of 3 expenses");
-  await expect(page.getByRole("link", { name: "Dinner", exact: true })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Airport taxi", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("list", { name: "Expenses" }).getByText("Dinner")).toBeVisible();
+  await expect(page.getByRole("list", { name: "Expenses" }).getByText("Airport taxi")).toHaveCount(
+    0,
+  );
+  await expect(page).toHaveURL(/name=.*&dateFrom=2026-09-20.*memberIds=c/u);
+
+  await page.reload();
+  await expect(page.getByRole("status")).toHaveText("1 of 3 expenses");
+  await page.locator("summary").click();
+  await expect(
+    page.getByRole("group", { name: "Member involved" }).getByLabel("Cal"),
+  ).toBeChecked();
 
   await page.getByLabel("To date", { exact: true }).fill("2026-09-19");
   await expect(
@@ -153,26 +166,30 @@ test("filters expenses through every field, validates ranges, and clears all con
   );
 
   await page.getByRole("button", { name: "Clear all filters", exact: true }).click();
+  await expect(page).toHaveURL(/\/groups\/trip\/expenses$/u);
   await expect(page.getByText("0 active filters", { exact: true })).toBeVisible();
   await expect(page.getByRole("status")).toHaveText("3 of 3 expenses");
   await expect(page.getByLabel("Search expenses", { exact: true })).toHaveValue("");
 });
 
-test("preserves filters across group routes and removes a deleted selected option", async ({
+test("preserves the query through expense detail and removes a deleted selected option", async ({
   page,
 }) => {
-  await page.getByText("More filters", { exact: true }).click();
+  await page.locator("summary").click();
   await page.getByRole("group", { name: "Tags" }).getByLabel("Holiday").check();
+  await expect(page).toHaveURL(/tagIds=holiday/u);
   await expect(page.getByText("1 active filter", { exact: true })).toBeVisible();
   await expect(page.getByRole("status")).toHaveText("1 of 3 expenses");
 
-  await page.getByRole("link", { name: "Dinner", exact: true }).click();
+  await page.getByRole("list", { name: "Expenses" }).getByText("Dinner").click();
+  await expect(page).toHaveURL(/\/expenses\/dinner\?tagIds=holiday$/u);
   await page.getByRole("link", { name: "Back to expenses", exact: true }).click();
+  await expect(page).toHaveURL(/\/expenses\?tagIds=holiday$/u);
   await expect(page.getByText("1 active filter", { exact: true })).toBeVisible();
-  await page.getByText("More filters", { exact: true }).click();
+  await page.locator("summary").click();
   await expect(page.getByRole("group", { name: "Tags" }).getByLabel("Holiday")).toBeChecked();
 
-  await page.getByRole("link", { name: "Dinner", exact: true }).click();
+  await page.getByRole("list", { name: "Expenses" }).getByText("Dinner").click();
   await page.evaluate(async () => {
     const modulePath = "/src/shared/configs/store/index.ts";
     const { useStore } = (await import(/* @vite-ignore */ modulePath)) as typeof StoreModule;
@@ -181,7 +198,8 @@ test("preserves filters across group routes and removes a deleted selected optio
   await page.getByRole("link", { name: "Back to expenses", exact: true }).click();
 
   await expect(page.getByText("0 active filters", { exact: true })).toBeVisible();
+  await expect(page).toHaveURL(/\/groups\/trip\/expenses$/u);
   await expect(page.getByRole("status")).toHaveText("3 of 3 expenses");
-  await page.getByText("More filters", { exact: true }).click();
+  await page.locator("summary").click();
   await expect(page.getByRole("group", { name: "Tags" }).getByLabel("Holiday")).toHaveCount(0);
 });

@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { Info } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
 
 import ExportContentSelector from "@/features/import-export/components/export-content-selector";
@@ -17,6 +18,8 @@ import { transferSelectionSchema } from "@/features/import-export/utils/portable
 
 import type { TransferSelection } from "@/features/import-export/types/import-export.types";
 
+import Icon from "@/shared/ui/icon";
+
 interface PropsType {
   groupId: string;
   groupName: string;
@@ -28,6 +31,11 @@ type ExportOperation = "link" | "csv" | "zip" | "copy" | null;
 interface GeneratedLink {
   selectionKey: string;
   value: string;
+}
+
+interface LinkAvailability {
+  selectionKey: string;
+  status: "available" | "too-large" | "unknown";
 }
 
 const DEFAULT_SELECTION: TransferSelection = {
@@ -43,6 +51,7 @@ const ExportPanel = ({ groupId, groupName, attachmentCount }: PropsType) => {
     resolver: zodResolver(transferSelectionSchema),
     defaultValues: DEFAULT_SELECTION,
   });
+  const getValues = methods.getValues;
   const [categoriesSelected, tagsSelected, membersSelected, expensesSelected, attachmentsSelected] =
     useWatch({
       control: methods.control,
@@ -52,6 +61,9 @@ const ExportPanel = ({ groupId, groupName, attachmentCount }: PropsType) => {
   const [transferLink, setTransferLink] = useState<GeneratedLink | null>(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [linkAvailability, setLinkAvailability] = useState<LinkAvailability | null>(null);
+  const [linkDialogReason, setLinkDialogReason] = useState<"size" | "receipts" | null>(null);
+  const linkDialogRef = useRef<HTMLDialogElement>(null);
   const currentSelectionKey = JSON.stringify([
     categoriesSelected,
     tagsSelected,
@@ -59,6 +71,48 @@ const ExportPanel = ({ groupId, groupName, attachmentCount }: PropsType) => {
     expensesSelected,
     attachmentsSelected,
   ]);
+  const linkStatus =
+    linkAvailability?.selectionKey === currentSelectionKey ? linkAvailability.status : "unknown";
+  const linkUnavailable = attachmentsSelected || linkStatus === "too-large";
+
+  useEffect(() => {
+    if (attachmentsSelected) return undefined;
+    let active = true;
+    const timeoutId = window.setTimeout(() => {
+      void (async () => {
+        try {
+          const source = await readGroupExportSource(groupId);
+          const transfer = await buildGroupTransfer(source, getValues());
+          const appBaseUrl = new URL(import.meta.env.BASE_URL, window.location.origin).toString();
+          await createTransferLink(transfer.bundle, appBaseUrl);
+          if (active)
+            setLinkAvailability({ selectionKey: currentSelectionKey, status: "available" });
+        } catch (failure) {
+          if (active) {
+            setLinkAvailability({
+              selectionKey: currentSelectionKey,
+              status: failure instanceof TransferLinkTooLargeError ? "too-large" : "unknown",
+            });
+          }
+        }
+      })();
+    }, 250);
+    return () => {
+      active = false;
+      window.clearTimeout(timeoutId);
+    };
+  }, [attachmentsSelected, currentSelectionKey, getValues, groupId]);
+
+  useEffect(() => {
+    const dialog = linkDialogRef.current;
+    if (linkDialogReason && !dialog?.open) dialog?.showModal();
+    if (!linkDialogReason && dialog?.open) dialog.close();
+  }, [linkDialogReason]);
+
+  const handleCloseLinkDialog = () => {
+    linkDialogRef.current?.close();
+    setLinkDialogReason(null);
+  };
 
   const startOperation = (next: ExportOperation) => {
     setOperation(next);
@@ -95,14 +149,25 @@ const ExportPanel = ({ groupId, groupName, attachmentCount }: PropsType) => {
       setOperation(null);
     } catch (failure) {
       if (failure instanceof TransferLinkTooLargeError) {
-        setMessage(
-          "This selection is too large for a supported transfer link. Download CSV or ZIP instead.",
-        );
+        setLinkAvailability({ selectionKey: currentSelectionKey, status: "too-large" });
+        setLinkDialogReason("size");
         setOperation(null);
         return;
       }
       finishWithError(failure);
     }
+  };
+
+  const handleLinkClick = () => {
+    if (attachmentsSelected) {
+      setLinkDialogReason("receipts");
+      return;
+    }
+    if (linkStatus === "too-large") {
+      setLinkDialogReason("size");
+      return;
+    }
+    void handleCreateLink();
   };
 
   const handleCopyLink = async () => {
@@ -192,19 +257,31 @@ const ExportPanel = ({ groupId, groupName, attachmentCount }: PropsType) => {
           <article className="surface surface-pad flex flex-col gap-3">
             <div>
               <h4 className="font-semibold">Transfer link</h4>
-              <p className="mt-1 text-sm text-gray-600">
-                Available up to 32,000 characters for current major browsers. If a messaging app
-                cannot carry the link, use CSV or ZIP.
+              <p className="mt-1 text-sm text-[var(--muted)]">
+                Share the selected group content with another device. For larger transfers, use a
+                file instead.
               </p>
-              <p className="mt-2 text-xs text-amber-800">
+              <p className="mt-2 text-xs text-[var(--negative)]">
                 Anyone holding this unencrypted link can decode the selected group data.
               </p>
+              {linkUnavailable && (
+                <p
+                  id="link-unavailable-hint"
+                  className="mt-2 text-xs font-semibold text-[var(--muted)]"
+                >
+                  {attachmentsSelected
+                    ? "Receipt files need a ZIP transfer. Select the button to learn more."
+                    : "Too much selected for a link. Select the button to see your options."}
+                </p>
+              )}
             </div>
             <button
               type="button"
-              disabled={busy || attachmentsSelected}
-              onClick={handleCreateLink}
-              className="btn btn-primary mt-auto"
+              disabled={busy}
+              data-unavailable={linkUnavailable}
+              aria-describedby={linkUnavailable ? "link-unavailable-hint" : undefined}
+              onClick={handleLinkClick}
+              className={`btn mt-auto ${linkUnavailable ? "btn-blocked" : "btn-primary"}`}
             >
               {operation === "link" ? "Creating…" : "Create transfer link"}
             </button>
@@ -245,7 +322,7 @@ const ExportPanel = ({ groupId, groupName, attachmentCount }: PropsType) => {
           </article>
         </div>
 
-        {transferLink?.selectionKey === currentSelectionKey && (
+        {transferLink?.selectionKey === currentSelectionKey && !linkUnavailable && (
           <div className="flex flex-col gap-2 rounded border border-gray-200 p-4">
             <label htmlFor="transfer-link" className="text-sm font-medium">
               Transfer link
@@ -267,6 +344,39 @@ const ExportPanel = ({ groupId, groupName, attachmentCount }: PropsType) => {
             </button>
           </div>
         )}
+        <dialog
+          ref={linkDialogRef}
+          aria-labelledby="link-unavailable-title"
+          aria-describedby="link-unavailable-description"
+          onClose={() => setLinkDialogReason(null)}
+          className="m-auto w-full max-w-md rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-6 text-[var(--ink)] shadow-2xl backdrop:bg-black/60"
+        >
+          <div className="flex items-start gap-4">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--brand-soft)] text-[var(--brand-ink)]">
+              <Icon icon={Info} size={26} />
+            </span>
+            <div>
+              <h2 id="link-unavailable-title" className="text-xl font-bold">
+                Transfer link unavailable
+              </h2>
+              <p id="link-unavailable-description" className="mt-2 text-sm leading-relaxed">
+                {linkDialogReason === "receipts"
+                  ? "Links cannot carry receipt files. Download ZIP to include them, or deselect receipt files to use a link."
+                  : "There is too much selected for a reliable link. Download CSV or ZIP instead, or select less content and try again."}
+              </p>
+            </div>
+          </div>
+          <div className="mt-6 flex justify-end">
+            <button
+              type="button"
+              autoFocus
+              onClick={handleCloseLinkDialog}
+              className="btn btn-primary"
+            >
+              Got it
+            </button>
+          </div>
+        </dialog>
       </section>
     </FormProvider>
   );

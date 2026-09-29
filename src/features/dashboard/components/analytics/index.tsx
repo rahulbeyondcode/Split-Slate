@@ -1,3 +1,5 @@
+import { ChartColumn, Globe2 } from "lucide-react";
+
 import { dashboardCategories, dashboardPositions } from "@/features/dashboard/utils/dashboard-data";
 import { useStore } from "@/shared/configs/store";
 import { formatCurrency } from "@/shared/utils/currency";
@@ -18,7 +20,7 @@ const Analytics = () => {
       </header>
       {!currency ? (
         <EmptyState
-          icon="🌍"
+          icon={Globe2}
           title="Multiple currencies in use"
           description="Open a group to see spending in its own currency. Different currencies cannot be combined honestly."
         />
@@ -47,7 +49,7 @@ const Analytics = () => {
         </Surface>
       ) : (
         <EmptyState
-          icon="📊"
+          icon={ChartColumn}
           title="Nothing to chart yet"
           description="Categories will appear once you record expenses."
         />

@@ -5,6 +5,7 @@ export const formatCurrency = (amount: number, currency: string) =>
     style: "currency",
     currency,
     currencyDisplay: "narrowSymbol",
+    // Do not let locale or ISO defaults change the app's fixed-hundredths scale.
     minimumFractionDigits: currencyDecimals(currency),
     maximumFractionDigits: currencyDecimals(currency),
   }).format(moneyToDecimal(amount, currency) as unknown as number);

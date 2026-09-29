@@ -1,3 +1,4 @@
+import { FolderPlus, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import {
@@ -11,6 +12,7 @@ import { formatCurrency } from "@/shared/utils/currency";
 import Avatar from "@/shared/ui/avatar";
 import BalanceHero from "@/shared/ui/balance-hero";
 import EmptyState from "@/shared/ui/empty-state";
+import Icon from "@/shared/ui/icon";
 import Surface from "@/shared/ui/surface";
 
 const Dashboard = () => {
@@ -88,19 +90,19 @@ const Dashboard = () => {
           <h2 className="section-title">Your groups</h2>
           {entries.length > 0 && (
             <Link to="/groups/new" className="btn btn-primary max-sm:hidden">
-              ＋ New group
+              <Icon icon={Plus} size={18} /> New group
             </Link>
           )}
         </div>
         {!entries.length ? (
           <EmptyState
-            icon="🎒"
+            icon={FolderPlus}
             title="Create your first group"
             description="A trip, a flat, a lunch club — everything starts with a group."
             action={
               <div className="flex justify-center gap-3">
                 <Link className="btn btn-primary" to="/groups/new">
-                  ＋ New group
+                  <Icon icon={Plus} size={18} /> New group
                 </Link>
                 <Link className="btn btn-secondary" to="/import">
                   Import group
@@ -221,7 +223,7 @@ const Dashboard = () => {
       )}
       {entries.length > 0 && (
         <Link to="/groups/new" className="mobile-cta">
-          ＋ New group
+          <Icon icon={Plus} size={20} /> New group
         </Link>
       )}
     </div>
