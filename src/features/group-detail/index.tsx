@@ -11,6 +11,7 @@ import type { GroupDetailContext } from "@/features/group-detail/types/group-det
 
 import Avatar from "@/shared/ui/avatar";
 import BalanceHero from "@/shared/ui/balance-hero";
+import EmojiImage from "@/shared/ui/emoji-image";
 import Icon from "@/shared/ui/icon";
 
 const GroupDetail = () => {
@@ -72,7 +73,7 @@ const GroupDetail = () => {
                 {pathname.endsWith("/edit") ? "Edit expense" : "Add expense"}
               </h1>
               <span className="chip chip-selected">
-                {group.icon} {group.name}
+                <EmojiImage icon={group.icon} /> {group.name}
               </span>
             </div>
           </div>
@@ -131,7 +132,7 @@ const GroupDetail = () => {
                     : "Expense detail"}
             </h1>
             <p className="soft-caption">
-              {group.icon} {group.name}
+              <EmojiImage icon={group.icon} /> {group.name}
             </p>
           </header>
         )}

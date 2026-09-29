@@ -9,7 +9,7 @@ metadata:
 
 Purpose: provide a current planning compass without turning exploratory ideas into commitments.
 
-Last updated: 2026-09-26
+Last updated: 2026-09-30
 
 ## How to Read This Page
 
@@ -84,6 +84,20 @@ all-member balance suggestions are implemented. Member reference checks and dire
 protection complete the Horizon 1 implementation list. Attachment ingestion and settlement mutations
 remain pending. Current detail lives in [[index]], [[domain-models]], and
 [[main-screen]].
+
+## Next Task — Resolve Browser Suite Failures
+
+The 2026-09-30 full Playwright run passed 74 of 92 desktop/mobile tests. The 18 failures are
+confined to `src/features/expenses/tests/browser/expense-filters.e2e.ts` (4) and
+`src/features/import-export/tests/browser/export-group.e2e.ts` plus
+`src/features/import-export/tests/browser/import-group.e2e.ts` (14). The expense-filter failures
+include controls or rows intercepted by an overlapping filter panel; import/export failures include
+selectors for controls or copy that no longer match the rendered flow. These are observed test
+failures, not yet confirmed root causes or proof that the underlying features are broken.
+
+Next: investigate each failing flow, fix the UI or assertions according to actual behavior, and
+rerun the full desktop/mobile browser suite. The expense-entry suite (32/32), unit tests (394/394),
+and lint/format/type checks passed on the same working tree.
 
 ## Horizon 1 — Complete the Core Accounting Loop
 

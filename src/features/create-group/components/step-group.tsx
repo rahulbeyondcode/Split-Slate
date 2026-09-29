@@ -30,7 +30,7 @@ const StepGroup = ({
 
       <div className="flex flex-col gap-2">
         <label className="field-label">Group icon</label>
-        <EmojiPicker name="group.icon" emojis={GROUP_EMOJIS} />
+        <EmojiPicker name="group.icon" kind="other" emojis={GROUP_EMOJIS} />
       </div>
     </div>
   );

@@ -55,7 +55,7 @@ const CategoryEditor = ({ existingNames, onAdd, onCancel }: PropsType) => {
 
         <div className="min-w-0">
           <span className="field-label">Choose an icon</span>
-          <EmojiPicker name="icon" emojis={CATEGORY_EMOJIS} />
+          <EmojiPicker name="icon" kind="other" emojis={CATEGORY_EMOJIS} />
         </div>
 
         <div className="flex flex-wrap gap-2 justify-end">

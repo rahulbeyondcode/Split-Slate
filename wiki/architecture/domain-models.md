@@ -9,7 +9,7 @@ metadata:
 
 Purpose: describe persisted domain shapes and their implemented invariants.
 
-Last updated: 2026-09-29
+Last updated: 2026-09-30
 
 ## LocalUser (Device Owner)
 
@@ -17,7 +17,7 @@ Last updated: 2026-09-29
 {
   id: UUID,
   name: string,
-  icon: string    // emoji character e.g. "🦊"
+  icon: string    // profile image key e.g. "profile-pic/fox-3d.png"
 }
 ```
 
@@ -31,7 +31,7 @@ One per device. Not synced in MVP/V2. The device owner is also mirrored as a Per
 {
   id: UUID,
   name: string,
-  icon: string    // emoji character e.g. "🦊"
+  icon: string    // profile image key e.g. "profile-pic/fox-3d.png"
 }
 ```
 
@@ -50,7 +50,7 @@ A single device-local directory of people ("friends list"), reused across every 
 {
   id: UUID,
   name: string,
-  icon: string,               // emoji character e.g. "✈️"
+  icon: string,               // non-profile image key e.g. "travel-and-places/airplane-3d.png"
   currency: string,           // ISO 4217 code e.g. "INR", "USD", "EUR" — set at group creation, defaults to "INR"
   createdAt: number,          // unix ms
   frequentPayerIds: UUID[]    // up to 5 memberIds, ranked by pay frequency; used by the paid-by quick-select UI
@@ -97,13 +97,13 @@ transaction as duplicate detection and insertion. Directory-wide self deletion i
   id: UUID,
   groupId: UUID,
   name: string,
-  icon: string,   // emoji
+  icon: string,   // non-profile image key
   isActive: boolean
 }
 ```
 
 - Categories are group-specific, not global
-- Each category carries an emoji `icon`; master-list entries ship with preset icons, custom categories get a user-picked one
+- Each category carries a non-profile PNG key in `icon`; master-list entries ship with preset image keys, and custom categories get a user-picked one. See [[iconography]].
 - At group creation the creator picks which categories to include from the app's master list — **at least one is mandatory** (a default set is pre-selected). No categories are auto-created beyond that selection. See [[category-management]].
 - The current Categories & Tags screen can add custom categories. Picking additional master-list
   entries after creation is not exposed as a separate UI.

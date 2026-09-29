@@ -24,7 +24,8 @@ inactive records without breaking historical references; reactivation makes them
 
 The new-expense picker offers active categories only, and the save transaction rechecks category
 activity and group ownership. Historical list/overview rows still resolve inactive category names.
-If no active category exists, the form links to category management instead of allowing a save.
+The expense form can create a group category without navigating away, including when no active
+category exists; the newly created category is selected and existing expense entries are preserved.
 
 ## Two Levels of Categories
 
@@ -69,6 +70,10 @@ layout supports editing the name and icon; deletion remains subject to the rules
 side-by-side layout squeezed the name input beside the full emoji grid in narrow columns. Choosing
 an unselected entry from the master list after group creation is not currently exposed as a
 separate UI.
+
+The Add new category control in the expense category picker opens a separate name/icon form. Saving
+creates an active group category and selects it on the unfinished expense; cancelling leaves the
+expense unchanged. Duplicate names, including names of inactive categories, are rejected.
 
 ---
 

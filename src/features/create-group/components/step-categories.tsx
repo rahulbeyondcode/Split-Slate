@@ -7,6 +7,7 @@ import CategoryEditor from "@/features/create-group/components/category-editor";
 import { useStore } from "@/shared/configs/store";
 import type { CreateGroupFormValues } from "@/features/create-group/helpers/schema";
 
+import EmojiImage from "@/shared/ui/emoji-image";
 import Icon from "@/shared/ui/icon";
 
 type Chip = { name: string; icon: string };
@@ -68,7 +69,7 @@ const StepCategories = ({ showHeading = true }: PropsType) => {
               aria-pressed={isSelected}
               className={`chip ${isSelected ? "chip-selected" : ""} ${isCustom ? "border-dashed" : ""}`}
             >
-              <span>{chip.icon}</span>
+              <EmojiImage icon={chip.icon} />
               <span>{chip.name}</span>
             </button>
           );

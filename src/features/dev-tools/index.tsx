@@ -4,6 +4,7 @@ import { clearDatabase, createDevItem, onboardUser } from "@/features/dev-tools/
 import type { DevDataType } from "@/features/dev-tools/utils/random-data";
 import { useStore } from "@/shared/configs/store";
 
+import EmojiImage from "@/shared/ui/emoji-image";
 const CREATION_ACTIONS: { type: DevDataType; label: string; needsGroup: boolean }[] = [
   { type: "person", label: "Add person", needsGroup: false },
   { type: "group", label: "Add group", needsGroup: false },
@@ -117,7 +118,7 @@ const DevTools = () => {
                 onClick={() => handleSelectGroup(group.id)}
                 className="rounded border border-amber-400 px-2 py-1 text-xs aria-pressed:bg-amber-900 aria-pressed:text-white disabled:opacity-50"
               >
-                {group.icon} {group.name}
+                <EmojiImage icon={group.icon} /> {group.name}
               </button>
             ))}
           </div>

@@ -11,6 +11,7 @@ import type { PersonEditorValues } from "@/features/people/helpers/schema";
 import type { Person } from "@/shared/types/domain.types";
 
 import Avatar from "@/shared/ui/avatar";
+import EmojiImage from "@/shared/ui/emoji-image";
 import Icon from "@/shared/ui/icon";
 
 interface PropsType {
@@ -101,7 +102,7 @@ const StepMembers = ({ showHeading = true, onEditorOpenChange }: PropsType) => {
       <div className="flex flex-wrap gap-2">
         {available.map((person) => (
           <button key={person.id} type="button" onClick={() => handlePick(person)} className="chip">
-            <span>{person.icon}</span>
+            <EmojiImage icon={person.icon} kind="profile" />
             <span>{person.name}</span>
             <Icon icon={Plus} size={17} className="text-[var(--brand-ink)]" />
           </button>

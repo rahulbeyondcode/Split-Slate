@@ -10,6 +10,7 @@ import type { PersonEditorValues } from "@/features/people/helpers/schema";
 
 import Avatar from "@/shared/ui/avatar";
 import ConfirmationDialog from "@/shared/ui/confirmation-dialog";
+import EmojiImage from "@/shared/ui/emoji-image";
 import EmptyState from "@/shared/ui/empty-state";
 import Icon from "@/shared/ui/icon";
 import Surface from "@/shared/ui/surface";
@@ -170,7 +171,7 @@ const PeopleList = () => {
                                   to={`/groups/${group.id}/members`}
                                   className="chip !px-2"
                                 >
-                                  {group.icon}
+                                  <EmojiImage icon={group.icon} />
                                 </Link>
                                 <span
                                   aria-hidden="true"
@@ -255,7 +256,7 @@ const PeopleList = () => {
               className="btn btn-secondary justify-between !rounded-xl"
             >
               <span className="min-w-0 truncate">
-                {group.icon} {group.name}
+                <EmojiImage icon={group.icon} /> {group.name}
               </span>
               <span className="shrink-0">
                 {count} {count === 1 ? "expense" : "expenses"} <Icon icon={ArrowRight} size={16} />

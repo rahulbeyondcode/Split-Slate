@@ -4,6 +4,7 @@ import { dashboardCategories, dashboardPositions } from "@/features/dashboard/ut
 import { useStore } from "@/shared/configs/store";
 import { formatCurrency } from "@/shared/utils/currency";
 
+import EmojiImage from "@/shared/ui/emoji-image";
 import EmptyState from "@/shared/ui/empty-state";
 import Surface from "@/shared/ui/surface";
 
@@ -35,7 +36,7 @@ const Analytics = () => {
           <p className="soft-caption mb-4">total recorded spend</p>
           {categories.map((item) => (
             <div key={item.name} className="ui-row">
-              <span className="text-xl w-8">{item.icon}</span>
+              <EmojiImage icon={item.icon} />
               <span className="w-28 font-semibold">{item.name}</span>
               <span className="h-2 flex-1 rounded-full bg-[var(--surface-soft)]">
                 <span

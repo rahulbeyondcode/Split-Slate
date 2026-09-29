@@ -7,6 +7,7 @@ import { formatCurrency } from "@/shared/utils/currency";
 
 import type { GroupDetailContext } from "@/features/group-detail/types/group-detail.types";
 
+import EmojiImage from "@/shared/ui/emoji-image";
 import Icon from "@/shared/ui/icon";
 
 const ExpenseDetail = () => {
@@ -79,7 +80,7 @@ const ExpenseDetail = () => {
         </p>
         <p className="mt-2 text-sm text-white/85">{new Date(expense.when).toLocaleString()}</p>
         <p className="text-sm text-white/85">
-          {category?.icon} {category?.name ?? "Unknown category"}
+          <EmojiImage icon={category?.icon} /> {category?.name ?? "Unknown category"}
           {category && !category.isActive ? " (inactive)" : ""}
         </p>
         <p className="text-sm text-white/85">Recorded by {memberName(expense.createdBy)}</p>

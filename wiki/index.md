@@ -12,10 +12,10 @@ Last updated: 2026-09-30
 ## Navigation
 
 ### Roadmap
-- [Product Direction and Roadmap](roadmap/product-roadmap.md) — living product compass, delivery horizons, release gates, non-goals, and explicitly uncommitted ideas
+- [Product Direction and Roadmap](roadmap/product-roadmap.md) — living product compass, next-task browser-suite failures, delivery horizons, and release gates
 
 ### Architecture
-- [Domain Models](architecture/domain-models.md) — current entity shapes, fixed-hundredths money, currency relabeling, and pending tag-display/attachment behavior
+- [Domain Models](architecture/domain-models.md) — current entity shapes, saved PNG icon keys, fixed-hundredths money, currency relabeling, and pending tag-display/attachment behavior
 - [Balance Calculation](architecture/balance-calculation.md) — fixed-hundredths member/group totals, all-member balances, and deterministic suggested transfers
 - [State Management](architecture/state-management.md) — hydrated Zustand slices plus persisted mutation boundaries, including all-or-nothing fresh-ID group import
 - [Split Types](architecture/split-types.md) — 5 split types with fixed-hundredths monetary allocations and exact ratios; numeric percentage-total display remains pending
@@ -31,7 +31,7 @@ Last updated: 2026-09-30
 - [Expense Edit and Delete](decisions/expense-edit-delete.md) — implemented editing/deletion with fixed-hundredths adjustments; tag resurrection and ratio precision loss are resolved
 - [Group Deletion](decisions/group-deletion.md) — implemented permanent group-owned data cascade with confirmation; shared contacts remain
 - [Money Representation and Rounding](decisions/money-representation-and-rounding.md) — implemented fixed hundredths for every currency, exact allocation, and confirmed no-conversion relabeling
-- [Iconography](decisions/iconography.md) — Lucide SVGs for interface actions/navigation, while user-selected emoji and onboarding artwork remain
+- [Iconography](decisions/iconography.md) — scoped PNG pickers, Netlify browser caching, old-category-emoji mapping, Lucide controls, and onboarding artwork
 - [Confirmation Dialogs](decisions/confirmation-dialogs.md) — shared in-app destructive confirmation for groups, contacts, members, categories, and tags
 - [Selection Controls](decisions/selection-controls.md) — native checkboxes/radios with selected and visibly locked states across forms, filters, and transfer
 - [String Input Normalization](decisions/string-input-normalization.md) — required strings reject trimmed blanks; optional expense inputs have explicit blank-value semantics
@@ -47,8 +47,8 @@ Last updated: 2026-09-30
 - [Main Screen](workflows/main-screen.md) — group snapshot, date/time ledger rows, blank-by-default 12-hour expense time entry, direct group links, currency relabeling, group-only export, and group deletion
 - [Paid-By](workflows/paid-by.md) — implemented frequent-payer selection, atomic ranking updates, recent-payer defaults, and multi-payer entry
 - [People Directory](workflows/people-directory.md) — global friends list, per-group links for blocked contact deletion, and group-building picker
-- [Member Management](workflows/member-management.md) — add/edit/confirmed removal, URL-linked blocked-removal popup, and persisted reference/duplicate guards
-- [Category Management](workflows/category-management.md) — group category CRUD with stacked name/icon editor, guarded deletion, and active-category expense picker; deactivation UI remains pending
+- [Member Management](workflows/member-management.md) — one-click add form or existing-friend selection, edit/confirmed removal, blocked-removal links, and persisted guards
+- [Category Management](workflows/category-management.md) — group category CRUD and in-expense creation with auto-selection, guarded deletion, and active-category picker; deactivation UI remains pending
 - [Tag Management](workflows/tag-management.md) — group tags, selection, list/overview previews, and transactional persisted-reference cleanup
 - [Filtering](workflows/filtering.md) — URL-backed eight-field filtering, including creator/payer/owed member references and stale-option cleanup
 - [Dashboard](workflows/dashboard.md) — time-aware greeting, group summaries, and recorded-expense activity across groups or within the current group

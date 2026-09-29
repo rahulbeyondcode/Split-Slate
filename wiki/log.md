@@ -7,6 +7,20 @@ Last updated: 2026-09-30
 ---
 
 ## 2026-09-30
+- UPDATED roadmap/product-roadmap.md — prioritize investigation of 18 expense-filter and import/export browser failures after the 74/92 full-suite run
+- UPDATED wiki/index.md — surface the browser-suite repair task in roadmap navigation
+- UPDATED workflows/category-management.md — document in-expense category creation, selection, and empty-active-category recovery
+- UPDATED wiki/index.md — reflect category creation during expense entry
+- UPDATED workflows/member-management.md — document immediate add-person form alongside existing-friend selection
+- UPDATED wiki/index.md — reflect one-click member addition in workflow navigation
+- UPDATED decisions/iconography.md — document seven-day Netlify browser caching for public emoji PNGs and the unversioned-URL tradeoff
+- UPDATED wiki/index.md — include emoji caching in iconography navigation
+- UPDATED decisions/iconography.md — explain display-only PNG mapping for saved category emoji without data migration
+- UPDATED wiki/index.md — reflect category icon compatibility in iconography navigation
+- UPDATED decisions/iconography.md — record image-only scoped picker, persisted asset keys, and no legacy Unicode migration
+- UPDATED decisions/iconography.md — describe catalog tracking without a stale hard-coded asset count
+- UPDATED architecture/domain-models.md — describe profile and non-profile PNG keys in icon fields
+- UPDATED wiki/index.md — reflect PNG icon implementation in navigation
 - UPDATED workflows/category-management.md — document stacked category editor matching onboarding and the squeezed-input cause
 - UPDATED wiki/index.md — reflect the corrected category editor layout
 - UPDATED workflows/main-screen.md — correct ledger description and document visible local 12-hour expense times

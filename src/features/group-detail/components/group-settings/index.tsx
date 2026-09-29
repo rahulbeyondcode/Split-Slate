@@ -123,7 +123,7 @@ const GroupSettings = () => {
             </label>
             <label>
               <span className="field-label">Group icon</span>
-              <EmojiPicker name="icon" emojis={GROUP_EMOJIS} />
+              <EmojiPicker name="icon" kind="other" emojis={GROUP_EMOJIS} />
             </label>
             {error && (
               <p role="alert" className="note money-negative">

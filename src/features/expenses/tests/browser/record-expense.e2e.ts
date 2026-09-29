@@ -75,7 +75,7 @@ test("records an equal expense, updates balances, and survives reload", async ({
   await page.getByRole("button", { name: "PM", exact: true }).click();
   await tag.check();
   await expect(tag).toBeChecked();
-  await expect(page.getByRole("option", { name: "📦 Old category" })).toHaveCount(0);
+  await expect(page.getByRole("option", { name: "Old category" })).toHaveCount(0);
   await page.getByRole("button", { name: "Save expense" }).click();
   await expect(page).toHaveURL(/\/groups\/trip\/expenses$/);
   await expect(page.getByText("Dinner", { exact: true })).toBeVisible();
@@ -97,6 +97,62 @@ test("records an equal expense, updates balances, and survives reload", async ({
   expect(new Date(stored[0].when).getMinutes()).toBe(30);
   await page.goto("/groups/trip");
   await expect(page.getByRole("main").getByText("+₹66.66", { exact: true })).toBeVisible();
+});
+
+test("adds a category without losing the unfinished expense", async ({ page }) => {
+  await page.getByLabel("Expense name", { exact: true }).fill("Coffee with Bea");
+  await page.getByLabel("Amount (INR)", { exact: true }).fill("42");
+  await page.getByRole("button", { name: "Add new category" }).click();
+  const dialog = page.getByRole("dialog", { name: "Add category" });
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole("button", { name: "Cancel" }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(page.getByLabel("Expense name", { exact: true })).toHaveValue("Coffee with Bea");
+
+  await page.getByRole("button", { name: "Add new category" }).click();
+  await dialog.getByRole("textbox", { name: "Category name" }).fill(" food ");
+  await dialog.getByRole("button", { name: "Add category" }).click();
+  await expect(dialog.getByRole("alert")).toContainText("Category already exists");
+  await dialog.getByRole("textbox", { name: "Category name" }).fill("Coffee runs");
+  await dialog.getByRole("button", { name: "Add category" }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(page.getByRole("radio", { name: "Coffee runs" })).toBeChecked();
+  await expect(page.getByLabel("Expense name", { exact: true })).toHaveValue("Coffee with Bea");
+  await expect(page.getByLabel("Amount (INR)", { exact: true })).toHaveValue("42");
+  await page.getByRole("button", { name: "Save expense" }).click();
+  await expect(page).toHaveURL(/\/groups\/trip\/expenses$/u);
+  const stored = await page.evaluate(async () => {
+    const modulePath = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ modulePath)) as typeof DbModule;
+    const category = (await db.categories.toArray()).find((item) => item.name === "Coffee runs");
+    const expense = (await db.expenses.toArray())[0];
+    return { category, categoryId: expense?.categoryId };
+  });
+  expect(stored.category?.groupId).toBe("trip");
+  expect(stored.categoryId).toBe(stored.category?.id);
+});
+
+test("can create the first active category from the expense form", async ({ page }) => {
+  await page.evaluate(async () => {
+    const modulePath = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ modulePath)) as typeof DbModule;
+    await db.categories.update("food", { isActive: false });
+  });
+  await page.reload();
+  await expect(page.getByText("No active categories yet. Add one to continue.")).toBeVisible();
+  await page.getByLabel("Expense name", { exact: true }).fill("Bus tickets");
+  await page.getByLabel("Amount (INR)", { exact: true }).fill("25");
+  await page.getByRole("textbox", { name: "Hour" }).fill("12");
+  await page.getByRole("textbox", { name: "Minute" }).fill("00");
+  await page.getByRole("button", { name: "Add new category" }).click();
+  const dialog = page.getByRole("dialog", { name: "Add category" });
+  await dialog.getByRole("textbox", { name: "Category name" }).fill("Transport");
+  await dialog.getByRole("button", { name: "Add category" }).click();
+  await expect(page.getByRole("radio", { name: "Transport" })).toBeChecked();
+  await expect(page.getByLabel("Expense name", { exact: true })).toHaveValue("Bus tickets");
+  await page.getByRole("button", { name: "Save expense" }).click();
+  await expect(page).toHaveURL(/\/groups\/trip\/expenses$/u);
+  await expect(page.getByText("Bus tickets", { exact: true })).toBeVisible();
 });
 
 test("edits the time across noon and midnight with 12-hour controls", async ({ page }) => {
@@ -162,8 +218,11 @@ for (const method of ["amount", "shares", "percentage", "adjustment"] as const) 
     await page.getByRole("button", { name: "Save expense" }).click();
     await expect(page).toHaveURL(/\/expenses$/);
     await expect(page.getByText(`Split ${method}`, { exact: true })).toBeVisible();
-    await expect(page.getByText(/Paid by Amy, Bea/)).toBeVisible();
-    await page.getByRole("link", { name: `Split ${method}`, exact: true }).click();
+    await expect(page.getByText(`Amy, Bea paid · ${method}`, { exact: true })).toBeVisible();
+    await page
+      .getByRole("list", { name: "Expenses" })
+      .getByRole("link", { name: new RegExp(`^Split ${method} `, "u") })
+      .click();
     await page.getByRole("link", { name: "Edit expense", exact: true }).click();
     await expect(page.getByRole("combobox", { name: "Split method", exact: true })).toHaveValue(
       method,
@@ -189,7 +248,10 @@ test("preserves maximum shares through reload and a name-only edit", async ({ pa
   await page.getByLabel("Shares for Amy", { exact: true }).fill("9007199254.740991");
   await page.getByLabel("Shares for Bea", { exact: true }).fill("0.000001");
   await page.getByRole("button", { name: "Save expense", exact: true }).click();
-  await page.getByRole("link", { name: "Exact shares", exact: true }).click();
+  await page
+    .getByRole("list", { name: "Expenses" })
+    .getByRole("link", { name: /^Exact shares /u })
+    .click();
   await page.reload();
   await expect(page.getByText("9007199254.740991 shares", { exact: true })).toBeVisible();
   const original = await page.evaluate(async () => {
@@ -245,7 +307,7 @@ test("blocks invalid totals, preserves form data after save rejection, and allow
 test("cancels without recording anything", async ({ page }) => {
   await page.getByLabel("Expense name", { exact: true }).fill("Discard me");
   await page.getByRole("link", { name: "Cancel", exact: true }).click();
-  await expect(page.getByText("No expenses have been added yet.")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "No expenses yet" })).toBeVisible();
 });
 
 test("inspects, edits, and deletes an expense with live balance updates", async ({ page }) => {
@@ -253,28 +315,29 @@ test("inspects, edits, and deletes an expense with live balance updates", async 
   await page.getByLabel("Amount (INR)", { exact: true }).fill("300");
   await page.getByLabel("Holiday", { exact: true }).check();
   await page.getByRole("button", { name: "Save expense", exact: true }).click();
-  await page.getByRole("link", { name: "Dinner", exact: true }).click();
+  await page
+    .getByRole("list", { name: "Expenses" })
+    .getByRole("link", { name: /^Dinner /u })
+    .click();
   const detailUrl = page.url();
   await expect(page.getByRole("heading", { name: "Dinner", exact: true })).toBeVisible();
   await expect(page.getByRole("list", { name: "Tags", exact: true })).toContainText("Holiday");
   await expect(page.getByRole("region", { name: "Split breakdown", exact: true })).toContainText(
     "₹100.00",
   );
-  await page.getByRole("link", { name: "Balances", exact: true }).click();
-  await expect(page.getByRole("list", { name: "Member balances" })).toContainText(
-    "Is owed ₹200.00",
+  await page.goto("/groups/trip/balances");
+  await expect(page.getByRole("list", { name: "Member balances" })).toContainText("+₹200.00");
+  await expect(page.getByRole("region", { name: "Suggested payments" })).toContainText(
+    "Bea → Amy₹100.00",
   );
   await expect(page.getByRole("region", { name: "Suggested payments" })).toContainText(
-    "Bea pays Amy ₹100.00",
-  );
-  await expect(page.getByRole("region", { name: "Suggested payments" })).toContainText(
-    "Cal pays Amy ₹100.00",
+    "Cal → Amy₹100.00",
   );
   await page.goto(detailUrl);
   await page.getByRole("link", { name: "Edit expense", exact: true }).click();
   await page.getByLabel("Expense name", { exact: true }).fill("Dinner and dessert");
   await page.getByLabel("Amount (INR)", { exact: true }).fill("600");
-  await page.getByLabel("Paid by Bea", { exact: true }).check();
+  await page.getByRole("radio", { name: "Paid by Bea" }).locator("..").click();
   await page.getByLabel("Holiday", { exact: true }).uncheck();
   await page.getByRole("button", { name: "Save changes", exact: true }).click();
   await expect(
@@ -283,9 +346,9 @@ test("inspects, edits, and deletes an expense with live balance updates", async 
   await expect(page.getByRole("list", { name: "Tags" })).toHaveCount(0);
   await page.reload();
   await expect(page.getByRole("region", { name: "Paid by", exact: true })).toContainText("Bea");
-  await page.getByRole("link", { name: "Balances", exact: true }).click();
+  await page.goto("/groups/trip/balances");
   await expect(page.getByRole("region", { name: "Suggested payments" })).toContainText(
-    "Amy pays Bea ₹200.00",
+    "Amy → Bea₹200.00",
   );
   await page.goto(detailUrl);
   await page.getByRole("button", { name: "Delete expense", exact: true }).click();
@@ -299,11 +362,11 @@ test("inspects, edits, and deletes an expense with live balance updates", async 
   await page.getByRole("button", { name: "Delete expense", exact: true }).click();
   await page.getByRole("button", { name: "Delete permanently", exact: true }).click();
   await expect(page).toHaveURL(/\/groups\/trip\/expenses$/);
-  await expect(page.getByText("No expenses have been added yet.")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "No expenses yet" })).toBeVisible();
   await page.reload();
-  await expect(page.getByText("No expenses have been added yet.")).toBeVisible();
-  await page.getByRole("link", { name: "Balances", exact: true }).click();
-  await expect(page.getByText("No payments needed.", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "No expenses yet" })).toBeVisible();
+  await page.goto("/groups/trip/balances");
+  await expect(page.getByRole("heading", { name: "All square!" })).toBeVisible();
   await page.goto(detailUrl);
   await expect(page.getByRole("heading", { name: "Expense not found" })).toBeVisible();
 });
@@ -312,7 +375,10 @@ test("cancels an edit and retries failed update and delete operations", async ({
   await page.getByLabel("Expense name", { exact: true }).fill("Taxi");
   await page.getByLabel("Amount (INR)", { exact: true }).fill("60");
   await page.getByRole("button", { name: "Save expense", exact: true }).click();
-  await page.getByRole("link", { name: "Taxi", exact: true }).click();
+  await page
+    .getByRole("list", { name: "Expenses" })
+    .getByRole("link", { name: /^Taxi /u })
+    .click();
   await page.getByRole("link", { name: "Edit expense", exact: true }).click();
   await page.getByLabel("Expense name", { exact: true }).fill("Discard this edit");
   await page.getByRole("link", { name: "Cancel", exact: true }).click();
@@ -350,7 +416,7 @@ test("cancels an edit and retries failed update and delete operations", async ({
     await db.groups.put(group);
   }, savedGroup);
   await page.getByRole("button", { name: "Delete permanently", exact: true }).click();
-  await expect(page.getByText("No expenses have been added yet.")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "No expenses yet" })).toBeVisible();
 });
 
 test("keeps an inactive historical category available while editing", async ({ page }) => {
@@ -363,13 +429,13 @@ test("keeps an inactive historical category available while editing", async ({ p
     await db.categories.update("food", { isActive: false });
   });
   await page.reload();
-  await page.getByRole("link", { name: "Old dinner", exact: true }).click();
+  await page
+    .getByRole("list", { name: "Expenses" })
+    .getByRole("link", { name: /^Old dinner /u })
+    .click();
   await page.getByRole("link", { name: "Edit expense", exact: true }).click();
-  await expect(page.getByRole("combobox", { name: "Category", exact: true })).toHaveValue("food");
-  await expect(page.getByRole("option", { name: "🍽️ Food (inactive)", exact: true })).toHaveCount(
-    1,
-  );
-  await expect(page.getByRole("option", { name: /Old category/ })).toHaveCount(0);
+  await expect(page.getByRole("radio", { name: "Food (inactive)" })).toBeChecked();
+  await expect(page.getByRole("radio", { name: /Old category/u })).toHaveCount(0);
   await page.getByLabel("Expense name", { exact: true }).fill("Corrected old dinner");
   await page.getByRole("button", { name: "Save changes", exact: true }).click();
   await expect(
@@ -398,11 +464,11 @@ test("shows solo balances and rejects missing or foreign expense routes", async 
     });
   });
   await page.goto("/groups/trip/balances");
-  await expect(page.getByText(/This is a solo group/)).toBeVisible();
-  await expect(page.getByText("No payments needed.", { exact: true })).toBeVisible();
+  await expect(page.getByText("Solo spending has no one to repay.")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "All square!" })).toBeVisible();
   for (const route of ["missing", "foreign", "missing/edit", "foreign/edit"]) {
     await page.goto(`/groups/trip/expenses/${route}`);
     await expect(page.getByRole("heading", { name: "Expense not found" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Back to expenses", exact: true })).toBeVisible();
+    await expect(page.getByText("Back to expenses", { exact: true })).toBeVisible();
   }
 });

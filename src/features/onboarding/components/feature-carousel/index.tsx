@@ -6,6 +6,7 @@ import { slides } from "@/features/onboarding/components/feature-carousel/slide-
 
 import { useOrbitNotes } from "@/features/onboarding/hooks/use-orbit-notes";
 
+import EmojiImage from "@/shared/ui/emoji-image";
 import Icon from "@/shared/ui/icon";
 
 const FeatureCarousel = () => {
@@ -57,7 +58,9 @@ const FeatureCarousel = () => {
               className={`intro-orbit-icon ${loadedAnimation === slide.animatedIcon ? "is-animated" : ""}`}
               key={current}
             >
-              <span className="intro-orbit-static">{slide.icon}</span>
+              <span className="intro-orbit-static">
+                <EmojiImage icon={slide.icon} />
+              </span>
               <img
                 className="intro-orbit-animation"
                 src={slide.animatedIcon}

@@ -15,6 +15,8 @@ import {
   SEED_DEFAULT_GROUP_CATEGORIES,
   SEED_MASTER_CATEGORIES,
 } from "@/shared/constants/categories";
+import { DEFAULT_CATEGORY_EMOJI, DEFAULT_PROFILE_EMOJI } from "@/shared/constants/emoji-catalog";
+import { GROUP_EMOJIS } from "@/shared/constants/emojis";
 import type {
   Category,
   Group,
@@ -29,7 +31,7 @@ export const onboardUser = async () => {
   const localUser: LocalUser = {
     id: uuid(),
     name: "Rahul R",
-    icon: "🧑‍💻",
+    icon: DEFAULT_PROFILE_EMOJI,
   };
   const people: Person[] = [localUser];
   for (let index = 0; index < 6; index += 1) {
@@ -48,7 +50,7 @@ export const onboardUser = async () => {
   const group: Group = {
     id: groupId,
     name: "Weekend Trip",
-    icon: "🏕️",
+    icon: GROUP_EMOJIS[12],
     currency: "INR",
     createdAt: Date.now(),
     frequentPayerIds: members.slice(0, 5).map((member) => member.id),
@@ -57,7 +59,9 @@ export const onboardUser = async () => {
     id: uuid(),
     groupId: group.id,
     name,
-    icon: SEED_MASTER_CATEGORIES.find((category) => category.name === name)?.icon ?? "📌",
+    icon:
+      SEED_MASTER_CATEGORIES.find((category) => category.name === name)?.icon ??
+      DEFAULT_CATEGORY_EMOJI,
     isActive: true,
   }));
   const tags: Tag[] = [

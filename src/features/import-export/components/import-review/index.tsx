@@ -24,6 +24,7 @@ import type {
 } from "@/features/import-export/types/import-export.types";
 import type { Group } from "@/shared/types/domain.types";
 
+import EmojiImage from "@/shared/ui/emoji-image";
 import StatusBanner from "@/shared/ui/status-banner";
 
 interface PropsType {
@@ -135,7 +136,7 @@ const ImportReview = ({ source, onImported }: PropsType) => {
       <form onSubmit={methods.handleSubmit(handleImport)} className="flex min-w-0 flex-col gap-5">
         <header className="flex min-w-0 items-center gap-4">
           <span className="import-group-icon" aria-hidden="true">
-            {bundle.group.icon}
+            <EmojiImage icon={bundle.group.icon} />
           </span>
           <div className="min-w-0">
             <p className="eyebrow mb-1">TRANSFER REVIEW</p>
@@ -219,7 +220,7 @@ const ImportReview = ({ source, onImported }: PropsType) => {
             </div>
             <div>
               <p className="field-label">Pick an icon</p>
-              <EmojiPicker name="icon" emojis={PERSON_EMOJIS} />
+              <EmojiPicker name="icon" kind="profile" emojis={PERSON_EMOJIS} />
             </div>
           </section>
         )}

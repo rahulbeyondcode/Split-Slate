@@ -1,6 +1,4 @@
-import { CircleHelp } from "lucide-react";
-
-import Icon from "@/shared/ui/icon";
+import EmojiImage from "@/shared/ui/emoji-image";
 
 interface PropsType {
   icon?: string;
@@ -11,7 +9,7 @@ interface PropsType {
 
 const Avatar = ({ icon, name, square = false, className = "" }: PropsType) => (
   <span className={`avatar ${square ? "avatar-square" : ""} ${className}`} aria-hidden="true">
-    {icon || name?.slice(0, 1).toUpperCase() || <Icon icon={CircleHelp} size={22} />}
+    <EmojiImage icon={icon} kind={square ? "other" : "profile"} alt={name ?? ""} />
   </span>
 );
 

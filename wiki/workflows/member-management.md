@@ -9,7 +9,7 @@ metadata:
 
 Purpose: document member management, persisted membership guards, and remaining recovery limits.
 
-Last updated: 2026-09-29
+Last updated: 2026-09-30
 
 A member is a link from a group to a person in the global directory. See [[global-people-directory]] and [[people-directory]].
 
@@ -38,6 +38,9 @@ and sequential writes; the additions above do not make every deletion operation 
 ## Adding Members
 
 Members can be added to a group at any time after group creation — not just during onboarding. Either pick an existing person from the directory or add a new person inline from the group-details Members screen. People already linked to the group are excluded from the picker, and the store rejects duplicate memberships defensively.
+
+The Members screen opens the new-person form on the first Add member click, while also showing
+available existing friends for one-click linking. Cancel closes the add form.
 
 The Members screen ignores repeated additions while a save is pending and disables its add form
 and member edit/delete controls until that save finishes. The database transaction is the

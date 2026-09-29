@@ -2,6 +2,8 @@ import { useStore } from "@/shared/configs/store";
 
 import { CURRENCIES } from "@/shared/constants/currencies";
 
+import EmojiImage from "@/shared/ui/emoji-image";
+
 const MAX_AVATARS = 5;
 
 const LivePreview = () => {
@@ -35,7 +37,7 @@ const LivePreview = () => {
       <div className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4">
         <div className="flex items-center gap-3">
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-2xl">
-            {icon}
+            <EmojiImage icon={icon} />
           </span>
           <div className="min-w-0">
             <p className="truncate text-lg font-bold text-gray-900">{name || "Untitled group"}</p>
@@ -52,7 +54,7 @@ const LivePreview = () => {
               className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 border-white bg-gray-200 text-sm leading-none"
               style={{ marginLeft: index === 0 ? 0 : "-10px", zIndex: index }}
             >
-              {member.icon}
+              <EmojiImage icon={member.icon} kind="profile" />
             </span>
           ))}
           {overflow > 0 && <span className="ml-2 text-xs text-gray-400">+{overflow} more</span>}
@@ -79,7 +81,7 @@ const LivePreview = () => {
                 key={category.name}
                 className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-700"
               >
-                <span>{category.icon}</span>
+                <EmojiImage icon={category.icon} />
                 <span>{category.name}</span>
               </span>
             ))}

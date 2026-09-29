@@ -11,6 +11,7 @@ import { formatCurrency } from "@/shared/utils/currency";
 
 import Avatar from "@/shared/ui/avatar";
 import BalanceHero from "@/shared/ui/balance-hero";
+import EmojiImage from "@/shared/ui/emoji-image";
 import EmptyState from "@/shared/ui/empty-state";
 import Icon from "@/shared/ui/icon";
 import Surface from "@/shared/ui/surface";
@@ -39,7 +40,8 @@ const Dashboard = () => {
           }).format(new Date())}
         </p>
         <h1 className="page-title">
-          {greeting}, {state.localUser?.name ?? "there"} {state.localUser?.icon}
+          {greeting}, {state.localUser?.name ?? "there"}{" "}
+          <EmojiImage icon={state.localUser?.icon} kind="profile" />
         </h1>
       </header>
 
@@ -81,7 +83,7 @@ const Dashboard = () => {
               ? "Your groups use multiple currencies. See each group for its exact balance."
               : "Start by creating your first group."
           }
-          amount={entries.length ? "🌍 Multiple currencies in use" : undefined}
+          amount={entries.length ? "Multiple currencies in use" : undefined}
         />
       )}
 
@@ -201,7 +203,7 @@ const Dashboard = () => {
               {categories.length ? (
                 categories.map((category) => (
                   <div key={category.name} className="flex items-center gap-3 my-4">
-                    <span className="w-6">{category.icon}</span>
+                    <EmojiImage icon={category.icon} />
                     <span className="w-24 truncate text-xs font-semibold">{category.name}</span>
                     <div className="h-2 flex-1 rounded-full bg-[var(--surface-soft)]">
                       <div

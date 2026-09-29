@@ -9,6 +9,8 @@ import { downloadFile } from "@/features/import-export/utils/download-file";
 import { createFullBackupZip } from "@/features/import-export/utils/full-backup";
 import { useStore } from "@/shared/configs/store";
 
+import { DEFAULT_PROFILE_EMOJI } from "@/shared/constants/emoji-catalog";
+
 import Avatar from "@/shared/ui/avatar";
 import Icon from "@/shared/ui/icon";
 import StatusBanner from "@/shared/ui/status-banner";
@@ -48,7 +50,7 @@ const AppSettings = () => {
       </header>
       {editing ? (
         <PersonEditor
-          initial={{ name: localUser?.name ?? "", icon: localUser?.icon ?? "🦊" }}
+          initial={{ name: localUser?.name ?? "", icon: localUser?.icon ?? DEFAULT_PROFILE_EMOJI }}
           existingNames={people
             .filter((person) => person.id !== localUser?.id)
             .map((person) => person.name)}

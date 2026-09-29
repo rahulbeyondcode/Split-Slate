@@ -1,9 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Plus } from "lucide-react";
 import type { FormEvent } from "react";
 import { useRef, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { Link, useLocation, useNavigate, useOutletContext, useParams } from "react-router-dom";
 
+import CategoryCreator from "@/features/expenses/components/category-creator";
 import PayerSelector from "@/features/expenses/components/payer-selector";
 import SplitEditor from "@/features/expenses/components/split-editor";
 import WhenPicker from "@/features/expenses/components/when-picker";
@@ -21,13 +23,17 @@ import { useStore } from "@/shared/configs/store";
 import type { ExpenseFormValues } from "@/features/expenses/types/expenses.types";
 import type { GroupDetailContext } from "@/features/group-detail/types/group-detail.types";
 
+import EmojiImage from "@/shared/ui/emoji-image";
+import Icon from "@/shared/ui/icon";
+
 const ExpenseForm = () => {
   const { group, groupMembers, groupCategories, groupTags, groupExpenses } =
     useOutletContext<GroupDetailContext>();
-  const { localUser, addExpense, updateExpense } = useStore();
+  const { localUser, addCategory, addExpense, updateExpense } = useStore();
   const { expenseId } = useParams();
   const expense = groupExpenses.find((item) => item.expenseId === expenseId);
   const [openedAt] = useState(Date.now);
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
   const navigate = useNavigate();
   const { search } = useLocation();
   const saving = useRef(false);
@@ -57,7 +63,7 @@ const ExpenseForm = () => {
       };
   const methods = useForm<ExpenseFormValues>({
     resolver: zodResolver(createExpenseSchema(group.currency)),
-    values: initialValues,
+    defaultValues: initialValues,
   });
   const payerMembers = initialValues.payers.flatMap((payer) =>
     members.filter((member) => member.id === payer.memberId),
@@ -68,6 +74,11 @@ const ExpenseForm = () => {
   const quickIds = groupExpenses.length
     ? group.frequentPayerIds
     : [...new Set([creatorId, ...rankPayers(members, [])])].filter(Boolean).slice(0, 5);
+  const handleAddCategory = async (name: string, icon: string) => {
+    const category = await addCategory(group.id, name, icon);
+    methods.setValue("categoryId", category.id, { shouldDirty: true, shouldValidate: true });
+    setIsCreatingCategory(false);
+  };
   const handleSave = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (saving.current) return;
@@ -109,16 +120,11 @@ const ExpenseForm = () => {
       </section>
     );
 
-  if (!creatorId || !members.length || !categories.length)
+  if (!creatorId || !members.length)
     return (
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">{expense ? "Edit expense" : "Add expense"}</h2>
-        <p role="alert">
-          This group needs your membership and an active category before you can record an expense.
-        </p>
-        <Link to={`/groups/${group.id}/categories`} className="text-blue-700">
-          Manage categories
-        </Link>
+        <p role="alert">You need to be a member of this group before you can record an expense.</p>
       </section>
     );
 
@@ -155,12 +161,22 @@ const ExpenseForm = () => {
                       className="peer sr-only"
                     />
                     <span className="chip choice-chip">
-                      {category.icon} {category.name}
+                      <EmojiImage icon={category.icon} /> {category.name}
                       {category.isActive ? "" : " (inactive)"}
                     </span>
                   </label>
                 ))}
               </div>
+              {!categories.length && (
+                <p className="soft-caption mt-2">No active categories yet. Add one to continue.</p>
+              )}
+              <button
+                type="button"
+                onClick={() => setIsCreatingCategory(true)}
+                className="btn btn-secondary mt-3"
+              >
+                <Icon icon={Plus} size={17} /> Add new category
+              </button>
               {errors.categoryId && (
                 <span role="alert" className="money-negative text-xs">
                   {errors.categoryId.message}
@@ -232,6 +248,13 @@ const ExpenseForm = () => {
           </div>
         </div>
       </form>
+      {isCreatingCategory && (
+        <CategoryCreator
+          existingNames={groupCategories.map((category) => category.name)}
+          onAdd={handleAddCategory}
+          onCancel={() => setIsCreatingCategory(false)}
+        />
+      )}
     </FormProvider>
   );
 };

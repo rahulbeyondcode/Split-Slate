@@ -1,17 +1,9 @@
-import { useWatch } from "react-hook-form";
-
 import EmojiPicker from "@/shared/components/emoji-picker";
 import Input from "@/shared/components/form-elements/input";
 
-const IDENTITY_EMOJIS = ["🦊", "🐯", "🦋", "🐼", "🐙", "🐨", "🦜", "🐠", "🦄", "🦖", "🌸", "⚡"];
+import { PERSON_EMOJIS } from "@/shared/constants/emojis";
 
 const StepIdentity = () => {
-  const selectedIcon = useWatch({ name: "identity.icon" });
-  const emojis =
-    selectedIcon && !IDENTITY_EMOJIS.includes(selectedIcon)
-      ? [...IDENTITY_EMOJIS, selectedIcon]
-      : IDENTITY_EMOJIS;
-
   return (
     <div className="onboarding-fields">
       <div className="onboarding-field">
@@ -22,8 +14,8 @@ const StepIdentity = () => {
       </div>
 
       <div className="onboarding-field onboarding-emoji-field">
-        <span className="field-label">Pick your emoji</span>
-        <EmojiPicker name="identity.icon" emojis={emojis} />
+        <span className="field-label">Pick your avatar</span>
+        <EmojiPicker name="identity.icon" kind="profile" emojis={PERSON_EMOJIS} />
       </div>
     </div>
   );

@@ -13,7 +13,9 @@ import type {
 } from "@/features/group-detail/types/group-detail.types";
 import type { Person } from "@/shared/types/domain.types";
 
+import Avatar from "@/shared/ui/avatar";
 import ConfirmationDialog from "@/shared/ui/confirmation-dialog";
+import EmojiImage from "@/shared/ui/emoji-image";
 import Icon from "@/shared/ui/icon";
 
 type MemberMode = { type: "add" } | { type: "edit"; memberId: string } | null;
@@ -23,7 +25,6 @@ const MemberList = () => {
   const { localUser, people, addMember, addPerson, updatePerson, removeMember, setLocalUser } =
     useStore();
   const [mode, setMode] = useState<MemberMode>(null);
-  const [isCreatingPerson, setIsCreatingPerson] = useState(false);
   const [memberError, setMemberError] = useState<string | null>(null);
   const [isAddingMember, setIsAddingMember] = useState(false);
   const [blockedMemberId, setBlockedMemberId] = useState<string | null>(null);
@@ -51,13 +52,11 @@ const MemberList = () => {
 
   const closeEditor = () => {
     setMode(null);
-    setIsCreatingPerson(false);
   };
 
   const handleOpenAdd = () => {
     setMemberError(null);
     setMode({ type: "add" });
-    setIsCreatingPerson(false);
   };
 
   const handleOpenEdit = (memberId: string) => {
@@ -163,7 +162,7 @@ const MemberList = () => {
         <fieldset
           disabled={isAddingMember}
           aria-busy={isAddingMember}
-          className="surface surface-pad flex min-w-0 flex-col gap-3 disabled:opacity-60"
+          className="flex min-w-0 flex-col gap-3 disabled:opacity-60"
         >
           {availablePeople.length > 0 && (
             <div className="flex flex-col gap-2">
@@ -178,7 +177,7 @@ const MemberList = () => {
                     onClick={() => handleAddExistingPerson(person)}
                     className="chip"
                   >
-                    <span>{person.icon}</span>
+                    <EmojiImage icon={person.icon} kind="profile" />
                     <span>{person.name}</span>
                     <Icon icon={Plus} size={16} className="text-[var(--brand-ink)]" />
                   </button>
@@ -187,31 +186,12 @@ const MemberList = () => {
             </div>
           )}
 
-          {isCreatingPerson ? (
-            <PersonEditor
-              existingNames={existingNames()}
-              onSave={handleCreatePerson}
-              onCancel={() => setIsCreatingPerson(false)}
-              submitLabel="Add"
-            />
-          ) : (
-            <div className="flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={closeEditor}
-                className="px-4 py-2 text-sm text-gray-500"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsCreatingPerson(true)}
-                className="rounded border border-dashed border-gray-400 px-4 py-2 text-sm text-gray-600"
-              >
-                <Icon icon={Plus} size={17} /> Add new person
-              </button>
-            </div>
-          )}
+          <PersonEditor
+            existingNames={existingNames()}
+            onSave={handleCreatePerson}
+            onCancel={closeEditor}
+            submitLabel="Add"
+          />
         </fieldset>
       )}
 
@@ -230,7 +210,7 @@ const MemberList = () => {
         {sortedMembers.map((member) => (
           <li key={member.id} className="ui-row">
             <span className="flex min-w-0 flex-1 items-center gap-3">
-              <span className="avatar">{member.person?.icon}</span>
+              <Avatar icon={member.person?.icon} name={member.person?.name} />
               <span className="min-w-0 truncate text-sm font-medium text-gray-900">
                 {member.person?.name ?? "Unknown person"}
                 {member.personId === localUser?.id && (

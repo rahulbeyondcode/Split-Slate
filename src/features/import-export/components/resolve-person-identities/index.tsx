@@ -12,6 +12,7 @@ import type {
   PersonResolution,
 } from "@/features/import-export/types/import-export.types";
 
+import EmojiImage from "@/shared/ui/emoji-image";
 import StatusBanner from "@/shared/ui/status-banner";
 
 interface PropsType {
@@ -110,17 +111,19 @@ const ResolvePersonIdentities = ({
           {conflicts.map(({ incoming, existing: candidates, arriving }, index) => (
             <fieldset key={incoming.id} className="rounded-2xl border border-[var(--line)] p-4">
               <legend className="px-1 font-semibold">
-                {incoming.icon} {incoming.name} · {sourceGroupName}
+                <EmojiImage icon={incoming.icon} kind="profile" /> {incoming.name} ·{" "}
+                {sourceGroupName}
               </legend>
               {candidates.map((person) => (
                 <p key={person.id} className="soft-caption mt-1">
-                  Already here: {person.icon} {person.name} ·{" "}
+                  Already here: <EmojiImage icon={person.icon} kind="profile" /> {person.name} ·{" "}
                   {existingGroups[person.id]?.join(", ") || "Contacts only"}
                 </p>
               ))}
               {arriving.map((person) => (
                 <p key={person.id} className="soft-caption mt-1">
-                  Also arriving: {person.icon} {person.name} · {sourceGroupName}
+                  Also arriving: <EmojiImage icon={person.icon} kind="profile" /> {person.name} ·{" "}
+                  {sourceGroupName}
                 </p>
               ))}
               {candidates.length > 0 && (
@@ -177,7 +180,7 @@ const ResolvePersonIdentities = ({
               {existing.map((person, index) => (
                 <div key={person.id} className="mt-3">
                   <label className="field-label" htmlFor={`existing-${index}`}>
-                    {person.icon} {person.name} ·{" "}
+                    <EmojiImage icon={person.icon} kind="profile" /> {person.name} ·{" "}
                     {existingGroups[person.id]?.join(", ") || "Contacts only"}
                   </label>
                   <Input id={`existing-${index}`} name={`existingNames.${index}`} />

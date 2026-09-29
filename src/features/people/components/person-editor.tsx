@@ -53,7 +53,7 @@ const PersonEditor = ({
 
         <div className="min-w-0">
           <span className="field-label">Choose an icon</span>
-          <EmojiPicker name="icon" emojis={PERSON_EMOJIS} />
+          <EmojiPicker name="icon" kind="profile" emojis={PERSON_EMOJIS} />
         </div>
 
         <div className="flex flex-wrap gap-2 justify-end">

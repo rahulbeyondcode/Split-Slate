@@ -18,6 +18,7 @@ import {
   STEP_FIELDS,
 } from "@/features/onboarding/helpers/setup-schema";
 
+import { DEFAULT_PROFILE_EMOJI } from "@/shared/constants/emoji-catalog";
 import { GROUP_EMOJIS } from "@/shared/constants/emojis";
 
 import heartHandsAnimation from "@/assets/images/noto-heart-hands.webp";
@@ -25,21 +26,22 @@ import moneyAnimation from "@/assets/images/noto-money-with-wings.webp";
 import shoppingCartAnimation from "@/assets/images/noto-shopping-cart.webp";
 import sparklesAnimation from "@/assets/images/noto-sparkles.webp";
 import waveAnimation from "@/assets/images/noto-wave.webp";
+import EmojiImage from "@/shared/ui/emoji-image";
 import Icon from "@/shared/ui/icon";
 
 const STEP_PRESENTATION = {
   identity: {
     label: "Your identity",
-    icon: "👋",
+    icon: "profile-pic/fox-3d.png",
     animatedIcon: waveAnimation,
     title: "First, a face for the ledger.",
-    description: "Your name and emoji appear next to everything you pay and owe.",
+    description: "Your name and avatar appear next to everything you pay and owe.",
     formTitle: "What do people call you?",
     formDescription: "Just a name and a face — this stays on your device.",
   },
   group: {
     label: "First group",
-    icon: "✨",
+    icon: "activities/sparkles-3d.png",
     animatedIcon: sparklesAnimation,
     title: "Make a space for your people.",
     description: "Give your first group a name. You can always create more later.",
@@ -48,7 +50,7 @@ const STEP_PRESENTATION = {
   },
   currency: {
     label: "Currency",
-    icon: "💸",
+    icon: "objects/money-bag-3d.png",
     animatedIcon: moneyAnimation,
     title: "Keep every total clear.",
     description: "Choose the currency your group will use for its expenses.",
@@ -57,7 +59,7 @@ const STEP_PRESENTATION = {
   },
   categories: {
     label: "Categories",
-    icon: "🛒",
+    icon: "objects/shopping-cart-3d.png",
     animatedIcon: shoppingCartAnimation,
     title: "Make sense of the spending.",
     description: "Pick the categories that fit your group. You can change them later.",
@@ -67,7 +69,7 @@ const STEP_PRESENTATION = {
   },
   members: {
     label: "Members",
-    icon: "🫶",
+    icon: "activities/balloon-3d.png",
     animatedIcon: heartHandsAnimation,
     title: "Bring your people together.",
     description: "Add friends now, or start solo and invite them later.",
@@ -136,7 +138,7 @@ const SetupFlow = () => {
     resolver: zodResolver(setupSchema),
     mode: "onChange",
     defaultValues: {
-      identity: { name: localUser?.name ?? "", icon: localUser?.icon ?? "🦊" },
+      identity: { name: localUser?.name ?? "", icon: localUser?.icon ?? DEFAULT_PROFILE_EMOJI },
       group: { name: group?.name ?? "", icon: group?.icon ?? GROUP_EMOJIS[0] },
       currency: group?.currency ?? "INR",
       categories: existingCategories.length ? existingCategories : defaultCategories,
@@ -238,7 +240,12 @@ const SetupFlow = () => {
               className={`onboarding-story-icon ${loadedAnimation === presentation.animatedIcon ? "is-animated" : ""}`}
               aria-hidden="true"
             >
-              <span className="onboarding-story-icon-static">{presentation.icon}</span>
+              <span className="onboarding-story-icon-static">
+                <EmojiImage
+                  icon={presentation.icon}
+                  kind={onboardingStep === "identity" ? "profile" : "other"}
+                />
+              </span>
               <img
                 className="onboarding-story-icon-animation"
                 src={presentation.animatedIcon}

@@ -15,6 +15,7 @@ import { CATEGORY_EMOJIS } from "@/shared/constants/emojis";
 import type { GroupDetailContext } from "@/features/group-detail/types/group-detail.types";
 import type { Category } from "@/shared/types/domain.types";
 
+import Avatar from "@/shared/ui/avatar";
 import ConfirmationDialog from "@/shared/ui/confirmation-dialog";
 import Icon from "@/shared/ui/icon";
 
@@ -154,7 +155,7 @@ const CategoryManagement = () => {
             </div>
             <div className="min-w-0">
               <span className="field-label">Choose an icon</span>
-              <EmojiPicker name="icon" emojis={CATEGORY_EMOJIS} />
+              <EmojiPicker name="icon" kind="other" emojis={CATEGORY_EMOJIS} />
             </div>
             <div className="flex flex-wrap gap-2 justify-end">
               <button
@@ -177,7 +178,7 @@ const CategoryManagement = () => {
         {groupCategories.map((category) => (
           <li key={category.id} className="ui-row flex-wrap">
             <span className="flex min-w-0 flex-1 basis-40 items-center gap-3 font-bold">
-              <span className="avatar avatar-square !h-9 !w-9 !text-lg">{category.icon}</span>
+              <Avatar icon={category.icon} square className="!h-9 !w-9" />
               <span className="min-w-0 truncate">{category.name}</span>
               <span className="soft-caption shrink-0">
                 {groupExpenses.filter((expense) => expense.categoryId === category.id).length}{" "}

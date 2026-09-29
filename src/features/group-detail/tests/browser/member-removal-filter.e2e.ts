@@ -91,12 +91,21 @@ test("explains blocked removal and links to every expense referencing the member
   await expect(page).toHaveURL(/\/groups\/trip\/expenses\?memberIds=b$/u);
   await expect(page.getByRole("status")).toHaveText("3 of 4 expenses");
   const expenses = page.getByRole("list", { name: "Expenses" });
-  await expect(expenses.getByText("Bea created")).toBeVisible();
-  await expect(expenses.getByText("Bea paid")).toBeVisible();
-  await expect(expenses.getByText("Bea owes")).toBeVisible();
+  await expect(expenses.getByText("Bea created", { exact: true })).toBeVisible();
+  await expect(expenses.getByText("Bea paid", { exact: true })).toBeVisible();
+  await expect(expenses.getByText("Bea owes", { exact: true })).toBeVisible();
   await expect(expenses.getByText("Amy only")).toHaveCount(0);
   await page.reload();
   await expect(page.getByRole("status")).toHaveText("3 of 4 expenses");
+});
+
+test("opens the new-person form on the first Add member click", async ({ page }) => {
+  await page.getByRole("button", { name: "Add member" }).click();
+  await expect(page.getByRole("heading", { name: "Add a person" })).toBeVisible();
+  await expect(page.getByRole("textbox", { name: "Name" })).toBeVisible();
+  await page.getByRole("button", { name: "Cancel" }).click();
+  await expect(page.getByRole("heading", { name: "Add a person" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Add member" })).toBeVisible();
 });
 
 test("confirms eligible member removal without deleting the contact", async ({ page }) => {

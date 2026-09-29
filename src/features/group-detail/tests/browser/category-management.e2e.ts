@@ -61,22 +61,30 @@ test("adds and edits categories with a full-width name field above the icon pick
   expect(iconsBox).not.toBeNull();
   expect(iconsBox!.y).toBeGreaterThan(nameBox!.y + nameBox!.height);
   await name.fill("Coffee runs");
-  await icons.getByRole("button", { name: "Icon ☕" }).click();
+  await icons.getByRole("button", { name: "Browse more" }).click();
+  await icons.getByRole("button", { name: "Icon Hot beverage" }).last().click();
   await form.getByRole("button", { name: "Add", exact: true }).click();
 
   const row = categories.getByRole("listitem").filter({ hasText: "Coffee runs" });
-  await expect(row).toContainText("☕");
+  await expect(row.locator('img[src$="/food-and-drinks/hot-beverage-3d.png"]')).toBeVisible();
   await row.getByRole("button", { name: "Edit" }).click();
   await expect(form.getByRole("heading", { name: "Edit category" })).toBeVisible();
   await expect(name).toHaveValue("Coffee runs");
   await name.fill("Cafe trips");
-  await icons.getByRole("button", { name: "Icon 🍻" }).click();
+  await icons.getByRole("button", { name: "Browse more" }).click();
+  await icons.getByRole("button", { name: "Icon Clinking beer mugs" }).click();
   await form.getByRole("button", { name: "Save", exact: true }).click();
-  await expect(categories.getByRole("listitem").filter({ hasText: "Cafe trips" })).toContainText(
-    "🍻",
-  );
+  await expect(
+    categories
+      .getByRole("listitem")
+      .filter({ hasText: "Cafe trips" })
+      .locator('img[src$="/food-and-drinks/clinking-beer-mugs-3d.png"]'),
+  ).toBeVisible();
   await page.reload();
-  await expect(categories.getByRole("listitem").filter({ hasText: "Cafe trips" })).toContainText(
-    "🍻",
-  );
+  await expect(
+    categories
+      .getByRole("listitem")
+      .filter({ hasText: "Cafe trips" })
+      .locator('img[src$="/food-and-drinks/clinking-beer-mugs-3d.png"]'),
+  ).toBeVisible();
 });
