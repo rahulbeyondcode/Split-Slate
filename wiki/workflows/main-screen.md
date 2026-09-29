@@ -9,7 +9,7 @@ metadata:
 
 Purpose: describe implemented group navigation, expense workflows, balances, and group transfer.
 
-Last updated: 2026-09-29
+Last updated: 2026-09-30
 
 ## Current Implementation
 
@@ -89,10 +89,11 @@ shows net positions and suggested payments. Neither view uses an in-page tab bar
 - Expense name
 - Total amount
 - Paid by (member name)
-- Date (`when` — the actual expense date, not `createdAt`)
+- Local date and 12-hour time (`when` — the actual expense time, not `createdAt`)
 
-Expenses are sorted by `when` descending. Rows include payer names, date/time, and category beside
-the name and formatted amount. Names link to detail, which offers editing and confirmed deletion.
+Expenses are sorted by `when` descending. Rows show the local date and 12-hour time beneath the
+amount, plus payer names and the category icon beside the name. Names link to detail, which offers
+editing and confirmed deletion.
 The full ledger and recent Overview entries show up to three colored tags and reveal further tags
 with a separate Show more control. The list now has real-time name, date, category, tag,
 payer, involved-member, split-type, and amount filters with an active count and clear action.
@@ -102,8 +103,13 @@ journeys cover the controls; see [[filtering]].
 ### Expense Recording
 
 - **Add Expense** button — always visible and prominent
-- The form defaults to current local date/time, the first active category, one payer, and an equal
-  split among all group members. Participants can be deselected; solo groups are supported.
+- The form defaults to today's local date with blank hour/minute placeholders, the first active
+  category, one payer, and an equal split among all group members. Time must be entered before
+  saving. Participants can be deselected; solo groups are supported.
+- Date and time entry uses a styled date field and 12-hour hour/minute controls with explicit AM/PM.
+  The form still submits a local `YYYY-MM-DDTHH:mm` value in 24-hour notation for validation and
+  storage; 12 AM maps to 00:xx, and 12 PM maps to 12:xx. Editing reconstructs the 12-hour display
+  from the saved local time without changing an untouched timestamp.
 - One or multiple payers, all five split types, and existing optional group tags are supported.
 - React Hook Form and Zod validate input; the store revalidates current persisted references and
   saves the expense plus frequent-payer ranking atomically in IndexedDB.

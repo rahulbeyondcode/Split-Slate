@@ -2,11 +2,21 @@
 
 Reverse-chronological record of all wiki changes.
 
-Last updated: 2026-09-29
+Last updated: 2026-09-30
 
 ---
 
+## 2026-09-30
+- UPDATED workflows/category-management.md — document stacked category editor matching onboarding and the squeezed-input cause
+- UPDATED wiki/index.md — reflect the corrected category editor layout
+- UPDATED workflows/main-screen.md — correct ledger description and document visible local 12-hour expense times
+- UPDATED wiki/index.md — reflect date/time ledger rows in main-screen navigation
+- UPDATED workflows/main-screen.md — document blank time entry with today's date on new expenses
+- UPDATED wiki/index.md — reflect the expense time default in navigation
+
 ## 2026-09-29
+- UPDATED workflows/main-screen.md — document 12-hour expense entry and local timestamp conversion
+- UPDATED wiki/index.md — reflect expense time entry in main-screen navigation
 - UPDATED architecture/layout-architecture.md — document top-of-page quiet Back controls for import/restore and emphasized restore countdown
 - UPDATED wiki/index.md — reflect transfer navigation placement in layout summary
 - UPDATED architecture/layout-architecture.md — describe reusable icon-bearing error/warning banners and distinct wrong-file action buttons

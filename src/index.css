@@ -1610,6 +1610,95 @@ input:focus-visible + .choice-chip {
 .form-input[aria-invalid="true"] {
   border-color: var(--negative);
 }
+.when-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.when-picker-field {
+  display: flex;
+  flex: 1 1 140px;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+}
+.when-picker-caption {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+.when-picker-date,
+.when-picker-time {
+  min-height: 46px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-soft);
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.when-picker-date {
+  min-width: 0;
+  padding: 8px 10px;
+  font-weight: 700;
+}
+.when-picker-date::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+}
+.when-picker-time {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+}
+.when-picker-time :focus-visible {
+  outline: none !important;
+  background: var(--brand-soft);
+}
+.when-picker-time:has([aria-invalid="true"]),
+.when-picker-date[aria-invalid="true"] {
+  border-color: var(--negative);
+}
+.when-picker-number {
+  width: 28px;
+  min-width: 0;
+  padding: 4px 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 800;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.when-picker-number::placeholder {
+  color: var(--muted);
+}
+.when-picker-colon {
+  font-weight: 800;
+}
+.when-picker-period {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--surface);
+}
+.when-picker-period-button {
+  min-height: 30px;
+  padding: 4px 7px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+.when-picker-period-button[aria-pressed="true"] {
+  background: var(--brand-soft);
+  color: var(--brand-ink);
+}
 .field-label {
   display: block;
   font-weight: 700;

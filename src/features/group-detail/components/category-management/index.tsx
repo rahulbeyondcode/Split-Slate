@@ -135,18 +135,33 @@ const CategoryManagement = () => {
 
       {categoryMode && (
         <FormProvider {...categoryForm}>
-          <form onSubmit={handleSaveCategory} className="flex flex-col gap-2 note">
-            <p className="text-sm font-medium text-gray-900">{categoryFormTitle}</p>
-            <div className="flex gap-2 items-start">
-              <EmojiPicker name="icon" emojis={CATEGORY_EMOJIS} />
-              <Input name="name" placeholder="Category name" wrapperClass="flex-1" autoFocus />
+          <form
+            onSubmit={handleSaveCategory}
+            className="flex min-w-0 flex-col gap-5 rounded-2xl border border-[var(--line)] bg-[var(--surface-soft)] p-4 sm:p-5"
+          >
+            <h3 className="section-title">{categoryFormTitle}</h3>
+            <div className="min-w-0">
+              <label className="field-label" htmlFor="group-category-name">
+                Category name
+              </label>
+              <Input
+                id="group-category-name"
+                name="name"
+                placeholder="e.g. Coffee runs"
+                wrapperClass="w-full"
+                autoFocus
+              />
             </div>
-            <div className="flex gap-2 justify-end">
+            <div className="min-w-0">
+              <span className="field-label">Choose an icon</span>
+              <EmojiPicker name="icon" emojis={CATEGORY_EMOJIS} />
+            </div>
+            <div className="flex flex-wrap gap-2 justify-end">
               <button
                 type="button"
                 onClick={handleCancelCategoryForm}
                 disabled={isSubmitting}
-                className="px-4 py-2 text-sm text-gray-500 disabled:opacity-50"
+                className="btn btn-secondary"
               >
                 Cancel
               </button>

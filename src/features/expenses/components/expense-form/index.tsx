@@ -6,6 +6,7 @@ import { Link, useLocation, useNavigate, useOutletContext, useParams } from "rea
 
 import PayerSelector from "@/features/expenses/components/payer-selector";
 import SplitEditor from "@/features/expenses/components/split-editor";
+import WhenPicker from "@/features/expenses/components/when-picker";
 import Input from "@/shared/components/form-elements/input";
 
 import {
@@ -45,7 +46,7 @@ const ExpenseForm = () => {
     : {
         expenseName: "",
         amount: "",
-        when: localDateTime(openedAt),
+        when: "",
         categoryId: categories[0]?.id ?? "",
         tagIds: [],
         payerMode: "single",
@@ -191,10 +192,7 @@ const ExpenseForm = () => {
                   <p className="soft-caption">No tags in this group yet.</p>
                 )}
               </fieldset>
-              <label className="block">
-                <span className="field-label">When</span>
-                <Input name="when" type="datetime-local" />
-              </label>
+              <WhenPicker defaultDate={localDateTime(openedAt).slice(0, 10)} />
             </div>
             <p className="soft-caption">
               Notes and new attachments are not available yet. Existing expense data is preserved.

@@ -7,7 +7,7 @@ metadata:
 
 # Category Management
 
-Last updated: 2026-09-29
+Last updated: 2026-09-30
 
 ## Implementation Status
 
@@ -63,9 +63,12 @@ After the group name/icon and currency are set, the creator is shown the master 
 
 ## Adding Categories After Group Creation
 
-The group **Categories & Tags** screen can currently add a custom category through an **emoji +
-name editor**, then edit or delete it subject to the rules below. Choosing an unselected entry from
-the master list after group creation is not currently exposed as a separate UI.
+The group **Categories & Tags** screen can currently add a custom category through a name field
+followed by a wrapping emoji picker, matching the stacked onboarding category editor. The same
+layout supports editing the name and icon; deletion remains subject to the rules below. The former
+side-by-side layout squeezed the name input beside the full emoji grid in narrow columns. Choosing
+an unselected entry from the master list after group creation is not currently exposed as a
+separate UI.
 
 ---
 

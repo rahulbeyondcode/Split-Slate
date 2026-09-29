@@ -97,10 +97,13 @@ const ExpenseList = () => {
                       <span className="money block font-bold">
                         {formatCurrency(total, group.currency)}
                       </span>
-                      <span className="soft-caption">
+                      <span className="soft-caption block whitespace-nowrap">
                         {new Intl.DateTimeFormat(undefined, {
                           day: "numeric",
                           month: "short",
+                          hour: "numeric",
+                          minute: "2-digit",
+                          hour12: true,
                         }).format(expense.when)}
                       </span>
                     </span>

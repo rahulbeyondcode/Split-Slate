@@ -48,7 +48,16 @@ test.beforeEach(async ({ page }) => {
     await db.settings.put(onboarding);
   });
   await page.goto("/groups/trip");
-  await page.getByRole("link", { name: "Add expense", exact: true }).click();
+  await page.getByRole("link", { name: "Add expense", exact: true }).first().click();
+  const hour = page.getByRole("textbox", { name: "Hour" });
+  const minute = page.getByRole("textbox", { name: "Minute" });
+  await expect(hour).toBeEmpty();
+  await expect(hour).toHaveAttribute("placeholder", "hh");
+  await expect(minute).toBeEmpty();
+  await expect(minute).toHaveAttribute("placeholder", "mm");
+  await expect(page.getByLabel("Date", { exact: true })).not.toBeEmpty();
+  await hour.fill("12");
+  await minute.fill("00");
 });
 
 test("records an equal expense, updates balances, and survives reload", async ({ page }) => {
@@ -60,14 +69,20 @@ test("records an equal expense, updates balances, and survives reload", async ({
   await expect(page.getByRole("radio", { name: /Food/u })).toBeChecked();
   await page.getByLabel("Expense name", { exact: true }).fill(" Dinner ");
   await page.getByLabel("Amount (INR)", { exact: true }).fill("100");
-  await page.getByLabel("Date and time", { exact: true }).fill("2026-09-19T18:30");
+  await page.getByLabel("Date", { exact: true }).fill("2026-09-19");
+  await page.getByRole("textbox", { name: "Hour" }).fill("6");
+  await page.getByRole("textbox", { name: "Minute" }).fill("30");
+  await page.getByRole("button", { name: "PM", exact: true }).click();
   await tag.check();
   await expect(tag).toBeChecked();
   await expect(page.getByRole("option", { name: "📦 Old category" })).toHaveCount(0);
   await page.getByRole("button", { name: "Save expense" }).click();
   await expect(page).toHaveURL(/\/groups\/trip\/expenses$/);
   await expect(page.getByText("Dinner", { exact: true })).toBeVisible();
-  await expect(page.getByText("₹100.00", { exact: true })).toBeVisible();
+  await expect(page.getByRole("main").getByText("₹100.00", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("list", { name: "Expenses" }).getByRole("link", { name: /Dinner/ }),
+  ).toContainText(/19 Sept?, 6:30 pm/i);
   await page.reload();
   await expect(page.getByText("Dinner", { exact: true })).toBeVisible();
   const stored = await page.evaluate(async () => {
@@ -78,8 +93,52 @@ test("records an equal expense, updates balances, and survives reload", async ({
   expect(stored).toHaveLength(1);
   expect(stored[0].transactions.owes.map((row) => row.amount)).toEqual([3334, 3333, 3333]);
   expect(stored[0].tagIds).toEqual(["holiday"]);
+  expect(new Date(stored[0].when).getHours()).toBe(18);
+  expect(new Date(stored[0].when).getMinutes()).toBe(30);
   await page.goto("/groups/trip");
   await expect(page.getByRole("main").getByText("+₹66.66", { exact: true })).toBeVisible();
+});
+
+test("edits the time across noon and midnight with 12-hour controls", async ({ page }) => {
+  await page.getByLabel("Expense name", { exact: true }).fill("Late snack");
+  await page.getByLabel("Amount (INR)", { exact: true }).fill("20");
+  await page.getByLabel("Date", { exact: true }).fill("2026-09-19");
+  await page.getByRole("textbox", { name: "Hour" }).fill("12");
+  await page.getByRole("textbox", { name: "Minute" }).fill("05");
+  await page.getByRole("button", { name: "AM", exact: true }).click();
+  await page.getByRole("button", { name: "Save expense" }).click();
+  await page
+    .getByRole("list", { name: "Expenses" })
+    .getByRole("link", { name: /Late snack/ })
+    .click();
+  await page.getByRole("link", { name: "Edit expense", exact: true }).click();
+  await expect(page.getByRole("textbox", { name: "Hour" })).toHaveValue("12");
+  await expect(page.getByRole("textbox", { name: "Minute" })).toHaveValue("05");
+  await expect(page.getByRole("button", { name: "AM", exact: true })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await page.getByRole("button", { name: "PM", exact: true }).click();
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await page.reload();
+  const when = await page.evaluate(async () => {
+    const path = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;
+    return (await db.expenses.toArray())[0].when;
+  });
+  expect(new Date(when).getHours()).toBe(12);
+  expect(new Date(when).getMinutes()).toBe(5);
+});
+
+test("requires a complete time before saving", async ({ page }) => {
+  await page.getByLabel("Expense name", { exact: true }).fill("Breakfast");
+  await page.getByLabel("Amount (INR)", { exact: true }).fill("20");
+  await page.getByRole("textbox", { name: "Hour" }).fill("");
+  await page.getByRole("button", { name: "Save expense" }).click();
+  await expect(page.getByRole("alert")).toContainText("Enter a valid local date and time");
+  await page.getByRole("textbox", { name: "Hour" }).fill("7");
+  await page.getByRole("button", { name: "Save expense" }).click();
+  await expect(page).toHaveURL(/\/groups\/trip\/expenses$/);
 });
 
 for (const method of ["amount", "shares", "percentage", "adjustment"] as const) {
