@@ -19,19 +19,20 @@ Last updated: 2026-09-29
 - [Balance Calculation](architecture/balance-calculation.md) — fixed-hundredths member/group totals, all-member balances, and deterministic suggested transfers
 - [State Management](architecture/state-management.md) — hydrated Zustand slices plus persisted mutation boundaries, including all-or-nothing fresh-ID group import
 - [Split Types](architecture/split-types.md) — 5 split types with fixed-hundredths monetary allocations and exact ratios; numeric percentage-total display remains pending
-- [Layout Architecture](architecture/layout-architecture.md) — responsive shell, contextual group sidebar, and unboxed desktop activity list; theme controls remain planned
+- [Layout Architecture](architecture/layout-architecture.md) — responsive shell, contextual sidebar, desktop activity, semantic banners, and top-aligned transfer navigation
 
 ### Decisions
 - [Global People Directory](decisions/global-people-directory.md) — device-local friends list; members link to shared people; supersedes per-group members
 - [Expense Model Design](decisions/expense-model-design.md) — fixed-hundredths paid/owed allocations and exact decimal ratio metadata, with numeric legacy read compatibility
 - [Solo Group Support](decisions/solo-group-support.md) — single-member creation and zero-net overview/balances are implemented; onboarding solo-helper copy remains pending
 - [Onboarding Persistence](decisions/onboarding-persistence.md) — resumable per-step standard setup plus atomic import-specific completion for fresh devices
-- [Import / Export Design](decisions/import-export.md) — selective Link/CSV/ZIP transfer with visual dependency summaries, size-aware links, and fixed-hundredths amounts
+- [Import / Export Design](decisions/import-export.md) — selective group Link/CSV/ZIP transfer, tamper guidance, wrong-file navigation, and atomic fresh-group import
+- [Whole-App Backup and Restore](decisions/full-backup.md) — versioned ZIP, expected download name and wrong-file navigation, confirmed replace-only recovery; Drive deferred
 - [Expense Edit and Delete](decisions/expense-edit-delete.md) — implemented editing/deletion with fixed-hundredths adjustments; tag resurrection and ratio precision loss are resolved
-- [Group Deletion](decisions/group-deletion.md) — approved pending design for permanent deletion with a full related-data cascade and irreversible warning
+- [Group Deletion](decisions/group-deletion.md) — implemented permanent group-owned data cascade with confirmation; shared contacts remain
 - [Money Representation and Rounding](decisions/money-representation-and-rounding.md) — implemented fixed hundredths for every currency, exact allocation, and confirmed no-conversion relabeling
 - [Iconography](decisions/iconography.md) — Lucide SVGs for interface actions/navigation, while user-selected emoji and onboarding artwork remain
-- [Confirmation Dialogs](decisions/confirmation-dialogs.md) — shared in-app destructive confirmation for contacts, members, categories, and tags
+- [Confirmation Dialogs](decisions/confirmation-dialogs.md) — shared in-app destructive confirmation for groups, contacts, members, categories, and tags
 - [Selection Controls](decisions/selection-controls.md) — native checkboxes/radios with selected and visibly locked states across forms, filters, and transfer
 - [String Input Normalization](decisions/string-input-normalization.md) — required strings reject trimmed blanks; optional expense inputs have explicit blank-value semantics
 - [Testing Strategy](decisions/testing-strategy.md) — Vitest and desktop/mobile Playwright coverage for fixed-hundredths accounting, currency relabeling, filtering, and group transfer
@@ -43,14 +44,14 @@ Last updated: 2026-09-29
 - [Development Tools](workflows/development-tools.md) — typed realistic presets, randomized onboarding contacts, individual creation buttons, and persistence boundaries
 - [Onboarding](workflows/onboarding.md) — implemented resumable setup plus Link/CSV/ZIP first-launch import with a short identity path
 - [Group Creation](workflows/group-creation.md) — standalone 4-step flow; writes begin only on final submission and then run sequentially
-- [Main Screen](workflows/main-screen.md) — group snapshot, ledger and recent-expense tag previews, direct group links, currency relabeling, and group transfer
+- [Main Screen](workflows/main-screen.md) — group snapshot, ledger, direct group links, currency relabeling, group-only export, and group deletion
 - [Paid-By](workflows/paid-by.md) — implemented frequent-payer selection, atomic ranking updates, recent-payer defaults, and multi-payer entry
 - [People Directory](workflows/people-directory.md) — global friends list, per-group links for blocked contact deletion, and group-building picker
 - [Member Management](workflows/member-management.md) — add/edit/confirmed removal, URL-linked blocked-removal popup, and persisted reference/duplicate guards
 - [Category Management](workflows/category-management.md) — implemented group category CRUD, guarded in-app deletion, and active-category expense picker; deactivation UI remains pending
 - [Tag Management](workflows/tag-management.md) — group tags, selection, list/overview previews, and transactional persisted-reference cleanup
 - [Filtering](workflows/filtering.md) — URL-backed eight-field filtering, including creator/payer/owed member references and stale-option cleanup
-- [Dashboard](workflows/dashboard.md) — groups list with create/import entry points plus planned summaries, analytics, and activity views
+- [Dashboard](workflows/dashboard.md) — time-aware greeting, group summaries, and recorded-expense activity across groups or within the current group
 
 ### Ideas (captured, not committed)
 - [Rewarded Ads](ideas/rewarded-ads.md) — optional ad-watch → credits → Pro unlock mechanic; fully opt-in
@@ -90,6 +91,7 @@ Last updated: 2026-09-29
 | Receipt attachments                | PENDING     |
 | Group settings + deletion          | PENDING     |
 | Group transfer (Link / CSV / ZIP)  | DONE        |
+| Whole-app ZIP backup and restore  | DONE        |
 | Settlement sharing                | PENDING     |
 | Installable/offline PWA support    | PENDING     |
 | Automated tests                    | IN PROGRESS |
@@ -97,8 +99,8 @@ Last updated: 2026-09-29
 The IndexedDB layer and Zustand store are complete for the current development scope. Schema
 changes intentionally require resetting the local database; versioned migrations are not needed
 while development data is disposable. All group-detail destinations have routes, but several are
-lightweight or partial. Dashboard-level footer items for Activity, Unsettled, Analytics, and
-Settings remain unmatched; see [[layout-architecture]].
+lightweight or partial. Dashboard-level footer destinations have routes, although some remain
+lightweight; see [[layout-architecture]].
 
 Both reviewed defects are fixed for current writes: persisted tag cleanup cannot recreate deleted
 expenses or overwrite newer edits, and saved ratio text preserves accepted shares through

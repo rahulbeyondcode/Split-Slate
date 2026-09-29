@@ -45,9 +45,20 @@ export type ImportIdentity =
   | { type: "member"; memberId: string }
   | { type: "new"; name?: string; icon?: string };
 
+export type PersonResolution =
+  | { sourcePersonId: string; type: "reuse"; destinationPersonId: string }
+  | { sourcePersonId: string; type: "separate"; name: string };
+
+export interface ExistingPersonRename {
+  personId: string;
+  name: string;
+}
+
 export interface ImportGroupInput {
   source: GroupTransferSource;
   identity: ImportIdentity;
+  personResolutions?: PersonResolution[];
+  existingPersonRenames?: ExistingPersonRename[];
 }
 
 export interface ImportGroupResult {

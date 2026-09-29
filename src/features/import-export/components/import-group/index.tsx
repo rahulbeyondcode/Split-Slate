@@ -1,10 +1,11 @@
-import { ArrowLeft, FolderOpen, LockKeyhole, PackageOpen, Upload } from "lucide-react";
+import { ArrowLeft, ArrowRight, FolderOpen, LockKeyhole, PackageOpen, Upload } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import ImportReview from "@/features/import-export/components/import-review";
 
 import { decodeTransferPayload } from "@/features/import-export/utils/export-link";
+import { AppBackupFileError } from "@/features/import-export/utils/export-zip";
 import { parseGroupTransferFile } from "@/features/import-export/utils/import-file";
 import { useStore } from "@/shared/configs/store";
 
@@ -12,6 +13,7 @@ import type { GroupTransferSource } from "@/features/import-export/types/import-
 import type { Group } from "@/shared/types/domain.types";
 
 import Icon from "@/shared/ui/icon";
+import StatusBanner from "@/shared/ui/status-banner";
 
 const ImportGroup = () => {
   const initialized = useStore((state) => state.initialized);
@@ -20,6 +22,7 @@ const ImportGroup = () => {
   const [source, setSource] = useState<GroupTransferSource | null>(null);
   const [loading, setLoading] = useState(Boolean(hash));
   const [error, setError] = useState("");
+  const [appBackupFile, setAppBackupFile] = useState(false);
 
   useEffect(() => {
     if (!hash) return undefined;
@@ -28,6 +31,7 @@ const ImportGroup = () => {
       setLoading(true);
       setSource(null);
       setError("");
+      setAppBackupFile(false);
       try {
         const bundle = await decodeTransferPayload(hash);
         if (active) setSource({ bundle, attachmentFiles: [] });
@@ -48,18 +52,26 @@ const ImportGroup = () => {
   }, [hash]);
 
   const handleFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.currentTarget.files?.[0];
+    const input = event.currentTarget;
+    const file = input.files?.[0];
     if (!file) return;
     setLoading(true);
     setError("");
+    setAppBackupFile(false);
     try {
       setSource(await parseGroupTransferFile(file));
     } catch (failure) {
       setSource(null);
-      setError(failure instanceof Error ? failure.message : "Could not read this transfer file");
+      const isAppBackup = failure instanceof AppBackupFileError;
+      setAppBackupFile(isAppBackup);
+      setError(
+        isAppBackup
+          ? "This file backs up the whole app, not just one group."
+          : "We couldn't read this as a group transfer. Look for a group ZIP or CSV downloaded from Export group; if you edited the file, try the original download.",
+      );
     } finally {
       setLoading(false);
-      event.currentTarget.value = "";
+      input.value = "";
     }
   };
 
@@ -103,6 +115,9 @@ const ImportGroup = () => {
             <ImportReview source={source} onImported={handleImported} />
           ) : (
             <div className="flex flex-col gap-6">
+              <Link to="/" className="page-back-link">
+                <Icon icon={ArrowLeft} size={18} /> Back to SplitSlate
+              </Link>
               <header>
                 <p className="eyebrow mb-2">GROUP TRANSFER</p>
                 <h1 className="page-title">Import a group</h1>
@@ -113,18 +128,24 @@ const ImportGroup = () => {
               </header>
 
               {error && (
-                <p role="alert" className="note money-negative">
-                  {error}
-                </p>
+                <StatusBanner variant="error">
+                  <p className="status-banner-title font-bold">We couldn't open this transfer</p>
+                  <p className="mt-1">{error}</p>
+                  {appBackupFile && (
+                    <Link to="/restore" className="btn btn-secondary status-banner-action mt-3">
+                      Go to Restore app backup <Icon icon={ArrowRight} size={16} />
+                    </Link>
+                  )}
+                </StatusBanner>
               )}
 
               <label className="import-file-picker surface">
                 <span className="import-file-icon" aria-hidden="true">
                   <Icon icon={Upload} size={28} />
                 </span>
-                <span className="import-file-title">Choose a transfer file</span>
+                <span className="import-file-title">Choose your group transfer</span>
                 <span className="soft-caption">
-                  SplitSlate CSV or ZIP · your data is checked first
+                  Look for your-group-name.zip or your-group-name.csv (unless you renamed it).
                 </span>
                 <input
                   type="file"
@@ -138,9 +159,15 @@ const ImportGroup = () => {
                 Nothing is added to your device until you review the transfer and press Import
                 group.
               </p>
-              <Link to="/" className="btn btn-secondary self-start">
-                <Icon icon={ArrowLeft} size={18} /> Back to SplitSlate
-              </Link>
+              <StatusBanner variant="warning">
+                Keep downloaded ZIP or CSV files unchanged so they can be imported.
+              </StatusBanner>
+              <p className="soft-caption">
+                Have a ZIP containing all your groups?{" "}
+                <Link to="/restore" className="font-semibold text-[var(--brand-ink)]">
+                  Restore the whole app instead.
+                </Link>
+              </p>
             </div>
           )}
         </div>

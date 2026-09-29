@@ -9,7 +9,7 @@ metadata:
 
 Purpose: map store ownership, persistence order, and the exact validation and transaction boundaries.
 
-Last updated: 2026-09-26
+Last updated: 2026-09-29
 
 ## Technology
 
@@ -21,7 +21,7 @@ into the same store. Expense state defaults and hydration remain in the shared a
 
 - `app-slice.ts` — app bootstrap, hydration, and shared entity/settings loading
 - `people-slice.ts` — `localUser`, people directory, and person mutations
-- `groups-slice.ts` — groups, members, group mutations, and member mutations
+- `groups-slice.ts` — groups, members, group mutations (including transactional cascade deletion), and member mutations
 - `categories-slice.ts` — group categories plus master/default category settings
 - `tags-slice.ts` — group-scoped tag records and atomic expense-reference cleanup
 - `src/features/expenses/store/index.ts` — expense creation/edit/deletion, persisted-reference validation, and
@@ -61,6 +61,7 @@ interface AppStore {
   // Actions — Groups
   createGroup: (name: string, icon: string, currency: string) => Promise<{ group: Group; creatorMember: Member }>
   updateGroup: (groupId: UUID, patch: Partial<Group>) => Promise<Group>
+  removeGroup: (groupId: UUID) => Promise<void>  // atomic owned-data cascade; keeps shared people
 
   // Actions — People
   setLocalUser: (name: string, icon: string) => Promise<LocalUser>  // also upserts the self Person

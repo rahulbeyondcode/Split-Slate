@@ -8,18 +8,20 @@ Last updated: 2026-09-26
 
 The dashboard currently renders:
 
-- A static `"Hi, {name}"` greeting using the local user's name and icon
+- A time-aware greeting using the local user's name and icon
 - A New Group link
 - An Import Group link to the public Link/CSV/ZIP intake route
 - An empty-state prompt when there are no groups
-- A simple group list showing icon, name, and currency
+- Per-group balance cards and an overall balance summary (or a mixed-currency notice)
+- Unsettled-balance and category-spending previews
 - Links from each group row to that group's Overview route
 
-The main dashboard does not yet compute balances, category totals, unsettled debts, or activity. It
-renders groups in store order rather than by recent activity. The desktop right pane renders
-hardcoded sample activity; tablet renders no activity section. Each group link opens the committed
-nested group-detail route. Its overview shows the local user's net position, total group spend,
-category count, member list, and up to five recent expenses.
+The desktop right pane shows persisted expense activity from every group in recording order
+(`createdAt` descending), with the recording date and time shown beside the group name. On a
+group's Overview and Expenses routes, that pane shows only that group's expenses. The dedicated
+Activity route shows the same cross-group feed; tablet renders no separate activity section.
+Each group link opens the nested group-detail route, whose Overview shows the local user's net
+position, total group spend, category count, up to six featured members, and three recent expenses.
 
 The empty state offers both **Create your first group** and **Import an existing group**. Import
 validates the package, shows count-only review and identity selection, and creates a separate
@@ -31,8 +33,7 @@ editable group. See [[import-export]].
 
 ## Page Header
 
-The target dashboard opens with a time-aware greeting using the device clock (e.g. "Good morning
-Rahul"). This remains planned; the current greeting is always `"Hi"`.
+The time-aware greeting uses the device clock (e.g. "Good morning Rahul"). This is implemented.
 
 Light/dark mode toggle lives in Settings, not on the dashboard.
 
@@ -85,7 +86,8 @@ A visual breakdown of total spending by category, aggregated across all groups, 
 A feed of recent actions across all groups. Each activity item is a two-line, two-column component:
 
 - **Line 1:** Left — who did what (e.g. "Rahul paid Scooty rentals"); Right — amount (e.g. "₹2,400")
-- **Line 2:** Group name + time ago (e.g. "Goa Trip — 7hrs ago")
+- **Line 2:** Group name + recording date and time in the current implementation; relative time
+  (e.g. "Goa Trip — 7hrs ago") remains a target design detail
 
 **Target placement by breakpoint:**
 - Desktop (1080px+): shown in the dedicated right-side activity panel, not in the main pane
@@ -108,14 +110,14 @@ On mobile, the dashboard content is not a single pane — it is distributed acro
 | Category spending chart | Analytics tab |
 | App settings + profile editing | Settings tab |
 
-Only the Groups/Dashboard destination is currently routed. The other footer items are visible but
-their route components have not been implemented.
+All footer destinations have routes; some remain lightweight. The Activity route reads persisted
+expense records rather than placeholder entries.
 
 ---
 
 ## Navigation
 
-Clicking a current group row navigates to that group's lightweight Overview route. The sidebar group
+Clicking a current group row navigates to that group's Overview route. The sidebar group
 item also links to the Overview and detects the active `groupId`.
 
 ---

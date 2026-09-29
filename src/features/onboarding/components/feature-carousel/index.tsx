@@ -1,6 +1,6 @@
 import { ArrowRight, ArrowUpRight, Check, LockKeyhole, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { slides } from "@/features/onboarding/components/feature-carousel/slide-data";
 
@@ -120,6 +120,9 @@ const FeatureCarousel = () => {
               Import it instead <Icon icon={ArrowRight} size={16} />
             </span>
           </button>
+          <Link to="/restore" className="intro-import">
+            Have a whole-app backup? <span>Restore everything</span>
+          </Link>
         </div>
       </section>
     </main>

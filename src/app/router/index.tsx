@@ -12,6 +12,7 @@ import GroupOverview from "@/features/group-detail/components/group-overview";
 import GroupSettings from "@/features/group-detail/components/group-settings";
 import MemberList from "@/features/group-detail/components/member-list";
 import ImportGroup from "@/features/import-export/components/import-group";
+import RestoreBackup from "@/features/import-export/components/restore-backup";
 import FeatureCarousel from "@/features/onboarding/components/feature-carousel";
 import SetupFlow from "@/features/onboarding/components/setup-flow";
 import PeopleList from "@/features/people/components/people-list";
@@ -25,6 +26,7 @@ import GroupDetail from "@/features/group-detail";
 
 export const router = createBrowserRouter([
   { path: "/import", element: <ImportGroup /> },
+  { path: "/restore", element: <RestoreBackup /> },
   {
     element: <RouteProtector />,
     children: [

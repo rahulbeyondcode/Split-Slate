@@ -1,6 +1,8 @@
+import { strToU8, zlibSync } from "fflate";
 import { describe, expect, it } from "vitest";
 
 import { buildGroupTransfer } from "@/features/import-export/utils/build-transfer";
+import { compactLinkIds } from "@/features/import-export/utils/compact-link-ids";
 import {
   createTransferLink,
   decodeTransferPayload,
@@ -29,7 +31,9 @@ describe("transfer links", () => {
     );
     const payload = await encodeTransferPayload(resealed.bundle);
     expect(payload).toMatch(/^v1\.[A-Za-z0-9_-]+$/u);
-    await expect(decodeTransferPayload(`#${payload}`)).resolves.toEqual(resealed.bundle);
+    await expect(decodeTransferPayload(`#${payload}`)).resolves.toEqual(
+      await compactLinkIds(resealed.bundle),
+    );
     await expect(createTransferLink(resealed.bundle, "https://example.com/app/")).resolves.toMatch(
       /^https:\/\/example\.com\/app\/import#v1\./u,
     );
@@ -62,7 +66,27 @@ describe("transfer links", () => {
     });
     const link = await createTransferLink(transfer.bundle, "https://example.com/");
     expect(link.length).toBeLessThanOrEqual(32_000);
-    await expect(decodeTransferPayload(new URL(link).hash)).resolves.toEqual(transfer.bundle);
+    await expect(decodeTransferPayload(new URL(link).hash)).resolves.toEqual(
+      await compactLinkIds(transfer.bundle),
+    );
+  });
+
+  it("reads old v1 links and measures group-owned ID savings", async () => {
+    const transfer = await buildGroupTransfer(
+      createExportSource({ memberCount: 20, categoryCount: 25, tagCount: 10, expenseCount: 50 }),
+      { categories: true, tags: true, members: true, expenses: true, attachments: false },
+    );
+    const bytes = zlibSync(strToU8(JSON.stringify(transfer.bundle)), { level: 9 });
+    const oldPayload = `v1.${btoa(Array.from(bytes, (byte) => String.fromCharCode(byte)).join(""))
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/u, "")}`;
+    await expect(decodeTransferPayload(`#${oldPayload}`)).resolves.toEqual(transfer.bundle);
+    const compactPayload = await encodeTransferPayload(transfer.bundle);
+    expect(compactPayload.length).toBeLessThan(oldPayload.length);
+    await expect(decodeTransferPayload(`#${compactPayload}`)).resolves.toEqual(
+      await compactLinkIds(transfer.bundle),
+    );
   });
 
   it("falls back to files when the actual compressed link exceeds 32k", async () => {

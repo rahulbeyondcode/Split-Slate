@@ -3,7 +3,7 @@ import { v4 as uuid } from "uuid";
 import { db } from "@/shared/configs/db";
 import { normalizeRequiredString } from "@/shared/utils/string-validation";
 
-import type { Group, Member } from "@/shared/types/domain.types";
+import type { Group, Member, OnboardingSettings } from "@/shared/types/domain.types";
 
 import type { GroupsSlice, SliceCreator } from "./types";
 
@@ -65,6 +65,44 @@ export const createGroupsSlice: SliceCreator<GroupsSlice> = (set, get) => ({
     const updated: Group = { ...existing, ...normalizedPatch };
     set((s) => ({ groups: s.groups.map((g) => (g.id === groupId ? updated : g)) }));
     return updated;
+  },
+
+  removeGroup: async (groupId) => {
+    const nextOnboardingGroupId = await db.transaction(
+      "rw",
+      [db.groups, db.members, db.categories, db.tags, db.expenses, db.attachments, db.settings],
+      async () => {
+        if (!(await db.groups.get(groupId))) throw new Error("Group not found");
+
+        const expenses = await db.expenses.where("groupId").equals(groupId).toArray();
+        const expenseIds = expenses.map((expense) => expense.expenseId);
+        if (expenseIds.length) await db.attachments.where("expenseId").anyOf(expenseIds).delete();
+        await db.expenses.where("groupId").equals(groupId).delete();
+        await db.members.where("groupId").equals(groupId).delete();
+        await db.categories.where("groupId").equals(groupId).delete();
+        await db.tags.where("groupId").equals(groupId).delete();
+        await db.groups.delete(groupId);
+
+        const onboarding = await db.settings.get("onboarding");
+        if (onboarding?.id !== "onboarding" || onboarding.groupId !== groupId) return undefined;
+        const remaining = await db.groups.toArray();
+        const nextGroupId =
+          remaining.sort((a, b) => b.createdAt - a.createdAt || a.id.localeCompare(b.id))[0]?.id ??
+          null;
+        const nextOnboarding: OnboardingSettings = { ...onboarding, groupId: nextGroupId };
+        await db.settings.put(nextOnboarding);
+        return nextGroupId;
+      },
+    );
+
+    set((state) => ({
+      groups: state.groups.filter((group) => group.id !== groupId),
+      members: state.members.filter((member) => member.groupId !== groupId),
+      categories: state.categories.filter((category) => category.groupId !== groupId),
+      tags: state.tags.filter((tag) => tag.groupId !== groupId),
+      expenses: state.expenses.filter((expense) => expense.groupId !== groupId),
+      ...(nextOnboardingGroupId !== undefined ? { onboardingGroupId: nextOnboardingGroupId } : {}),
+    }));
   },
 
   addMember: async (groupId, personId) => {

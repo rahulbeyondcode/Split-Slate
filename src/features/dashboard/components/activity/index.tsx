@@ -30,9 +30,12 @@ const Activity = ({ compact = false, groupId }: PropsType) => {
         </span>
         <span className={compact ? "soft-caption activity-entry-meta" : "soft-caption"}>
           {group?.name} ·{" "}
-          {new Intl.DateTimeFormat(undefined, { day: "numeric", month: "short" }).format(
-            expense.when,
-          )}
+          {new Intl.DateTimeFormat(undefined, {
+            day: "numeric",
+            month: "short",
+            hour: "numeric",
+            minute: "2-digit",
+          }).format(expense.createdAt)}
         </span>
         {compact && (
           <span className="activity-entry-amount money">

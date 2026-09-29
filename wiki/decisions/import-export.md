@@ -69,10 +69,12 @@ or reference mismatch rejects the complete package before writes. Monetary value
 hundredths under [[money-representation-and-rounding]]. The transfer version is unchanged because
 no pre-redesign transfer files or links need compatibility handling.
 
-Source IDs remain in the package so its internal relationships can be validated. Import always
-creates a fresh group UUID and fresh IDs for group-owned Member, Category, Tag, Expense, and
-Attachment records, then rewrites every internal reference. The source group is never overwritten
-or merged.
+CSV and ZIP retain source IDs. Links replace the group ID and group-owned Member, Category, Tag,
+Expense, and Attachment IDs (including every internal reference) with short, sequential strings
+before compression, then reseal the logical dataset. Person IDs remain unchanged for directory
+reconciliation. Both old UUID-bearing `v1` links and compact `v1` links validate and import; the
+link is still unencrypted. Import always creates a fresh group UUID and fresh IDs for group-owned
+records, then rewrites every internal reference. The source group is never overwritten or merged.
 
 ## Formats
 
@@ -87,6 +89,8 @@ or merged.
   before yielding a link. The UI does not present the character count to users.
 - A regression fixture proves that 25 members, 25 categories, 25 tags, and 50 realistic expenses
   fit beneath the implemented URL limit.
+- Link-only short group-owned IDs reduce the compressed URL length; tests compare the result with
+  an old UUID-bearing link for a representative group. Person IDs are not shortened.
 - Current major browser engines support this size, but no guarantee is possible for every chat,
   email, SMS, scanner, or embedded webview. CSV or ZIP is the fallback when generation exceeds the
   limit or the chosen channel cannot carry the link.
@@ -121,6 +125,12 @@ ZIP is always available and is the only format enabled when receipts are selecte
 Creation rejects missing or surplus receipt files. Import requires the manifest and CSV to describe
 the same dataset, checks the declared archive paths, verifies each receipt's SHA-256 digest, and
 rejects undeclared files. A ZIP without receipts remains a valid transfer option.
+Exported group files use the sanitized group name with `.zip` or `.csv`; renaming does not change
+their validity. Export and import screens warn users to keep the downloaded contents unchanged,
+because changes can invalidate the transfer. The group import picker tells users which kind of file
+to find. Choosing a whole-app backup ZIP here shows a **Restore app backup** link instead of a
+missing-CSV error; an unrelated or damaged ZIP produces a plain-language error. Conversely, the
+restore screen directs group ZIP and CSV files to **Import group**; see [[full-backup]].
 
 ## Import Flow
 
@@ -141,6 +151,8 @@ Identity behavior:
   for name and icon and adds the recipient as a member.
 - On an existing device, the current LocalUser is mapped to the chosen member or added as a new
   member when **I'm not listed** is selected.
+- The selected source member is always remapped to the recipient's local Person, even when their
+  source member and Person IDs differ between transfers. Each new group gets a distinct member ID.
 
 If no categories were transferred, the device's configured default categories are created. No tags
 or expenses are created when those sections were omitted. If the destination already has the same
@@ -151,12 +163,21 @@ group name, import uses `Name (2)`, then `Name (3)`, and so on. Existing groups 
 People are global device-local records rather than group-owned records; see
 [[global-people-directory]]. The member selected as the recipient is mapped to LocalUser's self
 Person. For other transferred people, an existing identical ID/name/icon record is reused. An ID
-collision with different details creates a new Person ID instead of overwriting local data; an
-absent ID is inserted from the snapshot.
+collision with different details creates a new Person ID instead of overwriting local data.
+
+A different source Person ID with the same case-insensitive name as a local contact is never merged
+by name alone. Before import, a modal lists the incoming person with the source group and existing
+same-name contacts with their groups. The recipient explicitly chooses **same person** to reuse an
+existing contact, or **different people** and distinct final names. They can rename the incoming
+person, the existing person, or both. Renaming an existing Person also changes their name in every
+other group; the modal warns about this. Same-name people within a transfer also require distinct
+names. Cancel writes nothing. Final names, targets, and one-person-per-group membership are
+revalidated against persisted data inside the import transaction; unresolved or duplicate names
+abort the entire import. A fresh import may still reuse a Person ID with an exact matching snapshot.
 
 The complete import runs in one Dexie transaction across identity, groups, people, members,
 categories, tags, expenses, attachments, and settings. It validates receipt metadata before the
-transaction, remaps IDs, writes every selected record, verifies persisted collection counts, and
+transaction, remaps IDs, applies approved contact renames, writes every selected record, verifies persisted collection counts, and
 then commits. Any failure rolls back all import writes. Zustand is rehydrated only after commit.
 
 A fresh or incomplete device is marked onboarding-complete and opens the imported group. An

@@ -24,6 +24,10 @@
   --positive-soft: #d9f6e8;
   --negative: #c95260;
   --negative-soft: #ffe5e5;
+  --negative-border: #efaeb5;
+  --warning-ink: #76500c;
+  --warning-soft: #fff3cf;
+  --warning-border: #e9c46d;
   --shadow: 0 2px 3px rgb(40 30 80 / 4%), 0 12px 26px rgb(40 30 80 / 3%);
 }
 
@@ -42,6 +46,10 @@
   --positive-soft: #123e2c;
   --negative: #ec858a;
   --negative-soft: #432629;
+  --negative-border: #a34e55;
+  --warning-ink: #f5d488;
+  --warning-soft: #493718;
+  --warning-border: #87662d;
   --shadow: 0 2px 12px rgb(0 0 0 / 12%);
 }
 
@@ -235,6 +243,23 @@ a {
 .btn-quiet {
   background: var(--brand-soft);
   color: var(--brand-ink);
+}
+.page-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  min-height: 40px;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: var(--brand-ink);
+  font-size: 14px;
+  font-weight: 700;
+}
+.page-back-link:hover {
+  color: var(--brand);
+  text-decoration: underline;
 }
 .btn-danger {
   background: var(--negative-soft);
@@ -493,6 +518,43 @@ input:focus-visible + .choice-chip {
   border-radius: 15px;
   padding: 13px 16px;
   font-size: 12px;
+}
+.status-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  border: 1px solid;
+  border-radius: 15px;
+  padding: 13px 16px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.status-banner-content {
+  flex: 1;
+  min-width: 0;
+}
+.status-banner .ui-icon {
+  margin-top: 1px;
+}
+.status-banner--error {
+  background: var(--negative-soft);
+  border-color: var(--negative-border);
+  color: var(--ink);
+}
+.status-banner--error .status-banner-title,
+.status-banner--error .ui-icon,
+.status-banner--error a {
+  color: var(--negative);
+}
+.status-banner--error .status-banner-action {
+  border-color: var(--negative-border);
+  background: var(--surface);
+  color: var(--negative);
+}
+.status-banner--warning {
+  background: var(--warning-soft);
+  border-color: var(--warning-border);
+  color: var(--warning-ink);
 }
 .import-layout {
   display: grid;

@@ -1,5 +1,6 @@
 import { strFromU8, strToU8, unzlibSync, zlibSync } from "fflate";
 
+import { compactLinkIds } from "@/features/import-export/utils/compact-link-ids";
 import { verifyPortableGroup } from "@/features/import-export/utils/transfer-integrity";
 
 import {
@@ -45,7 +46,7 @@ export const encodeTransferPayload = async (bundle: PortableGroup): Promise<stri
   if (validated.manifest.selection.attachments) {
     throw new Error("Receipt attachments require a ZIP transfer");
   }
-  const decoded = strToU8(JSON.stringify(validated));
+  const decoded = strToU8(JSON.stringify(await compactLinkIds(validated)));
   if (decoded.byteLength > MAX_DECODED_LINK_BYTES) throw new TransferLinkTooLargeError();
   return `v1.${encodeBase64Url(zlibSync(decoded, { level: 9 }))}`;
 };

@@ -22,8 +22,7 @@ Mobile renders the main route outlet and a fixed, context-aware footer. It does 
 sidebar or activity panel.
 
 There is no persistent top bar or app chrome header on mobile. The greeting belongs to dashboard
-page content. No theme toggle is implemented; the target design places it in Settings. See
-[[dashboard]] for details.
+page content. The light/dark theme toggle is in Settings. See [[dashboard]] for details.
 
 **Bottom nav** — always visible at the bottom; context-aware, changes items based on the current route:
 
@@ -51,12 +50,27 @@ there is no persistent top bar.
 - Activity panel is visible as a dedicated third column
 - No footer
 
-The desktop activity panel shows recent recorded expenses from the store (limited to the current
-group on its Overview and Expenses routes), with compact rows. On the create-group route it is
+The desktop activity panel shows expenses from all groups on the dashboard, ordered newest-first
+by recording time (`createdAt`) rather than the user-entered expense date (`when`). On a group's
+Overview and Expenses routes it shows only expenses belonging to that group, in the same order,
+with compact rows. On the create-group route it is
 replaced by the live group-draft preview; there is no separate persisted activity entity.
 Its compact activity list is not wrapped in the shared `Surface`: the unlayered `.surface` rules
 take precedence over Tailwind's layered `border-0` and `shadow-none` utilities, leaving an unwanted
 card border/shadow around otherwise unpadded rows. The full Activity page still uses `Surface`.
+
+## Feedback Banners
+
+Import, restore, and export surfaces use the shared `StatusBanner` component and `status-banner`
+styles. Errors use a red background, border, and alert icon with `role="alert"`; warnings use a
+yellow background, border, and warning icon, distinct from neutral purple informational notes.
+The tokens provide readable light- and dark-theme colors. A file opened in the wrong flow gets a
+distinct button within the error banner that opens the correct flow. The general Back control on
+the public restore route instead returns to the previous page. Standalone Import group and Restore
+screens place quiet text-and-arrow Back controls above the page title, separate from file actions.
+The import control returns to the app root; restore returns through browser history. The restore
+confirmation gives the remaining countdown seconds bold emphasis. See [[full-backup]],
+[[import-export]], and [[iconography]].
 
 ---
 

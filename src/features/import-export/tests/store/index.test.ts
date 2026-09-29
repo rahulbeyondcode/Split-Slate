@@ -4,6 +4,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { importGroupTransfer, readGroupExportSource } from "@/features/import-export/store";
 import { buildGroupTransfer } from "@/features/import-export/utils/build-transfer";
+import {
+  decodeTransferPayload,
+  encodeTransferPayload,
+} from "@/features/import-export/utils/export-link";
+import { PersonConflictsError } from "@/features/import-export/utils/person-conflicts";
 import { db } from "@/shared/configs/db";
 
 import {
@@ -81,6 +86,178 @@ describe("readGroupExportSource", () => {
 });
 
 describe("importGroupTransfer", () => {
+  it("imports a compact link with original Person IDs and fresh group-owned IDs", async () => {
+    const { bundle } = await buildGroupTransfer(createExportSource(), {
+      categories: true,
+      tags: true,
+      members: true,
+      expenses: true,
+      attachments: false,
+    });
+    const compact = await decodeTransferPayload(`#${await encodeTransferPayload(bundle)}`);
+    const result = await importGroupTransfer({
+      source: { bundle: compact, attachmentFiles: [] },
+      identity: { type: "member", memberId: compact.members[0].id },
+    });
+    const imported = await db.members.where("groupId").equals(result.group.id).toArray();
+    expect(result.group.id).not.toBe(compact.group.id);
+    expect(imported.map((member) => member.id)).not.toContain(compact.members[0].id);
+    expect((await db.people.toArray()).some((person) => person.id === compact.people[1].id)).toBe(
+      true,
+    );
+    expect(await db.expenses.where("groupId").equals(result.group.id).count()).toBe(1);
+  });
+
+  it("claims two unrelated source Abhi members as one local person without merging memberships", async () => {
+    const firstSource = createExportSource({ expenseCount: 0 });
+    firstSource.people[0].name = "Abhi";
+    firstSource.people[1].name = "Meenu";
+    const selection = { ...GROUP_ONLY_SELECTION, members: true };
+    const first = await buildGroupTransfer(firstSource, selection);
+    const firstResult = await importGroupTransfer({
+      source: first,
+      identity: { type: "member", memberId: first.bundle.members[0].id },
+    });
+    const self = await db.localUser.toCollection().first();
+    expect(self?.name).toBe("Abhi");
+
+    const secondSource = createExportSource({ expenseCount: 0 });
+    secondSource.group.name = "Another Trip";
+    secondSource.people[0] = { id: "different-abhi-id", name: "Abhi", icon: "🦊" };
+    secondSource.people[1] = { id: "different-meenu-id", name: "Meenu", icon: "🐻" };
+    secondSource.members = secondSource.members.map((member, index) => ({
+      ...member,
+      id: `second-member-${index}`,
+      personId: secondSource.people[index].id,
+    }));
+    secondSource.group.frequentPayerIds = secondSource.members.map((member) => member.id);
+    const second = await buildGroupTransfer(secondSource, selection);
+    const identity = { type: "member" as const, memberId: second.bundle.members[0].id };
+    await expect(importGroupTransfer({ source: second, identity })).rejects.toThrow(
+      PersonConflictsError,
+    );
+    expect(await db.groups.count()).toBe(1);
+    const secondResult = await importGroupTransfer({
+      source: second,
+      identity,
+      personResolutions: [
+        {
+          sourcePersonId: second.bundle.people[1].id,
+          type: "separate",
+          name: "Meenu (second trip)",
+        },
+      ],
+    });
+    const firstMembers = await db.members.where("groupId").equals(firstResult.group.id).toArray();
+    const secondMembers = await db.members.where("groupId").equals(secondResult.group.id).toArray();
+    expect(firstMembers[0].id).not.toBe(secondMembers[0].id);
+    expect(firstMembers.some((member) => member.personId === self?.id)).toBe(true);
+    expect(secondMembers.some((member) => member.personId === self?.id)).toBe(true);
+    expect((await db.people.toArray()).map((person) => person.name).sort()).toEqual([
+      "Abhi",
+      "Meenu",
+      "Meenu (second trip)",
+    ]);
+  });
+
+  it("reuses a chosen existing Abhi contact but keeps a different Meenu separate", async () => {
+    await db.localUser.add({ id: "self", name: "Amy", icon: "🐱" });
+    await db.people.add({ id: "self", name: "Amy", icon: "🐱" });
+    const firstSource = createExportSource({ expenseCount: 0 });
+    firstSource.people[0].name = "Abhi";
+    firstSource.people[1].name = "Meenu";
+    const selection = { ...GROUP_ONLY_SELECTION, members: true };
+    const first = await buildGroupTransfer(firstSource, selection);
+    const firstResult = await importGroupTransfer({ source: first, identity: { type: "new" } });
+    const secondSource = createExportSource({ expenseCount: 0 });
+    secondSource.group.name = "Second Trip";
+    secondSource.people[0] = { id: "other-abhi", name: "Abhi", icon: "🦊" };
+    secondSource.people[1] = { id: "other-meenu", name: "Meenu", icon: "🐼" };
+    secondSource.members = secondSource.members.map((member, index) => ({
+      ...member,
+      id: `second-${index}`,
+      personId: secondSource.people[index].id,
+    }));
+    secondSource.group.frequentPayerIds = secondSource.members.map((member) => member.id);
+    const second = await buildGroupTransfer(secondSource, selection);
+    const secondResult = await importGroupTransfer({
+      source: second,
+      identity: { type: "new" },
+      personResolutions: [
+        {
+          sourcePersonId: "other-abhi",
+          type: "reuse",
+          destinationPersonId: firstSource.people[0].id,
+        },
+        { sourcePersonId: "other-meenu", type: "separate", name: "Meenu from second trip" },
+      ],
+    });
+    const firstMembers = await db.members.where("groupId").equals(firstResult.group.id).toArray();
+    const secondMembers = await db.members.where("groupId").equals(secondResult.group.id).toArray();
+    const firstAbhi = firstMembers.find((member) => member.personId === firstSource.people[0].id);
+    const secondAbhi = secondMembers.find((member) => member.personId === firstSource.people[0].id);
+    expect(firstAbhi?.id).toBeDefined();
+    expect(secondAbhi?.id).toBeDefined();
+    expect(firstAbhi?.id).not.toBe(secondAbhi?.id);
+    expect(await db.people.count()).toBe(4);
+  });
+
+  it("rolls back an existing-contact rename if importing later fails", async () => {
+    await db.people.add({ id: "meenu", name: "Meenu", icon: "🐻" });
+    const fixture = createExportSource();
+    fixture.people[1].name = "Meenu";
+    const source = await buildGroupTransfer(fixture, {
+      categories: true,
+      tags: true,
+      members: true,
+      expenses: true,
+      attachments: false,
+    });
+    vi.spyOn(db.expenses, "bulkAdd").mockRejectedValueOnce(new Error("forced failure"));
+    await expect(
+      importGroupTransfer({
+        source,
+        identity: { type: "member", memberId: source.bundle.members[0].id },
+        personResolutions: [
+          { sourcePersonId: fixture.people[1].id, type: "separate", name: "Meenu" },
+        ],
+        existingPersonRenames: [{ personId: "meenu", name: "Meenu from first trip" }],
+      }),
+    ).rejects.toThrow("forced failure");
+    expect(await db.people.get("meenu")).toMatchObject({ name: "Meenu" });
+    expect(await db.groups.count()).toBe(0);
+    expect(await db.localUser.count()).toBe(0);
+  });
+
+  it("renames an existing contact for all its groups when separately importing a namesake", async () => {
+    await db.people.add({ id: "meenu", name: "Meenu", icon: "🐻" });
+    await db.groups.add({
+      id: "old-trip",
+      name: "Old Trip",
+      icon: "🏕️",
+      currency: "INR",
+      createdAt: 1,
+      frequentPayerIds: [],
+    });
+    await db.members.add({ id: "old-meenu", groupId: "old-trip", personId: "meenu" });
+    const fixture = createExportSource({ expenseCount: 0 });
+    fixture.people[1].name = "Meenu";
+    const source = await buildGroupTransfer(fixture, { ...GROUP_ONLY_SELECTION, members: true });
+    const result = await importGroupTransfer({
+      source,
+      identity: { type: "member", memberId: source.bundle.members[0].id },
+      personResolutions: [
+        { sourcePersonId: fixture.people[1].id, type: "separate", name: "Meenu" },
+      ],
+      existingPersonRenames: [{ personId: "meenu", name: "Meenu from Old Trip" }],
+    });
+    expect(await db.people.get("meenu")).toMatchObject({ name: "Meenu from Old Trip" });
+    expect(await db.members.get("old-meenu")).toMatchObject({ personId: "meenu" });
+    const imported = await db.members.where("groupId").equals(result.group.id).toArray();
+    const importedPeople = await db.people.bulkGet(imported.map((member) => member.personId));
+    expect(importedPeople.map((person) => person?.name)).toContain("Meenu");
+  });
+
   it("imports a group-only package with a new identity and default categories", async () => {
     const source = await buildGroupTransfer(createExportSource(), GROUP_ONLY_SELECTION);
     const result = await importGroupTransfer({

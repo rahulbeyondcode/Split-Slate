@@ -39,7 +39,7 @@ The current child screens are:
 - **Balances** — every member's net position and deterministic suggested payments
 - **Members** — add existing/new people, edit linked names/icons, and confirmed guarded removal
 - **Categories & Tags** — add, edit, and guarded-delete controls for both record types
-- **Settings** — editable group name/icon and currency plus the selective Link/CSV/ZIP transfer questionnaire
+- **Settings** — editable group name/icon and currency, selective Link/CSV/ZIP export, and confirmed permanent group deletion; no import action
 
 The group's default route opens Overview. Its "View all expenses" and "View all balances" links open
 the full ledger and per-member balances respectively; Expenses is also available through the sidebar
@@ -123,7 +123,9 @@ Missing or cross-group detail/edit IDs show a not-found state. See [[expense-edi
 
 ### Group Settings and Planned Menu
 
-- Group transfer is implemented in Settings. Only required group information is initially selected;
+- Delete group prompts for irreversible confirmation, atomically removes group-owned records,
+  preserves shared contacts, and returns to the dashboard. See [[group-deletion]] and [[full-backup]].
+- Group export is implemented in Settings. Only required group information is initially selected;
   the sender can add categories, tags, members, expenses, and available receipt attachments.
 - Expenses automatically select and lock categories and members. Receipts automatically select and
   lock expenses and its dependencies. Explanatory dialogs state why; deselection releases the locks.
@@ -131,7 +133,8 @@ Missing or cross-group detail/edit IDs show a not-found state. See [[expense-edi
   ZIP as the complete transfer. Link generation has a 32,000-character ceiling and displays a
   privacy warning; all formats validate the same versioned snapshot. See [[import-export]].
 - CSV/ZIP import is available from `/import`, reached from welcome or dashboard rather than Group
-  Settings. Transfer always creates a new editable group.
+  Settings. Group Settings contains only the export action; import creates a separate editable group
+  and does not belong to the current group.
 - Human-readable Link/PDF/Excel settlement sharing remains a separate future settlement feature.
 - Settings
 - Help

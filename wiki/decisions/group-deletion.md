@@ -1,23 +1,27 @@
 ---
 name: group-deletion
-description: Approved pending design for permanent group deletion and its IndexedDB cascade
+description: Implemented permanent group deletion with an atomic IndexedDB cascade
 metadata:
   type: decisions
 ---
 
 # Decision: Group Deletion
 
-Last updated: 2026-08-12
+Purpose: specify the irreversible group-owned data cascade without deleting shared identity.
+
+Last updated: 2026-09-29
 
 ## Decision
 
-Group deletion will be permanent and cannot be undone. The user must be clearly warned before proceeding.
+Group deletion is permanent and cannot be undone. Group Settings shows an in-app confirmation that
+names the group and warns about loss of expenses, members, categories, tags, and receipts.
+Cancellation makes no changes; after success, navigation returns to the dashboard.
 
-Implementation status: approved design, not yet implemented. The current group store and settings screen do not expose group deletion.
+Implementation status: available in Group Settings. See [[confirmation-dialogs]].
 
 ## Cascade
 
-When implemented, deleting a group must remove every piece of data associated with it from IndexedDB — nothing may be left behind:
+One Dexie transaction removes the group and every associated group-owned row from IndexedDB:
 
 - All `members` with matching `groupId`
 - All `expenses` with matching `groupId`
@@ -26,14 +30,20 @@ When implemented, deleting a group must remove every piece of data associated wi
 - All `tags` with matching `groupId`
 - The `group` record itself
 
-After a successful deletion, the group must disappear from the groups list immediately.
+The global `people` directory, local identity, and data belonging to other groups remain. A failed
+write rolls back the entire deletion; Zustand changes only after the transaction commits, so the
+group disappears from every group list immediately on success. If onboarding settings refer to the
+deleted group, the reference moves to the newest remaining group (`createdAt` descending, ID as a
+tie-breaker), or becomes `null` when no groups remain. Completed onboarding stays completed;
+users can create another group. An empty-group device remains eligible for [[full-backup]].
 
 ## Warning
 
 Before deletion is confirmed, the app must show a clear, irreversible-action warning:
-> "Deleting this group is permanent and cannot be undone. All expenses, members, categories, tags, and attachments will be deleted."
+> "Deleting this group is permanent and cannot be undone. All its expenses, members, categories, tags, and receipts will be deleted."
 
 ## Related
 
 - [[indexeddb-schema]] — tables affected by the cascade
 - [[expense-edit-delete]] — expense-level deletion (individual expense, not whole group)
+- [[state-management]] — persisted-first transaction and store update

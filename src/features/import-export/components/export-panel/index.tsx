@@ -19,6 +19,7 @@ import { transferSelectionSchema } from "@/features/import-export/utils/portable
 import type { TransferSelection } from "@/features/import-export/types/import-export.types";
 
 import Icon from "@/shared/ui/icon";
+import StatusBanner from "@/shared/ui/status-banner";
 
 interface PropsType {
   groupId: string;
@@ -236,21 +237,17 @@ const ExportPanel = ({ groupId, groupName, attachmentCount }: PropsType) => {
 
         <ExportContentSelector attachmentCount={attachmentCount} />
 
-        {error && (
-          <p role="alert" className="rounded border border-red-300 p-3 text-sm text-red-700">
-            {error}
-          </p>
-        )}
+        {error && <StatusBanner variant="error">{error}</StatusBanner>}
         {message && (
           <p role="status" className="rounded border border-blue-200 p-3 text-sm text-blue-800">
             {message}
           </p>
         )}
         {attachmentsSelected && (
-          <p className="rounded border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+          <StatusBanner variant="warning">
             Receipt files cannot be embedded in Link or CSV transfers. ZIP is required for the
             selected receipts.
-          </p>
+          </StatusBanner>
         )}
 
         <div className="grid gap-3 lg:grid-cols-3">
@@ -261,18 +258,19 @@ const ExportPanel = ({ groupId, groupName, attachmentCount }: PropsType) => {
                 Share the selected group content with another device. For larger transfers, use a
                 file instead.
               </p>
-              <p className="mt-2 text-xs text-[var(--negative)]">
+              <StatusBanner variant="warning" className="mt-2">
                 Anyone holding this unencrypted link can decode the selected group data.
-              </p>
+              </StatusBanner>
               {linkUnavailable && (
-                <p
+                <StatusBanner
+                  variant="warning"
                   id="link-unavailable-hint"
-                  className="mt-2 text-xs font-semibold text-[var(--muted)]"
+                  className="mt-2 font-semibold"
                 >
                   {attachmentsSelected
                     ? "Receipt files need a ZIP transfer. Select the button to learn more."
                     : "Too much selected for a link. Select the button to see your options."}
-                </p>
+                </StatusBanner>
               )}
             </div>
             <button
@@ -321,6 +319,10 @@ const ExportPanel = ({ groupId, groupName, attachmentCount }: PropsType) => {
             </button>
           </article>
         </div>
+
+        <StatusBanner variant="warning">
+          Keep downloaded ZIP and CSV files unchanged. Editing them may prevent import.
+        </StatusBanner>
 
         {transferLink?.selectionKey === currentSelectionKey && !linkUnavailable && (
           <div className="flex flex-col gap-2 rounded border border-gray-200 p-4">

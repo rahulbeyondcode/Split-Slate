@@ -7,6 +7,27 @@ Last updated: 2026-09-29
 ---
 
 ## 2026-09-29
+- UPDATED architecture/layout-architecture.md — document top-of-page quiet Back controls for import/restore and emphasized restore countdown
+- UPDATED wiki/index.md — reflect transfer navigation placement in layout summary
+- UPDATED architecture/layout-architecture.md — describe reusable icon-bearing error/warning banners and distinct wrong-file action buttons
+- UPDATED workflows/main-screen.md — remove group-settings import entry and clarify app-level import versus group export
+- UPDATED wiki/index.md — reflect banner icons and group-only export placement
+- UPDATED architecture/layout-architecture.md — document semantic error/warning banners and history-based restore Back; correct implemented Settings theme toggle
+- UPDATED wiki/index.md — reflect feedback banner convention and current theme-control status
+- UPDATED decisions/full-backup.md and decisions/import-export.md — document expected download names, tamper warnings, and links between the distinct group and app file flows
+- UPDATED wiki/index.md — reflect clear file selection and wrong-file navigation in transfer and backup entries
+- UPDATED decisions/group-deletion.md — record implemented atomic cascade, shared-contact preservation, and last-group onboarding behavior
+- UPDATED decisions/full-backup.md — clarify filename-independent ZIP validation, wrong-file errors, and empty-group recovery
+- UPDATED decisions/confirmation-dialogs.md — include group deletion in shared confirmation behavior
+- UPDATED architecture/state-management.md and workflows/main-screen.md — describe group deletion action and Group Settings flow
+- UPDATED wiki/index.md — reflect implemented group deletion and revised backup/confirmation guidance
+- CREATED decisions/full-backup.md — document one versioned local whole-app ZIP and destructive, atomic device restore separately from group transfer
+- UPDATED roadmap/product-roadmap.md — include local full-app recovery and defer optional Drive storage
+- UPDATED wiki/index.md — link the full-backup decision and show its implementation status
+- UPDATED architecture/layout-architecture.md and workflows/dashboard.md — documented recorded-time activity order and dashboard-wide versus group-only right-panel scope; corrected stale dashboard claims
+- UPDATED wiki/index.md — refreshed layout and dashboard navigation summaries and corrected stale dashboard-route status
+- UPDATED decisions/import-export.md — documented link-only group-owned ID compaction and explicit same-name contact resolution before atomic import
+- UPDATED wiki/index.md — reflected compact links and import contact reconciliation in navigation
 - UPDATED decisions/import-export.md — clarified that the dependency modal separates chosen content from automatically included content
 - UPDATED wiki/index.md — refreshed import/export summary for the visual dependency flow
 - UPDATED decisions/import-export.md — documented styled native dependency explanations for auto-selected export content

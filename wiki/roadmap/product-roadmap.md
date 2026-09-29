@@ -126,6 +126,9 @@ Approved or required work:
 - Continue hardening the implemented Link/CSV/ZIP editable snapshot transfer in [[import-export]].
   Selective export, integrity validation, fresh-ID atomic import, identity mapping, and
   receipt-aware ZIP round-trips are implemented. Merge and synchronization are deliberate non-goals.
+- Provide a single local whole-app ZIP download and validated replace-only restore from a fresh or
+  existing device, including receipts and app settings; see [[full-backup]]. Google Drive backup
+  and synchronization remain outside this local scope.
 - Add explicit backup/export reminders without making them spammy.
 - Add installable PWA metadata, service-worker caching, offline-start verification, and an
   update/recovery experience. IndexedDB alone does not make the application an offline PWA.
@@ -183,6 +186,7 @@ Everything in this horizon is a candidate requiring security, recovery, operatio
 product-design work:
 
 - Optional cloud group synchronization
+- Optional Google Drive storage for whole-app backup files (separate from live synchronization)
 - Manually shared, expiring invite links and device-bound membership
 - Conflict handling for concurrent expense edits and deletions
 - Device loss, replacement, and privacy-preserving recovery

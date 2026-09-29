@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
 
+import ResolvePersonIdentities from "@/features/import-export/components/resolve-person-identities";
 import EmojiPicker from "@/shared/components/emoji-picker";
 import Input from "@/shared/components/form-elements/input";
 
@@ -10,14 +11,20 @@ import {
   type ImportIdentityFormValues,
   importIdentitySchema,
 } from "@/features/import-export/utils/import-identity-schema";
+import type { PersonConflict } from "@/features/import-export/utils/person-conflicts";
+import { PersonConflictsError } from "@/features/import-export/utils/person-conflicts";
 import { useStore } from "@/shared/configs/store";
 
 import { PERSON_EMOJIS } from "@/shared/constants/emojis";
 import type {
+  ExistingPersonRename,
   GroupTransferSource,
   ImportIdentity,
+  PersonResolution,
 } from "@/features/import-export/types/import-export.types";
 import type { Group } from "@/shared/types/domain.types";
+
+import StatusBanner from "@/shared/ui/status-banner";
 
 interface PropsType {
   source: GroupTransferSource;
@@ -26,7 +33,7 @@ interface PropsType {
 
 const ImportReview = ({ source, onImported }: PropsType) => {
   const { bundle } = source;
-  const { localUser, groups, init } = useStore();
+  const { localUser, groups, members, people, init } = useStore();
   const methods = useForm<ImportIdentityFormValues>({
     resolver: zodResolver(importIdentitySchema),
     defaultValues: {
@@ -38,6 +45,8 @@ const ImportReview = ({ source, onImported }: PropsType) => {
   const memberId = useWatch({ control: methods.control, name: "memberId" });
   const [importing, setImporting] = useState(false);
   const [error, setError] = useState("");
+  const [conflicts, setConflicts] = useState<PersonConflict[] | null>(null);
+  const [chosenIdentity, setChosenIdentity] = useState<ImportIdentity | null>(null);
 
   const existingNames = new Set(groups.map((group) => group.name));
   let destinationName = bundle.group.name;
@@ -52,22 +61,64 @@ const ImportReview = ({ source, onImported }: PropsType) => {
     return bundle.people.find((person) => person.id === member?.personId)?.name ?? "Unknown member";
   };
 
-  const handleImport = async (values: ImportIdentityFormValues) => {
+  const performImport = async (
+    identity: ImportIdentity,
+    personResolutions?: PersonResolution[],
+    existingPersonRenames?: ExistingPersonRename[],
+  ) => {
     setImporting(true);
     setError("");
     try {
-      const identity: ImportIdentity =
-        values.memberId === "new"
-          ? { type: "new", name: values.name, icon: values.icon }
-          : { type: "member", memberId: values.memberId };
-      const result = await importGroupTransfer({ source, identity });
+      const result = await importGroupTransfer({
+        source,
+        identity,
+        personResolutions,
+        existingPersonRenames,
+      });
       await init();
       onImported(result.group);
     } catch (failure) {
-      setError(failure instanceof Error ? failure.message : "Could not import this group");
+      if (failure instanceof PersonConflictsError) {
+        setConflicts(failure.conflicts);
+      } else {
+        setError(failure instanceof Error ? failure.message : "Could not import this group");
+      }
       setImporting(false);
     }
   };
+  const handleImport = (values: ImportIdentityFormValues) => {
+    const identity: ImportIdentity =
+      values.memberId === "new"
+        ? { type: "new", name: values.name, icon: values.icon }
+        : { type: "member", memberId: values.memberId };
+    setChosenIdentity(identity);
+    void performImport(identity);
+  };
+  const handleConfirmPeople = (
+    personResolutions: PersonResolution[],
+    existingPersonRenames: ExistingPersonRename[],
+  ) => {
+    if (chosenIdentity)
+      void performImport(chosenIdentity, personResolutions, existingPersonRenames);
+  };
+  const handleCancelPeople = () => {
+    setConflicts(null);
+    setChosenIdentity(null);
+    setError("");
+  };
+  const existingGroups = Object.fromEntries(
+    people.map((person) => [
+      person.id,
+      [
+        ...new Set(
+          members
+            .filter((member) => member.personId === person.id)
+            .map((member) => groups.find((group) => group.id === member.groupId)?.name)
+            .filter((name): name is string => Boolean(name)),
+        ),
+      ],
+    ]),
+  );
 
   const counts = bundle.manifest.includedCounts;
   const omittedReceipts = bundle.manifest.sourceCounts.attachments - counts.attachments;
@@ -112,10 +163,10 @@ const ImportReview = ({ source, onImported }: PropsType) => {
             ))}
           </dl>
           {omittedReceipts > 0 && (
-            <p className="note mt-4">
+            <StatusBanner variant="warning" className="mt-4">
               {omittedReceipts} source receipt {omittedReceipts === 1 ? "was" : "were"}{" "}
               intentionally omitted when this transfer was created.
-            </p>
+            </StatusBanner>
           )}
         </section>
 
@@ -147,9 +198,9 @@ const ImportReview = ({ source, onImported }: PropsType) => {
               </label>
             </div>
             {methods.formState.errors.memberId && (
-              <p role="alert" className="mt-3 text-sm money-negative">
+              <StatusBanner variant="error" className="mt-3">
                 {methods.formState.errors.memberId.message}
-              </p>
+              </StatusBanner>
             )}
           </fieldset>
         )}
@@ -183,11 +234,7 @@ const ImportReview = ({ source, onImported }: PropsType) => {
             No categories were transferred. Your default categories will be created.
           </p>
         )}
-        {error && (
-          <p role="alert" className="note money-negative">
-            {error}
-          </p>
-        )}
+        {error && <StatusBanner variant="error">{error}</StatusBanner>}
 
         <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
           <p className="soft-caption">Nothing is imported until you confirm.</p>
@@ -196,6 +243,17 @@ const ImportReview = ({ source, onImported }: PropsType) => {
           </button>
         </div>
       </form>
+      {conflicts && (
+        <ResolvePersonIdentities
+          conflicts={conflicts}
+          sourceGroupName={bundle.group.name}
+          existingGroups={existingGroups}
+          pending={importing}
+          error={error}
+          onCancel={handleCancelPeople}
+          onConfirm={handleConfirmPeople}
+        />
+      )}
     </FormProvider>
   );
 };

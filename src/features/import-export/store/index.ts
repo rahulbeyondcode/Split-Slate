@@ -1,5 +1,11 @@
 import { v4 as uuid } from "uuid";
 
+import { validateFullBackupSnapshot } from "@/features/import-export/utils/full-backup";
+import type {
+  FullBackupSnapshot,
+  FullBackupSource,
+} from "@/features/import-export/utils/full-backup-schema";
+import { planPersonImport } from "@/features/import-export/utils/person-conflicts";
 import { verifyPortableGroup } from "@/features/import-export/utils/transfer-integrity";
 import { db } from "@/shared/configs/db";
 import { normalizeRequiredString } from "@/shared/utils/string-validation";
@@ -87,6 +93,8 @@ const nextGroupName = (requestedName: string, existingNames: Set<string>): strin
 export const importGroupTransfer = async ({
   source,
   identity,
+  personResolutions,
+  existingPersonRenames,
 }: ImportGroupInput): Promise<ImportGroupResult> => {
   const bundle = await verifyPortableGroup(source.bundle);
   const filesById = new Map(
@@ -151,39 +159,42 @@ export const importGroupTransfer = async ({
           ),
         };
       }
+      const selfPerson = { id: localUser.id, name: localUser.name, icon: localUser.icon };
+      const existingPeople = (await db.people.toArray()).filter(
+        (person) => person.id !== localUser.id,
+      );
+      existingPeople.push(selfPerson);
+      const selectedPersonId = selectedMember?.personId;
+      const personPlan = planPersonImport(
+        bundle,
+        existingPeople,
+        localUser.id,
+        selectedPersonId,
+        personResolutions,
+        existingPersonRenames,
+      );
       await db.localUser.put(localUser);
-      await db.people.put({ id: localUser.id, name: localUser.name, icon: localUser.icon });
+      await db.people.put(selfPerson);
+      for (const rename of personPlan.renames) {
+        await db.people.update(rename.personId, { name: rename.name });
+        if (rename.personId === localUser.id) {
+          await db.localUser.update(localUser.id, { name: rename.name });
+        }
+      }
+      if (personPlan.additions.length) await db.people.bulkAdd(personPlan.additions);
 
       const destinationGroupId = uuid();
       const existingNames = new Set((await db.groups.toArray()).map((group) => group.name));
       const groupName = nextGroupName(bundle.group.name, existingNames);
-      const personIds = new Map<string, string>();
-      const selectedPersonId = selectedMember?.personId;
-
-      for (const person of bundle.people) {
-        if (person.id === selectedPersonId) {
-          personIds.set(person.id, localUser.id);
-          continue;
-        }
-        const existing = await db.people.get(person.id);
-        if (existing && existing.name === person.name && existing.icon === person.icon) {
-          personIds.set(person.id, existing.id);
-          continue;
-        }
-        const destinationId = existing ? uuid() : person.id;
-        personIds.set(person.id, destinationId);
-        await db.people.add({ id: destinationId, name: person.name, icon: person.icon });
-      }
-
       const memberIds = new Map(bundle.members.map((member) => [member.id, uuid()]));
       const importedMembers: Member[] = bundle.members.map((member) => ({
         id: memberIds.get(member.id)!,
         groupId: destinationGroupId,
-        personId: personIds.get(member.personId)!,
+        personId: personPlan.ids.get(member.personId)!,
       }));
       let selfMember = selectedMember
         ? importedMembers.find((member) => member.id === memberIds.get(selectedMember.id))
-        : undefined;
+        : importedMembers.find((member) => member.personId === localUser.id);
       if (!selfMember) {
         selfMember = { id: uuid(), groupId: destinationGroupId, personId: localUser.id };
         importedMembers.push(selfMember);
@@ -309,4 +320,75 @@ export const importGroupTransfer = async ({
       return { group, counts: bundle.manifest.includedCounts };
     },
   );
+};
+
+const backupTables = [
+  db.localUser,
+  db.groups,
+  db.people,
+  db.members,
+  db.categories,
+  db.tags,
+  db.expenses,
+  db.attachments,
+  db.settings,
+];
+
+export const readFullBackupSource = async (): Promise<FullBackupSource> =>
+  db.transaction("r", backupTables, async () => {
+    const [localUser, groups, people, members, categories, tags, expenses, attachments, settings] =
+      await Promise.all([
+        db.localUser.toArray(),
+        db.groups.toArray(),
+        db.people.toArray(),
+        db.members.toArray(),
+        db.categories.toArray(),
+        db.tags.toArray(),
+        db.expenses.toArray(),
+        db.attachments.toArray(),
+        db.settings.toArray(),
+      ]);
+    return {
+      localUser,
+      groups,
+      people,
+      members,
+      categories,
+      tags,
+      expenses,
+      attachments,
+      settings,
+    };
+  });
+
+export const restoreFullBackup = async (snapshot: FullBackupSnapshot): Promise<void> => {
+  const { data, attachments } = await validateFullBackupSnapshot(snapshot);
+  await db.transaction("rw", backupTables, async () => {
+    for (const table of backupTables) await table.clear();
+    await db.localUser.bulkAdd(data.localUser);
+    if (data.groups.length) await db.groups.bulkAdd(data.groups);
+    if (data.people.length) await db.people.bulkAdd(data.people);
+    if (data.members.length) await db.members.bulkAdd(data.members);
+    if (data.categories.length) await db.categories.bulkAdd(data.categories);
+    if (data.tags.length) await db.tags.bulkAdd(data.tags);
+    if (data.expenses.length) await db.expenses.bulkAdd(data.expenses);
+    if (attachments.length) await db.attachments.bulkAdd(attachments);
+    await db.settings.bulkAdd(data.settings);
+
+    const counts = await Promise.all(backupTables.map((table) => table.count()));
+    const expected = [
+      data.localUser.length,
+      data.groups.length,
+      data.people.length,
+      data.members.length,
+      data.categories.length,
+      data.tags.length,
+      data.expenses.length,
+      attachments.length,
+      data.settings.length,
+    ];
+    if (counts.some((count, index) => count !== expected[index])) {
+      throw new Error("Restored data could not be verified");
+    }
+  });
 };

@@ -23,6 +23,8 @@ const attachmentIndexSchema = z.array(
   }),
 );
 
+export class AppBackupFileError extends Error {}
+
 const extensionForMimeType = (mimeType: string): string => {
   const extensions: Record<string, string> = {
     "image/gif": "gif",
@@ -95,8 +97,11 @@ export const parsePortableGroupZip = async (bytes: Uint8Array): Promise<GroupTra
   } catch {
     throw new Error("ZIP could not be opened");
   }
+  if (archive["backup.json"] && archive["manifest.json"]) {
+    throw new AppBackupFileError("This ZIP contains a whole-app backup, not a group transfer.");
+  }
   for (const required of ["manifest.json", "group.csv", "attachments/index.json"]) {
-    if (!archive[required]) throw new Error(`ZIP is missing ${required}`);
+    if (!archive[required]) throw new Error("This ZIP is not a SplitSlate group transfer");
   }
 
   let manifestValue: unknown;

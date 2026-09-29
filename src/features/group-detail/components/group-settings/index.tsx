@@ -1,9 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Download, Pencil, TriangleAlert, Upload } from "lucide-react";
+import { Download, Pencil, Trash2, TriangleAlert } from "lucide-react";
 import type { SyntheticEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
-import { Link, useOutletContext } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import { z } from "zod";
 
 import StepCurrency from "@/features/create-group/components/step-currency";
@@ -20,6 +20,7 @@ import { GROUP_EMOJIS } from "@/shared/constants/emojis";
 import type { GroupDetailContext } from "@/features/group-detail/types/group-detail.types";
 
 import Avatar from "@/shared/ui/avatar";
+import ConfirmationDialog from "@/shared/ui/confirmation-dialog";
 import Icon from "@/shared/ui/icon";
 import Surface from "@/shared/ui/surface";
 
@@ -36,9 +37,12 @@ const currencySchema = z.object({
 type CurrencyValues = z.infer<typeof currencySchema>;
 
 const GroupSettings = () => {
+  const navigate = useNavigate();
   const currencyDialogRef = useRef<HTMLDialogElement>(null);
   const { group, groupExpenses, groupMembers } = useOutletContext<GroupDetailContext>();
   const updateGroup = useStore((state) => state.updateGroup);
+  const removeGroup = useStore((state) => state.removeGroup);
+  const [confirmingDeletion, setConfirmingDeletion] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editingCurrency, setEditingCurrency] = useState(false);
   const [pendingCurrency, setPendingCurrency] = useState<string | null>(null);
@@ -100,6 +104,11 @@ const GroupSettings = () => {
   const handleOpenCurrency = () => {
     setCurrencyError("");
     setEditingCurrency(true);
+  };
+  const handleDeleteGroup = async () => {
+    await removeGroup(group.id);
+    setConfirmingDeletion(false);
+    navigate("/dashboard", { replace: true });
   };
 
   return (
@@ -224,18 +233,6 @@ const GroupSettings = () => {
             {showExport ? "Hide export" : "Export group"}
           </button>
         </div>
-        <div className="ui-row">
-          <span className="avatar avatar-square text-[var(--brand-ink)]">
-            <Icon icon={Upload} size={26} />
-          </span>
-          <div className="flex-1">
-            <p className="font-bold">Import</p>
-            <p className="soft-caption">Bring in a CSV or ZIP as a new group</p>
-          </div>
-          <Link to="/import" className="btn btn-secondary">
-            Import group
-          </Link>
-        </div>
       </Surface>
       {showExport && (
         <Surface className="surface-pad">
@@ -249,10 +246,35 @@ const GroupSettings = () => {
           />
         </Surface>
       )}
-      <p className="note">
-        Group deletion is not available yet. Export a backup before making permanent changes to
-        expenses or members.
-      </p>
+      <Surface className="surface-pad flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <p className="font-bold">Delete this group</p>
+          <p className="soft-caption">
+            Permanently removes the group and its data. Shared contacts remain.
+          </p>
+        </div>
+        <button
+          type="button"
+          className="btn btn-danger"
+          onClick={() => setConfirmingDeletion(true)}
+        >
+          <Icon icon={Trash2} size={18} /> Delete group
+        </button>
+      </Surface>
+      <ConfirmationDialog
+        open={confirmingDeletion}
+        title={`Delete ${group.name}?`}
+        description={
+          <>
+            Deleting this group is permanent and cannot be undone. All its expenses, members,
+            categories, tags, and receipts will be deleted. Your shared contacts and other groups
+            will remain. Download an app backup from Settings first if you may need this data.
+          </>
+        }
+        confirmLabel="Delete group permanently"
+        onCancel={() => setConfirmingDeletion(false)}
+        onConfirm={handleDeleteGroup}
+      />
       <dialog
         ref={currencyDialogRef}
         aria-labelledby="currency-confirm-title"

@@ -1,19 +1,39 @@
-import { ChevronRight, LockKeyhole, MoonStar, Pencil } from "lucide-react";
+import { ChevronRight, Download, LockKeyhole, MoonStar, Pencil, RotateCcw } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
 import PersonEditor from "@/features/people/components/person-editor";
 
+import { readFullBackupSource } from "@/features/import-export/store";
+import { downloadFile } from "@/features/import-export/utils/download-file";
+import { createFullBackupZip } from "@/features/import-export/utils/full-backup";
 import { useStore } from "@/shared/configs/store";
 
 import Avatar from "@/shared/ui/avatar";
 import Icon from "@/shared/ui/icon";
+import StatusBanner from "@/shared/ui/status-banner";
 import Surface from "@/shared/ui/surface";
 
 const AppSettings = () => {
   const { localUser, groups, people, setLocalUser } = useStore();
   const [dark, setDark] = useState(() => localStorage.getItem("split-slate-theme") === "dark");
   const [editing, setEditing] = useState(false);
+  const [backingUp, setBackingUp] = useState(false);
+  const [backupError, setBackupError] = useState("");
+  const handleBackup = async () => {
+    setBackingUp(true);
+    setBackupError("");
+    try {
+      const theme = localStorage.getItem("split-slate-theme") === "dark" ? "dark" : "light";
+      const bytes = await createFullBackupZip(await readFullBackupSource(), theme);
+      const fileName = `split-slate-backup-${new Date().toISOString().slice(0, 10)}.zip`;
+      downloadFile(Uint8Array.from(bytes).buffer, "application/zip", fileName);
+    } catch (failure) {
+      setBackupError(failure instanceof Error ? failure.message : "Could not create the backup");
+    } finally {
+      setBackingUp(false);
+    }
+  };
   const handleTheme = () => {
     const next = !dark;
     setDark(next);
@@ -78,6 +98,32 @@ const AppSettings = () => {
         </Surface>
       </section>
       <section>
+        <p className="eyebrow mb-2">Whole-app backup</p>
+        <Surface className="surface-pad flex flex-col gap-3">
+          <p className="soft-caption">
+            Save all your groups, contacts, expenses, receipts, identity, and settings in one ZIP.
+          </p>
+          <StatusBanner variant="warning">
+            The ZIP is not encrypted, so keep it private. Keep the downloaded file unchanged;
+            editing it may prevent restore.
+          </StatusBanner>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled={backingUp}
+              onClick={handleBackup}
+            >
+              <Icon icon={Download} size={18} /> {backingUp ? "Preparing…" : "Download app backup"}
+            </button>
+            <Link to="/restore" className="btn btn-secondary">
+              <Icon icon={RotateCcw} size={18} /> Restore app backup
+            </Link>
+          </div>
+          {backupError && <StatusBanner variant="error">{backupError}</StatusBanner>}
+        </Surface>
+      </section>
+      <section>
         <p className="eyebrow mb-2">Group settings</p>
         <Surface className="px-5">
           {groups.map((group) => (
@@ -85,7 +131,7 @@ const AppSettings = () => {
               <Avatar icon={group.icon} square />
               <span className="flex-1">
                 <strong>{group.name}</strong>
-                <span className="block soft-caption">export · import · details</span>
+                <span className="block soft-caption">export · details</span>
               </span>
               <Icon icon={ChevronRight} size={20} className="text-[var(--muted)]" />
             </Link>
@@ -95,7 +141,10 @@ const AppSettings = () => {
       </section>
       <p className="note flex items-start gap-2">
         <Icon icon={LockKeyhole} size={18} />
-        <span>No accounts or cloud sync. Export a group anytime to move or back it up.</span>
+        <span>
+          No account or cloud sync is needed. Download an app backup, or export one group to share
+          it.
+        </span>
       </p>
     </div>
   );

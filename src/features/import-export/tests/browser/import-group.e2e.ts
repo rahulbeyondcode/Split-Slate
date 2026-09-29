@@ -2,6 +2,7 @@
 
 import { readFile } from "node:fs/promises";
 import { expect, test } from "@playwright/test";
+import { strToU8, zipSync } from "fflate";
 
 import type * as DbModule from "@/shared/configs/db";
 import type * as StoreModule from "@/shared/configs/store";
@@ -122,6 +123,46 @@ test("imports a Link on a fresh device and maps the chosen member to local ident
   expect(result.onboarding).toMatchObject({ complete: true, groupId: result.group?.id });
 });
 
+test("requires a choice for same-name contacts and cancels without writing", async ({ page }) => {
+  await page.getByLabel(/^Members/).check();
+  await page.getByRole("button", { name: "Create transfer link" }).click();
+  const link = await page.getByLabel("Transfer link", { exact: true }).inputValue();
+  await page.evaluate(async () => {
+    const modulePath = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ modulePath)) as typeof DbModule;
+    await db.groups.update("trip", { name: "First Trip" });
+    await db.members.update("b", { personId: "different-bea" });
+    await db.people.delete("friend");
+    await db.people.add({ id: "different-bea", name: "Bea", icon: "🐼" });
+  });
+  await page.goto(link);
+  await page.getByLabel("Amy").check();
+  await page.getByRole("button", { name: "Import group" }).click();
+  const dialog = page.getByRole("dialog", { name: "Resolve matching names" });
+  await expect(dialog).toContainText("First Trip");
+  await expect(dialog).toContainText("Weekend Trip");
+  await dialog.getByRole("button", { name: "Cancel" }).click();
+  await expect(dialog).not.toBeVisible();
+  expect(
+    await page.evaluate(async () => {
+      const modulePath = "/src/shared/configs/db.ts";
+      const { db } = (await import(/* @vite-ignore */ modulePath)) as typeof DbModule;
+      return db.groups.count();
+    }),
+  ).toBe(1);
+
+  await page.getByRole("button", { name: "Import group" }).click();
+  await dialog.getByLabel("Name for the incoming contact").fill("Bea from Weekend Trip");
+  await dialog.getByRole("button", { name: "Confirm and import" }).click();
+  await expect(page.getByRole("heading", { name: "Weekend Trip", exact: true })).toBeVisible();
+  const names = await page.evaluate(async () => {
+    const modulePath = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ modulePath)) as typeof DbModule;
+    return (await db.people.toArray()).map((person) => person.name).sort();
+  });
+  expect(names).toEqual(["Amy", "Bea", "Bea from Weekend Trip"]);
+});
+
 test("imports a group-only CSV through the fresh-device identity step", async ({ page }) => {
   const downloadPromise = page.waitForEvent("download");
   await page.getByRole("button", { name: "Download CSV" }).click();
@@ -135,7 +176,7 @@ test("imports a group-only CSV through the fresh-device identity step", async ({
     await db.delete();
   });
   await page.goto("/import");
-  await page.getByLabel(/Choose CSV or ZIP/).setInputFiles({
+  await page.getByLabel("Choose your group transfer").setInputFiles({
     name: "weekend-trip.csv",
     mimeType: "text/csv",
     buffer: await readFile(path!),
@@ -164,6 +205,9 @@ test("imports a group-only CSV through the fresh-device identity step", async ({
 test("imports a receipt ZIP beside an existing same-name group without overwriting it", async ({
   page,
 }) => {
+  await expect(
+    page.getByText("Keep downloaded ZIP and CSV files unchanged.", { exact: false }).locator(".."),
+  ).toHaveClass(/status-banner--warning/u);
   await page.getByLabel(/^Receipt attachments/).check();
   await page.getByRole("button", { name: "Got it" }).click();
   const downloadPromise = page.waitForEvent("download");
@@ -173,7 +217,7 @@ test("imports a receipt ZIP beside an existing same-name group without overwriti
   expect(path).not.toBeNull();
 
   await page.goto("/import");
-  await page.getByLabel(/Choose CSV or ZIP/).setInputFiles({
+  await page.getByLabel("Choose your group transfer").setInputFiles({
     name: "weekend-trip.zip",
     mimeType: "application/zip",
     buffer: await readFile(path!),
@@ -197,4 +241,32 @@ test("imports a receipt ZIP beside an existing same-name group without overwriti
   expect(result.names).toEqual(["Weekend Trip", "Weekend Trip (2)"]);
   expect(result.attachmentCount).toBe(2);
   expect(result.receiptTexts).toContain("receipt bytes");
+});
+
+test("points an app backup uploaded as a group to Restore app backup", async ({ page }) => {
+  await page.goto("/import");
+  const back = page.getByRole("link", { name: "Back to SplitSlate" });
+  await expect(back).toHaveClass(/page-back-link/u);
+  const backBox = await back.boundingBox();
+  const titleBox = await page.getByRole("heading", { name: "Import a group" }).boundingBox();
+  expect(backBox!.y).toBeLessThan(titleBox!.y);
+  await expect(
+    page.getByText(/Look for your-group-name\.zip or your-group-name\.csv/u),
+  ).toBeVisible();
+  await page.getByLabel("Choose your group transfer").setInputFiles({
+    name: "split-slate-backup-2026-09-29.zip",
+    mimeType: "application/zip",
+    buffer: Buffer.from(zipSync({ "backup.json": strToU8("{}"), "manifest.json": strToU8("{}") })),
+  });
+  const alert = page.getByRole("alert");
+  await expect(alert).toContainText("backs up the whole app");
+  await expect(alert).toHaveClass(/status-banner--error/u);
+  await expect(alert.locator(":scope > svg.ui-icon")).toHaveCount(1);
+  await expect(alert.getByRole("link", { name: "Go to Restore app backup" })).toHaveClass(
+    /status-banner-action/u,
+  );
+  await expect(alert.getByRole("link", { name: "Go to Restore app backup" })).toHaveAttribute(
+    "href",
+    "/restore",
+  );
 });

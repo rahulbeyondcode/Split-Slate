@@ -59,7 +59,7 @@ export const dashboardActivity = (state: AppStore, groupId?: string) =>
   state.expenses
     .filter((expense) => !groupId || expense.groupId === groupId)
     .slice()
-    .sort((a, b) => b.when - a.when)
+    .sort((a, b) => b.createdAt - a.createdAt || a.expenseId.localeCompare(b.expenseId))
     .map((expense: Expense) => {
       const group = state.groups.find((item) => item.id === expense.groupId);
       const category = state.categories.find((item) => item.id === expense.categoryId);

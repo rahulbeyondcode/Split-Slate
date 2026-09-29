@@ -41,6 +41,7 @@ export interface GroupsSlice {
     currency: string,
   ) => Promise<{ group: Group; creatorMember: Member }>;
   updateGroup: (groupId: string, patch: Partial<Group>) => Promise<Group>;
+  removeGroup: (groupId: string) => Promise<void>;
   addMember: (groupId: string, personId: string) => Promise<Member>;
   removeMember: (memberId: string) => Promise<void>;
 }

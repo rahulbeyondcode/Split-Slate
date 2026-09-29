@@ -1,8 +1,9 @@
-import { strFromU8, unzipSync, zipSync } from "fflate";
+import { strFromU8, strToU8, unzipSync, zipSync } from "fflate";
 import { describe, expect, it } from "vitest";
 
 import { buildGroupTransfer } from "@/features/import-export/utils/build-transfer";
 import {
+  AppBackupFileError,
   createPortableGroupZip,
   parsePortableGroupZip,
 } from "@/features/import-export/utils/export-zip";
@@ -41,6 +42,17 @@ describe("portable group ZIP", () => {
     const parsed = await parsePortableGroupZip(await createPortableGroupZip(source));
     expect(parsed.bundle).toEqual(source.bundle);
     expect(parsed.attachmentFiles).toEqual([]);
+  });
+
+  it("recognizes a whole-app backup and rejects unrelated archives as group transfers", async () => {
+    await expect(
+      parsePortableGroupZip(
+        zipSync({ "backup.json": strToU8("{}"), "manifest.json": strToU8("{}") }),
+      ),
+    ).rejects.toThrow(AppBackupFileError);
+    await expect(parsePortableGroupZip(zipSync({ "notes.txt": strToU8("hi") }))).rejects.toThrow(
+      "not a SplitSlate group transfer",
+    );
   });
 
   it("rejects missing, surplus, and corrupted attachment files", async () => {
