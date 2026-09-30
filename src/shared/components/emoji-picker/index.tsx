@@ -67,9 +67,13 @@ const EmojiPicker = ({ name, kind, emojis }: PropsType) => {
   return (
     <div role="group" aria-label="Choose icon" className="emoji-picker" onKeyDown={handleKeyDown}>
       <div className="emoji-picker-heading">
-        <span className="emoji-picker-selected">
+        <span
+          className="emoji-picker-selected"
+          role="img"
+          aria-label={`Selected icon: ${selectedOption?.label ?? "Unknown"}`}
+          title={selectedOption?.label ?? "Choose an icon"}
+        >
           <EmojiImage icon={selected} kind={kind} />
-          <span className="truncate">{selectedOption?.label ?? "Choose an icon"}</span>
         </span>
         <button
           type="button"

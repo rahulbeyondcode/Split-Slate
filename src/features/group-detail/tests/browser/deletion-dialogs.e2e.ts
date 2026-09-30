@@ -65,16 +65,26 @@ test("guards referenced categories and confirms deletion of unused categories", 
   const categories = page
     .locator(".surface")
     .filter({ has: page.getByRole("heading", { name: "Categories" }) });
-  await categories
+  const foodDelete = categories
     .getByRole("listitem")
     .filter({ hasText: "Food" })
-    .getByRole("button", { name: "Delete" })
-    .click();
-  await expect(categories.getByRole("alert")).toContainText("Reassign those expenses");
+    .getByRole("button", { name: "Delete" });
+  await expect(foodDelete).toHaveClass(/btn-blocked/u);
+  await expect(foodDelete).toHaveAttribute("aria-describedby", "blocked-category-food");
+  await foodDelete.click();
+  const blocked = page.getByRole("dialog", { name: "Cannot delete Food" });
+  await expect(blocked).toContainText("Reassign those expenses");
+  await expect(blocked.getByRole("link", { name: "View expenses" })).toHaveAttribute(
+    "href",
+    "/groups/trip/expenses?categoryIds=food",
+  );
   await expect(page.getByRole("dialog", { name: /Delete Food/u })).toHaveCount(0);
+  await blocked.getByRole("button", { name: "Close" }).click();
 
   const travel = categories.getByRole("listitem").filter({ hasText: "Travel" });
-  await travel.getByRole("button", { name: "Delete" }).click();
+  const travelDelete = travel.getByRole("button", { name: "Delete" });
+  await expect(travelDelete).toHaveClass(/btn-danger/u);
+  await travelDelete.click();
   const confirmation = page.getByRole("dialog", { name: "Delete Travel?" });
   await expect(confirmation).toBeVisible();
   await confirmation.getByRole("button", { name: "Cancel" }).click();
@@ -84,6 +94,32 @@ test("guards referenced categories and confirms deletion of unused categories", 
   await expect(travel).toHaveCount(0);
   await page.reload();
   await expect(categories.getByText("Travel", { exact: true })).toHaveCount(0);
+  await foodDelete.click();
+  await expect(page.getByRole("dialog", { name: "Cannot delete Food" })).toContainText(
+    "Add another category and reassign those expenses",
+  );
+});
+
+test("explains why the last unused category cannot be deleted", async ({ page }) => {
+  await page.evaluate(async () => {
+    const modulePath = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ modulePath)) as typeof DbModule;
+    await db.expenses.delete("lunch");
+    await db.categories.delete("travel");
+  });
+  await page.reload();
+
+  const categories = page
+    .locator(".surface")
+    .filter({ has: page.getByRole("heading", { name: "Categories" }) });
+  const foodDelete = categories.getByRole("listitem").getByRole("button", { name: "Delete" });
+  await expect(foodDelete).toHaveClass(/btn-blocked/u);
+  await foodDelete.click();
+  const blocked = page.getByRole("dialog", { name: "Cannot delete Food" });
+  await expect(blocked).toContainText("Add another category before deleting this one");
+  await expect(blocked.getByRole("link", { name: "View expenses" })).toHaveCount(0);
+  await blocked.getByRole("button", { name: "Close" }).click();
+  await expect(categories.getByText("Food", { exact: true })).toBeVisible();
 });
 
 test("confirms removing a tag from expenses without deleting them", async ({ page }) => {
@@ -91,6 +127,7 @@ test("confirms removing a tag from expenses without deleting them", async ({ pag
     .locator(".surface")
     .filter({ has: page.getByRole("heading", { name: "Tags" }) });
   const summer = tags.getByRole("listitem").filter({ hasText: "Summer" });
+  await expect(summer.getByRole("button", { name: "Delete" })).toHaveClass(/btn-danger/u);
   await summer.getByRole("button", { name: "Delete" }).click();
   const confirmation = page.getByRole("dialog", { name: "Delete Summer?" });
   await expect(confirmation).toContainText("removed from 1 expense");

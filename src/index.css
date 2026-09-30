@@ -198,22 +198,27 @@ a {
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: 10px;
 }
 .emoji-picker-heading {
   flex-wrap: wrap;
   justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
 }
 .emoji-picker-selected {
-  font-size: 13px;
-  font-weight: 700;
+  width: 88px;
+  height: 88px;
+  flex: none;
+  justify-content: center;
+  border: 2px solid var(--brand);
+  border-radius: 22px;
+  background: var(--brand-soft);
+  box-shadow: 0 0 0 3px var(--surface) inset;
 }
 .emoji-picker-selected .emoji-image {
-  width: 38px;
-  height: 38px;
-  padding: 3px;
-  border-radius: 12px;
-  background: var(--brand-soft);
+  width: 68px;
+  height: 68px;
 }
 .emoji-picker-browse {
   min-height: 36px;

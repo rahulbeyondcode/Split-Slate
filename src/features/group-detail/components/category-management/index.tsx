@@ -1,8 +1,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Pencil, Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
-import { useOutletContext } from "react-router-dom";
+import { Link, useOutletContext } from "react-router-dom";
 import { z } from "zod";
 
 import EmojiPicker from "@/shared/components/emoji-picker";
@@ -32,8 +32,10 @@ const CategoryManagement = () => {
   const { addCategory, updateCategory, removeCategory } = useStore();
   const [categoryMode, setCategoryMode] = useState<CategoryMode>(null);
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
+  const [blockedCategoryId, setBlockedCategoryId] = useState<string | null>(null);
   const [confirmCategoryId, setConfirmCategoryId] = useState<string | null>(null);
   const [categoryError, setCategoryError] = useState<string | null>(null);
+  const blockedDialogRef = useRef<HTMLDialogElement>(null);
   const categoryForm = useForm<CategoryFormValues>({
     resolver: zodResolver(categoryFormSchema),
     defaultValues: { name: "", icon: CATEGORY_EMOJIS[0] },
@@ -91,15 +93,12 @@ const CategoryManagement = () => {
 
   const handleDeleteCategory = (category: Category) => {
     setCategoryError(null);
-    const isInUse = groupExpenses.some((expense) => expense.categoryId === category.id);
-    if (isInUse) {
-      setCategoryError(
-        `“${category.name}” is used by an expense. Reassign those expenses before deleting it.`,
-      );
-      return;
-    }
-    if (groupCategories.length <= 1) {
-      setCategoryError("A group needs at least one category");
+    if (
+      groupExpenses.some((expense) => expense.categoryId === category.id) ||
+      groupCategories.length <= 1
+    ) {
+      setBlockedCategoryId(category.id);
+      blockedDialogRef.current?.showModal();
       return;
     }
 
@@ -112,6 +111,10 @@ const CategoryManagement = () => {
     if (editingCategoryId === confirmCategoryId) handleCancelCategoryForm();
     setConfirmCategoryId(null);
   };
+  const blockedCategory = groupCategories.find((category) => category.id === blockedCategoryId);
+  const blockedExpenseCount = groupExpenses.filter(
+    (expense) => expense.categoryId === blockedCategoryId,
+  ).length;
   const confirmCategory = groupCategories.find((category) => category.id === confirmCategoryId);
 
   return (
@@ -175,35 +178,80 @@ const CategoryManagement = () => {
       )}
 
       <ul>
-        {groupCategories.map((category) => (
-          <li key={category.id} className="ui-row flex-wrap">
-            <span className="flex min-w-0 flex-1 basis-40 items-center gap-3 font-bold">
-              <Avatar icon={category.icon} square className="!h-9 !w-9" />
-              <span className="min-w-0 truncate">{category.name}</span>
-              <span className="soft-caption shrink-0">
-                {groupExpenses.filter((expense) => expense.categoryId === category.id).length}{" "}
-                expenses
+        {groupCategories.map((category) => {
+          const isBlocked =
+            groupCategories.length <= 1 ||
+            groupExpenses.some((expense) => expense.categoryId === category.id);
+          return (
+            <li key={category.id} className="ui-row flex-wrap">
+              <span className="flex min-w-0 flex-1 basis-40 items-center gap-3 font-bold">
+                <Avatar icon={category.icon} square className="!h-9 !w-9" />
+                <span className="min-w-0 truncate">{category.name}</span>
+                <span className="soft-caption shrink-0">
+                  {groupExpenses.filter((expense) => expense.categoryId === category.id).length}{" "}
+                  expenses
+                </span>
               </span>
-            </span>
-            <div className="ml-auto flex shrink-0 items-center gap-3">
-              <button
-                type="button"
-                onClick={() => handleEditCategory(category)}
-                className="btn btn-secondary !px-3"
-              >
-                <Icon icon={Pencil} size={17} /> Edit
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDeleteCategory(category)}
-                className="btn btn-danger !px-3"
-              >
-                <Icon icon={Trash2} size={17} /> Delete
-              </button>
-            </div>
-          </li>
-        ))}
+              <div className="ml-auto flex shrink-0 items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => handleEditCategory(category)}
+                  className="btn btn-secondary !px-3"
+                >
+                  <Icon icon={Pencil} size={17} /> Edit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDeleteCategory(category)}
+                  aria-describedby={isBlocked ? `blocked-category-${category.id}` : undefined}
+                  className={`btn !px-3 ${isBlocked ? "btn-blocked" : "btn-danger"}`}
+                >
+                  <Icon icon={Trash2} size={17} /> Delete
+                </button>
+                {isBlocked && (
+                  <span id={`blocked-category-${category.id}`} className="sr-only">
+                    Cannot delete this category yet. Select to learn why.
+                  </span>
+                )}
+              </div>
+            </li>
+          );
+        })}
       </ul>
+      <dialog
+        ref={blockedDialogRef}
+        aria-labelledby="blocked-category-title"
+        aria-describedby="blocked-category-description"
+        onClose={() => setBlockedCategoryId(null)}
+        className="m-auto w-full max-w-md rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-6 text-[var(--ink)] shadow-2xl backdrop:bg-black/60"
+      >
+        <h2 id="blocked-category-title" className="section-title">
+          Cannot delete {blockedCategory?.name ?? "this category"}
+        </h2>
+        <p id="blocked-category-description" className="mt-3 text-sm leading-relaxed">
+          {blockedExpenseCount > 0
+            ? `${blockedCategory?.name ?? "This category"} is used by ${blockedExpenseCount} ${blockedExpenseCount === 1 ? "expense" : "expenses"}. ${groupCategories.length <= 1 ? "Add another category and reassign those expenses" : "Reassign those expenses"} before deleting it.`
+            : "A group needs at least one category. Add another category before deleting this one."}
+        </p>
+        <div className="mt-5 flex flex-wrap justify-end gap-2">
+          <button
+            type="button"
+            autoFocus
+            onClick={() => blockedDialogRef.current?.close()}
+            className="btn btn-secondary"
+          >
+            Close
+          </button>
+          {blockedCategory && blockedExpenseCount > 0 && (
+            <Link
+              to={`/groups/${group.id}/expenses?${new URLSearchParams({ categoryIds: blockedCategory.id })}`}
+              className="btn btn-primary"
+            >
+              View expenses
+            </Link>
+          )}
+        </div>
+      </dialog>
       <ConfirmationDialog
         open={Boolean(confirmCategory)}
         title={`Delete ${confirmCategory?.name ?? "category"}?`}

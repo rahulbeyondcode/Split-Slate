@@ -96,7 +96,8 @@ test("distinguishes the snapshot from the complete expense history", async ({ pa
   ).toBeVisible();
   await expect(page.getByText("Your position in this group")).toBeVisible();
   await expect(page.getByRole("heading", { name: "At a glance" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Recent expenses" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Members (1)" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Recent expenses (5)" })).toBeVisible();
   await expect(page.getByText("Expense 5", { exact: true })).toBeVisible();
   await expect(page.getByText("Expense 2", { exact: true })).toHaveCount(0);
   await expect(page.getByRole("searchbox", { name: "Search expenses" })).toHaveCount(0);

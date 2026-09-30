@@ -41,7 +41,7 @@ const GroupOverview = () => {
       <div className="responsive-grid">
         <Surface className="surface-pad">
           <div className="mb-4 flex items-center justify-between gap-3">
-            <h2 className="section-title">Members</h2>
+            <h2 className="section-title">Members ({groupMembers.length})</h2>
             <Link
               to={`/groups/${group.id}/members`}
               className="text-sm font-bold text-[var(--brand-ink)]"
@@ -76,7 +76,7 @@ const GroupOverview = () => {
         </Surface>
       </div>
       <div className="flex items-center justify-between gap-3">
-        <h2 className="section-title">Recent expenses</h2>
+        <h2 className="section-title">Recent expenses ({groupExpenses.length})</h2>
         <Link
           to={`/groups/${group.id}/expenses`}
           className="text-sm font-bold text-[var(--brand-ink)]"

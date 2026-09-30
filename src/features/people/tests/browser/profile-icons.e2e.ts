@@ -45,10 +45,24 @@ test("offers all profile images while creating an account", async ({ page }) => 
     "aria-pressed",
     "true",
   );
+  await expect(picker.getByRole("button", { name: "Icon Fox" })).toHaveAttribute("title", "Fox");
+  const selected = picker.getByRole("img", { name: "Selected icon: Fox" });
+  await expect(selected).toHaveAttribute("title", "Fox");
+  await expect(picker.getByText("Fox", { exact: true })).toHaveCount(0);
+  const selectedBox = await selected.boundingBox();
+  const quickBox = await picker.getByRole("button", { name: "Icon Fox" }).boundingBox();
+  expect(selectedBox).not.toBeNull();
+  expect(quickBox).not.toBeNull();
+  expect(selectedBox!.width).toBeGreaterThan(quickBox!.width);
+  expect(quickBox!.y).toBeGreaterThan(selectedBox!.y + selectedBox!.height);
   await picker.getByRole("button", { name: "Browse more" }).click();
   await picker.getByRole("searchbox", { name: "Search icons" }).fill("woman teacher");
   await expect(picker.getByText("1 icon")).toBeVisible();
   await picker.getByRole("button", { name: "Icon Woman teacher" }).click();
+  await expect(picker.getByRole("img", { name: "Selected icon: Woman teacher" })).toHaveAttribute(
+    "title",
+    "Woman teacher",
+  );
   await page.getByRole("button", { name: "Save and Proceed" }).click();
   const icon = await page.evaluate(async () => {
     const path = "/src/shared/configs/db.ts";
