@@ -1,6 +1,6 @@
 # Dashboard View
 
-Last updated: 2026-09-26
+Last updated: 2026-10-01
 
 **Purpose:** Record the current dashboard implementation and the target cross-group summary design.
 
@@ -9,23 +9,33 @@ Last updated: 2026-09-26
 The dashboard currently renders:
 
 - A time-aware greeting using the local user's name and icon
+- The current local date in `12-Jan-2026` form; native date-entry controls elsewhere retain their
+  browser-managed presentation and stored timestamps are unchanged
 - A New Group link
-- An Import Group link to the public Link/CSV/ZIP intake route
+- An Import Group link in the empty state; app-level Settings also links to the public Link/CSV/ZIP
+  intake route after groups exist
 - An empty-state prompt when there are no groups
 - Per-group balance cards and an overall balance summary (or a mixed-currency notice)
-- Unsettled-balance and category-spending previews
+- Unsettled-balance and category-spending previews; the desktop unsettled preview has a labelled
+  View all link and arrow to `/unsettled`
 - Links from each group row to that group's Overview route
 
 The desktop right pane shows persisted expense activity from every group in recording order
 (`createdAt` descending), with the recording date and time shown beside the group name. On a
-group's Overview and Expenses routes, that pane shows only that group's expenses. The dedicated
+group's Overview route, that pane shows only that group's expenses; it is absent from the group's
+Expenses route. The dedicated
 Activity route shows the same cross-group feed; tablet renders no separate activity section.
+Compact desktop rows show the group and date/time on separate lines; longer titles and group names
+wrap for more visible content, with no hover/focus tooltip.
+Rendered dates use `DD-MMM-YYYY` and rendered times use padded 12-hour `hh:mm AM/PM`; expense
+detail labels occurred date and time separately and places recording metadata between the banner
+and the Paid by/Split cards.
 Each group link opens the nested group-detail route, whose Overview shows the local user's net
 position, total group spend, category count, up to six featured members, and three recent expenses.
 
-The empty state offers both **Create your first group** and **Import an existing group**. Import
-validates the package, shows count-only review and identity selection, and creates a separate
-editable group. See [[import-export]].
+The empty state offers both **Create your first group** and **Import an existing group**. Settings
+keeps Import group reachable once groups exist. Import validates the package, shows count-only
+review and identity selection, and creates a separate editable group. See [[import-export]].
 
 ## Target Design
 

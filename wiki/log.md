@@ -2,11 +2,43 @@
 
 Reverse-chronological record of all wiki changes.
 
-Last updated: 2026-09-30
+Last updated: 2026-10-01
 
 ---
 
+## 2026-10-01
+- UPDATED wiki/index.md — mark export-style group duplication as pending in implementation status
+- UPDATED roadmap/product-roadmap.md — add group duplication alongside, not instead of, browser-suite repair as a next task
+- UPDATED decisions/import-export.md — distinguish planned export-style local group clone from generated transfer formats
+- UPDATED wiki/index.md — surface both next tasks and the planned same-device duplication flow
+- UPDATED architecture/layout-architecture.md and workflows/dashboard.md — remove activity tooltip documentation while retaining wrapped panel rows
+- UPDATED wiki/index.md — remove activity tooltip claim from layout navigation
+- UPDATED architecture/layout-architecture.md and workflows/dashboard.md — explain wrapping activity rows and full-text hover/focus tooltip
+- UPDATED wiki/index.md — surface readable desktop activity metadata and tooltip behavior
+- UPDATED decisions/iconography.md — document existing 3D PNG illustrations on both route-error states
+- UPDATED wiki/index.md — surface route-error imagery in iconography navigation
+- UPDATED architecture/layout-architecture.md and wiki/index.md — clarify conditional two/three-pane desktop shell
+- UPDATED architecture/layout-architecture.md and workflows/dashboard.md — restrict desktop activity panel to Dashboard and Group Overview while keeping create-group preview; correct recording metadata placement
+- UPDATED wiki/index.md — reflect dashboard/overview activity visibility
+- UPDATED workflows/main-screen.md — locate quiet recording metadata between detail banner and breakdown cards
+- UPDATED wiki/index.md — reflect expense-detail recording metadata placement
+- UPDATED architecture/layout-architecture.md — document root-route fallback for missing pages and unexpected errors
+- UPDATED wiki/index.md — surface the route-error fallback in layout navigation
+- UPDATED decisions/expense-edit-delete.md — document reference-only immediate category/tag changes on expense detail
+- UPDATED workflows/tag-management.md — document always-available tag popover and modal creation with automatic attachment
+- UPDATED workflows/category-management.md — document active-category detail dropdown and immediate save
+- UPDATED workflows/main-screen.md — distinguish occurred and recorded dates, quick edits, and formatted ledger dates
+- UPDATED workflows/dashboard.md — document consistent rendered date/time format across dashboard and activity
+- UPDATED wiki/index.md — synchronize quick-edit and date-display navigation summaries
+- UPDATED workflows/filtering.md — document sectioned eight-mode sorting and exact multi-tag-set grouping
+- UPDATED wiki/index.md — surface the expanded sort modes and grouping rule
+- UPDATED workflows/filtering.md — document four URL-backed expense sort orders and their filter interaction
+- UPDATED wiki/index.md — surface implemented expense sorting in filtering navigation and status
+
 ## 2026-09-30
+- UPDATED workflows/main-screen.md — document explicit current-time shortcut with required time and selected-date preservation
+- UPDATED workflows/dashboard.md — document persistent Settings import access and labelled desktop unsettled navigation
+- UPDATED wiki/index.md — reflect expense time shortcut and dashboard navigation updates
 - UPDATED architecture/layout-architecture.md — document the persistent main-pane scroll container and root route reset across desktop/mobile and public pages
 - UPDATED wiki/index.md — surface route scroll-reset behavior in layout navigation
 - UPDATED roadmap/product-roadmap.md — prioritize investigation of 18 expense-filter and import/export browser failures after the 74/92 full-suite run

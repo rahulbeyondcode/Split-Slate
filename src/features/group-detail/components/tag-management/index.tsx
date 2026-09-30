@@ -110,7 +110,7 @@ const TagManagement = () => {
       <div className="flex items-center justify-between gap-4">
         <div>
           <h2 className="section-title">Tags</h2>
-          <p className="soft-caption">free-form · group-scoped</p>
+          <p className="soft-caption">{groupTags.length} available · free-form · group-scoped</p>
         </div>
         {tagMode !== "add" && (
           <button type="button" onClick={handleAddTagClick} className="btn btn-secondary">

@@ -2,7 +2,7 @@
 
 Purpose: keep interface actions and navigation legible and aligned across devices without replacing user-selected identities.
 
-Last updated: 2026-09-30
+Last updated: 2026-10-01
 
 ## Decision
 
@@ -10,6 +10,11 @@ Interface navigation, controls, status affordances, and empty states use Lucide 
 the shared `Icon` component. Standard control icons are 18–20px, navigation icons 20–22px, and
 empty-state icons 30px in a consistent 64px badge. Decorative icons are hidden from assistive
 technology; the accompanying control text or accessible label supplies the action name.
+
+The route error screen uses existing local Fluent-style 3D PNGs as larger illustrations: a
+magnifying glass for missing pages and hammer-and-wrench for unexpected errors. Their image alt
+text identifies each illustration, while the heading and body explain the failure and recovery.
+The action buttons continue to use Lucide icons.
 
 User-selected icons are local 256×256 transparent PNGs from `public/emoji-icons/`. The reusable
 image picker shows a short featured set, then a searchable gallery. Profile pictures are exclusively

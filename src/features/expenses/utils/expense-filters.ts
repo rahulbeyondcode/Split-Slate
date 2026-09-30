@@ -3,7 +3,7 @@ import { z } from "zod";
 import { parseMoney } from "@/shared/utils/money";
 
 import type { ExpenseFilterValues } from "@/features/expenses/types/expense-filters.types";
-import type { Expense } from "@/shared/types/domain.types";
+import type { Category, Expense, Tag } from "@/shared/types/domain.types";
 
 export const SPLIT_FILTER_OPTIONS = [
   { value: "equal", label: "Equal" },
@@ -12,6 +12,48 @@ export const SPLIT_FILTER_OPTIONS = [
   { value: "percentage", label: "Percentage" },
   { value: "adjustment", label: "Adjustment" },
 ] as const;
+
+export const EXPENSE_SORT_SECTIONS = [
+  {
+    label: "Date",
+    options: [
+      { value: "newest", label: "Newest first" },
+      { value: "oldest", label: "Oldest first" },
+    ],
+  },
+  {
+    label: "Price",
+    options: [
+      { value: "highest", label: "High to low" },
+      { value: "lowest", label: "Low to high" },
+    ],
+  },
+  {
+    label: "Name",
+    options: [
+      { value: "name-asc", label: "A–Z" },
+      { value: "name-desc", label: "Z–A" },
+    ],
+  },
+  {
+    label: "Group by",
+    options: [
+      { value: "category", label: "Same category" },
+      { value: "tags", label: "Same tags" },
+    ],
+  },
+] as const;
+
+const expenseSortSchema = z.enum([
+  "newest",
+  "oldest",
+  "highest",
+  "lowest",
+  "name-asc",
+  "name-desc",
+  "category",
+  "tags",
+]);
 
 export const expenseFilterFieldsSchema = z.object({
   name: z.string(),
@@ -24,6 +66,7 @@ export const expenseFilterFieldsSchema = z.object({
   splitTypes: z.array(z.enum(["equal", "amount", "shares", "percentage", "adjustment"])),
   minAmount: z.string(),
   maxAmount: z.string(),
+  sort: expenseSortSchema,
 });
 
 export const createExpenseFilterDefaults = (): ExpenseFilterValues => ({
@@ -37,6 +80,7 @@ export const createExpenseFilterDefaults = (): ExpenseFilterValues => ({
   splitTypes: [],
   minAmount: "",
   maxAmount: "",
+  sort: "newest",
 });
 
 const OPTION_FIELDS = ["categoryIds", "tagIds", "payerIds", "memberIds", "splitTypes"] as const;
@@ -44,6 +88,8 @@ const TEXT_FIELDS = ["name", "dateFrom", "dateTo", "minAmount", "maxAmount"] as 
 
 export const readExpenseFilterParams = (params: URLSearchParams): ExpenseFilterValues => {
   const values = createExpenseFilterDefaults();
+  const sort = expenseSortSchema.safeParse(params.get("sort"));
+  if (sort.success) values.sort = sort.data;
   for (const field of TEXT_FIELDS) values[field] = params.get(field) ?? "";
   for (const field of OPTION_FIELDS) {
     const selected = [...new Set(params.getAll(field).filter(Boolean))];
@@ -61,6 +107,7 @@ export const readExpenseFilterParams = (params: URLSearchParams): ExpenseFilterV
 
 export const writeExpenseFilterParams = (values: ExpenseFilterValues): URLSearchParams => {
   const params = new URLSearchParams();
+  if (values.sort !== "newest") params.set("sort", values.sort);
   for (const field of TEXT_FIELDS) {
     if (values[field]) params.set(field, values[field]);
   }
@@ -193,5 +240,69 @@ export const filterExpenses = (
       (minimum === undefined || total >= minimum) &&
       (maximum === undefined || total <= maximum)
     );
+  });
+};
+
+export const sortExpenses = (
+  expenses: Expense[],
+  sort: ExpenseFilterValues["sort"],
+  categories: Category[] = [],
+  tags: Tag[] = [],
+): Expense[] => {
+  const totalPaid = (expense: Expense) =>
+    expense.transactions.paid.reduce((total, row) => total + row.amount, 0);
+  const compareNames = (a: string, b: string) =>
+    a.localeCompare(b, undefined, { sensitivity: "base" });
+  const categoryNames = new Map(categories.map((category) => [category.id, category.name]));
+  const tagNames = new Map(tags.map((tag) => [tag.id, tag.name]));
+  const tagGroups =
+    sort === "tags"
+      ? new Map(
+          expenses.map((expense) => [
+            expense.expenseId,
+            expense.tagIds
+              .map((id) => ({ id, name: tagNames.get(id) ?? id }))
+              .sort((a, b) => compareNames(a.name, b.name) || a.id.localeCompare(b.id)),
+          ]),
+        )
+      : new Map<string, { id: string; name: string }[]>();
+
+  const compareCategories = (a: Expense, b: Expense) => {
+    const aName = categoryNames.get(a.categoryId);
+    const bName = categoryNames.get(b.categoryId);
+    if (!aName || !bName) return aName ? -1 : bName ? 1 : a.categoryId.localeCompare(b.categoryId);
+    return compareNames(aName, bName) || a.categoryId.localeCompare(b.categoryId);
+  };
+
+  const compareTagGroups = (a: Expense, b: Expense) => {
+    const aTags = tagGroups.get(a.expenseId) ?? [];
+    const bTags = tagGroups.get(b.expenseId) ?? [];
+    if (!aTags.length || !bTags.length) return aTags.length ? -1 : bTags.length ? 1 : 0;
+    for (let i = 0; i < Math.min(aTags.length, bTags.length); i++) {
+      const difference =
+        compareNames(aTags[i].name, bTags[i].name) || aTags[i].id.localeCompare(bTags[i].id);
+      if (difference) return difference;
+    }
+    return aTags.length - bTags.length;
+  };
+
+  return [...expenses].sort((a, b) => {
+    const difference =
+      sort === "oldest"
+        ? a.when - b.when
+        : sort === "highest"
+          ? totalPaid(b) - totalPaid(a)
+          : sort === "lowest"
+            ? totalPaid(a) - totalPaid(b)
+            : sort === "name-asc"
+              ? compareNames(a.expenseName, b.expenseName)
+              : sort === "name-desc"
+                ? compareNames(b.expenseName, a.expenseName)
+                : sort === "category"
+                  ? compareCategories(a, b)
+                  : sort === "tags"
+                    ? compareTagGroups(a, b)
+                    : b.when - a.when;
+    return difference || b.when - a.when || a.expenseId.localeCompare(b.expenseId);
   });
 };

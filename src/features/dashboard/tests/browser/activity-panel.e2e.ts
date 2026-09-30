@@ -90,7 +90,7 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/dashboard");
 });
 
-test("shows all groups by recording time, then only the current group", async ({ page }) => {
+test("shows activity on dashboard and group overview, but not group expenses", async ({ page }) => {
   if ((page.viewportSize()?.width ?? 0) < 1080) {
     await page.goto("/activity");
     const feed = page.locator("main").getByRole("link", { name: /recording/u });
@@ -106,14 +106,11 @@ test("shows all groups by recording time, then only the current group", async ({
   await expect(entries.nth(0)).toContainText("Later recording");
   await expect(entries.nth(0)).toContainText("Second Trip");
   await expect(entries.nth(1)).toContainText("Earlier recording");
-  const recordedAt = await page.evaluate(() =>
-    new Intl.DateTimeFormat(undefined, {
-      day: "numeric",
-      month: "short",
-      hour: "numeric",
-      minute: "2-digit",
-    }).format(Date.UTC(2026, 8, 20, 12)),
-  );
+  const recordedAt = await page.evaluate(() => {
+    const date = new Date(Date.UTC(2026, 8, 20, 12));
+    const hour = date.getHours();
+    return `${String(date.getDate()).padStart(2, "0")}-Sep-${date.getFullYear()} · ${String(hour % 12 || 12).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")} ${hour < 12 ? "AM" : "PM"}`;
+  });
   await expect(entries.nth(0).locator(".activity-entry-meta")).toContainText(recordedAt);
 
   await page.goto("/groups/first");
@@ -122,7 +119,36 @@ test("shows all groups by recording time, then only the current group", async ({
   await expect(panel).not.toContainText("Later recording");
 
   await page.goto("/groups/second/expenses");
-  await expect(entries).toHaveCount(1);
-  await expect(entries.first()).toContainText("Later recording");
-  await expect(panel).not.toContainText("Earlier recording");
+  await expect(panel).toHaveCount(0);
+});
+
+test("shows more activity text with group and date on separate lines, without a tooltip", async ({
+  page,
+}) => {
+  if ((page.viewportSize()?.width ?? 0) < 1080) return;
+  const longGroup = "Second Trip with an exceptionally long name for everyone traveling together";
+  const longExpense = "Later recording with an especially long dinner and transport description";
+  await page.evaluate(
+    async ({ groupName, expenseName }) => {
+      const modulePath = "/src/shared/configs/db.ts";
+      const { db } = (await import(/* @vite-ignore */ modulePath)) as typeof DbModule;
+      await db.groups.update("second", { name: groupName });
+      await db.expenses.update("second-new", { expenseName });
+    },
+    { groupName: longGroup, expenseName: longExpense },
+  );
+  await page.reload();
+
+  const row = page
+    .getByRole("complementary", { name: "Recent activity" })
+    .locator(".activity-entry")
+    .first();
+  await expect(row.locator(".activity-entry-group")).toContainText(longGroup);
+  await expect(row.locator(".activity-entry-date")).toContainText("20-Sep-2026");
+  await expect(row.locator(".activity-entry-title")).toContainText(longExpense);
+  await expect(row).not.toHaveAttribute("title", /.+/u);
+  await row.hover();
+  await expect(page.getByRole("tooltip")).toHaveCount(0);
+  await row.focus();
+  await expect(page.getByRole("tooltip")).toHaveCount(0);
 });

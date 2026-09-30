@@ -8,8 +8,10 @@ import ExpenseTags from "@/features/group-detail/components/expense-tags";
 import {
   createExpenseFilterSchema,
   filterExpenses,
+  sortExpenses,
 } from "@/features/expenses/utils/expense-filters";
 import { formatCurrency } from "@/shared/utils/currency";
+import { formatDisplayDateTime } from "@/shared/utils/date-time";
 
 import type { ExpenseFilterValues } from "@/features/expenses/types/expense-filters.types";
 import type { GroupDetailContext } from "@/features/group-detail/types/group-detail.types";
@@ -27,7 +29,12 @@ const ExpenseList = () => {
   const values = useWatch({ control });
   const parsed = createExpenseFilterSchema(group.currency).safeParse(values);
   const sorted = parsed.success
-    ? filterExpenses(groupExpenses, parsed.data, group.currency).sort((a, b) => b.when - a.when)
+    ? sortExpenses(
+        filterExpenses(groupExpenses, parsed.data, group.currency),
+        parsed.data.sort,
+        groupCategories,
+        groupTags,
+      )
     : [];
   return (
     <section className="flex flex-col gap-4">
@@ -98,13 +105,7 @@ const ExpenseList = () => {
                         {formatCurrency(total, group.currency)}
                       </span>
                       <span className="soft-caption block whitespace-nowrap">
-                        {new Intl.DateTimeFormat(undefined, {
-                          day: "numeric",
-                          month: "short",
-                          hour: "numeric",
-                          minute: "2-digit",
-                          hour12: true,
-                        }).format(expense.when)}
+                        {formatDisplayDateTime(expense.when)}
                       </span>
                     </span>
                   </Link>

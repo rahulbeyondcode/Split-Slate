@@ -60,6 +60,30 @@ test.beforeEach(async ({ page }) => {
   await minute.fill("00");
 });
 
+test("fills the current clock time without changing the selected expense date", async ({
+  page,
+}) => {
+  await page.clock.setFixedTime(new Date("2026-09-19T13:07:00.000Z"));
+  const date = page.getByLabel("Date", { exact: true });
+  await date.fill("2026-09-18");
+
+  await page.getByRole("button", { name: "Use current time" }).click();
+  await expect(date).toHaveValue("2026-09-18");
+  await expect(page.getByRole("textbox", { name: "Hour" })).toHaveValue("06");
+  await expect(page.getByRole("textbox", { name: "Minute" })).toHaveValue("37");
+  await expect(page.getByRole("button", { name: "PM", exact: true })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+
+  await page.getByRole("textbox", { name: "Hour" }).fill("09");
+  await page.getByRole("textbox", { name: "Minute" }).fill("15");
+  await page.getByRole("button", { name: "AM", exact: true }).click();
+  await expect(page.getByRole("textbox", { name: "Hour" })).toHaveValue("09");
+  await expect(page.getByRole("textbox", { name: "Minute" })).toHaveValue("15");
+  await expect(date).toHaveValue("2026-09-18");
+});
+
 test("records an equal expense, updates balances, and survives reload", async ({ page }) => {
   const tag = page.getByLabel("Holiday", { exact: true });
   await expect(tag).toHaveClass(/choice-control/u);

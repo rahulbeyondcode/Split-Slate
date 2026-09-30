@@ -9,7 +9,7 @@ metadata:
 
 Purpose: document the implemented responsive shell and distinguish navigation stubs from working routes.
 
-Last updated: 2026-09-30
+Last updated: 2026-10-01
 
 ## Viewport States
 
@@ -46,18 +46,21 @@ there is no persistent top bar.
 
 ### Desktop (1080px+)
 
-- Three-pane layout: sidebar on left, main content in centre, activity panel on right
-- Activity panel is visible as a dedicated third column
+- Three-pane layout on Dashboard and Group Overview: sidebar on left, main content in centre,
+  activity panel on right; other routes without a panel use two panes
+- Activity panel is visible as a dedicated third column only on those two routes
 - No footer
 
 The desktop activity panel shows expenses from all groups on the dashboard, ordered newest-first
 by recording time (`createdAt`) rather than the user-entered expense date (`when`). On a group's
-Overview and Expenses routes it shows only expenses belonging to that group, in the same order,
-with compact rows. On the create-group route it is
+Overview route it shows only expenses belonging to that group, in the same order,
+with compact rows. It does not appear on the group's Expenses route. On the create-group route it is
 replaced by the live group-draft preview; there is no separate persisted activity entity.
 Its compact activity list is not wrapped in the shared `Surface`: the unlayered `.surface` rules
 take precedence over Tailwind's layered `border-0` and `shadow-none` utilities, leaving an unwanted
 card border/shadow around otherwise unpadded rows. The full Activity page still uses `Surface`.
+Compact rows give the group name a separate wrapping line and keep the recording date/time visible
+below it. Titles may use three lines and group names two. There is no activity-row tooltip.
 
 ## Feedback Banners
 
@@ -90,6 +93,17 @@ onboarding, import, and restore. It resets both `#main-content` and the window t
 pathname changes, including browser Back/Forward; browser-native scroll restoration is disabled
 while this layout is mounted. Query-string edits on the same page do not trigger a reset, preserving
 the user's position while filtering the expense list. See [[filtering]] and [[main-screen]].
+
+---
+
+## Route Error Screen
+
+The root data-router route supplies a custom `errorElement`, so unmatched URLs and errors from
+onboarding, public import/restore, or protected app pages have a branded fallback instead of React
+Router's developer-facing default. The fallback renders outside `AppLayout`, since the shell or a
+child route may itself have failed. It distinguishes 404 pages from unexpected errors, offers a
+home link through the normal onboarding guard, and offers a reload retry only for unexpected
+errors. It reads the saved theme independently because the shell may not mount.
 
 ---
 

@@ -15,6 +15,7 @@ const Input = ({ name, wrapperClass = "", className = "", ...props }: InputProps
         {...props}
         {...field}
         aria-invalid={fieldState.error ? true : undefined}
+        data-empty={props.type === "date" && !field.value ? true : undefined}
         className={`form-input ${className}`}
       />
       {fieldState.error && (

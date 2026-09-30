@@ -7,11 +7,12 @@ import {
   filterExpenses,
   pruneUnavailableExpenseFilterOptions,
   readExpenseFilterParams,
+  sortExpenses,
   writeExpenseFilterParams,
 } from "@/features/expenses/utils/expense-filters";
 
 import type { ExpenseFilterValues } from "@/features/expenses/types/expense-filters.types";
-import type { Expense } from "@/shared/types/domain.types";
+import type { Category, Expense, Tag } from "@/shared/types/domain.types";
 
 const expense = (patch: Partial<Expense> = {}): Expense => ({
   expenseId: "dinner",
@@ -55,9 +56,11 @@ describe("expense filters", () => {
       splitTypes: ["equal", "shares"],
       minAmount: "12.50",
       maxAmount: "100.00",
+      sort: "highest",
     });
     const params = writeExpenseFilterParams(selected);
     expect(params.getAll("categoryIds")).toEqual(["food", "travel"]);
+    expect(params.get("sort")).toBe("highest");
     expect(readExpenseFilterParams(params)).toEqual(selected);
     expect(writeExpenseFilterParams(createExpenseFilterDefaults()).toString()).toBe("");
   });
@@ -69,6 +72,95 @@ describe("expense filters", () => {
     expect(readExpenseFilterParams(params)).toEqual(
       values({ memberIds: ["a"], splitTypes: ["equal"] }),
     );
+  });
+
+  it("defaults unknown sorts to newest and omits the default from the URL", () => {
+    expect(readExpenseFilterParams(new URLSearchParams("sort=unexpected"))).toEqual(values());
+    expect(writeExpenseFilterParams(values({ sort: "newest" })).toString()).toBe("");
+  });
+
+  it.each(["name-asc", "name-desc", "category", "tags"] as const)(
+    "round-trips and validates the %s sort mode",
+    (sort) => {
+      const selected = values({ sort });
+      expect(readExpenseFilterParams(writeExpenseFilterParams(selected))).toEqual(selected);
+      expect(createExpenseFilterSchema("INR").safeParse(selected).success).toBe(true);
+    },
+  );
+
+  it("sorts by date or the sum of all payer amounts without changing the source", () => {
+    const older = expense({ expenseId: "older", when: 1 });
+    const cheaper = expense({
+      expenseId: "cheaper",
+      when: 3,
+      transactions: { paid: [{ memberId: "a", amount: 200 }], owes: [] },
+    });
+    const latest = expense({ expenseId: "latest", when: 4 });
+    const source = [older, cheaper, latest];
+    expect(sortExpenses(source, "newest")).toEqual([latest, cheaper, older]);
+    expect(sortExpenses(source, "oldest")).toEqual([older, cheaper, latest]);
+    expect(sortExpenses(source, "highest")).toEqual([latest, older, cheaper]);
+    expect(sortExpenses(source, "lowest")).toEqual([cheaper, latest, older]);
+    expect(source).toEqual([older, cheaper, latest]);
+  });
+
+  it("sorts names case-insensitively, breaking matching-name ties by newest date", () => {
+    const source = [
+      expense({ expenseId: "z", expenseName: "Zoo", when: 6 }),
+      expense({ expenseId: "older", expenseName: "apple", when: 1 }),
+      expense({ expenseId: "newer", expenseName: "Apple", when: 5 }),
+    ];
+    expect(sortExpenses(source, "name-asc").map((item) => item.expenseId)).toEqual([
+      "newer",
+      "older",
+      "z",
+    ]);
+    expect(sortExpenses(source, "name-desc").map((item) => item.expenseId)).toEqual([
+      "z",
+      "newer",
+      "older",
+    ]);
+  });
+
+  it("keeps identical categories together by name, newest within each category", () => {
+    const categories = [
+      { id: "travel", groupId: "trip", name: "Travel", icon: "🚕", isActive: true },
+      { id: "food", groupId: "trip", name: "Food", icon: "🍽️", isActive: true },
+    ] satisfies Category[];
+    const source = [
+      expense({ expenseId: "travel-old", categoryId: "travel", when: 1 }),
+      expense({ expenseId: "unknown", categoryId: "missing", when: 10 }),
+      expense({ expenseId: "food", categoryId: "food", when: 2 }),
+      expense({ expenseId: "travel-new", categoryId: "travel", when: 3 }),
+    ];
+    expect(sortExpenses(source, "category", categories).map((item) => item.expenseId)).toEqual([
+      "food",
+      "travel-new",
+      "travel-old",
+      "unknown",
+    ]);
+  });
+
+  it("groups identical tag sets regardless of ID order, without duplicating expenses", () => {
+    const tags = [
+      { id: "work", groupId: "trip", name: "Work", color: "#123456" },
+      { id: "holiday", groupId: "trip", name: "Holiday", color: "#654321" },
+    ] satisfies Tag[];
+    const source = [
+      expense({ expenseId: "combo-old", tagIds: ["work", "holiday"], when: 1 }),
+      expense({ expenseId: "untagged", tagIds: [], when: 10 }),
+      expense({ expenseId: "work", tagIds: ["work"], when: 6 }),
+      expense({ expenseId: "combo-new", tagIds: ["holiday", "work"], when: 7 }),
+      expense({ expenseId: "holiday", tagIds: ["holiday"], when: 2 }),
+    ];
+    expect(sortExpenses(source, "tags", [], tags).map((item) => item.expenseId)).toEqual([
+      "holiday",
+      "combo-new",
+      "combo-old",
+      "work",
+      "untagged",
+    ]);
+    expect(source).toHaveLength(5);
   });
 
   it("includes creator-only references when filtering by involved member", () => {

@@ -9,7 +9,7 @@ metadata:
 
 Purpose: document expense correction, permanent deletion, and their persistence guarantees.
 
-Last updated: 2026-09-29
+Last updated: 2026-10-01
 
 ## Implementation Status
 
@@ -17,6 +17,15 @@ Expense detail, editing, and confirmed hard deletion are implemented. The shared
 all five split types, payer/participant changes, date/time, category, and tags. Attachment ingestion
 and receipt editing remain pending; updates preserve existing attachment IDs and deletion cleans
 up owned attachment records.
+
+Detail also offers immediate category and tag changes without entering the full editor. A focused
+persisted-reference update reads the current expense inside an IndexedDB transaction, validates
+the chosen category or tags against the expense's group, and changes only those references. A new
+category must be active; the current historical category may remain inactive. Tag IDs must be
+distinct. Monetary transactions, split metadata, creation fields, attachments, and payer ranking
+are not recalculated. Failure leaves the expense unchanged and shows an error for retry; selecting
+a different category or toggling a tag saves without a separate Save button. The full editor
+remains available for all other changes. See [[category-management]] and [[tag-management]].
 
 ## Decision
 

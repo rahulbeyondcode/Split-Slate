@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Download, Pencil, Trash2, TriangleAlert } from "lucide-react";
+import { Coins, Download, Pencil, Trash2, TriangleAlert } from "lucide-react";
 import type { SyntheticEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -13,6 +13,7 @@ import Input from "@/shared/components/form-elements/input";
 
 import { useStore } from "@/shared/configs/store";
 import { formatCurrency } from "@/shared/utils/currency";
+import { formatDisplayDate } from "@/shared/utils/date-time";
 import { createRequiredStringSchema } from "@/shared/utils/string-validation";
 
 import { CURRENCIES } from "@/shared/constants/currencies";
@@ -152,11 +153,7 @@ const GroupSettings = () => {
             <p className="font-bold">{group.name}</p>
             <p className="soft-caption">
               {groupMembers.length} members · {groupExpenses.length} expenses · created{" "}
-              {new Intl.DateTimeFormat(undefined, {
-                day: "numeric",
-                month: "short",
-                year: "numeric",
-              }).format(group.createdAt)}
+              {formatDisplayDate(group.createdAt)}
             </p>
           </div>
           <button type="button" className="btn btn-secondary" onClick={() => setEditing(true)}>
@@ -166,10 +163,9 @@ const GroupSettings = () => {
       )}
       <Surface className="surface-pad">
         <div className="ui-row flex-wrap">
-          <Avatar
-            icon={CURRENCIES.find((item) => item.code === group.currency)?.symbol ?? "¤"}
-            square
-          />
+          <span className="avatar avatar-square text-[var(--brand-ink)]" aria-hidden="true">
+            <Icon icon={Coins} size={26} />
+          </span>
           <div className="min-w-0 flex-1">
             <p className="font-bold">Currency</p>
             <p className="soft-caption">One currency per group</p>

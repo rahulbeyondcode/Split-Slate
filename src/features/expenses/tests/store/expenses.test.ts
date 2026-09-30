@@ -433,6 +433,68 @@ const addReceipts = async (expenseId: string) => {
   await useStore.getState().init();
 };
 
+describe("updateExpenseDetails", () => {
+  it("quick-saves category and tags without changing transactions, timestamps, or ratios", async () => {
+    const original = await useStore.getState().addExpense(input());
+    await db.categories.add({
+      id: "travel",
+      groupId: "g",
+      name: "Travel",
+      icon: "🚗",
+      isActive: true,
+    });
+    await db.tags.add({ id: "new-tag", groupId: "g", name: "New", color: "#123456" });
+    const updated = await useStore.getState().updateExpenseDetails(original.expenseId, "g", {
+      categoryId: "travel",
+      tagIds: ["trip", "new-tag"],
+    });
+    expect(updated).toEqual({ ...original, categoryId: "travel", tagIds: ["trip", "new-tag"] });
+    expect(await db.expenses.get(original.expenseId)).toEqual(updated);
+    expect(useStore.getState().expenses).toEqual([updated]);
+    await useStore.getState().init();
+    expect(useStore.getState().expenses).toEqual([updated]);
+  });
+
+  it("rejects inactive, foreign, missing, and duplicate references without changing the expense", async () => {
+    const original = await useStore.getState().addExpense(input());
+    await db.categories.bulkAdd([
+      { id: "inactive", groupId: "g", name: "Old", icon: "📦", isActive: false },
+      { id: "foreign", groupId: "elsewhere", name: "Foreign", icon: "📦", isActive: true },
+    ]);
+    await db.tags.add({ id: "foreign-tag", groupId: "elsewhere", name: "Other", color: "#123456" });
+    for (const patch of [
+      { categoryId: "inactive" },
+      { categoryId: "foreign" },
+      { tagIds: ["missing"] },
+      { tagIds: ["foreign-tag"] },
+      { tagIds: ["trip", "trip"] },
+    ]) {
+      await expect(
+        useStore.getState().updateExpenseDetails(original.expenseId, "g", patch),
+      ).rejects.toThrow();
+      expect(await db.expenses.get(original.expenseId)).toEqual(original);
+      expect(useStore.getState().expenses).toEqual([original]);
+    }
+    await expect(
+      useStore.getState().updateExpenseDetails(original.expenseId, "elsewhere", { tagIds: [] }),
+    ).rejects.toThrow();
+    await db.expenses.delete(original.expenseId);
+    await expect(
+      useStore.getState().updateExpenseDetails(original.expenseId, "g", { tagIds: [] }),
+    ).rejects.toThrow();
+    expect(await db.expenses.count()).toBe(0);
+  });
+
+  it("retains current inactive category when changing tags", async () => {
+    const original = await useStore.getState().addExpense(input());
+    await db.categories.update("food", { isActive: false });
+    const updated = await useStore.getState().updateExpenseDetails(original.expenseId, "g", {
+      tagIds: [],
+    });
+    expect(updated).toEqual({ ...original, tagIds: [] });
+  });
+});
+
 describe("removeExpense", () => {
   it("deletes owned receipts including unlisted ones, preserves unrelated data, and recalculates rankings", async () => {
     const data = input();

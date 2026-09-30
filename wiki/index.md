@@ -5,33 +5,33 @@ This wiki is the sole persistent compiled knowledge layer. The implementation in
 authoritative; `app-featureset-context/spec-sheet.md` is a historical baseline where later source
 and approved decisions have superseded it. Changes: [log.md](log.md)
 
-Last updated: 2026-09-30
+Last updated: 2026-10-01
 
 ---
 
 ## Navigation
 
 ### Roadmap
-- [Product Direction and Roadmap](roadmap/product-roadmap.md) — living product compass, next-task browser-suite failures, delivery horizons, and release gates
+- [Product Direction and Roadmap](roadmap/product-roadmap.md) — living product compass, next tasks for browser-suite repair and group duplication, delivery horizons, and release gates
 
 ### Architecture
 - [Domain Models](architecture/domain-models.md) — current entity shapes, saved PNG icon keys, fixed-hundredths money, currency relabeling, and pending tag-display/attachment behavior
 - [Balance Calculation](architecture/balance-calculation.md) — fixed-hundredths member/group totals, all-member balances, and deterministic suggested transfers
 - [State Management](architecture/state-management.md) — hydrated Zustand slices plus persisted mutation boundaries, including all-or-nothing fresh-ID group import
 - [Split Types](architecture/split-types.md) — 5 split types with fixed-hundredths monetary allocations and exact ratios; numeric percentage-total display remains pending
-- [Layout Architecture](architecture/layout-architecture.md) — responsive shell, route scroll reset, contextual sidebar, desktop activity, semantic banners, and transfer navigation
+- [Layout Architecture](architecture/layout-architecture.md) — responsive shell, route resets/errors, contextual sidebar, readable dashboard/overview activity, and transfer navigation
 
 ### Decisions
 - [Global People Directory](decisions/global-people-directory.md) — device-local friends list; members link to shared people; supersedes per-group members
 - [Expense Model Design](decisions/expense-model-design.md) — fixed-hundredths paid/owed allocations and exact decimal ratio metadata, with numeric legacy read compatibility
 - [Solo Group Support](decisions/solo-group-support.md) — single-member creation and zero-net overview/balances are implemented; onboarding solo-helper copy remains pending
 - [Onboarding Persistence](decisions/onboarding-persistence.md) — resumable per-step standard setup plus atomic import-specific completion for fresh devices
-- [Import / Export Design](decisions/import-export.md) — selective group Link/CSV/ZIP transfer, tamper guidance, wrong-file navigation, and atomic fresh-group import
+- [Import / Export Design](decisions/import-export.md) — selective Link/CSV/ZIP group transfer and atomic import; planned same-device duplication reuses selection without file generation
 - [Whole-App Backup and Restore](decisions/full-backup.md) — versioned ZIP, expected download name and wrong-file navigation, confirmed replace-only recovery; Drive deferred
-- [Expense Edit and Delete](decisions/expense-edit-delete.md) — implemented editing/deletion with fixed-hundredths adjustments; tag resurrection and ratio precision loss are resolved
+- [Expense Edit and Delete](decisions/expense-edit-delete.md) — full editor, confirmed deletion, and immediate reference-only category/tag changes without rebuilding splits
 - [Group Deletion](decisions/group-deletion.md) — implemented permanent group-owned data cascade with confirmation; shared contacts remain
 - [Money Representation and Rounding](decisions/money-representation-and-rounding.md) — implemented fixed hundredths for every currency, exact allocation, and confirmed no-conversion relabeling
-- [Iconography](decisions/iconography.md) — scoped PNG pickers, Netlify browser caching, old-category-emoji mapping, Lucide controls, and onboarding artwork
+- [Iconography](decisions/iconography.md) — scoped PNG pickers, Netlify browser caching, old-category-emoji mapping, Lucide controls, error illustrations, and onboarding artwork
 - [Confirmation Dialogs](decisions/confirmation-dialogs.md) — shared in-app destructive confirmation for groups, contacts, members, categories, and tags
 - [Selection Controls](decisions/selection-controls.md) — native checkboxes/radios with selected and visibly locked states across forms, filters, and transfer
 - [String Input Normalization](decisions/string-input-normalization.md) — required strings reject trimmed blanks; optional expense inputs have explicit blank-value semantics
@@ -44,14 +44,14 @@ Last updated: 2026-09-30
 - [Development Tools](workflows/development-tools.md) — typed realistic presets, randomized onboarding contacts, individual creation buttons, and persistence boundaries
 - [Onboarding](workflows/onboarding.md) — implemented resumable setup plus Link/CSV/ZIP first-launch import with a short identity path
 - [Group Creation](workflows/group-creation.md) — standalone 4-step flow; writes begin only on final submission and then run sequentially
-- [Main Screen](workflows/main-screen.md) — group snapshot, date/time ledger rows, blank-by-default 12-hour expense time entry, direct group links, currency relabeling, group-only export, and group deletion
+- [Main Screen](workflows/main-screen.md) — group snapshot, ledger, local dates and recording metadata, expense quick edits, group export/deletion
 - [Paid-By](workflows/paid-by.md) — implemented frequent-payer selection, atomic ranking updates, recent-payer defaults, and multi-payer entry
 - [People Directory](workflows/people-directory.md) — global friends list, per-group links for blocked contact deletion, and group-building picker
 - [Member Management](workflows/member-management.md) — one-click add form or existing-friend selection, edit/confirmed removal, blocked-removal links, and persisted guards
-- [Category Management](workflows/category-management.md) — group category CRUD and in-expense creation with auto-selection, guarded deletion, and active-category picker; deactivation UI remains pending
-- [Tag Management](workflows/tag-management.md) — group tags, selection, list/overview previews, and transactional persisted-reference cleanup
-- [Filtering](workflows/filtering.md) — URL-backed eight-field filtering, including creator/payer/owed member references and stale-option cleanup
-- [Dashboard](workflows/dashboard.md) — time-aware greeting, group summaries, and recorded-expense activity across groups or within the current group
+- [Category Management](workflows/category-management.md) — group category CRUD, in-form creation, and immediate detail-page category changes; deactivation UI pending
+- [Tag Management](workflows/tag-management.md) — group tags, immediate detail-page selection/creation, list previews, and transactional cleanup
+- [Filtering](workflows/filtering.md) — URL-backed eight-field filtering, eight sort modes including exact tag-set grouping, and stale-option cleanup
+- [Dashboard](workflows/dashboard.md) — greeting, formatted date, group summaries, Settings import, and readable dashboard/overview activity
 
 ### Ideas (captured, not committed)
 - [Rewarded Ads](ideas/rewarded-ads.md) — optional ad-watch → credits → Pro unlock mechanic; fully opt-in
@@ -91,6 +91,7 @@ Last updated: 2026-09-30
 | Receipt attachments                | PENDING     |
 | Group settings + deletion          | PENDING     |
 | Group transfer (Link / CSV / ZIP)  | DONE        |
+| Group duplication                 | PENDING     |
 | Whole-app ZIP backup and restore  | DONE        |
 | Settlement sharing                | PENDING     |
 | Installable/offline PWA support    | PENDING     |
@@ -112,7 +113,9 @@ Expense filtering is implemented across eight logical fields with cross-field AN
 within-field OR selection, non-persisted group-local form state, active counts, and distinct empty
 states. Utility coverage is complete for the current predicate and validation contract; direct UI
 interaction coverage exercises every filter on desktop and mobile, and selected IDs deleted on
-another group route are removed automatically when the list remounts. See [[filtering]].
+another group route are removed automatically when the list remounts. Eight URL-backed sort modes
+apply after filtering without increasing the active count, including single-category and exact
+tag-set grouping. See [[filtering]].
 
 Group transfer is implemented as selective snapshot export and fresh editable import. Link is
 bounded to 32,000 characters without receipts; CSV carries typed data without blobs; ZIP optionally

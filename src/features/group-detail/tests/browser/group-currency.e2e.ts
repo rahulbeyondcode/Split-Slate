@@ -62,6 +62,9 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("confirms a currency relabel without changing saved amounts", async ({ page }) => {
+  const currencyRow = page.locator(".ui-row").filter({ hasText: "One currency per group" });
+  await expect(currencyRow.locator(".avatar-square svg.ui-icon")).toBeVisible();
+  await expect(currencyRow.locator(".avatar-square img")).toHaveCount(0);
   await page.getByRole("button", { name: "Change", exact: true }).click();
   const search = page.getByRole("searchbox", { name: "Search currencies" });
   await expect(search).toHaveClass(/currency-search-input/u);

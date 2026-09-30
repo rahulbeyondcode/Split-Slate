@@ -1,4 +1,12 @@
-import { ChevronRight, Download, LockKeyhole, MoonStar, Pencil, RotateCcw } from "lucide-react";
+import {
+  ChevronRight,
+  Download,
+  LockKeyhole,
+  MoonStar,
+  Pencil,
+  RotateCcw,
+  Upload,
+} from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -97,6 +105,18 @@ const AppSettings = () => {
               className={`absolute top-1 left-1 h-5 w-5 rounded-full bg-white transition-transform ${dark ? "translate-x-5" : ""}`}
             />
           </button>
+        </Surface>
+      </section>
+      <section>
+        <p className="eyebrow mb-2">Group transfer</p>
+        <Surface className="surface-pad flex flex-col items-start gap-3">
+          <p className="soft-caption">
+            Import a group from a Split Slate Link, CSV, or ZIP without replacing your existing
+            groups.
+          </p>
+          <Link to="/import" className="btn btn-secondary">
+            <Icon icon={Upload} size={18} /> Import group
+          </Link>
         </Surface>
       </section>
       <section>

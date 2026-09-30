@@ -44,6 +44,14 @@ const WhenPicker = ({ defaultDate }: PropsType) => {
   };
   const handleAM = () => updateParts({ period: "AM" });
   const handlePM = () => updateParts({ period: "PM" });
+  const handleUseCurrentTime = () => {
+    const now = new Date();
+    updateParts({
+      hour: String(now.getHours() % 12 || 12).padStart(2, "0"),
+      minute: String(now.getMinutes()).padStart(2, "0"),
+      period: now.getHours() < 12 ? "AM" : "PM",
+    });
+  };
 
   return (
     <fieldset className="min-w-0">
@@ -57,13 +65,23 @@ const WhenPicker = ({ defaultDate }: PropsType) => {
             onChange={handleDateChange}
             onBlur={field.onBlur}
             aria-invalid={fieldState.error ? true : undefined}
+            data-empty={!parts.date ? true : undefined}
             className="form-input when-picker-date"
           />
         </label>
         <div className="when-picker-field">
-          <span className="when-picker-caption" id="expense-time-label">
-            Time
-          </span>
+          <div className="flex items-center justify-between gap-2">
+            <span className="when-picker-caption" id="expense-time-label">
+              Time
+            </span>
+            <button
+              type="button"
+              onClick={handleUseCurrentTime}
+              className="text-xs font-bold text-[var(--brand-ink)] hover:underline"
+            >
+              Use current time
+            </button>
+          </div>
           <div className="when-picker-time" role="group" aria-labelledby="expense-time-label">
             <input
               type="text"

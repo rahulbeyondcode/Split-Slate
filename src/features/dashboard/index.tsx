@@ -1,4 +1,4 @@
-import { FolderPlus, Plus } from "lucide-react";
+import { ArrowRight, FolderPlus, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import {
@@ -8,6 +8,7 @@ import {
 } from "@/features/dashboard/utils/dashboard-data";
 import { useStore } from "@/shared/configs/store";
 import { formatCurrency } from "@/shared/utils/currency";
+import { formatDisplayDate } from "@/shared/utils/date-time";
 
 import Avatar from "@/shared/ui/avatar";
 import BalanceHero from "@/shared/ui/balance-hero";
@@ -32,16 +33,16 @@ const Dashboard = () => {
   return (
     <div className="page flex flex-col gap-8">
       <header>
-        <p className="soft-caption mb-1">
-          {new Intl.DateTimeFormat(undefined, {
-            weekday: "short",
-            day: "numeric",
-            month: "short",
-          }).format(new Date())}
-        </p>
-        <h1 className="page-title">
-          {greeting}, {state.localUser?.name ?? "there"}{" "}
-          <EmojiImage icon={state.localUser?.icon} kind="profile" />
+        <p className="soft-caption mb-1">{formatDisplayDate(new Date())}</p>
+        <h1 className="page-title flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span>
+            {greeting}, {state.localUser?.name ?? "there"}
+          </span>
+          <EmojiImage
+            icon={state.localUser?.icon}
+            kind="profile"
+            className="!h-[1.2em] !w-[1.2em]"
+          />
         </h1>
       </header>
 
@@ -162,8 +163,8 @@ const Dashboard = () => {
           <Surface className="surface-pad">
             <div className="flex items-center justify-between">
               <h2 className="section-title">Unsettled balances</h2>
-              <Link to="/unsettled" className="chip chip-selected">
-                {transfers.length}
+              <Link to="/unsettled" className="btn btn-secondary !px-3">
+                View all ({transfers.length}) <Icon icon={ArrowRight} size={16} />
               </Link>
             </div>
             {transfers.length ? (

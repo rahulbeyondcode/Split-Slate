@@ -20,6 +20,7 @@ import AppSettings from "@/features/settings/components/app-settings";
 
 import AppLayout from "@/app/layouts";
 import ScrollReset from "@/app/layouts/scroll-reset";
+import RouteError from "@/app/router/route-error";
 import RouteProtector from "@/app/router/route-protector";
 import CreateGroup from "@/features/create-group";
 import Dashboard from "@/features/dashboard";
@@ -28,6 +29,7 @@ import GroupDetail from "@/features/group-detail";
 export const router = createBrowserRouter([
   {
     element: <ScrollReset />,
+    errorElement: <RouteError />,
     children: [
       { path: "/import", element: <ImportGroup /> },
       { path: "/restore", element: <RestoreBackup /> },

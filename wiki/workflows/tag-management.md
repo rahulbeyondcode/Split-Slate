@@ -9,7 +9,7 @@ metadata:
 
 Purpose: describe implemented tag management, expense references, and cascade boundaries.
 
-Last updated: 2026-09-29
+Last updated: 2026-10-01
 
 ## What Tags Are
 
@@ -21,7 +21,14 @@ Tag names are trimmed and case-insensitively unique within a group. Every tag al
 
 ## Creating and Renaming Tags
 
-Tags can be created from the group's **Categories & Tags** screen by entering a name and choosing a color. The reusable color picker offers 10 named presets (stored as hex values) plus synchronized custom native-picker and manual hex-code controls. Valid output is always a six-digit hex code. Expense entry can select existing group tags. Inline tag creation from that form remains pending; new tags are created in Categories & Tags.
+Tags can be created from the group's **Categories & Tags** screen by entering a name and choosing a color. The reusable color picker offers 10 named presets (stored as hex values) plus synchronized custom native-picker and manual hex-code controls. Valid output is always a six-digit hex code. Expense entry can select existing group tags. Inline tag creation from the full expense form remains pending; detail can create one in a modal and attach it automatically.
+
+On expense detail, a dashed Add tags control stays visible even when no tags are assigned. Its
+popover lists every group tag with checkbox selections; each toggle saves the expense reference
+immediately. Create new tag opens a name/color modal. Creation persists the group tag first, then
+attaches it to this expense through the focused reference update. If attachment fails, the new
+group tag still exists and an inline error explains the failed expense update. Existing chips
+wrap across the full-width row below the banner amount. See [[expense-edit-delete]].
 
 Editing a tag can change its name, color, or both. Expenses reference the tag by ID, so no expense
   rewrite is needed. The expense-entry picker shows current tag names/colors. The full expense list

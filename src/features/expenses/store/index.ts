@@ -55,6 +55,38 @@ export const createExpensesSlice: SliceCreator<ExpensesSlice> = (set) => ({
     }));
     return result.expense;
   },
+  updateExpenseDetails: async (expenseId, groupId, patch) => {
+    const updated = await db.transaction("rw", db.expenses, db.categories, db.tags, async () => {
+      const existing = await requireExpense(expenseId, groupId);
+      const changes: { categoryId?: string; tagIds?: string[] } = {};
+      if (patch.categoryId !== undefined) {
+        const category = await db.categories.get(patch.categoryId);
+        if (
+          !category ||
+          category.groupId !== groupId ||
+          (!category.isActive && category.id !== existing.categoryId)
+        )
+          throw new Error("Choose an active category from this group");
+        changes.categoryId = category.id;
+      }
+      if (patch.tagIds !== undefined) {
+        if (new Set(patch.tagIds).size !== patch.tagIds.length) throw new Error("Duplicate tag");
+        const tags = await db.tags.bulkGet(patch.tagIds);
+        if (tags.some((tag) => !tag || tag.groupId !== groupId))
+          throw new Error("Choose tags from this group");
+        changes.tagIds = patch.tagIds.slice();
+      }
+      if (!Object.keys(changes).length) return existing;
+      await db.expenses.update(expenseId, changes);
+      return { ...existing, ...changes };
+    });
+    set((state) => ({
+      expenses: state.expenses.map((expense) =>
+        expense.expenseId === expenseId ? updated : expense,
+      ),
+    }));
+    return updated;
+  },
   removeExpense: async (expenseId, groupId) => {
     const frequentPayerIds = await db.transaction(
       "rw",

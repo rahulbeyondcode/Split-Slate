@@ -1,4 +1,4 @@
-import { ListFilter, Search } from "lucide-react";
+import { ArrowDownUp, ListFilter, Search } from "lucide-react";
 import type { FormEvent } from "react";
 import { useEffect, useRef } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
@@ -10,6 +10,7 @@ import Input from "@/shared/components/form-elements/input";
 import {
   countActiveExpenseFilters,
   createExpenseFilterDefaults,
+  EXPENSE_SORT_SECTIONS,
   pruneUnavailableExpenseFilterOptions,
   SPLIT_FILTER_OPTIONS,
   writeExpenseFilterParams,
@@ -22,10 +23,12 @@ import Icon from "@/shared/ui/icon";
 
 const ExpenseFilters = () => {
   const filtersRef = useRef<HTMLDetailsElement>(null);
+  const sortRef = useRef<HTMLDetailsElement>(null);
   const [, setSearchParams] = useSearchParams();
   const { group, groupCategories, groupTags, groupMembers } =
     useOutletContext<GroupDetailContext>();
-  const { control, getValues, reset, setValue, trigger } = useFormContext<ExpenseFilterValues>();
+  const { control, getValues, register, reset, setValue, trigger } =
+    useFormContext<ExpenseFilterValues>();
   const values = useWatch({ control }) as ExpenseFilterValues;
   const count = countActiveExpenseFilters(values);
   const members = groupMembers.map((member) => ({
@@ -59,9 +62,10 @@ const ExpenseFilters = () => {
 
   useEffect(() => {
     const handleOutsideClick = (event: PointerEvent) => {
-      const filters = filtersRef.current;
-      if (filters?.open && event.target instanceof Node && !filters.contains(event.target)) {
-        filters.open = false;
+      for (const details of [filtersRef.current, sortRef.current]) {
+        if (details?.open && event.target instanceof Node && !details.contains(event.target)) {
+          details.open = false;
+        }
       }
     };
 
@@ -70,10 +74,14 @@ const ExpenseFilters = () => {
   }, []);
 
   const handleClear = () => {
-    reset(createExpenseFilterDefaults());
-    setSearchParams(new URLSearchParams(), { replace: true, preventScrollReset: true });
+    const next = { ...createExpenseFilterDefaults(), sort: getValues("sort") };
+    reset(next);
+    setSearchParams(writeExpenseFilterParams(next), { replace: true, preventScrollReset: true });
   };
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => event.preventDefault();
+  const handleSortChange = () => {
+    if (sortRef.current) sortRef.current.open = false;
+  };
   const handleChange = () => {
     setSearchParams(writeExpenseFilterParams(getValues()), {
       replace: true,
@@ -100,24 +108,59 @@ const ExpenseFilters = () => {
           />
           <Input name="name" type="search" placeholder="Search expenses…" className="!pl-10" />
         </label>
+        <details ref={sortRef} className="group relative">
+          <summary className="btn btn-secondary list-none cursor-pointer">
+            <Icon icon={ArrowDownUp} size={18} /> Sort
+          </summary>
+          <div className="surface surface-pad absolute top-11 right-0 z-10 max-h-[70svh] w-[min(85vw,300px)] overflow-auto">
+            <fieldset onChange={handleSortChange}>
+              <legend className="mb-3 text-sm font-bold">Sort expenses</legend>
+              <div className="flex flex-col">
+                {EXPENSE_SORT_SECTIONS.map((section) => (
+                  <div
+                    key={section.label}
+                    role="group"
+                    aria-label={section.label}
+                    className="border-t border-[var(--line)] py-3 first:border-t-0 first:pt-0 last:pb-0"
+                  >
+                    <p className="mb-2 text-xs font-bold text-[var(--muted)]">{section.label}</p>
+                    <div className="flex flex-col gap-2">
+                      {section.options.map((option) => (
+                        <label key={option.value} className="choice-option choice-option-compact">
+                          <input
+                            type="radio"
+                            value={option.value}
+                            {...register("sort")}
+                            className="choice-control"
+                          />
+                          {option.label}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </fieldset>
+          </div>
+        </details>
         <details ref={filtersRef} className="group relative">
           <summary className="btn btn-secondary list-none cursor-pointer">
             <Icon icon={ListFilter} size={18} /> Filters {count > 0 ? `(${count})` : ""}
           </summary>
           <div className="surface surface-pad absolute top-11 right-0 z-10 max-h-[70svh] w-[min(85vw,560px)] overflow-auto flex flex-col gap-4">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <label className="min-w-0 text-sm">
+              <label className="min-w-0 text-sm font-bold">
                 From date
                 <Input name="dateFrom" type="date" className="min-w-0" />
               </label>
-              <label className="min-w-0 text-sm">
+              <label className="min-w-0 text-sm font-bold">
                 To date
                 <Input name="dateTo" type="date" className="min-w-0" />
               </label>
-              <label className="min-w-0 text-sm">
+              <label className="min-w-0 text-sm font-bold">
                 Minimum amount ({group.currency})<Input name="minAmount" inputMode="decimal" />
               </label>
-              <label className="min-w-0 text-sm">
+              <label className="min-w-0 text-sm font-bold">
                 Maximum amount ({group.currency})<Input name="maxAmount" inputMode="decimal" />
               </label>
             </div>

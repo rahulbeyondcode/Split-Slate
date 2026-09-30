@@ -15,7 +15,7 @@ const ExpenseFilterOptions = ({ name, label, options }: PropsType) => {
   const { register } = useFormContext<ExpenseFilterValues>();
   return (
     <fieldset className="min-w-0">
-      <legend className="mb-2 text-sm font-medium">{label}</legend>
+      <legend className="mb-2 text-sm font-bold">{label}</legend>
       <div className="flex flex-wrap gap-2">
         {options.map((option) => (
           <label key={option.value} className="choice-option choice-option-compact">

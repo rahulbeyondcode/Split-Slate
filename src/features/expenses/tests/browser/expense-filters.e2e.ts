@@ -128,8 +128,12 @@ test("filters expenses through every field, validates ranges, and clears all con
 }) => {
   await expect(page.getByRole("status")).toHaveText("3 of 3 expenses");
   await page.getByLabel("Search expenses", { exact: true }).fill(" dinner ");
-  await page.locator("summary").click();
-  await page.getByLabel("From date", { exact: true }).fill("2026-09-20");
+  await page.locator("summary").filter({ hasText: "Filters" }).click();
+  const fromDate = page.getByLabel("From date", { exact: true });
+  await expect(fromDate).toHaveAttribute("data-empty", "true");
+  await expect(fromDate).toHaveCSS("font-weight", "400");
+  await fromDate.fill("2026-09-20");
+  await expect(fromDate).not.toHaveAttribute("data-empty", "true");
   await page.getByLabel("To date", { exact: true }).fill("2026-09-20");
   await page.getByLabel("Minimum amount (INR)", { exact: true }).fill("100.01");
   await page.getByLabel("Maximum amount (INR)", { exact: true }).fill("100.01");
@@ -152,7 +156,7 @@ test("filters expenses through every field, validates ranges, and clears all con
 
   await page.reload();
   await expect(page.getByRole("status")).toHaveText("1 of 3 expenses");
-  await page.locator("summary").click();
+  await page.locator("summary").filter({ hasText: "Filters" }).click();
   await expect(
     page.getByRole("group", { name: "Member involved" }).getByLabel("Cal"),
   ).toBeChecked();
@@ -175,7 +179,7 @@ test("filters expenses through every field, validates ranges, and clears all con
 test("preserves the query through expense detail and removes a deleted selected option", async ({
   page,
 }) => {
-  await page.locator("summary").click();
+  await page.locator("summary").filter({ hasText: "Filters" }).click();
   await page.getByRole("group", { name: "Tags" }).getByLabel("Holiday").check();
   await expect(page).toHaveURL(/tagIds=holiday/u);
   await expect(page.getByText("1 active filter", { exact: true })).toBeVisible();
@@ -186,7 +190,7 @@ test("preserves the query through expense detail and removes a deleted selected 
   await page.getByRole("link", { name: "Back to expenses", exact: true }).click();
   await expect(page).toHaveURL(/\/expenses\?tagIds=holiday$/u);
   await expect(page.getByText("1 active filter", { exact: true })).toBeVisible();
-  await page.locator("summary").click();
+  await page.locator("summary").filter({ hasText: "Filters" }).click();
   await expect(page.getByRole("group", { name: "Tags" }).getByLabel("Holiday")).toBeChecked();
 
   await page.getByRole("list", { name: "Expenses" }).getByText("Dinner").click();
@@ -200,6 +204,61 @@ test("preserves the query through expense detail and removes a deleted selected 
   await expect(page.getByText("0 active filters", { exact: true })).toBeVisible();
   await expect(page).toHaveURL(/\/groups\/trip\/expenses$/u);
   await expect(page.getByRole("status")).toHaveText("3 of 3 expenses");
-  await page.locator("summary").click();
+  await page.locator("summary").filter({ hasText: "Filters" }).click();
   await expect(page.getByRole("group", { name: "Tags" }).getByLabel("Holiday")).toHaveCount(0);
+});
+
+test("sorts by total paid and date, preserving sort through filters and detail navigation", async ({
+  page,
+}) => {
+  const names = page.getByRole("list", { name: "Expenses" }).locator("li");
+  const sortSummary = page.locator("summary").filter({ hasText: "Sort" });
+  const sort = page.getByRole("group", { name: "Sort expenses" });
+  await sortSummary.click();
+  await expect(sort.getByRole("group", { name: "Date" }).getByRole("radio")).toHaveCount(2);
+  await expect(sort.getByRole("group", { name: "Price" }).getByRole("radio")).toHaveCount(2);
+  await expect(sort.getByRole("group", { name: "Name" }).getByRole("radio")).toHaveCount(2);
+  await expect(sort.getByRole("group", { name: "Group by" }).getByRole("radio")).toHaveCount(2);
+  await expect(sort.getByRole("radio", { name: "Newest first" })).toBeChecked();
+  await expect(names).toContainText(["Hotel", "Airport taxi", "Dinner"]);
+
+  await sort.getByRole("radio", { name: "High to low" }).check();
+  await expect(names).toContainText(["Hotel", "Dinner", "Airport taxi"]);
+  await expect(page).toHaveURL(/sort=highest/u);
+
+  await sortSummary.click();
+  await sort.getByRole("radio", { name: "Low to high" }).check();
+  await expect(names).toContainText(["Airport taxi", "Dinner", "Hotel"]);
+  await page.getByLabel("Search expenses", { exact: true }).fill("hotel");
+  await expect(page.getByRole("status")).toHaveText("1 of 3 expenses");
+  await page.getByRole("button", { name: "Clear all filters" }).click();
+  await expect(page).toHaveURL(/\/expenses\?sort=lowest$/u);
+  await sortSummary.click();
+  await expect(sort.getByRole("radio", { name: "Low to high" })).toBeChecked();
+
+  await page.reload();
+  await expect(names).toContainText(["Airport taxi", "Dinner", "Hotel"]);
+  await page.getByRole("list", { name: "Expenses" }).getByText("Dinner").click();
+  await page.getByRole("link", { name: "Back to expenses", exact: true }).click();
+  await sortSummary.click();
+  await expect(sort.getByRole("radio", { name: "Low to high" })).toBeChecked();
+
+  await sort.getByRole("radio", { name: "Oldest first" }).check();
+  await expect(names).toContainText(["Dinner", "Airport taxi", "Hotel"]);
+  await sortSummary.click();
+  await sort.getByRole("group", { name: "Name" }).getByRole("radio", { name: "A–Z" }).check();
+  await expect(names).toContainText(["Airport taxi", "Dinner", "Hotel"]);
+  await sortSummary.click();
+  await sort.getByRole("group", { name: "Name" }).getByRole("radio", { name: "Z–A" }).check();
+  await expect(names).toContainText(["Hotel", "Dinner", "Airport taxi"]);
+  await sortSummary.click();
+  await sort.getByRole("radio", { name: "Same category" }).check();
+  await expect(names).toContainText(["Dinner", "Hotel", "Airport taxi"]);
+  await sortSummary.click();
+  await sort.getByRole("radio", { name: "Same tags" }).check();
+  await expect(names).toContainText(["Dinner", "Airport taxi", "Hotel"]);
+  await expect(page).toHaveURL(/sort=tags/u);
+  await sortSummary.click();
+  await sort.getByRole("radio", { name: "Newest first" }).check();
+  await expect(page).toHaveURL(/\/groups\/trip\/expenses$/u);
 });

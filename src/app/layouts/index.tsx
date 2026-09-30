@@ -11,7 +11,7 @@ const AppLayout = () => {
   const { isMobile, isDesktop } = useViewport();
   const { pathname } = useLocation();
   const isExpenseForm = /^\/groups\/[^/]+\/expenses\/(new|[^/]+\/edit)$/.test(pathname);
-  const showActivity = pathname === "/dashboard" || /^\/groups\/[^/]+(\/expenses)?$/.test(pathname);
+  const showActivity = pathname === "/dashboard" || /^\/groups\/[^/]+$/.test(pathname);
 
   useEffect(() => {
     document.documentElement.dataset.theme =

@@ -7,7 +7,7 @@ metadata:
 
 # Category Management
 
-Last updated: 2026-09-30
+Last updated: 2026-10-01
 
 ## Implementation Status
 
@@ -26,6 +26,10 @@ The new-expense picker offers active categories only, and the save transaction r
 activity and group ownership. Historical list/overview rows still resolve inactive category names.
 The expense form can create a group category without navigating away, including when no active
 category exists; the newly created category is selected and existing expense entries are preserved.
+On expense detail, the current category opens a popover of active group categories (plus the
+current one if inactive). Selecting another category saves immediately through a focused expense
+reference update; invalid or cross-group choices fail without changing the expense. The full
+expense editor remains available. See [[expense-edit-delete]].
 
 ## Two Levels of Categories
 

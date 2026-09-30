@@ -9,7 +9,7 @@ metadata:
 
 Purpose: describe implemented group navigation, expense workflows, balances, and group transfer.
 
-Last updated: 2026-09-30
+Last updated: 2026-10-01
 
 ## Current Implementation
 
@@ -91,9 +91,13 @@ shows net positions and suggested payments. Neither view uses an in-page tab bar
 - Paid by (member name)
 - Local date and 12-hour time (`when` — the actual expense time, not `createdAt`)
 
-Expenses are sorted by `when` descending. Rows show the local date and 12-hour time beneath the
+Expenses are sorted by `when` descending. Rows show the local date as `12-Jan-2026` and local
+12-hour time as `03:45 PM` beneath the
 amount, plus payer names and the category icon beside the name. Names link to detail, which offers
-editing and confirmed deletion.
+editing, quick category/tag changes, and confirmed deletion. Detail distinguishes the occurred
+date/time (separate Date and Time lines in the banner) from the recording date (`createdAt`) shown
+as a quiet "Recorded by [name] · [date]" line between the banner and the Paid by/Split cards. Its
+tags span a full-width banner row.
 The full ledger and recent Overview entries show up to three colored tags and reveal further tags
 with a separate Show more control. The list now has real-time name, date, category, tag,
 payer, involved-member, split-type, and amount filters with an active count and clear action.
@@ -110,11 +114,15 @@ journeys cover the controls; see [[filtering]].
   The form still submits a local `YYYY-MM-DDTHH:mm` value in 24-hour notation for validation and
   storage; 12 AM maps to 00:xx, and 12 PM maps to 12:xx. Editing reconstructs the 12-hour display
   from the saved local time without changing an untouched timestamp.
+- **Use current time** fills the hour, minute, and AM/PM from the device clock when clicked without
+  changing the selected expense date. Manual entry remains available and time remains required;
+  omitting it does not silently assign the save time, which could misdate a past expense.
 - One or multiple payers, all five split types, and existing optional group tags are supported.
 - React Hook Form and Zod validate input; the store revalidates current persisted references and
   saves the expense plus frequent-payer ranking atomically in IndexedDB.
-- A missing local membership or active category blocks entry. Receipts and inline tag creation
-  remain pending. See [[split-types]], [[paid-by]], and [[money-representation-and-rounding]].
+- A missing local membership or active category blocks entry. Receipts and tag creation inside the
+  full form remain pending; detail supports tag creation. See [[split-types]], [[paid-by]], and
+  [[money-representation-and-rounding]].
 
 ### Expense Correction
 
@@ -122,6 +130,8 @@ Editing reuses the entry form, restoring saved paid amounts, participant selecti
 metadata. Updates preserve creation metadata and existing attachments. An unchanged inactive
 category may be retained; a different selection must be active. Saving returns to detail;
 cancelling writes nothing. Failed saves retain inputs for retry.
+Detail category and tag selection instead quick-save only those references without rebuilding
+allocations; see [[expense-edit-delete]].
 
 Detail deletion requires confirmation and atomically removes the expense and owned receipts,
 refreshes frequent payers, then returns to the list. All balance displays derive the updated store.

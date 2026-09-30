@@ -9,7 +9,7 @@ metadata:
 
 Purpose: provide a current planning compass without turning exploratory ideas into commitments.
 
-Last updated: 2026-09-30
+Last updated: 2026-10-01
 
 ## How to Read This Page
 
@@ -85,7 +85,9 @@ protection complete the Horizon 1 implementation list. Attachment ingestion and 
 remain pending. Current detail lives in [[index]], [[domain-models]], and
 [[main-screen]].
 
-## Next Task — Resolve Browser Suite Failures
+## Next Tasks
+
+### Resolve Browser Suite Failures
 
 The 2026-09-30 full Playwright run passed 74 of 92 desktop/mobile tests. The 18 failures are
 confined to `src/features/expenses/tests/browser/expense-filters.e2e.ts` (4) and
@@ -98,6 +100,16 @@ failures, not yet confirmed root causes or proof that the underlying features ar
 Next: investigate each failing flow, fix the UI or assertions according to actual behavior, and
 rerun the full desktop/mobile browser suite. The expense-entry suite (32/32), unit tests (394/394),
 and lint/format/type checks passed on the same working tree.
+
+### Group Duplication
+
+Add a same-device **Duplicate group** flow alongside the browser-suite repair task. It should reuse
+the export questionnaire's content choices and dependency behavior: group information is required;
+categories, tags, members, expenses, and available receipt attachments can be selected under the
+same inclusion rules. Instead of generating a Link, CSV, or ZIP, the chosen content is cloned into
+a separate local group. The source group remains unchanged. This is planned, not implemented;
+identity handling, record-ID remapping, and other clone-write details need design during
+implementation. See [[import-export]].
 
 ## Horizon 1 — Complete the Core Accounting Loop
 
