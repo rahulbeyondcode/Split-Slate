@@ -7,6 +7,8 @@ Last updated: 2026-09-30
 ---
 
 ## 2026-09-30
+- UPDATED architecture/layout-architecture.md — document the persistent main-pane scroll container and root route reset across desktop/mobile and public pages
+- UPDATED wiki/index.md — surface route scroll-reset behavior in layout navigation
 - UPDATED roadmap/product-roadmap.md — prioritize investigation of 18 expense-filter and import/export browser failures after the 74/92 full-suite run
 - UPDATED wiki/index.md — surface the browser-suite repair task in roadmap navigation
 - UPDATED workflows/category-management.md — document in-expense category creation, selection, and empty-active-category recovery

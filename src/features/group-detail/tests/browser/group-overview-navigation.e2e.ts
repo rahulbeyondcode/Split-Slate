@@ -104,8 +104,21 @@ test("distinguishes the snapshot from the complete expense history", async ({ pa
 
   await page.getByRole("link", { name: "View all members" }).click();
   await expect(page).toHaveURL(/\/groups\/trip\/members$/u);
+  await expect(page.getByRole("heading", { level: 1, name: "Weekend Trip" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Members", exact: true })).toBeVisible();
   await navigation.getByRole("link", { name: "Overview" }).click();
   await expect(page.getByRole("heading", { name: "At a glance" })).toBeVisible();
+
+  await navigation.locator('a[href="/groups/trip/categories"]').click();
+  await expect(page.getByRole("heading", { level: 1, name: "Weekend Trip" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { level: 2, name: "Categories & Tags", exact: true }),
+  ).toBeVisible();
+
+  await navigation.getByRole("link", { name: "Settings" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Weekend Trip" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Group settings" })).toBeVisible();
+  await navigation.getByRole("link", { name: "Overview" }).click();
 
   await page.getByRole("link", { name: "View all balances" }).click();
   await expect(page).toHaveURL(/\/groups\/trip\/balances$/u);

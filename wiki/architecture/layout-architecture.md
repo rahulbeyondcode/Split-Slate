@@ -9,7 +9,7 @@ metadata:
 
 Purpose: document the implemented responsive shell and distinguish navigation stubs from working routes.
 
-Last updated: 2026-09-29
+Last updated: 2026-09-30
 
 ## Viewport States
 
@@ -77,6 +77,19 @@ confirmation gives the remaining countdown seconds bold emphasis. See [[full-bac
 ## Layout Mode Detection
 
 A shared hook reads the window width and updates in real time whenever the viewport is resized. Components use it to make structural decisions — for example, whether to render the footer or the sidebar. Fine-grained stylistic differences within the desktop layout are handled with CSS responsive utilities.
+
+---
+
+## Route Scroll Position
+
+The post-onboarding shell keeps `#main-content` mounted across route changes. Its `.app-main`
+styles make that element the scroll container on desktop and mobile, separate from `window`.
+Without an explicit reset, a new route inherits the previous page's position. A shared
+`useScrollToTop` hook runs in the pathless root route layout, covering protected pages as well as
+onboarding, import, and restore. It resets both `#main-content` and the window to the top when the
+pathname changes, including browser Back/Forward; browser-native scroll restoration is disabled
+while this layout is mounted. Query-string edits on the same page do not trigger a reset, preserving
+the user's position while filtering the expense list. See [[filtering]] and [[main-screen]].
 
 ---
 

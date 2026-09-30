@@ -143,6 +143,7 @@ const MemberList = () => {
     <section className="flex flex-col gap-3">
       <div className="flex items-center justify-between gap-4">
         <div>
+          <h2 className="section-title">Members</h2>
           <p className="soft-caption">{groupMembers.length} in this group</p>
         </div>
         {mode?.type !== "add" && (

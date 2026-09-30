@@ -19,43 +19,49 @@ import PeopleList from "@/features/people/components/people-list";
 import AppSettings from "@/features/settings/components/app-settings";
 
 import AppLayout from "@/app/layouts";
+import ScrollReset from "@/app/layouts/scroll-reset";
 import RouteProtector from "@/app/router/route-protector";
 import CreateGroup from "@/features/create-group";
 import Dashboard from "@/features/dashboard";
 import GroupDetail from "@/features/group-detail";
 
 export const router = createBrowserRouter([
-  { path: "/import", element: <ImportGroup /> },
-  { path: "/restore", element: <RestoreBackup /> },
   {
-    element: <RouteProtector />,
+    element: <ScrollReset />,
     children: [
-      { path: "/", element: <Navigate to="/onboarding" replace /> },
-      { path: "/onboarding", element: <FeatureCarousel /> },
-      { path: "/onboarding/setup", element: <SetupFlow /> },
+      { path: "/import", element: <ImportGroup /> },
+      { path: "/restore", element: <RestoreBackup /> },
       {
-        element: <AppLayout />,
+        element: <RouteProtector />,
         children: [
-          { path: "/dashboard", element: <Dashboard /> },
-          { path: "/activity", element: <Activity /> },
-          { path: "/unsettled", element: <Unsettled /> },
-          { path: "/analytics", element: <Analytics /> },
-          { path: "/settings", element: <AppSettings /> },
-          { path: "/friends", element: <PeopleList /> },
-          { path: "/groups/new", element: <CreateGroup /> },
+          { path: "/", element: <Navigate to="/onboarding" replace /> },
+          { path: "/onboarding", element: <FeatureCarousel /> },
+          { path: "/onboarding/setup", element: <SetupFlow /> },
           {
-            path: "/groups/:groupId",
-            element: <GroupDetail />,
+            element: <AppLayout />,
             children: [
-              { index: true, element: <GroupOverview /> },
-              { path: "expenses", element: <ExpenseList /> },
-              { path: "expenses/new", element: <ExpenseForm /> },
-              { path: "expenses/:expenseId", element: <ExpenseDetail /> },
-              { path: "expenses/:expenseId/edit", element: <ExpenseForm /> },
-              { path: "balances", element: <GroupBalances /> },
-              { path: "members", element: <MemberList /> },
-              { path: "categories", element: <CategoriesAndTags /> },
-              { path: "settings", element: <GroupSettings /> },
+              { path: "/dashboard", element: <Dashboard /> },
+              { path: "/activity", element: <Activity /> },
+              { path: "/unsettled", element: <Unsettled /> },
+              { path: "/analytics", element: <Analytics /> },
+              { path: "/settings", element: <AppSettings /> },
+              { path: "/friends", element: <PeopleList /> },
+              { path: "/groups/new", element: <CreateGroup /> },
+              {
+                path: "/groups/:groupId",
+                element: <GroupDetail />,
+                children: [
+                  { index: true, element: <GroupOverview /> },
+                  { path: "expenses", element: <ExpenseList /> },
+                  { path: "expenses/new", element: <ExpenseForm /> },
+                  { path: "expenses/:expenseId", element: <ExpenseDetail /> },
+                  { path: "expenses/:expenseId/edit", element: <ExpenseForm /> },
+                  { path: "balances", element: <GroupBalances /> },
+                  { path: "members", element: <MemberList /> },
+                  { path: "categories", element: <CategoriesAndTags /> },
+                  { path: "settings", element: <GroupSettings /> },
+                ],
+              },
             ],
           },
         ],

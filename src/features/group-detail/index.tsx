@@ -51,6 +51,13 @@ const GroupDetail = () => {
     `/groups/${groupId}/expenses`,
     `/groups/${groupId}/balances`,
   ].includes(pathname);
+  const showGroupHeader =
+    showGroupNavigation ||
+    [
+      `/groups/${groupId}/members`,
+      `/groups/${groupId}/categories`,
+      `/groups/${groupId}/settings`,
+    ].includes(pathname);
   const isOverview = pathname === `/groups/${groupId}`;
   const person = context.groupMembers.find((item) => item.personId === localUser?.id);
   const net = person ? calculateMemberNet(context.groupExpenses, person.id) : 0;
@@ -77,7 +84,7 @@ const GroupDetail = () => {
               </span>
             </div>
           </div>
-        ) : showGroupNavigation ? (
+        ) : showGroupHeader ? (
           <>
             <header className="flex flex-wrap items-center gap-4">
               <Avatar icon={group.icon} square className="!h-16 !w-16 !text-3xl" />
@@ -98,13 +105,15 @@ const GroupDetail = () => {
                   />
                 ))}
               </div>
-              <Link
-                to={`/groups/${group.id}/settings`}
-                className="btn btn-secondary !px-3"
-                aria-label="Group settings"
-              >
-                <Icon icon={Ellipsis} size={21} />
-              </Link>
+              {pathname !== `/groups/${group.id}/settings` && (
+                <Link
+                  to={`/groups/${group.id}/settings`}
+                  className="btn btn-secondary !px-3"
+                  aria-label="Group settings"
+                >
+                  <Icon icon={Ellipsis} size={21} />
+                </Link>
+              )}
             </header>
             {isOverview && (
               <BalanceHero

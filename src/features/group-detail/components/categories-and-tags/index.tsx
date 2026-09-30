@@ -2,9 +2,12 @@ import CategoryManagement from "@/features/group-detail/components/category-mana
 import TagManagement from "@/features/group-detail/components/tag-management";
 
 const CategoriesAndTags = () => (
-  <section className="responsive-grid items-start">
-    <CategoryManagement />
-    <TagManagement />
+  <section className="flex flex-col gap-5">
+    <h2 className="section-title">Categories & Tags</h2>
+    <div className="responsive-grid items-start">
+      <CategoryManagement />
+      <TagManagement />
+    </div>
   </section>
 );
 

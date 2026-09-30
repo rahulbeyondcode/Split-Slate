@@ -113,6 +113,7 @@ const GroupSettings = () => {
 
   return (
     <section className="flex flex-col gap-5">
+      <h2 className="section-title">Group settings</h2>
       {editing ? (
         <FormProvider {...methods}>
           <form onSubmit={handleSave} className="surface surface-pad flex flex-col gap-4">

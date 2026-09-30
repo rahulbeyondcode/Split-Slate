@@ -19,7 +19,7 @@ Last updated: 2026-09-30
 - [Balance Calculation](architecture/balance-calculation.md) — fixed-hundredths member/group totals, all-member balances, and deterministic suggested transfers
 - [State Management](architecture/state-management.md) — hydrated Zustand slices plus persisted mutation boundaries, including all-or-nothing fresh-ID group import
 - [Split Types](architecture/split-types.md) — 5 split types with fixed-hundredths monetary allocations and exact ratios; numeric percentage-total display remains pending
-- [Layout Architecture](architecture/layout-architecture.md) — responsive shell, contextual sidebar, desktop activity, semantic banners, and top-aligned transfer navigation
+- [Layout Architecture](architecture/layout-architecture.md) — responsive shell, route scroll reset, contextual sidebar, desktop activity, semantic banners, and transfer navigation
 
 ### Decisions
 - [Global People Directory](decisions/global-people-directory.md) — device-local friends list; members link to shared people; supersedes per-group members
