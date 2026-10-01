@@ -1,12 +1,42 @@
-import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { Link, Navigate, Outlet, useLocation } from "react-router-dom";
 
 import { useStore } from "@/shared/configs/store";
 
+import StatusBanner from "@/shared/ui/status-banner";
+
 const RouteProtector = () => {
-  const { initialized, onboardingComplete, onboardingLastCompletedStep, onboardingGroupId } =
-    useStore();
+  const {
+    initialized,
+    initError,
+    onboardingComplete,
+    onboardingLastCompletedStep,
+    onboardingGroupId,
+  } = useStore();
   const { pathname } = useLocation();
 
+  if (initError) {
+    return (
+      <main className="page page-narrow mx-auto py-12">
+        <h1 className="page-title">Your local data could not be opened</h1>
+        <StatusBanner variant="error">{initError}</StatusBanner>
+        <p className="my-4">
+          Do not clear your browser data. Try reloading, or restore a saved backup.
+        </p>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => window.location.reload()}
+          >
+            Reload
+          </button>
+          <Link className="btn btn-secondary" to="/restore">
+            Restore backup
+          </Link>
+        </div>
+      </main>
+    );
+  }
   if (!initialized) return null;
 
   const onOnboardingPage = pathname.startsWith("/onboarding");

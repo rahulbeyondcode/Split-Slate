@@ -9,7 +9,7 @@ metadata:
 
 Purpose: provide a current planning compass without turning exploratory ideas into commitments.
 
-Last updated: 2026-10-01
+Last updated: 2026-10-02
 
 ## How to Read This Page
 
@@ -156,14 +156,21 @@ Approved or required work:
   existing device, including receipts and app settings; see [[full-backup]]. Google Drive backup
   and synchronization remain outside this local scope.
 - Add explicit backup/export reminders without making them spammy.
-- Add installable PWA metadata, service-worker caching, offline-start verification, and an
-  update/recovery experience. IndexedDB alone does not make the application an offline PWA.
+- Installable metadata, production service-worker app-shell caching, offline deep-link launch,
+  separate resumable icon caching/repair, and a waiting-update prompt are implemented. Production
+  desktop/mobile-emulated browser checks cover offline startup, icon repair, and the prompt UI;
+  a true two-deployment update rehearsal, physical-device verification, and storage-pressure checks
+  remain release gates.
+  Updates do not force-reload an open session; users can postpone while finishing unsaved work.
+  After all app windows close, the browser may activate a waiting worker before the next launch.
+  A failed shell download must leave the older worker running. Icons are independently verified
+  and replaced without resetting the shell or IndexedDB. See [[iconography]].
 - Replace the active-development reset policy with versioned migrations before real user data is
   expected to survive application upgrades. See [[indexeddb-schema]].
 - Add automated tests around accounting invariants, split rounding, cascades, import validation,
   migrations, and the most important user flows.
-- Add visible bootstrap and persistence failure states so the app cannot wait indefinitely after a
-  database failure.
+- Database bootstrap failures now show a reload/backup-restore path rather than waiting indefinitely.
+  User-facing persistence failure handling on every write remains a release gate.
 
 Snapshot transfer remains the local sharing model in this horizon. It is not synchronization: no
 real-time updates, background merge, or automatic conflict resolution is promised.

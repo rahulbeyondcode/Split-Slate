@@ -17,66 +17,75 @@ const getSetting = <T extends SettingsRecord["id"]>(id: T) =>
 export const createAppSlice: SliceCreator<AppSlice> = (set) => ({
   expenses: [],
   initialized: false,
+  initError: null,
 
   init: async () => {
-    const [
-      localUserRows,
-      groups,
-      allPeople,
-      groupMembers,
-      categories,
-      tags,
-      expenses,
-      onboarding,
-      categorySettings,
-    ] = await Promise.all([
-      db.localUser.toArray(),
-      db.groups.toArray(),
-      db.people.toArray(),
-      db.members.toArray(),
-      db.categories.toArray(),
-      db.tags.toArray(),
-      db.expenses.toArray(),
-      getSetting("onboarding"),
-      getSetting("categories"),
-    ]);
+    try {
+      const [
+        localUserRows,
+        groups,
+        allPeople,
+        groupMembers,
+        categories,
+        tags,
+        expenses,
+        onboarding,
+        categorySettings,
+      ] = await Promise.all([
+        db.localUser.toArray(),
+        db.groups.toArray(),
+        db.people.toArray(),
+        db.members.toArray(),
+        db.categories.toArray(),
+        db.tags.toArray(),
+        db.expenses.toArray(),
+        getSetting("onboarding"),
+        getSetting("categories"),
+      ]);
 
-    let categoryRow = categorySettings;
-    if (!categoryRow) {
-      categoryRow = {
-        id: "categories",
-        master: SEED_MASTER_CATEGORIES,
-        default: SEED_DEFAULT_GROUP_CATEGORIES,
-      };
-      await db.settings.put(categoryRow);
+      let categoryRow = categorySettings;
+      if (!categoryRow) {
+        categoryRow = {
+          id: "categories",
+          master: SEED_MASTER_CATEGORIES,
+          default: SEED_DEFAULT_GROUP_CATEGORIES,
+        };
+        await db.settings.put(categoryRow);
+      }
+
+      let onboardingRow = onboarding;
+      if (!onboardingRow) {
+        onboardingRow = {
+          id: "onboarding",
+          lastCompletedStep: null,
+          groupId: null,
+          complete: false,
+        };
+        await db.settings.put(onboardingRow);
+      }
+
+      set({
+        localUser: localUserRows[0] ?? null,
+        groups,
+        people: allPeople,
+        members: groupMembers,
+        categories,
+        tags,
+        expenses,
+        initialized: true,
+        initError: null,
+        masterCategories: categoryRow.master,
+        defaultGroupCategories: categoryRow.default,
+        onboardingLastCompletedStep: onboardingRow.lastCompletedStep,
+        onboardingGroupId: onboardingRow.groupId,
+        onboardingComplete: onboardingRow.complete,
+        onboardingStep: stepAfter(onboardingRow.lastCompletedStep),
+      });
+    } catch (failure) {
+      set({
+        initialized: false,
+        initError: failure instanceof Error ? failure.message : "Could not open the local database",
+      });
     }
-
-    let onboardingRow = onboarding;
-    if (!onboardingRow) {
-      onboardingRow = {
-        id: "onboarding",
-        lastCompletedStep: null,
-        groupId: null,
-        complete: false,
-      };
-      await db.settings.put(onboardingRow);
-    }
-
-    set({
-      localUser: localUserRows[0] ?? null,
-      groups,
-      people: allPeople,
-      members: groupMembers,
-      categories,
-      tags,
-      expenses,
-      initialized: true,
-      masterCategories: categoryRow.master,
-      defaultGroupCategories: categoryRow.default,
-      onboardingLastCompletedStep: onboardingRow.lastCompletedStep,
-      onboardingGroupId: onboardingRow.groupId,
-      onboardingComplete: onboardingRow.complete,
-      onboardingStep: stepAfter(onboardingRow.lastCompletedStep),
-    });
   },
 });

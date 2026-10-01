@@ -2,11 +2,19 @@
 
 Reverse-chronological record of all wiki changes.
 
-Last updated: 2026-10-01
+Last updated: 2026-10-02
 
 ---
 
+## 2026-10-02
+- UPDATED wiki/index.md, roadmap/product-roadmap.md, and wiki/log.md — reconcile pulled navigation/roadmap/log with PWA additions and clarify postponed-update activation
+- UPDATED roadmap/product-roadmap.md — distinguish mobile-emulated PWA tests from physical-device release verification
+- UPDATED wiki/index.md — reflect desktop/mobile-emulated offline checks without claiming physical-device coverage
+
 ## 2026-10-01
+- UPDATED decisions/iconography.md — record verified, resumable background icon caching and repair without permanent-storage promises
+- UPDATED roadmap/product-roadmap.md — distinguish implemented PWA foundation from outstanding update/data-safety release gates
+- UPDATED wiki/index.md — reflect PWA implementation status and updated navigation
 - UPDATED wiki/index.md — mark export-style group duplication as pending in implementation status
 - UPDATED roadmap/product-roadmap.md — add group duplication alongside, not instead of, browser-suite repair as a next task
 - UPDATED decisions/import-export.md — distinguish planned export-style local group clone from generated transfer formats

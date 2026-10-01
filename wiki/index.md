@@ -5,14 +5,14 @@ This wiki is the sole persistent compiled knowledge layer. The implementation in
 authoritative; `app-featureset-context/spec-sheet.md` is a historical baseline where later source
 and approved decisions have superseded it. Changes: [log.md](log.md)
 
-Last updated: 2026-10-01
+Last updated: 2026-10-02
 
 ---
 
 ## Navigation
 
 ### Roadmap
-- [Product Direction and Roadmap](roadmap/product-roadmap.md) — living product compass, next tasks for browser-suite repair and group duplication, delivery horizons, and release gates
+- [Product Direction and Roadmap](roadmap/product-roadmap.md) — browser-suite repair, group duplication, PWA release gates, and delivery horizons
 
 ### Architecture
 - [Domain Models](architecture/domain-models.md) — current entity shapes, saved PNG icon keys, fixed-hundredths money, currency relabeling, and pending tag-display/attachment behavior
@@ -31,7 +31,7 @@ Last updated: 2026-10-01
 - [Expense Edit and Delete](decisions/expense-edit-delete.md) — full editor, confirmed deletion, and immediate reference-only category/tag changes without rebuilding splits
 - [Group Deletion](decisions/group-deletion.md) — implemented permanent group-owned data cascade with confirmation; shared contacts remain
 - [Money Representation and Rounding](decisions/money-representation-and-rounding.md) — implemented fixed hundredths for every currency, exact allocation, and confirmed no-conversion relabeling
-- [Iconography](decisions/iconography.md) — scoped PNG pickers, Netlify browser caching, old-category-emoji mapping, Lucide controls, error illustrations, and onboarding artwork
+- [Iconography](decisions/iconography.md) — scoped PNG pickers, incremental offline caching and repair, Lucide controls, error illustrations, and onboarding artwork
 - [Confirmation Dialogs](decisions/confirmation-dialogs.md) — shared in-app destructive confirmation for groups, contacts, members, categories, and tags
 - [Selection Controls](decisions/selection-controls.md) — native checkboxes/radios with selected and visibly locked states across forms, filters, and transfer
 - [String Input Normalization](decisions/string-input-normalization.md) — required strings reject trimmed blanks; optional expense inputs have explicit blank-value semantics
@@ -94,7 +94,7 @@ Last updated: 2026-10-01
 | Group duplication                 | PENDING     |
 | Whole-app ZIP backup and restore  | DONE        |
 | Settlement sharing                | PENDING     |
-| Installable/offline PWA support    | PENDING     |
+| Installable/offline PWA support    | IN PROGRESS |
 | Automated tests                    | IN PROGRESS |
 
 The IndexedDB layer and Zustand store are complete for the current development scope. Schema
@@ -123,6 +123,13 @@ carries verified receipts. Fresh group-owned IDs, count/reference/integrity vali
 identity mapping, default categories, same-name numbering, and the complete IndexedDB transaction
 are covered on desktop and mobile. Settlement Link/PDF/Excel sharing remains separate and pending.
 See [[import-export]].
+
+The production build now has install metadata, an offline app shell, background verified icon
+downloads with incremental repair, and a user-controlled update prompt. Desktop/mobile-emulated PWA
+browser checks cover offline launch and cache repair. A real two-deployment update rehearsal,
+physical-device verification, storage pressure behavior, and versioned IndexedDB upgrades remain
+release checks; caches cannot guarantee
+permanent storage. See [[iconography]] and [[product-roadmap]].
 
 ---
 

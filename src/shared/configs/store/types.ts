@@ -17,6 +17,7 @@ import type {
 export interface AppSlice {
   expenses: Expense[];
   initialized: boolean;
+  initError: string | null;
 
   init: () => Promise<void>;
 }

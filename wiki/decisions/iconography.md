@@ -23,11 +23,21 @@ available to groups and categories, never profile pictures. Gallery folders filt
 choices. Every choice is labelled and accessible by keyboard. Assets are loaded as image elements
 rather than inline Unicode glyphs; the catalog tracks the current files in `public/emoji-icons/`.
 
-Netlify serves these PNGs with a seven-day browser cache lifetime via `public/_headers`. A normal
-reload reuses images already downloaded during that period; this does not precache the entire
-gallery or guarantee offline access. Icon URLs are not content-versioned, so changed images at the
-same path may remain stale until the browser cache expires. Do not use `immutable` for these URLs.
-Vite's development server does not use Netlify's response headers.
+Netlify serves these PNGs with a seven-day browser HTTP cache lifetime via `public/_headers`.
+The production service worker precaches only the two default icons with the app shell; after the
+worker first controls the page, it downloads the curated library separately while the app is open.
+A generated inventory lists every published PNG with its SHA-256 digest. Each online check verifies
+cached bytes, keeps matching icons, and fetches missing or changed icons with `cache: "no-store"`.
+Only verified responses replace their existing cache entries. Settings offers the same check and
+repair on demand. Failed downloads leave healthy entries and IndexedDB data untouched. Images
+requested before background download finishes are cached when loaded. The selected collection, not
+the entire upstream emoji library, is bundled with the site.
+
+The app does not wait for all icons before opening; an unavailable image renders a neutral fallback.
+Browser storage can be evicted, and a background download may stop when the app closes. The worker
+retries on the next online app visit; "ready offline" is not a guarantee of permanent storage.
+Cache repair never deletes user data. Vite's development server does not exercise the service
+worker or use Netlify's response headers. See [[product-roadmap]] for release checks.
 
 The persisted `icon` is a collection-relative path, such as `profile-pic/fox-3d.png` or
 `travel-and-places/airplane-3d.png`. The renderer resolves only known paths for the appropriate

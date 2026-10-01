@@ -11,6 +11,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 
 import PersonEditor from "@/features/people/components/person-editor";
+import OfflineIcons from "@/features/pwa/components/offline-icons";
 
 import { readFullBackupSource } from "@/features/import-export/store";
 import { downloadFile } from "@/features/import-export/utils/download-file";
@@ -107,6 +108,7 @@ const AppSettings = () => {
           </button>
         </Surface>
       </section>
+      <OfflineIcons />
       <section>
         <p className="eyebrow mb-2">Group transfer</p>
         <Surface className="surface-pad flex flex-col items-start gap-3">
