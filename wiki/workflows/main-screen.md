@@ -9,7 +9,7 @@ metadata:
 
 Purpose: describe implemented group navigation, expense workflows, balances, and group transfer.
 
-Last updated: 2026-10-01
+Last updated: 2026-10-02
 
 ## Current Implementation
 
@@ -33,7 +33,8 @@ The current child screens are:
   members ranked by the number of expenses they paid for, suggested-transfer count, and a preview
   of the three most recent expenses with links to the full members, balances, and expenses views
 - **Expenses** — the complete searchable, filterable ledger sorted by `when` descending, showing
-  name, total paid, payer names, date/time, and category; the large local-balance hero is not shown
+  name, total paid, payer names, date/time, and category; compact filter-aware insights show
+  matched spending without a member breakdown or the large local-balance hero
 - **Add Expense** — `/groups/:groupId/expenses/new`, with validated local recording and five split methods
 - **Expense Detail/Edit** — payer/split breakdown and tags, prefilled editing, and confirmed hard deletion
 - **Balances** — every member's net position and deterministic suggested payments
@@ -45,6 +46,16 @@ The group's default route opens Overview. Its "View all expenses" and "View all 
 the full ledger and per-member balances respectively; Expenses is also available through the sidebar
 and mobile navigation. There is no additional group-view tab bar. The large local-balance hero appears
 only on Overview.
+
+The Balances screen has a Back control that returns to the originating group screen, including its
+filter URL; direct entry without in-app history falls back to the group's Expenses screen. Group
+headers stay visible while scrolling. Expenses, Members, and Categories & Tags fit within the
+available viewport, with the expense/member lists and category/tag cards scrolling individually
+only when needed. See [[layout-architecture]] and [[filtering]].
+
+On desktop, the activity panel follows group routes except Settings, including expense forms;
+the group header no longer has a redundant three-dot shortcut to Settings. The group sidebar
+and mobile footer retain Settings navigation. See [[layout-architecture]].
 
 The Overview member preview counts each expense once per member with a positive paid contribution,
 even when multiple members pay for the same expense. Higher counts appear first; equal counts and
@@ -101,6 +112,9 @@ tags span a full-width banner row.
 The full ledger and recent Overview entries show up to three colored tags and reveal further tags
 with a separate Show more control. The list now has real-time name, date, category, tag,
 payer, involved-member, split-type, and amount filters with an active count and clear action.
+The compact Expense insights card shows matching count, total, rounded average, and top category;
+it does not show member contributions or settlement balances. The group header retains the
+full-group total, and a separate link opens full-group Balances. Invalid filters suppress the summary.
 Unavailable selected option IDs are pruned when the list remounts, and desktop/mobile browser
 journeys cover the controls; see [[filtering]].
 

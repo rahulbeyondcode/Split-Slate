@@ -1,6 +1,7 @@
 import { ArrowDownUp, ListFilter, Search } from "lucide-react";
-import type { FormEvent } from "react";
-import { useEffect, useRef } from "react";
+import type { CSSProperties, FormEvent } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useFormContext, useWatch } from "react-hook-form";
 import { useOutletContext, useSearchParams } from "react-router-dom";
 
@@ -21,9 +22,31 @@ import type { GroupDetailContext } from "@/features/group-detail/types/group-det
 
 import Icon from "@/shared/ui/icon";
 
+const getPopoverPosition = (details: HTMLDetailsElement, maxWidth: number): CSSProperties => {
+  const rect = details.getBoundingClientRect();
+  const width = Math.min(window.innerWidth * 0.85, maxWidth);
+  const maxHeight = Math.min(window.innerHeight * 0.7, 560);
+  const below = window.innerHeight - rect.bottom - 12;
+  const above = rect.top - 12;
+  const openBelow = below >= maxHeight || below >= above;
+  return {
+    position: "fixed",
+    top: openBelow ? rect.bottom + 4 : undefined,
+    bottom: openBelow ? undefined : window.innerHeight - rect.top + 4,
+    right: Math.min(Math.max(8, window.innerWidth - rect.right), window.innerWidth - width - 8),
+    maxHeight: Math.min(maxHeight, Math.max(0, openBelow ? below : above)),
+  };
+};
+
 const ExpenseFilters = () => {
   const filtersRef = useRef<HTMLDetailsElement>(null);
   const sortRef = useRef<HTMLDetailsElement>(null);
+  const filtersPanelRef = useRef<HTMLDivElement>(null);
+  const sortPanelRef = useRef<HTMLDivElement>(null);
+  const [sortOpen, setSortOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [sortPosition, setSortPosition] = useState<CSSProperties>();
+  const [filtersPosition, setFiltersPosition] = useState<CSSProperties>();
   const [, setSearchParams] = useSearchParams();
   const { group, groupCategories, groupTags, groupMembers } =
     useOutletContext<GroupDetailContext>();
@@ -62,8 +85,16 @@ const ExpenseFilters = () => {
 
   useEffect(() => {
     const handleOutsideClick = (event: PointerEvent) => {
-      for (const details of [filtersRef.current, sortRef.current]) {
-        if (details?.open && event.target instanceof Node && !details.contains(event.target)) {
+      for (const { details, panel } of [
+        { details: filtersRef.current, panel: filtersPanelRef.current },
+        { details: sortRef.current, panel: sortPanelRef.current },
+      ]) {
+        if (
+          details?.open &&
+          event.target instanceof Node &&
+          !details.contains(event.target) &&
+          !panel?.contains(event.target)
+        ) {
           details.open = false;
         }
       }
@@ -71,6 +102,20 @@ const ExpenseFilters = () => {
 
     document.addEventListener("pointerdown", handleOutsideClick);
     return () => document.removeEventListener("pointerdown", handleOutsideClick);
+  }, []);
+
+  useEffect(() => {
+    const updatePositions = () => {
+      if (sortRef.current?.open) setSortPosition(getPopoverPosition(sortRef.current, 300));
+      if (filtersRef.current?.open) setFiltersPosition(getPopoverPosition(filtersRef.current, 560));
+    };
+    window.addEventListener("resize", updatePositions);
+    const main = document.getElementById("main-content");
+    main?.addEventListener("scroll", updatePositions, { passive: true });
+    return () => {
+      window.removeEventListener("resize", updatePositions);
+      main?.removeEventListener("scroll", updatePositions);
+    };
   }, []);
 
   const handleClear = () => {
@@ -81,6 +126,16 @@ const ExpenseFilters = () => {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => event.preventDefault();
   const handleSortChange = () => {
     if (sortRef.current) sortRef.current.open = false;
+  };
+  const handleSortToggle = () => {
+    const open = Boolean(sortRef.current?.open);
+    setSortOpen(open);
+    if (open && sortRef.current) setSortPosition(getPopoverPosition(sortRef.current, 300));
+  };
+  const handleFiltersToggle = () => {
+    const open = Boolean(filtersRef.current?.open);
+    setFiltersOpen(open);
+    if (open && filtersRef.current) setFiltersPosition(getPopoverPosition(filtersRef.current, 560));
   };
   const handleChange = () => {
     setSearchParams(writeExpenseFilterParams(getValues()), {
@@ -108,83 +163,99 @@ const ExpenseFilters = () => {
           />
           <Input name="name" type="search" placeholder="Search expenses…" className="!pl-10" />
         </label>
-        <details ref={sortRef} className="group relative">
-          <summary className="btn btn-secondary list-none cursor-pointer">
+        <details ref={sortRef} onToggle={handleSortToggle} className="group relative">
+          <summary className="btn btn-secondary relative z-50 list-none cursor-pointer">
             <Icon icon={ArrowDownUp} size={18} /> Sort
           </summary>
-          <div className="surface surface-pad absolute top-11 right-0 z-10 max-h-[70svh] w-[min(85vw,300px)] overflow-auto">
-            <fieldset onChange={handleSortChange}>
-              <legend className="mb-3 text-sm font-bold">Sort expenses</legend>
-              <div className="flex flex-col">
-                {EXPENSE_SORT_SECTIONS.map((section) => (
-                  <div
-                    key={section.label}
-                    role="group"
-                    aria-label={section.label}
-                    className="border-t border-[var(--line)] py-3 first:border-t-0 first:pt-0 last:pb-0"
-                  >
-                    <p className="mb-2 text-xs font-bold text-[var(--muted)]">{section.label}</p>
-                    <div className="flex flex-col gap-2">
-                      {section.options.map((option) => (
-                        <label key={option.value} className="choice-option choice-option-compact">
-                          <input
-                            type="radio"
-                            value={option.value}
-                            {...register("sort")}
-                            className="choice-control"
-                          />
-                          {option.label}
-                        </label>
-                      ))}
+          {createPortal(
+            <div
+              ref={sortPanelRef}
+              hidden={!sortOpen}
+              style={sortPosition}
+              className="expense-filter-popover surface surface-pad fixed z-40 w-[min(85vw,300px)] overflow-auto"
+            >
+              <fieldset onChange={handleSortChange}>
+                <legend className="mb-3 text-sm font-bold">Sort expenses</legend>
+                <div className="flex flex-col">
+                  {EXPENSE_SORT_SECTIONS.map((section) => (
+                    <div
+                      key={section.label}
+                      role="group"
+                      aria-label={section.label}
+                      className="border-t border-[var(--line)] py-3 first:border-t-0 first:pt-0 last:pb-0"
+                    >
+                      <p className="mb-2 text-xs font-bold text-[var(--muted)]">{section.label}</p>
+                      <div className="flex flex-col gap-2">
+                        {section.options.map((option) => (
+                          <label key={option.value} className="choice-option choice-option-compact">
+                            <input
+                              type="radio"
+                              value={option.value}
+                              {...register("sort")}
+                              className="choice-control"
+                            />
+                            {option.label}
+                          </label>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </fieldset>
-          </div>
+                  ))}
+                </div>
+              </fieldset>
+            </div>,
+            document.body,
+          )}
         </details>
-        <details ref={filtersRef} className="group relative">
-          <summary className="btn btn-secondary list-none cursor-pointer">
+        <details ref={filtersRef} onToggle={handleFiltersToggle} className="group relative">
+          <summary className="btn btn-secondary relative z-50 list-none cursor-pointer">
             <Icon icon={ListFilter} size={18} /> Filters {count > 0 ? `(${count})` : ""}
           </summary>
-          <div className="surface surface-pad absolute top-11 right-0 z-10 max-h-[70svh] w-[min(85vw,560px)] overflow-auto flex flex-col gap-4">
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <label className="min-w-0 text-sm font-bold">
-                From date
-                <Input name="dateFrom" type="date" className="min-w-0" />
-              </label>
-              <label className="min-w-0 text-sm font-bold">
-                To date
-                <Input name="dateTo" type="date" className="min-w-0" />
-              </label>
-              <label className="min-w-0 text-sm font-bold">
-                Minimum amount ({group.currency})<Input name="minAmount" inputMode="decimal" />
-              </label>
-              <label className="min-w-0 text-sm font-bold">
-                Maximum amount ({group.currency})<Input name="maxAmount" inputMode="decimal" />
-              </label>
-            </div>
-            <ExpenseFilterOptions
-              name="categoryIds"
-              label="Categories"
-              options={groupCategories.map((category) => ({
-                value: category.id,
-                label: `${category.name}${category.isActive ? "" : " (inactive)"}`,
-              }))}
-            />
-            <ExpenseFilterOptions
-              name="tagIds"
-              label="Tags"
-              options={groupTags.map((tag) => ({ value: tag.id, label: tag.name }))}
-            />
-            <ExpenseFilterOptions name="payerIds" label="Paid by" options={members} />
-            <ExpenseFilterOptions name="memberIds" label="Member involved" options={members} />
-            <ExpenseFilterOptions
-              name="splitTypes"
-              label="Split types"
-              options={SPLIT_FILTER_OPTIONS}
-            />
-          </div>
+          {createPortal(
+            <div
+              ref={filtersPanelRef}
+              hidden={!filtersOpen}
+              style={filtersPosition}
+              className="expense-filter-popover surface surface-pad fixed z-40 w-[min(85vw,560px)] overflow-auto flex flex-col gap-4"
+            >
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <label className="min-w-0 text-sm font-bold">
+                  From date
+                  <Input name="dateFrom" type="date" className="min-w-0" />
+                </label>
+                <label className="min-w-0 text-sm font-bold">
+                  To date
+                  <Input name="dateTo" type="date" className="min-w-0" />
+                </label>
+                <label className="min-w-0 text-sm font-bold">
+                  Minimum amount ({group.currency})<Input name="minAmount" inputMode="decimal" />
+                </label>
+                <label className="min-w-0 text-sm font-bold">
+                  Maximum amount ({group.currency})<Input name="maxAmount" inputMode="decimal" />
+                </label>
+              </div>
+              <ExpenseFilterOptions
+                name="categoryIds"
+                label="Categories"
+                options={groupCategories.map((category) => ({
+                  value: category.id,
+                  label: `${category.name}${category.isActive ? "" : " (inactive)"}`,
+                }))}
+              />
+              <ExpenseFilterOptions
+                name="tagIds"
+                label="Tags"
+                options={groupTags.map((tag) => ({ value: tag.id, label: tag.name }))}
+              />
+              <ExpenseFilterOptions name="payerIds" label="Paid by" options={members} />
+              <ExpenseFilterOptions name="memberIds" label="Member involved" options={members} />
+              <ExpenseFilterOptions
+                name="splitTypes"
+                label="Split types"
+                options={SPLIT_FILTER_OPTIONS}
+              />
+            </div>,
+            document.body,
+          )}
         </details>
       </div>
       <div className="flex items-center justify-between gap-3 text-xs">

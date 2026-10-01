@@ -123,6 +123,59 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/groups/trip/expenses");
 });
 
+test("summarizes matching expenses without changing full-group balances", async ({ page }) => {
+  const insights = page.getByRole("region", { name: "Expense insights" });
+  if ((page.viewportSize()?.width ?? 0) < 640) {
+    await expect(page.locator(".mobile-cta")).toBeVisible();
+    await expect(page.locator("header").getByRole("link", { name: "Add expense" })).toHaveCount(0);
+  }
+  await expect(insights.getByText("₹350.01")).toBeVisible();
+  await expect(insights.getByText("Travel")).toBeVisible();
+  await page.getByLabel("Search expenses", { exact: true }).fill("dinner");
+  await expect(insights.getByText("Matching expenses only")).toBeVisible();
+  await expect(insights.getByText("₹100.01").first()).toBeVisible();
+  await expect(insights.locator("details")).toHaveCount(0);
+  const balancesLink = insights.getByRole("link", { name: "View full-group balances" });
+  await expect(balancesLink).toHaveClass(/btn-secondary/u);
+  await expect(balancesLink).toHaveAttribute("href", "/groups/trip/balances");
+  const filteredUrl = page.url();
+  await balancesLink.click();
+  await expect(page.getByRole("heading", { name: "Net per member" })).toBeVisible();
+  await page.getByRole("button", { name: "Back", exact: true }).click();
+  await expect(page).toHaveURL(filteredUrl);
+  await expect(insights.getByText("Matching expenses only")).toBeVisible();
+
+  await page.locator("summary").filter({ hasText: "Sort" }).click();
+  const sortPanel = page.getByRole("group", { name: "Sort expenses" }).locator("..");
+  await expect(sortPanel).toBeVisible();
+  await expect
+    .poll(() => sortPanel.evaluate((element) => element.scrollHeight > element.clientHeight))
+    .toBe(true);
+  await page
+    .getByRole("group", { name: "Sort expenses" })
+    .getByRole("radio", { name: "High to low" })
+    .check();
+  await expect(insights.getByText("₹100.01").first()).toBeVisible();
+
+  await page.getByLabel("Search expenses", { exact: true }).fill("no matching expense");
+  await expect(insights.getByText("₹0.00").first()).toBeVisible();
+  await expect(insights.locator("details")).toHaveCount(0);
+  await page.getByLabel("Search expenses", { exact: true }).fill("");
+  await expect(insights.getByText("₹350.01")).toBeVisible();
+
+  await page.goto("/groups/trip/expenses?dateFrom=2026-09-21&dateTo=2026-09-20");
+  await expect(page.getByRole("status")).toHaveText(
+    "Correct the highlighted filters to see results.",
+  );
+  await expect(insights).toHaveCount(0);
+});
+
+test("balances opened directly return to the group's expenses", async ({ page }) => {
+  await page.goto("/groups/trip/balances");
+  await page.getByRole("button", { name: "Back", exact: true }).click();
+  await expect(page).toHaveURL(/\/groups\/trip\/expenses$/u);
+});
+
 test("filters expenses through every field, validates ranges, and clears all controls", async ({
   page,
 }) => {

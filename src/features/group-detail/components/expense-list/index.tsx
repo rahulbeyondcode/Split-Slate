@@ -3,9 +3,11 @@ import { useFormContext, useWatch } from "react-hook-form";
 import { Link, useLocation, useOutletContext } from "react-router-dom";
 
 import ExpenseFilters from "@/features/expenses/components/expense-filters";
+import ExpenseInsights from "@/features/group-detail/components/expense-insights";
 import ExpenseTags from "@/features/group-detail/components/expense-tags";
 
 import {
+  countActiveExpenseFilters,
   createExpenseFilterSchema,
   filterExpenses,
   sortExpenses,
@@ -37,7 +39,7 @@ const ExpenseList = () => {
       )
     : [];
   return (
-    <section className="flex flex-col gap-4">
+    <section className="expense-ledger flex flex-col gap-4">
       <header className="flex items-center justify-between gap-3">
         <div>
           <h2 className="section-title">All expenses</h2>
@@ -45,11 +47,20 @@ const ExpenseList = () => {
         </div>
         <Link
           to={`/groups/${group.id}/expenses/new${search}`}
-          className="btn btn-primary max-sm:hidden"
+          className="btn btn-primary max-sm:!hidden"
         >
           <Icon icon={Plus} size={18} /> Add expense
         </Link>
       </header>
+      {parsed.success && (
+        <ExpenseInsights
+          expenses={sorted}
+          group={group}
+          members={groupMembers}
+          categories={groupCategories}
+          filtered={countActiveExpenseFilters(parsed.data) > 0}
+        />
+      )}
       <ExpenseFilters />
       <span role="status" className="soft-caption">
         {parsed.success
@@ -74,7 +85,7 @@ const ExpenseList = () => {
           description="No expenses match these filters. Loosen one, or start fresh."
         />
       ) : (
-        <Surface className="px-5">
+        <Surface className="expense-ledger-list px-5">
           <ul aria-label="Expenses">
             {sorted.map((expense) => {
               const category = groupCategories.find((item) => item.id === expense.categoryId);

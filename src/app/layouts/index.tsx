@@ -11,7 +11,16 @@ const AppLayout = () => {
   const { isMobile, isDesktop } = useViewport();
   const { pathname } = useLocation();
   const isExpenseForm = /^\/groups\/[^/]+\/expenses\/(new|[^/]+\/edit)$/.test(pathname);
-  const showActivity = pathname === "/dashboard" || /^\/groups\/[^/]+$/.test(pathname);
+  const groupId = pathname.match(/^\/groups\/([^/]+)(?:\/|$)/)?.[1];
+  const groupSettingsPath = groupId ? `/groups/${groupId}/settings` : "";
+  const showActivity =
+    pathname === "/dashboard" ||
+    Boolean(
+      groupId &&
+      groupId !== "new" &&
+      pathname !== groupSettingsPath &&
+      !pathname.startsWith(`${groupSettingsPath}/`),
+    );
 
   useEffect(() => {
     document.documentElement.dataset.theme =
@@ -24,9 +33,7 @@ const AppLayout = () => {
       <main className="app-main" id="main-content">
         <Outlet />
       </main>
-      {isDesktop && !isExpenseForm && (pathname === "/groups/new" || showActivity) && (
-        <ActivityPanel />
-      )}
+      {isDesktop && (pathname === "/groups/new" || showActivity) && <ActivityPanel />}
       {isMobile && !isExpenseForm && <AppFooter />}
     </div>
   );

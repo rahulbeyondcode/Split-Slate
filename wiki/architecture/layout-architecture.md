@@ -9,7 +9,7 @@ metadata:
 
 Purpose: document the implemented responsive shell and distinguish navigation stubs from working routes.
 
-Last updated: 2026-10-01
+Last updated: 2026-10-02
 
 ## Viewport States
 
@@ -46,15 +46,16 @@ there is no persistent top bar.
 
 ### Desktop (1080px+)
 
-- Three-pane layout on Dashboard and Group Overview: sidebar on left, main content in centre,
-  activity panel on right; other routes without a panel use two panes
-- Activity panel is visible as a dedicated third column only on those two routes
+- Three-pane layout on Dashboard and group screens other than Settings and expense forms: sidebar
+  on left, main content in centre, activity panel on right
+- Expense add/edit forms retain their focus mode without a sidebar but show group activity on the
+  right; group Settings and unrelated screens do not show the activity panel
 - No footer
 
 The desktop activity panel shows expenses from all groups on the dashboard, ordered newest-first
 by recording time (`createdAt`) rather than the user-entered expense date (`when`). On a group's
-Overview route it shows only expenses belonging to that group, in the same order,
-with compact rows. It does not appear on the group's Expenses route. On the create-group route it is
+routes it shows only expenses belonging to that group, in the same order, with compact rows,
+except on group Settings. On the create-group route it is
 replaced by the live group-draft preview; there is no separate persisted activity entity.
 Its compact activity list is not wrapped in the shared `Surface`: the unlayered `.surface` rules
 take precedence over Tailwind's layered `border-0` and `shadow-none` utilities, leaving an unwanted
@@ -86,13 +87,20 @@ A shared hook reads the window width and updates in real time whenever the viewp
 ## Route Scroll Position
 
 The post-onboarding shell keeps `#main-content` mounted across route changes. Its `.app-main`
-styles make that element the scroll container on desktop and mobile, separate from `window`.
-Without an explicit reset, a new route inherits the previous page's position. A shared
+styles make that element the scroll container for ordinary routes, separate from `window`.
+Group headers remain sticky within that pane on all group routes, including forms and Settings.
+Expenses, Members, and Categories & Tags instead fit the available viewport (excluding the
+mobile footer); their lists or cards scroll independently only when needed. Category and tag
+cards size to content on mobile rather than forcing equal-height, unnecessary scroll areas.
+These three routes also lock document-level overflow so the browser cannot scroll the entire app
+offscreen and expose empty space beneath the sidebar and activity pane.
+Expense sort/filter overlays escape the bounded page so they can scroll without being cut off.
+Without an explicit reset, a new ordinary route inherits the previous page's position. A shared
 `useScrollToTop` hook runs in the pathless root route layout, covering protected pages as well as
 onboarding, import, and restore. It resets both `#main-content` and the window to the top when the
 pathname changes, including browser Back/Forward; browser-native scroll restoration is disabled
 while this layout is mounted. Query-string edits on the same page do not trigger a reset, preserving
-the user's position while filtering the expense list. See [[filtering]] and [[main-screen]].
+the list's internal scroll position while filtering. See [[filtering]] and [[main-screen]].
 
 ---
 
@@ -130,6 +138,8 @@ Inside a group, top to bottom:
 
 The groups list and new-group action appear only on dashboard-context routes; inside any group the
 sidebar instead shows the return link, current-group summary, and group navigation.
+The redundant three-dot shortcut beside the group header's member avatars has been removed;
+Settings remains reachable through the group sidebar or mobile footer.
 
 ### Context-aware menu items by route
 
@@ -158,7 +168,7 @@ Route content is shared across viewport states. The navigation chrome differs:
 
 - **Footer** — mobile only; route-aware; switches its content based on the current path
 - **Sidebar** — tablet and desktop only; always visible
-- **Activity panel** — desktop only (1080px+); recorded expense activity except for the create-group live preview
+- **Activity panel** — desktop only (1080px+); Dashboard and non-Settings group routes show recorded expenses; create-group shows its live preview
 
 ### Bottom nav behaviour by route (mobile)
 

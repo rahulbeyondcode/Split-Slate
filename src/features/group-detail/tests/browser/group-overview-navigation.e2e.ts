@@ -92,8 +92,9 @@ test("distinguishes the snapshot from the complete expense history", async ({ pa
     navigation.getByRole("link", { name: "Overview" }).locator("svg.ui-icon"),
   ).toHaveAttribute("aria-hidden", "true");
   await expect(
-    page.getByRole("link", { name: "Group settings" }).locator("svg.ui-icon"),
-  ).toBeVisible();
+    page.locator(".group-page-header").getByRole("link", { name: "Group settings" }),
+  ).toHaveCount(0);
+  await expect(navigation.getByRole("link", { name: "Settings" })).toBeVisible();
   await expect(page.getByText("Your position in this group")).toBeVisible();
   await expect(page.getByRole("heading", { name: "At a glance" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Members (1)" })).toBeVisible();
@@ -124,7 +125,8 @@ test("distinguishes the snapshot from the complete expense history", async ({ pa
   await expect(page).toHaveURL(/\/groups\/trip\/balances$/u);
   await expect(page.getByRole("heading", { name: "Net per member" })).toBeVisible();
   await expect(page.getByText("Your position in this group")).toHaveCount(0);
-  await navigation.getByRole("link", { name: "Overview" }).click();
+  await page.getByRole("button", { name: "Back", exact: true }).click();
+  await expect(page).toHaveURL(/\/groups\/trip$/u);
   await expect(page.getByText("Your position in this group")).toBeVisible();
 
   await page.getByRole("link", { name: "View all expenses" }).click();
@@ -149,4 +151,31 @@ test("distinguishes the snapshot from the complete expense history", async ({ pa
 
   await navigation.getByRole("link", { name: "Overview" }).click();
   await expect(page.getByText("Your position in this group")).toBeVisible();
+});
+
+test("pairs each suggested-transfer name with its avatar", async ({ page }) => {
+  await page.evaluate(async () => {
+    const modulePath = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ modulePath)) as typeof DbModule;
+    await db.people.put({ id: "friend", name: "Lekshmi", icon: "🐼" });
+    await db.members.put({ id: "b", groupId: "trip", personId: "friend" });
+    await db.expenses.update("expense-5", {
+      transactions: {
+        paid: [{ memberId: "a", amount: 5000 }],
+        owes: [
+          { memberId: "a", amount: 2500 },
+          { memberId: "b", amount: 2500 },
+        ],
+      },
+    });
+  });
+  await page.goto("/groups/trip/balances");
+  const transfer = page.getByRole("region", { name: "Suggested payments" }).locator("li").first();
+  const people = transfer.locator(".transfer-person");
+  await expect(people).toHaveCount(2);
+  await expect(people.nth(0)).toContainText("Lekshmi");
+  await expect(people.nth(0).locator(".avatar")).toHaveCount(1);
+  await expect(people.nth(1)).toContainText("Amy");
+  await expect(people.nth(1).locator(".avatar")).toHaveCount(1);
+  await expect(transfer).toContainText("₹25.00");
 });

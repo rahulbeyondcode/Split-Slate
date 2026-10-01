@@ -1,4 +1,4 @@
-import { ArrowLeft, Ellipsis, Plus } from "lucide-react";
+import { ArrowLeft, Plus } from "lucide-react";
 import { Link, Navigate, Outlet, useLocation, useParams } from "react-router-dom";
 
 import ExpenseFilterProvider from "@/features/expenses/components/expense-filter-provider";
@@ -46,6 +46,11 @@ const GroupDetail = () => {
     groupExpenses: expenses.filter((expense) => expense.groupId === group.id),
   };
   const isExpenseForm = pathname.endsWith("/new") || pathname.endsWith("/edit");
+  const isContainedPage = [
+    `/groups/${groupId}/expenses`,
+    `/groups/${groupId}/members`,
+    `/groups/${groupId}/categories`,
+  ].includes(pathname);
   const showGroupNavigation = [
     `/groups/${groupId}`,
     `/groups/${groupId}/expenses`,
@@ -65,9 +70,15 @@ const GroupDetail = () => {
 
   return (
     <ExpenseFilterProvider key={group.id} currency={group.currency}>
-      <div className={isExpenseForm ? "min-h-svh" : "page flex flex-col gap-5"}>
+      <div
+        className={
+          isExpenseForm
+            ? "group-page group-page-form min-h-svh"
+            : `group-page page flex flex-col gap-5${isContainedPage ? " group-page-contained" : ""}`
+        }
+      >
         {isExpenseForm ? (
-          <div className="flex items-center justify-between gap-3 border-b border-[var(--line)] bg-[var(--surface)] px-5 py-4">
+          <header className="group-page-header flex items-center justify-between gap-3 border-b border-[var(--line)] bg-[var(--surface)] px-5 py-4">
             <div className="flex items-center gap-3">
               <Link
                 to={`/groups/${group.id}/expenses${search}`}
@@ -83,14 +94,14 @@ const GroupDetail = () => {
                 <EmojiImage icon={group.icon} /> {group.name}
               </span>
             </div>
-          </div>
+          </header>
         ) : showGroupHeader ? (
           <>
-            <header className="flex flex-wrap items-center gap-4">
+            <header className="group-page-header flex flex-wrap items-center gap-4">
               <Avatar icon={group.icon} square className="!h-16 !w-16 !text-3xl" />
               <div className="flex-1 min-w-0">
                 <h1 className="page-title">{group.name}</h1>
-                <p className="soft-caption">
+                <p className="soft-caption mt-[2px]">
                   {context.groupMembers.length} members · {context.groupExpenses.length} expenses ·{" "}
                   {formatCurrency(total, group.currency)} total · {group.currency}
                 </p>
@@ -105,15 +116,6 @@ const GroupDetail = () => {
                   />
                 ))}
               </div>
-              {pathname !== `/groups/${group.id}/settings` && (
-                <Link
-                  to={`/groups/${group.id}/settings`}
-                  className="btn btn-secondary !px-3"
-                  aria-label="Group settings"
-                >
-                  <Icon icon={Ellipsis} size={21} />
-                </Link>
-              )}
             </header>
             {isOverview && (
               <BalanceHero
@@ -130,7 +132,7 @@ const GroupDetail = () => {
             )}
           </>
         ) : (
-          <header>
+          <header className="group-page-header">
             <h1 className="page-title">
               {pathname.endsWith("/members")
                 ? "Members"
@@ -145,7 +147,9 @@ const GroupDetail = () => {
             </p>
           </header>
         )}
-        <Outlet context={context} />
+        <div className={isContainedPage ? "group-page-body" : undefined}>
+          <Outlet context={context} />
+        </div>
         {showGroupNavigation && (
           <Link className="mobile-cta" to={`/groups/${group.id}/expenses/new${search}`}>
             <Icon icon={Plus} size={20} /> Add expense

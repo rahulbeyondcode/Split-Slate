@@ -146,6 +146,61 @@ a {
 .surface-pad {
   padding: 22px;
 }
+.expense-insights-banner {
+  position: relative;
+  isolation: isolate;
+  border-color: #b9e4d9;
+  background: linear-gradient(115deg, #e0f3ed 0%, #eff8ec 62%, #fff3dc 100%);
+  color: #153b36;
+}
+.expense-insights-banner::before,
+.expense-insights-banner::after {
+  position: absolute;
+  z-index: -1;
+  width: 220px;
+  height: 220px;
+  border: 1px solid rgb(24 128 105 / 14%);
+  border-radius: 50%;
+  content: "";
+  pointer-events: none;
+}
+.expense-insights-banner::before {
+  top: -175px;
+  right: -40px;
+  box-shadow: 0 0 0 35px rgb(24 128 105 / 5%);
+}
+.expense-insights-banner::after {
+  right: -145px;
+  bottom: -175px;
+  box-shadow: 0 0 0 40px rgb(226 164 74 / 7%);
+}
+.expense-insights-banner .soft-caption {
+  color: #496f64;
+}
+.expense-insights-banner .btn-secondary {
+  background: rgb(255 255 255 / 75%);
+  border-color: #b9ddd0;
+  color: #174d43;
+}
+[data-theme="dark"] .expense-insights-banner {
+  border-color: #315f55;
+  background: linear-gradient(115deg, #173d39 0%, #213a32 62%, #453b2c 100%);
+  color: #e2f6ec;
+}
+[data-theme="dark"] .expense-insights-banner .soft-caption {
+  color: #b1d3c6;
+}
+[data-theme="dark"] .expense-insights-banner .btn-secondary {
+  background: #203d39;
+  border-color: #568377;
+  color: #e2f6ec;
+}
+.expense-filter-popover .text-gray-500 {
+  color: var(--muted);
+}
+.expense-filter-popover[hidden] {
+  display: none;
+}
 .ui-row {
   display: flex;
   align-items: center;
@@ -1605,6 +1660,89 @@ input:focus-visible + .choice-chip {
   height: 100svh;
   overflow: auto;
 }
+html:has(.group-page-contained),
+body:has(.group-page-contained),
+#root:has(.group-page-contained) {
+  height: 100svh;
+  overflow: clip;
+}
+.app-shell:has(.group-page-contained) {
+  height: 100svh;
+  min-height: 0;
+  overflow: clip;
+}
+.app-main:has(.group-page-contained) {
+  overflow: clip;
+}
+.group-page-header {
+  position: sticky;
+  top: 0;
+  z-index: 15;
+  flex: none;
+  margin-top: -10px;
+  margin-bottom: 0;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  background: var(--page);
+}
+.group-page-form .group-page-header {
+  margin: 0;
+  padding: 16px 20px;
+  background: var(--surface);
+}
+.group-page:not(.group-page-form) > .group-page-header + .group-page-body {
+  margin-top: 8px;
+}
+.group-page-contained {
+  height: 100svh;
+  min-height: 0;
+  padding-bottom: 18px;
+  overflow: clip;
+}
+.group-page-contained .group-page-body,
+.group-page-contained .expense-ledger,
+.group-page-contained .member-list,
+.group-page-contained .group-management {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+.expense-ledger > header,
+.expense-ledger > section,
+.expense-ledger > form,
+.expense-ledger > [role="status"],
+.member-list > :not(.member-list-scroll),
+.group-management > h2 {
+  flex-shrink: 0;
+}
+.group-page-contained .expense-ledger-list,
+.group-page-contained .member-list-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  contain: paint;
+}
+.group-page-contained .expense-ledger > .empty-state {
+  min-height: 0;
+  overflow-y: auto;
+}
+.group-page-contained .member-editor {
+  max-height: min(40svh, 380px);
+  overflow-y: auto;
+}
+.group-page-contained .group-management-grid {
+  flex: 1;
+  min-height: 0;
+  align-items: stretch;
+}
+.group-page-contained .group-management-grid > .surface {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  contain: paint;
+}
 .app-sidebar {
   width: 264px;
   height: 100svh;
@@ -2078,6 +2216,20 @@ input:focus-visible + .choice-chip {
   .app-main {
     height: 100svh;
     padding-bottom: 72px;
+  }
+  .page.group-page-contained {
+    height: calc(100svh - 72px);
+    padding-bottom: 16px;
+  }
+  .group-page-contained .expense-ledger-list ul {
+    padding-bottom: 72px;
+  }
+  .group-page-contained .group-management-grid {
+    display: flex;
+    flex-direction: column;
+  }
+  .group-page-contained .group-management-grid > .surface {
+    flex: 1 1 auto;
   }
   .app-sidebar {
     display: none;

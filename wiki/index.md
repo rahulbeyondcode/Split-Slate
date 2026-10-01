@@ -19,7 +19,7 @@ Last updated: 2026-10-02
 - [Balance Calculation](architecture/balance-calculation.md) — fixed-hundredths member/group totals, all-member balances, and deterministic suggested transfers
 - [State Management](architecture/state-management.md) — hydrated Zustand slices plus persisted mutation boundaries, including all-or-nothing fresh-ID group import
 - [Split Types](architecture/split-types.md) — 5 split types with fixed-hundredths monetary allocations and exact ratios; numeric percentage-total display remains pending
-- [Layout Architecture](architecture/layout-architecture.md) — responsive shell, route resets/errors, contextual sidebar, readable dashboard/overview activity, and transfer navigation
+- [Layout Architecture](architecture/layout-architecture.md) — responsive shell, sticky group headers, document-locked viewport lists/cards, desktop group activity except Settings, and route resets
 
 ### Decisions
 - [Global People Directory](decisions/global-people-directory.md) — device-local friends list; members link to shared people; supersedes per-group members
@@ -44,14 +44,14 @@ Last updated: 2026-10-02
 - [Development Tools](workflows/development-tools.md) — typed realistic presets, randomized onboarding contacts, individual creation buttons, and persistence boundaries
 - [Onboarding](workflows/onboarding.md) — implemented resumable setup plus Link/CSV/ZIP first-launch import with a short identity path
 - [Group Creation](workflows/group-creation.md) — standalone 4-step flow; writes begin only on final submission and then run sequentially
-- [Main Screen](workflows/main-screen.md) — group snapshot, ledger, local dates and recording metadata, expense quick edits, group export/deletion
+- [Main Screen](workflows/main-screen.md) — group snapshot, matching-expense insights without member disclosure, Balances Back navigation, expense quick edits, group export/deletion
 - [Paid-By](workflows/paid-by.md) — implemented frequent-payer selection, atomic ranking updates, recent-payer defaults, and multi-payer entry
 - [People Directory](workflows/people-directory.md) — global friends list, per-group links for blocked contact deletion, and group-building picker
 - [Member Management](workflows/member-management.md) — one-click add form or existing-friend selection, edit/confirmed removal, blocked-removal links, and persisted guards
 - [Category Management](workflows/category-management.md) — group category CRUD, in-form creation, and immediate detail-page category changes; deactivation UI pending
 - [Tag Management](workflows/tag-management.md) — group tags, immediate detail-page selection/creation, list previews, and transactional cleanup
-- [Filtering](workflows/filtering.md) — URL-backed eight-field filtering, eight sort modes including exact tag-set grouping, and stale-option cleanup
-- [Dashboard](workflows/dashboard.md) — greeting, formatted date, group summaries, Settings import, and readable dashboard/overview activity
+- [Filtering](workflows/filtering.md) — URL-backed eight-field filtering, unclipped scrollable popovers, sort modes, and matching-expense insights
+- [Dashboard](workflows/dashboard.md) — greeting, formatted date, group summaries, Settings import, and category artwork across group activity
 
 ### Ideas (captured, not committed)
 - [Rewarded Ads](ideas/rewarded-ads.md) — optional ad-watch → credits → Pro unlock mechanic; fully opt-in

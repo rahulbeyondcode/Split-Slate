@@ -7,6 +7,17 @@ Last updated: 2026-10-02
 ---
 
 ## 2026-10-02
+- UPDATED workflows/main-screen.md and wiki/index.md — remove stale claim that the insights card displays member contributions
+- UPDATED architecture/layout-architecture.md and wiki/index.md — clarify document scroll lock on viewport-bounded group routes
+- UPDATED workflows/filtering.md — remove member disclosure, describe distinct banner and scrollable filter popovers
+- UPDATED workflows/main-screen.md and architecture/layout-architecture.md — describe Balances Back, sticky group headers, and viewport-bounded list/card scrolling
+- UPDATED wiki/index.md — keep navigation descriptions current with the revised group layout
+- UPDATED workflows/filtering.md — describe responsive member disclosure and full-group balances action
+- UPDATED architecture/layout-architecture.md, workflows/dashboard.md, and workflows/main-screen.md — document desktop group activity except Settings and removed header shortcut
+- UPDATED wiki/index.md — reflect activity placement, header navigation, and refined insights
+- UPDATED workflows/filtering.md and workflows/main-screen.md — document compact filter-aware insights above the controls and distinguish filtered net from full-group balance
+- UPDATED workflows/dashboard.md — record non-profile category artwork in activity rows
+- UPDATED wiki/index.md — surface ledger insights and activity icon correction in navigation
 - UPDATED wiki/index.md, roadmap/product-roadmap.md, and wiki/log.md — reconcile pulled navigation/roadmap/log with PWA additions and clarify postponed-update activation
 - UPDATED roadmap/product-roadmap.md — distinguish mobile-emulated PWA tests from physical-device release verification
 - UPDATED wiki/index.md — reflect desktop/mobile-emulated offline checks without claiming physical-device coverage

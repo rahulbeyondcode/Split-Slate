@@ -9,7 +9,7 @@ metadata:
 
 Purpose: document the implemented expense-list filters, their matching rules, and test coverage.
 
-Last updated: 2026-10-01
+Last updated: 2026-10-02
 
 ## Overview
 
@@ -60,6 +60,25 @@ than adding a history entry per keystroke.
   and invalid split types are ignored.
 - Filter state is not written to IndexedDB or Zustand.
 
+## Expense Insights
+
+A compact ledger summary sits above the filter controls on the Expenses route; it is not the large
+Overview balance hero. It derives from the same matching expenses as the list, independent of
+sort order. It shows matching count, total paid, rounded average per expense, and the highest-spend
+category. It has no member-by-member disclosure; a separate action opens full-group Balances.
+The summary uses a teal-and-warm accent, distinct from Overview's purple position hero, and clearly
+labels the figures as matching-expense totals when filters are active.
+The group header's total remains the unfiltered group total.
+
+No matches show zero totals. Invalid filter bounds hide insights instead of showing a stale or
+misleading total. Multi-payer contributions use stored integer hundredths; a missing member
+reference produces an error rather than silently omitting transactions. See [[balance-calculation]]
+and [[main-screen]].
+
+The Expenses route fits the available viewport with the results list as its own scroll area. Sort
+and Filters popovers render outside that clipped page region, anchor to their controls, and scroll
+independently within the available viewport; they must not be clipped by the bounded ledger.
+
 ## Sorting
 
 The single-choice sort popover has Date (newest first by default, oldest first), Price (high to low,
@@ -83,12 +102,14 @@ counting, empty inputs, invalid ranges, and removal of unavailable option IDs.
 It also covers all sort modes, exact multi-tag grouping, URL round-tripping, unknown sort values,
 and source immutability.
 
+`src/features/group-detail/tests/utils/expense-insights.test.ts` checks multi-payer paid/owed/net
+allocations, empty and single-expense results, category ranking, and missing member guards.
 `src/features/expenses/tests/browser/expense-filters.e2e.ts` manipulates every filter on desktop and
 mobile, verifies validation and clearing, confirms state survives child-route navigation, and
 deletes a selected tag while the list is unmounted. When the list remounts, selected category, tag,
 payer, and involved-member IDs that are no longer available are removed automatically.
-It also checks the sectioned single-choice sort popover, all eight sort orders, and retention
-through clearing, reload, and detail navigation.
+It also checks the sectioned single-choice sort popover, all eight sort orders, retention
+through clearing, reload, and detail navigation, plus filter-aware insights.
 
 ---
 

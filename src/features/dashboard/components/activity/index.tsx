@@ -27,7 +27,7 @@ const Activity = ({ compact = false, groupId }: PropsType) => {
         className={compact ? "activity-entry" : "ui-row"}
         to={`/groups/${expense.groupId}/expenses/${expense.expenseId}`}
       >
-        <Avatar icon={icon} className={compact ? "activity-entry-avatar" : ""} />
+        <Avatar icon={icon} square className={compact ? "activity-entry-avatar" : ""} />
         <span className={compact ? "activity-entry-details" : "flex-1 min-w-0"}>
           <span className={compact ? "activity-entry-title" : "block truncate text-xs font-bold"}>
             {title}

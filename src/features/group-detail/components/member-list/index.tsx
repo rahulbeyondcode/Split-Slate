@@ -140,7 +140,7 @@ const MemberList = () => {
   };
 
   return (
-    <section className="flex flex-col gap-3">
+    <section className="member-list flex flex-col gap-3">
       <div className="flex items-center justify-between gap-4">
         <div>
           <h2 className="section-title">Members</h2>
@@ -163,7 +163,7 @@ const MemberList = () => {
         <fieldset
           disabled={isAddingMember}
           aria-busy={isAddingMember}
-          className="flex min-w-0 flex-col gap-3 disabled:opacity-60"
+          className="member-editor flex min-w-0 flex-col gap-3 disabled:opacity-60"
         >
           {availablePeople.length > 0 && (
             <div className="flex flex-col gap-2">
@@ -197,7 +197,7 @@ const MemberList = () => {
       )}
 
       {editingMember?.person && (
-        <div className="py-2">
+        <div className="member-editor py-2">
           <PersonEditor
             existingNames={existingNames(editingMember.personId)}
             initial={{ name: editingMember.person.name, icon: editingMember.person.icon }}
@@ -207,7 +207,7 @@ const MemberList = () => {
         </div>
       )}
 
-      <ul className="surface px-5">
+      <ul className="member-list-scroll surface px-5">
         {sortedMembers.map((member) => (
           <li key={member.id} className="ui-row">
             <span className="flex min-w-0 flex-1 items-center gap-3">

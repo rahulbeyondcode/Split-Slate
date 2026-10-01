@@ -1,6 +1,6 @@
 # Dashboard View
 
-Last updated: 2026-10-01
+Last updated: 2026-10-02
 
 **Purpose:** Record the current dashboard implementation and the target cross-group summary design.
 
@@ -21,10 +21,12 @@ The dashboard currently renders:
 - Links from each group row to that group's Overview route
 
 The desktop right pane shows persisted expense activity from every group in recording order
-(`createdAt` descending), with the recording date and time shown beside the group name. On a
-group's Overview route, that pane shows only that group's expenses; it is absent from the group's
-Expenses route. The dedicated
-Activity route shows the same cross-group feed; tablet renders no separate activity section.
+(`createdAt` descending), with the recording date and time shown beside the group name. On group
+routes other than Settings, that pane shows only that group's expenses, including expense forms.
+The dedicated Activity route shows the same cross-group feed; tablet renders no separate activity
+section.
+Activity rows display the expense category icon (or its group icon fallback) as a non-profile
+image on both surfaces. Profile-only rendering would replace those keys with the default avatar.
 Compact desktop rows show the group and date/time on separate lines; longer titles and group names
 wrap for more visible content, with no hover/focus tooltip.
 Rendered dates use `DD-MMM-YYYY` and rendered times use padded 12-hour `hh:mm AM/PM`; expense

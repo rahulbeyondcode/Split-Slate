@@ -90,13 +90,24 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/dashboard");
 });
 
-test("shows activity on dashboard and group overview, but not group expenses", async ({ page }) => {
+test("shows group activity on desktop group screens except settings", async ({ page }) => {
   if ((page.viewportSize()?.width ?? 0) < 1080) {
     await page.goto("/activity");
     const feed = page.locator("main").getByRole("link", { name: /recording/u });
     await expect(feed).toHaveCount(2);
     await expect(feed.nth(0)).toContainText("Later recording");
     await expect(feed.nth(1)).toContainText("Earlier recording");
+    await expect(feed.nth(0).locator("img")).toHaveAttribute(
+      "src",
+      /\/travel-and-places\/auto-rickshaw-3d\.png$/u,
+    );
+    await expect(feed.nth(1).locator("img")).toHaveAttribute(
+      "src",
+      /\/food-and-drinks\/fork-and-knife-with-plate-3d\.png$/u,
+    );
+    await page.goto("/groups/second/expenses");
+    await expect(page.getByRole("complementary", { name: "Recent activity" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Group settings", exact: true })).toHaveCount(0);
     return;
   }
 
@@ -106,6 +117,14 @@ test("shows activity on dashboard and group overview, but not group expenses", a
   await expect(entries.nth(0)).toContainText("Later recording");
   await expect(entries.nth(0)).toContainText("Second Trip");
   await expect(entries.nth(1)).toContainText("Earlier recording");
+  await expect(entries.nth(0).locator("img")).toHaveAttribute(
+    "src",
+    /\/travel-and-places\/auto-rickshaw-3d\.png$/u,
+  );
+  await expect(entries.nth(1).locator("img")).toHaveAttribute(
+    "src",
+    /\/food-and-drinks\/fork-and-knife-with-plate-3d\.png$/u,
+  );
   const recordedAt = await page.evaluate(() => {
     const date = new Date(Date.UTC(2026, 8, 20, 12));
     const hour = date.getHours();
@@ -118,6 +137,30 @@ test("shows activity on dashboard and group overview, but not group expenses", a
   await expect(entries.first()).toContainText("Earlier recording");
   await expect(panel).not.toContainText("Later recording");
 
+  await page.goto("/groups/second/expenses");
+  await expect(entries).toHaveCount(1);
+  await expect(entries.first()).toContainText("Later recording");
+  await expect(panel).not.toContainText("Earlier recording");
+  await expect(page.getByRole("link", { name: "Group settings", exact: true })).toHaveCount(0);
+
+  for (const route of [
+    "/groups/second/balances",
+    "/groups/second/members",
+    "/groups/second/categories",
+    "/groups/second/expenses/second-new",
+    "/groups/second/expenses/second-new/edit",
+    "/groups/second/expenses/new",
+  ]) {
+    await page.goto(route);
+    await expect(entries, `Activity is visible on ${route}`).toHaveCount(1);
+  }
+
+  await page.goto("/groups/second/settings");
+  await expect(panel).toHaveCount(0);
+
+  await page.goto("/groups/new");
+  await expect(page.getByRole("complementary", { name: "Group preview" })).toBeVisible();
+  await page.setViewportSize({ width: 900, height: 800 });
   await page.goto("/groups/second/expenses");
   await expect(panel).toHaveCount(0);
 });
