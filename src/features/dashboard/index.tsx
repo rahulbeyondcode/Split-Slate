@@ -31,7 +31,7 @@ const Dashboard = () => {
         : "Good evening";
 
   return (
-    <div className="page flex flex-col gap-8">
+    <div className="page dashboard-page flex flex-col gap-8">
       <header>
         <p className="soft-caption mb-1">{formatDisplayDate(new Date())}</p>
         <h1 className="page-title flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -133,20 +133,20 @@ const Dashboard = () => {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-end justify-between gap-2">
+                  <div className="dashboard-group-balance flex items-end justify-between gap-2">
                     <div>
                       <p className="soft-caption max-sm:hidden">
                         {amount > 0 ? "you are owed" : amount < 0 ? "you owe" : "settled"}
                       </p>
                       <strong
-                        className={`money text-[22px] max-sm:text-[15px] ${amount > 0 ? "money-positive" : amount < 0 ? "money-negative" : "muted"}`}
+                        className={`dashboard-group-amount money text-[22px] max-sm:text-[15px] ${amount > 0 ? "money-positive" : amount < 0 ? "money-negative" : "muted"}`}
                       >
                         {amount > 0 ? "+" : amount < 0 ? "−" : ""}
                         {formatCurrency(Math.abs(amount), group.currency)}
                       </strong>
                     </div>
                     <span
-                      className={`chip border-0 max-sm:hidden ${amount > 0 ? "pill-positive" : amount < 0 ? "pill-negative" : ""}`}
+                      className={`dashboard-group-status chip border-0 ${amount > 0 ? "pill-positive" : amount < 0 ? "pill-negative" : ""}`}
                     >
                       {amount > 0 ? "↓ collect" : amount < 0 ? "↑ settle" : "settled"}
                     </span>

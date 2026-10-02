@@ -2039,7 +2039,7 @@ body:has(.group-page-contained),
 }
 .group-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px), 1fr));
   gap: 14px;
 }
 .group-card {
@@ -2055,10 +2055,38 @@ body:has(.group-page-contained),
   transform: translateY(-2px);
   box-shadow: 0 12px 25px rgb(53 39 81 / 12%);
 }
+.dashboard-page .dashboard-group-balance {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+.dashboard-page .dashboard-group-balance > div {
+  min-width: 0;
+  max-width: 100%;
+}
+.dashboard-page .dashboard-group-amount {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+.dashboard-page .dashboard-group-status {
+  flex: none;
+  white-space: nowrap;
+}
+@media (min-width: 1080px) {
+  .dashboard-page {
+    container-type: inline-size;
+  }
+}
 .dashboard-lower {
   display: grid;
-  grid-template-columns: 1fr 1.1fr;
+  grid-template-columns: 1fr;
   gap: 14px;
+}
+@container (min-width: 728px) {
+  .dashboard-lower {
+    grid-template-columns: 1fr 1.1fr;
+  }
 }
 .responsive-grid {
   display: grid;
@@ -2261,6 +2289,79 @@ body:has(.group-page-contained),
     justify-content: space-between;
     padding: 15px;
     gap: 10px;
+  }
+  .dashboard-page {
+    gap: 22px;
+  }
+  .dashboard-page header .page-title {
+    font-size: 26px;
+  }
+  .dashboard-page .hero {
+    padding: 22px;
+  }
+  .dashboard-page .hero > div {
+    display: grid;
+    gap: 18px;
+  }
+  .dashboard-page .hero > div > div {
+    min-width: 0;
+  }
+  .dashboard-page .hero > div > div:last-child:not(:first-child) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .dashboard-page .hero-label {
+    font-size: 12px;
+  }
+  .dashboard-page .hero-number {
+    font-size: clamp(34px, 9vw, 42px);
+    overflow-wrap: anywhere;
+  }
+  .dashboard-page .hero-box {
+    min-width: 0;
+    padding: 12px;
+  }
+  .dashboard-page .hero-box p {
+    font-size: 12px;
+  }
+  .dashboard-page .hero-box strong {
+    display: block;
+    overflow-x: auto;
+    font-size: clamp(16px, 5vw, 21px);
+    white-space: nowrap;
+  }
+  .dashboard-page .group-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    padding: 18px;
+  }
+  .dashboard-page .group-card h3 {
+    font-size: 17px;
+  }
+  .dashboard-page .group-card .soft-caption {
+    font-size: 13px;
+  }
+  .dashboard-page .dashboard-group-balance {
+    min-width: 0;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+  }
+  .dashboard-page .dashboard-group-balance > div {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .dashboard-page .dashboard-group-amount {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    font-size: clamp(18px, 5.5vw, 23px);
+    white-space: nowrap;
+  }
+  .dashboard-page .dashboard-group-status {
+    flex: none;
+    white-space: nowrap;
   }
   .mobile-nav {
     display: flex;

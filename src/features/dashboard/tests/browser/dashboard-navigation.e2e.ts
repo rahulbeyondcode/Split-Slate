@@ -81,6 +81,244 @@ test("aligns the profile image with the dashboard greeting", async ({ page }) =>
   ).toBeLessThan(3);
 });
 
+test("keeps the dashboard banner and both group balance states readable on narrow mobiles", async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(!isMobile, "Mobile dashboard layout only");
+  await page.evaluate(async () => {
+    const modulePath = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ modulePath)) as typeof DbModule;
+    await db.expenses.update("dinner", {
+      transactions: {
+        paid: [{ memberId: "a", amount: 18996120 }],
+        owes: [
+          { memberId: "a", amount: 9498060 },
+          { memberId: "b", amount: 9498060 },
+        ],
+      },
+    });
+    await db.groups.put({
+      id: "lunch",
+      name: "Lunch group with a longer name",
+      icon: "food-and-drinks/hamburger-3d.png",
+      currency: "INR",
+      createdAt: 2,
+      frequentPayerIds: [],
+    });
+    await db.members.bulkPut([
+      { id: "c", groupId: "lunch", personId: "self" },
+      { id: "d", groupId: "lunch", personId: "friend" },
+    ]);
+    await db.categories.put({
+      id: "lunch-food",
+      groupId: "lunch",
+      name: "Food",
+      icon: "food-and-drinks/hamburger-3d.png",
+      isActive: true,
+    });
+    await db.expenses.put({
+      expenseId: "meal",
+      groupId: "lunch",
+      expenseName: "Meal",
+      categoryId: "lunch-food",
+      createdBy: "d",
+      createdAt: 2,
+      when: 2,
+      splitType: "equal",
+      splitMeta: [],
+      tagIds: [],
+      attachmentIds: [],
+      transactions: {
+        paid: [{ memberId: "d", amount: 246913578 }],
+        owes: [
+          { memberId: "c", amount: 123456789 },
+          { memberId: "d", amount: 123456789 },
+        ],
+      },
+    });
+  });
+  await page.reload();
+
+  for (const width of [320, 393]) {
+    await page.setViewportSize({ width, height: 800 });
+    const cards = page.locator(".dashboard-page .group-card");
+    await expect(cards).toHaveCount(2);
+    await expect(
+      cards.filter({ hasText: "↓ collect" }).locator(".dashboard-group-status"),
+    ).toBeVisible();
+    await expect(
+      cards.filter({ hasText: "↑ settle" }).locator(".dashboard-group-status"),
+    ).toBeVisible();
+    await expect(
+      cards.filter({ hasText: "↓ collect" }).locator(".dashboard-group-amount"),
+    ).toContainText("+₹");
+    await expect(
+      cards.filter({ hasText: "↑ settle" }).locator(".dashboard-group-amount"),
+    ).toContainText("−₹");
+    await expect(page.locator(".dashboard-page .hero-box")).toHaveCount(2);
+
+    const layout = await page.evaluate(() => {
+      const banner = document.querySelector(".dashboard-page .hero")!;
+      const cards = [...document.querySelectorAll(".dashboard-page .group-card")];
+      return {
+        documentWidth: document.documentElement.scrollWidth,
+        viewportWidth: window.innerWidth,
+        bannerWidth: banner.getBoundingClientRect().width,
+        boxes: [...banner.querySelectorAll(".hero-box")].map(
+          (box) => box.getBoundingClientRect().width,
+        ),
+        cards: cards.map((card) => {
+          const amount = card.querySelector(".dashboard-group-amount")!;
+          const status = card.querySelector(".dashboard-group-status")!;
+          const cardBox = card.getBoundingClientRect();
+          const amountBox = amount.getBoundingClientRect();
+          const statusBox = status.getBoundingClientRect();
+          return {
+            amountWithinCard: amountBox.left >= cardBox.left && amountBox.right <= cardBox.right,
+            statusWithinCard: statusBox.left >= cardBox.left && statusBox.right <= cardBox.right,
+            notOverlapping: amountBox.right <= statusBox.left || amountBox.bottom <= statusBox.top,
+            amountUnbroken: getComputedStyle(amount).whiteSpace === "nowrap",
+            statusUnbroken: getComputedStyle(status).whiteSpace === "nowrap",
+            amountFullyVisible: amount.scrollWidth <= amount.clientWidth,
+            status: status.textContent?.trim(),
+          };
+        }),
+      };
+    });
+    expect(layout.documentWidth).toBeLessThanOrEqual(layout.viewportWidth);
+    expect(layout.boxes).toHaveLength(2);
+    expect(layout.boxes.every((boxWidth) => boxWidth > layout.bannerWidth / 3)).toBe(true);
+    for (const card of layout.cards) {
+      expect(card.amountWithinCard).toBe(true);
+      expect(card.statusWithinCard).toBe(true);
+      expect(card.notOverlapping).toBe(true);
+      expect(card.amountUnbroken).toBe(true);
+      expect(card.statusUnbroken).toBe(true);
+    }
+    expect(layout.cards.find((card) => card.status === "↓ collect")?.amountFullyVisible).toBe(true);
+  }
+});
+
+test("wraps desktop group cards without breaking collect or settle status", async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(isMobile, "Desktop dashboard layout only");
+  await page.evaluate(async () => {
+    const modulePath = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ modulePath)) as typeof DbModule;
+    await db.groups.bulkPut(
+      [2, 3, 4, 5].map((number) => ({
+        id: `group-${number}`,
+        name: `Group ${number}`,
+        icon: "travel-and-places/camping-3d.png",
+        currency: "INR",
+        createdAt: number,
+        frequentPayerIds: [],
+      })),
+    );
+    await db.members.bulkPut([
+      { id: "group-2-self", groupId: "group-2", personId: "self" },
+      { id: "group-2-friend", groupId: "group-2", personId: "friend" },
+    ]);
+    await db.categories.put({
+      id: "group-2-food",
+      groupId: "group-2",
+      name: "Food",
+      icon: "food-and-drinks/hamburger-3d.png",
+      isActive: true,
+    });
+    await db.expenses.update("dinner", {
+      transactions: {
+        paid: [{ memberId: "a", amount: 246913578000 }],
+        owes: [
+          { memberId: "a", amount: 123456789000 },
+          { memberId: "b", amount: 123456789000 },
+        ],
+      },
+    });
+    await db.expenses.put({
+      expenseId: "group-2-meal",
+      groupId: "group-2",
+      expenseName: "Meal",
+      categoryId: "group-2-food",
+      createdBy: "group-2-friend",
+      createdAt: 2,
+      when: 2,
+      splitType: "equal",
+      splitMeta: [],
+      tagIds: [],
+      attachmentIds: [],
+      transactions: {
+        paid: [{ memberId: "group-2-friend", amount: 18996120 }],
+        owes: [
+          { memberId: "group-2-self", amount: 9498060 },
+          { memberId: "group-2-friend", amount: 9498060 },
+        ],
+      },
+    });
+  });
+  await page.reload();
+
+  for (const width of [768, 868, 894, 1079, 1280, 1920]) {
+    await page.setViewportSize({ width, height: 900 });
+    const cards = page.locator(".dashboard-page .group-card");
+    await expect(cards).toHaveCount(5);
+    await expect(page.locator(".dashboard-page .hero")).toHaveCSS("padding", "28px 32px");
+
+    const layout = await page.evaluate(() => {
+      const cards = [...document.querySelectorAll(".dashboard-page .group-card")];
+      return {
+        documentWidth: document.documentElement.scrollWidth,
+        viewportWidth: window.innerWidth,
+        rows: cards.map((card) => card.getBoundingClientRect().top),
+        cards: cards.map((card) => {
+          const amount = card.querySelector(".dashboard-group-amount")!;
+          const status = card.querySelector(".dashboard-group-status")!;
+          const cardBox = card.getBoundingClientRect();
+          const amountBox = amount.getBoundingClientRect();
+          const statusBox = status.getBoundingClientRect();
+          return {
+            direction: getComputedStyle(card).flexDirection,
+            amountFontSize: getComputedStyle(amount).fontSize,
+            amountUnbroken: getComputedStyle(amount).whiteSpace === "nowrap",
+            statusUnbroken: getComputedStyle(status).whiteSpace === "nowrap",
+            amountWithinCard: amountBox.left >= cardBox.left && amountBox.right <= cardBox.right,
+            amountFullyVisible: amount.scrollWidth <= amount.clientWidth,
+            statusWithinCard: statusBox.left >= cardBox.left && statusBox.right <= cardBox.right,
+            notOverlapping: amountBox.right <= statusBox.left || amountBox.bottom <= statusBox.top,
+            statusWrapped: statusBox.top >= amountBox.bottom,
+            status: status.textContent?.trim(),
+          };
+        }),
+      };
+    });
+    expect(layout.documentWidth).toBeLessThanOrEqual(layout.viewportWidth);
+    expect(layout.rows[3]).toBeGreaterThan(layout.rows[0]);
+    expect(layout.rows.filter((top) => top === layout.rows[0]).length).toBeLessThanOrEqual(3);
+    if (width === 768) expect(layout.rows[1]).toBeGreaterThan(layout.rows[0]);
+    if (width === 868 || width === 894 || width === 1079) {
+      expect(layout.rows[1]).toBe(layout.rows[0]);
+      expect(layout.rows[2]).toBeGreaterThan(layout.rows[0]);
+    }
+    if (width === 1920) expect(layout.rows[2]).toBe(layout.rows[0]);
+    if (width === 1280) expect(layout.cards.some((card) => card.statusWrapped)).toBe(true);
+    expect(layout.cards.some((card) => card.status === "↓ collect")).toBe(true);
+    expect(layout.cards.some((card) => card.status === "↑ settle")).toBe(true);
+    expect(layout.cards.find((card) => card.status === "↑ settle")?.amountFullyVisible).toBe(true);
+    for (const card of layout.cards) {
+      expect(card.direction).toBe("column");
+      expect(card.amountFontSize).toBe("22px");
+      expect(card.amountUnbroken).toBe(true);
+      expect(card.statusUnbroken).toBe(true);
+      expect(card.amountWithinCard).toBe(true);
+      expect(card.statusWithinCard).toBe(true);
+      expect(card.notOverlapping).toBe(true);
+    }
+  }
+});
+
 test("labels the unsettled destination as a navigable link", async ({ page, isMobile }) => {
   test.skip(isMobile, "The dashboard's unsettled preview is desktop-only");
   const link = page.getByRole("link", { name: "View all (1)" });
