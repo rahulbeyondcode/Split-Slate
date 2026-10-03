@@ -2,9 +2,14 @@
 
 Reverse-chronological record of all wiki changes.
 
-Last updated: 2026-10-02
+Last updated: 2026-10-03
 
 ---
+
+## 2026-10-03
+- CREATED debugging/mobile-pwa-install.md — record the observed Netlify manifest media type and browser-dependent install flow
+- UPDATED wiki/index.md — link the install troubleshooting page and reflect the install dialog
+- UPDATED wiki/log.md — record the approved install troubleshooting documentation
 
 ## 2026-10-02
 - UPDATED workflows/main-screen.md and wiki/index.md — remove stale claim that the insights card displays member contributions

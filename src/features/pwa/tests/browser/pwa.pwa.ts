@@ -112,6 +112,7 @@ test("downloads the selected icon library and repairs a missing file without cle
 
 test("announces a waiting update and does not apply it without consent", async ({ page }) => {
   await page.addInitScript(() => {
+    localStorage.setItem("split-slate-install-dismissed", "true");
     const events = new EventTarget();
     const registration = new EventTarget();
     const worker = {
@@ -142,4 +143,70 @@ test("announces a waiting update and does not apply it without consent", async (
   await expect
     .poll(() => page.evaluate(() => sessionStorage.getItem("pwa-update-applied")))
     .toBe("yes");
+});
+
+test("offers installation on desktop and mobile and opens the browser prompt", async ({ page }) => {
+  await page.goto("/onboarding/setup");
+  const dialog = page.getByRole("dialog", { name: "Take Split Slate with you" });
+  await expect(dialog).toBeVisible();
+  await page.evaluate(() => {
+    const event = Object.assign(new Event("beforeinstallprompt", { cancelable: true }), {
+      prompt: async () => {
+        sessionStorage.setItem("native-install-prompt", "shown");
+      },
+      userChoice: Promise.resolve({ outcome: "accepted" }),
+    });
+    window.dispatchEvent(event);
+    if (!event.defaultPrevented) throw new Error("Install event was not captured");
+  });
+  await dialog.getByRole("button", { name: "Install", exact: true }).click();
+  await expect
+    .poll(() => page.evaluate(() => sessionStorage.getItem("native-install-prompt")))
+    .toBe("shown");
+  await expect(dialog).toHaveCount(0);
+  await page.reload();
+  await expect(dialog).toHaveCount(0);
+});
+
+test("shows browser instructions when no install prompt is available", async ({ page }) => {
+  await page.goto("/onboarding/setup");
+  const dialog = page.getByRole("dialog", { name: "Take Split Slate with you" });
+  await dialog.getByRole("button", { name: "Install", exact: true }).click();
+  await expect(dialog.getByRole("status")).toContainText(/browser|menu/i);
+  await expect(dialog).toBeVisible();
+});
+
+test("prevents accidental dismissal for two seconds and never closes on overlay clicks", async ({
+  page,
+}) => {
+  await page.goto("/onboarding/setup");
+  const dialog = page.getByRole("dialog", { name: "Take Split Slate with you" });
+  const cancel = dialog.getByRole("button", { name: "Cancel" });
+  const close = dialog.getByRole("button", { name: "Close install message" });
+  await expect(cancel).toBeDisabled();
+  await expect(close).toBeDisabled();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeVisible();
+  await page.mouse.click(1, 1);
+  await expect(dialog).toBeVisible();
+  await expect(cancel).toBeEnabled();
+  await expect(close).toBeEnabled();
+  await page.mouse.click(1, 1);
+  await expect(dialog).toBeVisible();
+  await close.click();
+  await expect(dialog).toHaveCount(0);
+  await page.reload();
+  await expect(dialog).toHaveCount(0);
+});
+
+test("does not invite someone already using the installed app", async ({ page }) => {
+  await page.addInitScript(() => {
+    const original = window.matchMedia.bind(window);
+    window.matchMedia = (query) =>
+      query === "(display-mode: standalone)"
+        ? Object.assign(original(query), { matches: true })
+        : original(query);
+  });
+  await page.goto("/onboarding/setup");
+  await expect(page.getByRole("dialog", { name: "Take Split Slate with you" })).toHaveCount(0);
 });

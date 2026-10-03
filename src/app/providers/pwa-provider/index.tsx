@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 
+import InstallDialog from "@/features/pwa/components/install-dialog";
 import UpdateNotice from "@/features/pwa/components/update-notice";
 
 import type { IconProgress } from "@/features/pwa/utils/icon-cache";
@@ -120,6 +121,7 @@ const PwaProvider = ({ children }: PropsType) => {
 
   return (
     <PwaContext.Provider value={{ progress, supported, repairIcons }}>
+      <InstallDialog supported={supported} />
       <UpdateNotice
         available={updateAvailable}
         onUpdate={handleUpdate}

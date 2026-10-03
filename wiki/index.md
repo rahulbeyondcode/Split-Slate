@@ -5,7 +5,7 @@ This wiki is the sole persistent compiled knowledge layer. The implementation in
 authoritative; `app-featureset-context/spec-sheet.md` is a historical baseline where later source
 and approved decisions have superseded it. Changes: [log.md](log.md)
 
-Last updated: 2026-10-02
+Last updated: 2026-10-03
 
 ---
 
@@ -39,6 +39,9 @@ Last updated: 2026-10-02
 
 ### Systems
 - [IndexedDB Schema](systems/indexeddb-schema.md) — current tables, fixed-hundredths money, exact ratio metadata, and development schema policy
+
+### Debugging
+- [Browser App Installation](debugging/mobile-pwa-install.md) — Netlify manifest response type and browser-dependent desktop/mobile install prompts
 
 ### Workflows
 - [Development Tools](workflows/development-tools.md) — typed realistic presets, randomized onboarding contacts, individual creation buttons, and persistence boundaries
@@ -124,12 +127,12 @@ identity mapping, default categories, same-name numbering, and the complete Inde
 are covered on desktop and mobile. Settlement Link/PDF/Excel sharing remains separate and pending.
 See [[import-export]].
 
-The production build now has install metadata, an offline app shell, background verified icon
-downloads with incremental repair, and a user-controlled update prompt. Desktop/mobile-emulated PWA
+The production build now has install metadata, a browser-dependent install dialog, an offline app
+shell, background verified icon downloads with incremental repair, and a user-controlled update prompt. Desktop/mobile-emulated PWA
 browser checks cover offline launch and cache repair. A real two-deployment update rehearsal,
 physical-device verification, storage pressure behavior, and versioned IndexedDB upgrades remain
 release checks; caches cannot guarantee
-permanent storage. See [[iconography]] and [[product-roadmap]].
+permanent storage. See [[mobile-pwa-install]], [[iconography]] and [[product-roadmap]].
 
 ---
 
