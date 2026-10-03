@@ -60,6 +60,19 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/groups/trip/expenses/dinner");
 });
 
+test("stacks Paid by above Split on mobile without changing desktop columns", async ({
+  page,
+  isMobile,
+}) => {
+  const paidBy = (await page.getByRole("region", { name: "Paid by" }).boundingBox())!;
+  const split = (await page.getByRole("region", { name: "Split breakdown" }).boundingBox())!;
+  if (isMobile) {
+    expect(split.y).toBeGreaterThanOrEqual(paidBy.y + paidBy.height);
+  } else {
+    expect(Math.abs(split.y - paidBy.y)).toBeLessThan(2);
+  }
+});
+
 test("quick-saves category and tags, including a newly created tag", async ({ page }) => {
   const hero = page.locator(".hero");
   await expect(hero).toContainText("Date: 12-Jan-2026");

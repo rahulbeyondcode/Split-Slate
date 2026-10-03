@@ -2,7 +2,7 @@
 
 Purpose: keep interface actions and navigation legible and aligned across devices without replacing user-selected identities.
 
-Last updated: 2026-10-01
+Last updated: 2026-10-04
 
 ## Decision
 
@@ -17,7 +17,9 @@ text identifies each illustration, while the heading and body explain the failur
 The action buttons continue to use Lucide icons.
 
 User-selected icons are local 256×256 transparent PNGs from `public/emoji-icons/`. The reusable
-image picker shows a short featured set, then a searchable gallery. Profile pictures are exclusively
+image picker shows a short featured set initially; Browse more replaces those suggestions with a
+searchable gallery, and Close gallery restores them. The selected-icon preview and gallery toggle
+stay visible in either mode on desktop and mobile. Profile pictures are exclusively
 for the device owner's avatar and people (contacts and group members); the other image folders are
 available to groups and categories, never profile pictures. Gallery folders filter non-profile
 choices. Every choice is labelled and accessible by keyboard. Assets are loaded as image elements

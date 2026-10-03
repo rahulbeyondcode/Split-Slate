@@ -56,6 +56,12 @@ test("offers all profile images while creating an account", async ({ page }) => 
   expect(selectedBox!.width).toBeGreaterThan(quickBox!.width);
   expect(quickBox!.y).toBeGreaterThan(selectedBox!.y + selectedBox!.height);
   await picker.getByRole("button", { name: "Browse more" }).click();
+  await expect(picker.locator(".emoji-picker-featured")).toHaveCount(0);
+  await expect(picker.locator(".emoji-picker-gallery")).toBeVisible();
+  await picker.getByRole("button", { name: "Close gallery" }).click();
+  await expect(picker.locator(".emoji-picker-featured")).toBeVisible();
+  await expect(picker.locator(".emoji-picker-gallery")).toHaveCount(0);
+  await picker.getByRole("button", { name: "Browse more" }).click();
   await picker.getByRole("searchbox", { name: "Search icons" }).fill("woman teacher");
   await expect(picker.getByText("1 icon")).toBeVisible();
   await picker.getByRole("button", { name: "Icon Woman teacher" }).click();

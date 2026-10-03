@@ -1,6 +1,6 @@
 import { ArrowDownUp, ListFilter, Search } from "lucide-react";
 import type { CSSProperties, FormEvent } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useFormContext, useWatch } from "react-hook-form";
 import { useOutletContext, useSearchParams } from "react-router-dom";
@@ -24,15 +24,17 @@ import Icon from "@/shared/ui/icon";
 
 const getPopoverPosition = (details: HTMLDetailsElement, maxWidth: number): CSSProperties => {
   const rect = details.getBoundingClientRect();
+  const verticalRect =
+    window.innerWidth < 768 ? (details.closest("form")?.getBoundingClientRect() ?? rect) : rect;
   const width = Math.min(window.innerWidth * 0.85, maxWidth);
   const maxHeight = Math.min(window.innerHeight * 0.7, 560);
-  const below = window.innerHeight - rect.bottom - 12;
-  const above = rect.top - 12;
+  const below = window.innerHeight - verticalRect.bottom - 12;
+  const above = verticalRect.top - 12;
   const openBelow = below >= maxHeight || below >= above;
   return {
     position: "fixed",
-    top: openBelow ? rect.bottom + 4 : undefined,
-    bottom: openBelow ? undefined : window.innerHeight - rect.top + 4,
+    top: openBelow ? verticalRect.bottom + 4 : undefined,
+    bottom: openBelow ? undefined : window.innerHeight - verticalRect.top + 4,
     right: Math.min(Math.max(8, window.innerWidth - rect.right), window.innerWidth - width - 8),
     maxHeight: Math.min(maxHeight, Math.max(0, openBelow ? below : above)),
   };
@@ -117,6 +119,13 @@ const ExpenseFilters = () => {
       main?.removeEventListener("scroll", updatePositions);
     };
   }, []);
+
+  useLayoutEffect(() => {
+    if (window.innerWidth >= 768) return;
+    if (sortOpen && sortRef.current) setSortPosition(getPopoverPosition(sortRef.current, 300));
+    if (filtersOpen && filtersRef.current)
+      setFiltersPosition(getPopoverPosition(filtersRef.current, 560));
+  }, [filtersOpen, sortOpen, values]);
 
   const handleClear = () => {
     const next = { ...createExpenseFilterDefaults(), sort: getValues("sort") };

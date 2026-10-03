@@ -358,7 +358,7 @@ const ExpenseDetail = () => {
         {" · "}
         {formatDisplayDate(expense.createdAt)}
       </p>
-      <div className="grid grid-cols-2 items-start gap-3">
+      <div className="grid grid-cols-1 items-start gap-3 md:grid-cols-2">
         <section className="surface surface-pad flex min-w-0 flex-col gap-2" aria-label="Paid by">
           <h3 className="section-title">Paid by</h3>
           <ul>

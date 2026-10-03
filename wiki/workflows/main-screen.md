@@ -42,6 +42,10 @@ The current child screens are:
 - **Categories & Tags** — add, edit, and guarded-delete controls for both record types
 - **Settings** — editable group name/icon and currency, selective Link/CSV/ZIP export, and confirmed permanent group deletion; no import action
 
+On mobile, the group Settings identity card wraps the group name and summary beside the avatar;
+Edit name & icon sits below the text instead of squeezing that first row. Desktop keeps the
+single-row identity card.
+
 The group's default route opens Overview. Its "View all expenses" and "View all balances" links open
 the full ledger and per-member balances respectively; Expenses is also available through the sidebar
 and mobile navigation. There is no additional group-view tab bar. The large local-balance hero appears
@@ -49,9 +53,14 @@ only on Overview.
 
 The Balances screen has a Back control that returns to the originating group screen, including its
 filter URL; direct entry without in-app history falls back to the group's Expenses screen. Group
-headers stay visible while scrolling. Expenses, Members, and Categories & Tags fit within the
-available viewport, with the expense/member lists and category/tag cards scrolling individually
-only when needed. See [[layout-architecture]] and [[filtering]].
+headers stay visible while scrolling. On mobile, their Back to dashboard link exits any non-form
+group screen, including expense detail and Settings; expense forms return to Expenses first. The
+desktop sidebar still provides All groups. Mobile Expenses scrolls the main pane to the last row,
+with the title/subtitle and filter controls sticking below the group header after insights pass.
+Desktop/tablet Expenses and Members across viewports retain bounded lists that scroll individually
+as needed. Mobile Categories & Tags scrolls the page as well as two individually scrollable 50vh
+cards with sticky card headers; desktop/tablet retain their bounded card layout. See
+[[layout-architecture]] and [[filtering]].
 
 On desktop, the activity panel follows group routes except Settings, including expense forms;
 the group header no longer has a redundant three-dot shortcut to Settings. The group sidebar
@@ -60,7 +69,10 @@ and mobile footer retain Settings navigation. See [[layout-architecture]].
 The Overview member preview counts each expense once per member with a positive paid contribution,
 even when multiple members pay for the same expense. Higher counts appear first; equal counts and
 members with no payments are ordered alphabetically by name. Only six members are shown; the Members
-route still lists the entire group.
+route still lists the entire group. On mobile, the preview heading omits its count and View all
+members link when all members fit (six or fewer); both appear once there are more than six. The
+mobile Members footer and member chips still open the full list. Desktop keeps the count and link
+regardless of group size.
 
 Changing currency when expenses exist requires confirmation: saved amounts retain their numeric
 values and are displayed under the new currency label without exchange conversion. The same
@@ -105,13 +117,21 @@ shows net positions and suggested payments. Neither view uses an in-page tab bar
 Expenses are sorted by `when` descending. Rows show the local date as `12-Jan-2026` and local
 12-hour time as `03:45 PM` beneath the
 amount, plus payer names and the category icon beside the name. Names link to detail, which offers
-editing, quick category/tag changes, and confirmed deletion. Detail distinguishes the occurred
-date/time (separate Date and Time lines in the banner) from the recording date (`createdAt`) shown
+editing, quick category/tag changes, and confirmed deletion.
+On mobile, full-ledger and recent Overview rows let expense titles wrap beside the category icon;
+supporting text follows the title and the amount moves below it (with date/time alongside or below
+the amount in the full ledger). The full ledger also spells out the category name before the payer
+and split details; Overview already names the category. Tablet and desktop retain their existing
+side-by-side rows and ledger metadata.
+Detail distinguishes the occurred date/time (separate Date and Time lines in the banner) from the
+recording date (`createdAt`) shown
 as a quiet "Recorded by [name] · [date]" line between the banner and the Paid by/Split cards. Its
 tags span a full-width banner row.
 The full ledger and recent Overview entries show up to three colored tags and reveal further tags
 with a separate Show more control. The list now has real-time name, date, category, tag,
 payer, involved-member, split-type, and amount filters with an active count and clear action.
+Mobile hides the redundant results count until a filter is active; desktop retains the unfiltered
+count, and invalid bounds still show a correction message.
 The compact Expense insights card shows matching count, total, rounded average, and top category;
 it does not show member contributions or settlement balances. The group header retains the
 full-group total, and a separate link opens full-group Balances. Invalid filters suppress the summary.
@@ -145,7 +165,8 @@ metadata. Updates preserve creation metadata and existing attachments. An unchan
 category may be retained; a different selection must be active. Saving returns to detail;
 cancelling writes nothing. Failed saves retain inputs for retry.
 Detail category and tag selection instead quick-save only those references without rebuilding
-allocations; see [[expense-edit-delete]].
+allocations; see [[expense-edit-delete]]. On mobile, detail shows Paid by above Split in full-width
+cards; tablet and desktop keep the existing two-column layout.
 
 Detail deletion requires confirmation and atomically removes the expense and owned receipts,
 refreshes frequent payers, then returns to the list. All balance displays derive the updated store.

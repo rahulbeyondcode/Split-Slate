@@ -81,6 +81,104 @@ test("aligns the profile image with the dashboard greeting", async ({ page }) =>
   ).toBeLessThan(3);
 });
 
+test("keeps mobile destination titles and subtitles visible at the bottom of each page", async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(!isMobile, "Mobile footer destinations only");
+  await page.setViewportSize({ width: 390, height: 320 });
+
+  for (const [route, title] of [
+    ["/activity", "Activity"],
+    ["/unsettled", "Unsettled"],
+    ["/analytics", "Spending by category"],
+    ["/settings", "Settings"],
+  ]) {
+    await page.goto(route);
+    const header = page.locator(".mobile-sticky-page > header");
+    const heading = header.getByRole("heading", { level: 1, name: title });
+    const subtitle = header.locator(".soft-caption");
+    await expect(heading).toBeVisible();
+    await expect(subtitle).toBeVisible();
+    const initialTop = (await heading.boundingBox())!.y;
+
+    await page.locator("#main-content").evaluate((main) => {
+      main.scrollTop = main.scrollHeight;
+    });
+    await expect
+      .poll(() => page.locator("#main-content").evaluate((main) => main.scrollTop))
+      .toBeGreaterThan(0);
+    await expect(heading).toBeInViewport();
+    await expect(subtitle).toBeInViewport();
+    expect(Math.abs((await heading.boundingBox())!.y - initialTop)).toBeLessThan(2);
+  }
+});
+
+test("opens Analytics from the mobile dashboard chart and returns via Back", async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(!isMobile, "Mobile dashboard navigation only");
+  await page.setViewportSize({ width: 320, height: 800 });
+  const footer = page.getByRole("navigation", { name: "Bottom navigation" });
+  await expect(footer.getByRole("link", { name: "Analytics" })).toHaveCount(0);
+  await expect(footer.getByRole("link")).toHaveCount(5);
+
+  const unsettled = page.locator(".dashboard-lower .surface").filter({
+    has: page.getByRole("heading", { name: "Unsettled balances" }),
+  });
+  await expect(unsettled.getByText("Across all groups")).toBeVisible();
+
+  const chart = page.locator(".dashboard-lower .surface").filter({
+    has: page.getByRole("heading", { name: "Spending by category" }),
+  });
+  await expect(chart).toBeVisible();
+  await expect(chart.getByText("All groups · ever")).toBeVisible();
+  await chart.getByRole("link", { name: "View all" }).click();
+  await expect(page).toHaveURL(/\/analytics$/u);
+  await page.getByRole("link", { name: "Back to dashboard" }).click();
+  await expect(page).toHaveURL(/\/dashboard$/u);
+
+  await chart.getByRole("link", { name: "Spending by category" }).click();
+  await expect(page).toHaveURL(/\/analytics$/u);
+  await expect(page.getByRole("heading", { name: "Spending by category" })).toBeVisible();
+  await expect(page.getByText("Every category across your groups, all time")).toBeVisible();
+  await page.getByRole("link", { name: "Back to dashboard" }).click();
+  await expect(page).toHaveURL(/\/dashboard$/u);
+
+  await chart.getByRole("link", { name: /Food/u }).click();
+  await expect(page).toHaveURL(/\/analytics$/u);
+  await page.getByRole("link", { name: "Back to dashboard" }).click();
+  await expect(page).toHaveURL(/\/dashboard$/u);
+});
+
+test("places the purple New group action at the center of the mobile dashboard footer", async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(!isMobile, "Mobile dashboard navigation only");
+  await page.setViewportSize({ width: 320, height: 800 });
+  const footer = page.getByRole("navigation", { name: "Bottom navigation" });
+  await expect(footer.getByRole("link")).toHaveText([
+    "Groups",
+    "Activity",
+    "New group",
+    "Unsettled",
+    "Settings",
+  ]);
+  await expect(page.locator(".dashboard-page .mobile-cta")).toHaveCount(0);
+  const createLink = footer.getByRole("link", { name: "New group" });
+  await expect(createLink).toHaveClass(/mobile-nav-create/u);
+  await expect(createLink.locator(".nav-icon")).toHaveCSS("color", "rgb(255, 255, 255)");
+  await createLink.click();
+  await expect(page).toHaveURL(/\/groups\/new$/u);
+  await expect(page.getByRole("heading", { name: "New group" })).toBeVisible();
+  await expect(createLink).toHaveAttribute("aria-current", "page");
+
+  await page.goto("/groups/trip");
+  await expect(footer.getByRole("link", { name: "New group" })).toHaveCount(0);
+});
+
 test("keeps the dashboard banner and both group balance states readable on narrow mobiles", async ({
   page,
   isMobile,

@@ -10,7 +10,20 @@ metadata:
 Purpose: keep accounting tests fast, make every implemented area verifiable, and reserve real
 browser coverage for behavior that depends on browser storage, navigation, or offline capability.
 
-Last updated: 2026-09-29
+Last updated: 2026-10-04
+
+## URGENT: Browser Verification Pending Outside This Environment
+
+Do **not** run Playwright in the current working environment. This user-directed restriction
+overrides the focused-suite step below for browser tests. Changes to mobile expense scrolling,
+filter controls, member actions, category/tag cards, and expense detail need **urgent Playwright
+verification in a permitted environment** before they are considered browser-validated. Relevant
+suites include `scroll-navigation.e2e.ts`, `expense-filters.e2e.ts`,
+`member-removal-filter.e2e.ts`, `expense-detail-quick-edit.e2e.ts`,
+`category-management.e2e.ts`, and `profile-icons.e2e.ts` under their respective feature
+`tests/browser/` directories. The last two verify that opening the shared icon gallery hides
+featured suggestions for both icon collections. Do not report these newer browser checks as
+passing without running them there.
 
 ## Decision
 

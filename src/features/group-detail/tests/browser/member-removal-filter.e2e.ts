@@ -75,6 +75,55 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/groups/trip/members");
 });
 
+test("keeps long mobile member names accessible above their edit and delete actions", async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(!isMobile, "Mobile member rows only");
+  const name = "Cal with a remarkably long full name that cannot fit on one row";
+  await page.setViewportSize({ width: 320, height: 800 });
+  await page.evaluate(async (fullName) => {
+    const modulePath = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ modulePath)) as typeof DbModule;
+    await db.people.update("cal", { name: fullName });
+  }, name);
+  await page.reload();
+
+  const row = page.locator(".member-list-scroll li").filter({
+    has: page.getByRole("button", { name: `Show full name: ${name}` }),
+  });
+  const nameButton = row.getByRole("button", { name: `Show full name: ${name}` });
+  const nameText = nameButton.locator("span").first();
+  const identity = row.locator(".member-entry-identity");
+  const actions = row.locator(".member-entry-actions");
+  await expect(nameText).toHaveCSS("text-overflow", "ellipsis");
+  await expect
+    .poll(() => nameText.evaluate((element) => element.scrollWidth > element.clientWidth))
+    .toBe(true);
+  const identityBox = (await identity.boundingBox())!;
+  const actionsBox = (await actions.boundingBox())!;
+  expect(actionsBox.y).toBeGreaterThanOrEqual(identityBox.y + identityBox.height);
+  const buttons = await actions.getByRole("button").all();
+  const widths = await Promise.all(
+    buttons.map(async (button) => (await button.boundingBox())!.width),
+  );
+  expect(widths.reduce((total, width) => total + width, 0)).toBeGreaterThanOrEqual(
+    (await row.boundingBox())!.width * 0.75,
+  );
+  await expect(buttons[0]).toHaveCSS("border-radius", "12px");
+  await expect(nameButton).toHaveAttribute("data-tooltip", name);
+  await nameButton.focus();
+  await expect
+    .poll(() => nameButton.evaluate((element) => getComputedStyle(element, "::after").opacity))
+    .toBe("1");
+
+  await row.getByRole("button", { name: "Edit" }).click();
+  await expect(page.getByRole("heading", { name: "Edit person" })).toBeVisible();
+  await page.getByRole("button", { name: "Cancel" }).click();
+  await row.getByRole("button", { name: `Delete ${name}` }).click();
+  await expect(page.getByRole("dialog", { name: `Remove ${name}?` })).toBeVisible();
+});
+
 test("explains blocked removal and links to every expense referencing the member", async ({
   page,
 }) => {

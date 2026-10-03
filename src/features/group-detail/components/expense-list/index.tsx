@@ -1,4 +1,5 @@
 import { Plus, ReceiptText, SearchX } from "lucide-react";
+import { useLayoutEffect, useRef } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { Link, useLocation, useOutletContext } from "react-router-dom";
 
@@ -12,6 +13,7 @@ import {
   filterExpenses,
   sortExpenses,
 } from "@/features/expenses/utils/expense-filters";
+import { useViewport } from "@/shared/hooks/use-viewport";
 import { formatCurrency } from "@/shared/utils/currency";
 import { formatDisplayDateTime } from "@/shared/utils/date-time";
 
@@ -24,12 +26,16 @@ import Icon from "@/shared/ui/icon";
 import Surface from "@/shared/ui/surface";
 
 const ExpenseList = () => {
+  const { isMobile } = useViewport();
+  const ledgerRef = useRef<HTMLElement>(null);
+  const titleRef = useRef<HTMLElement>(null);
   const { search } = useLocation();
   const { group, groupExpenses, groupMembers, groupCategories, groupTags } =
     useOutletContext<GroupDetailContext>();
   const { control } = useFormContext<ExpenseFilterValues>();
   const values = useWatch({ control });
   const parsed = createExpenseFilterSchema(group.currency).safeParse(values);
+  const hasFilters = parsed.success && countActiveExpenseFilters(parsed.data) > 0;
   const sorted = parsed.success
     ? sortExpenses(
         filterExpenses(groupExpenses, parsed.data, group.currency),
@@ -38,9 +44,32 @@ const ExpenseList = () => {
         groupTags,
       )
     : [];
+  useLayoutEffect(() => {
+    const ledger = ledgerRef.current;
+    const title = titleRef.current;
+    const groupHeader = ledger
+      ?.closest(".group-page")
+      ?.querySelector<HTMLElement>(".group-page-header");
+    if (!isMobile || !ledger || !title || !groupHeader) return;
+
+    const updateOffsets = () => {
+      ledger.style.setProperty("--expense-group-header-height", `${groupHeader.offsetHeight}px`);
+      ledger.style.setProperty("--expense-title-height", `${title.offsetHeight}px`);
+    };
+    const observer = new ResizeObserver(updateOffsets);
+    observer.observe(groupHeader);
+    observer.observe(title);
+    updateOffsets();
+    return () => {
+      observer.disconnect();
+      ledger.style.removeProperty("--expense-group-header-height");
+      ledger.style.removeProperty("--expense-title-height");
+    };
+  }, [isMobile]);
+
   return (
-    <section className="expense-ledger flex flex-col gap-4">
-      <header className="flex items-center justify-between gap-3">
+    <section ref={ledgerRef} className="expense-ledger flex flex-col gap-4">
+      <header ref={titleRef} className="flex items-center justify-between gap-3">
         <div>
           <h2 className="section-title">All expenses</h2>
           <p className="soft-caption mt-1">Search and filter your complete expense history.</p>
@@ -58,15 +87,17 @@ const ExpenseList = () => {
           group={group}
           members={groupMembers}
           categories={groupCategories}
-          filtered={countActiveExpenseFilters(parsed.data) > 0}
+          filtered={hasFilters}
         />
       )}
       <ExpenseFilters />
-      <span role="status" className="soft-caption">
-        {parsed.success
-          ? `${sorted.length} of ${groupExpenses.length} expenses`
-          : "Correct the highlighted filters to see results."}
-      </span>
+      {(!isMobile || hasFilters || !parsed.success) && (
+        <span role="status" className="soft-caption">
+          {parsed.success
+            ? `${sorted.length} of ${groupExpenses.length} expenses`
+            : "Correct the highlighted filters to see results."}
+        </span>
+      )}
       {!parsed.success ? null : groupExpenses.length === 0 ? (
         <EmptyState
           icon={ReceiptText}
@@ -102,16 +133,21 @@ const ExpenseList = () => {
                 >
                   <Link
                     to={`/groups/${group.id}/expenses/${expense.expenseId}${search}`}
-                    className="flex min-w-0 items-center gap-3 py-3"
+                    className="expense-entry-link flex min-w-0 items-center gap-3 py-3"
                   >
                     <Avatar icon={category?.icon} square className="!w-10 !h-10 !text-xl" />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate font-bold">{expense.expenseName}</span>
-                      <span className="soft-caption block truncate">
+                    <span className="expense-entry-copy min-w-0 flex-1">
+                      <span className="expense-entry-title block truncate font-bold">
+                        {expense.expenseName}
+                      </span>
+                      <span className="expense-entry-meta soft-caption block truncate">
+                        <span className="expense-entry-category md:hidden">
+                          {category?.name ?? "Category"} ·{" "}
+                        </span>
                         {payers.join(", ")} paid · {expense.splitType}
                       </span>
                     </span>
-                    <span className="text-right">
+                    <span className="expense-entry-amount expense-ledger-amount text-right">
                       <span className="money block font-bold">
                         {formatCurrency(total, group.currency)}
                       </span>

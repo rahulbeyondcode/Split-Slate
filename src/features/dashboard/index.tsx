@@ -7,6 +7,7 @@ import {
   dashboardTransfers,
 } from "@/features/dashboard/utils/dashboard-data";
 import { useStore } from "@/shared/configs/store";
+import { useViewport } from "@/shared/hooks/use-viewport";
 import { formatCurrency } from "@/shared/utils/currency";
 import { formatDisplayDate } from "@/shared/utils/date-time";
 
@@ -19,6 +20,7 @@ import Surface from "@/shared/ui/surface";
 
 const Dashboard = () => {
   const state = useStore();
+  const { isMobile } = useViewport();
   const { entries, currency, get, give } = dashboardPositions(state);
   const transfers = dashboardTransfers(state);
   const categories = currency ? dashboardCategories(state, currency).slice(0, 6) : [];
@@ -161,8 +163,21 @@ const Dashboard = () => {
       {entries.length > 0 && (
         <div className="dashboard-lower max-sm:hidden">
           <Surface className="surface-pad">
-            <div className="flex items-center justify-between">
-              <h2 className="section-title">Unsettled balances</h2>
+            <div
+              className={
+                isMobile
+                  ? "flex items-start justify-between gap-2"
+                  : "flex items-center justify-between"
+              }
+            >
+              {isMobile ? (
+                <div className="min-w-0">
+                  <h2 className="section-title">Unsettled balances</h2>
+                  <p className="soft-caption">Across all groups</p>
+                </div>
+              ) : (
+                <h2 className="section-title">Unsettled balances</h2>
+              )}
               <Link to="/unsettled" className="btn btn-secondary !px-3">
                 View all ({transfers.length}) <Icon icon={ArrowRight} size={16} />
               </Link>
@@ -197,13 +212,33 @@ const Dashboard = () => {
           </Surface>
           {currency && (
             <Surface className="surface-pad">
-              <div className="flex items-center justify-between">
-                <h2 className="section-title">Spending by category</h2>
-                <span className="soft-caption">all groups · all time</span>
-              </div>
+              {isMobile ? (
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <h2 className="section-title">
+                      <Link to="/analytics">Spending by category</Link>
+                    </h2>
+                    <p className="soft-caption">All groups · ever</p>
+                  </div>
+                  <Link to="/analytics" className="btn btn-secondary !px-3 shrink-0">
+                    View all <Icon icon={ArrowRight} size={16} />
+                  </Link>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between">
+                  <h2 className="section-title">
+                    <Link to="/analytics">Spending by category</Link>
+                  </h2>
+                  <span className="soft-caption">all groups · all time</span>
+                </div>
+              )}
               {categories.length ? (
                 categories.map((category) => (
-                  <div key={category.name} className="flex items-center gap-3 my-4">
+                  <Link
+                    key={category.name}
+                    to="/analytics"
+                    className="flex items-center gap-3 my-4"
+                  >
                     <EmojiImage icon={category.icon} />
                     <span className="w-24 truncate text-xs font-semibold">{category.name}</span>
                     <div className="h-2 flex-1 rounded-full bg-[var(--surface-soft)]">
@@ -215,7 +250,7 @@ const Dashboard = () => {
                     <span className="money text-xs">
                       {formatCurrency(category.amount, currency)}
                     </span>
-                  </div>
+                  </Link>
                 ))
               ) : (
                 <p className="muted mt-6">No spending yet.</p>
@@ -223,11 +258,6 @@ const Dashboard = () => {
             </Surface>
           )}
         </div>
-      )}
-      {entries.length > 0 && (
-        <Link to="/groups/new" className="mobile-cta">
-          <Icon icon={Plus} size={20} /> New group
-        </Link>
       )}
     </div>
   );

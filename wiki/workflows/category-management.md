@@ -7,7 +7,7 @@ metadata:
 
 # Category Management
 
-Last updated: 2026-10-01
+Last updated: 2026-10-04
 
 ## Implementation Status
 
@@ -15,6 +15,10 @@ The group **Categories & Tags** route currently implements category list/read, c
 edit, and guarded delete. Store guards enforce non-empty case-insensitively unique names, prevent
 deleting an in-use category, and preserve at least one category per group. Group creation also
 implements mandatory category selection with defaults.
+On mobile the screen scrolls as a page, while the category card itself is 50vh tall and scrolls
+independently. Its Categories title, available count, and Add category button stay sticky inside
+that card, below the sticky page and group headings. Each category keeps its name/count above a
+second row of wide, softly rectangular Edit/Delete buttons. Tablet/desktop layout is unchanged.
 
 Category deactivation is a future task. The `isActive` field and store update capability already
 exist, but the management screen has no Activate/Deactivate control. This state is worth retaining

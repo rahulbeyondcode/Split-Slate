@@ -1743,6 +1743,9 @@ body:has(.group-page-contained),
   overscroll-behavior: contain;
   contain: paint;
 }
+.management-card-content {
+  display: contents;
+}
 .app-sidebar {
   width: 264px;
   height: 100svh;
@@ -2249,8 +2252,36 @@ body:has(.group-page-contained),
     height: calc(100svh - 72px);
     padding-bottom: 16px;
   }
-  .group-page-contained .expense-ledger-list ul {
-    padding-bottom: 72px;
+  .expense-ledger > header {
+    position: sticky;
+    top: var(--expense-group-header-height, 0px);
+    z-index: 14;
+    padding: 8px 0;
+    background: var(--page);
+  }
+  .expense-ledger > form[aria-label="Expense filters"] {
+    position: sticky;
+    top: calc(var(--expense-group-header-height, 0px) + var(--expense-title-height, 0px));
+    z-index: 13;
+    padding: 8px 0;
+    background: var(--page);
+  }
+  .expense-ledger > form[aria-label="Expense filters"] > div:first-child {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .expense-ledger > form[aria-label="Expense filters"] > div:first-child > label {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-width: 0;
+  }
+  .expense-ledger > form[aria-label="Expense filters"] > div:first-child > details {
+    min-width: 0;
+  }
+  .expense-ledger > form[aria-label="Expense filters"] > div:first-child > details > summary {
+    width: 100%;
+    justify-content: center;
   }
   .group-page-contained .group-management-grid {
     display: flex;
@@ -2259,14 +2290,193 @@ body:has(.group-page-contained),
   .group-page-contained .group-management-grid > .surface {
     flex: 1 1 auto;
   }
+  .member-entry {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .member-entry-identity {
+    flex-basis: 100%;
+  }
+  .member-entry-tooltip {
+    position: relative;
+    display: block;
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    text-align: left;
+  }
+  .member-entry-tooltip::after {
+    position: absolute;
+    z-index: 18;
+    top: calc(100% + 6px);
+    left: 0;
+    width: max-content;
+    max-width: min(65vw, 260px);
+    padding: 8px 11px;
+    border-radius: 10px;
+    background: var(--ink);
+    box-shadow: var(--shadow);
+    color: var(--surface);
+    content: attr(data-tooltip);
+    font-size: 12px;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+    pointer-events: none;
+    white-space: normal;
+    opacity: 0;
+    visibility: hidden;
+  }
+  .member-entry-tooltip:hover::after,
+  .member-entry-tooltip:focus::after {
+    opacity: 1;
+    visibility: visible;
+  }
+  .member-entry-actions {
+    width: 100%;
+    margin-left: 0;
+    padding-left: 50px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .member-entry-actions .btn {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 34px;
+    padding: 7px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+  }
+  .group-management > h2 {
+    position: sticky;
+    top: var(--management-group-header-height, 0px);
+    z-index: 14;
+    padding: 8px 0;
+    background: var(--page);
+  }
+  .group-management-grid > .surface {
+    height: 50vh;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .management-card-header {
+    flex-shrink: 0;
+  }
+  .management-card-content {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .management-entry {
+    gap: 8px;
+  }
+  .management-entry-identity {
+    flex-basis: 100%;
+  }
+  .management-entry-actions {
+    width: 100%;
+    margin-left: 0;
+    padding-right: 10px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .category-entry .management-entry-actions {
+    padding-left: 36px;
+  }
+  .tag-entry .management-entry-actions {
+    padding-left: 20px;
+  }
+  .management-entry-actions .btn {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 34px;
+    border-radius: 12px;
+    font-size: 12px;
+  }
   .app-sidebar {
     display: none;
   }
   .page {
     padding: 22px 18px 100px;
   }
+  .page.group-page:has(.group-management) {
+    padding-bottom: 24px;
+  }
+  .expense-entry-link {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    align-items: start;
+    gap: 8px 12px;
+  }
+  .expense-entry-link > .avatar {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .expense-entry-copy {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+  }
+  .expense-entry-title,
+  .expense-entry-meta {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    overflow-wrap: anywhere;
+  }
+  .expense-entry-amount {
+    grid-column: 2;
+    grid-row: 2;
+    text-align: left;
+  }
+  .expense-ledger-amount {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 4px 12px;
+  }
+  .expense-ledger-amount .soft-caption {
+    margin-left: auto;
+  }
+  .group-settings-identity {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr);
+    align-items: center;
+  }
+  .group-settings-summary {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .group-settings-edit {
+    grid-column: 2;
+    width: 100%;
+  }
+  .mobile-sticky-page > header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    flex-shrink: 0;
+    margin-top: -22px;
+    padding: 22px 0 12px;
+    background: var(--page);
+  }
   .page-title {
     font-size: 23px;
+  }
+  .mobile-group-back {
+    width: 100%;
+    min-height: 28px;
+    padding: 0;
+    font-size: 12px;
+  }
+  .group-page-header:has(.mobile-group-back) {
+    row-gap: 8px;
   }
   .surface {
     border-radius: 21px;
@@ -2399,6 +2609,27 @@ body:has(.group-page-contained),
   }
   .mobile-nav a.active .nav-icon {
     background: var(--brand-soft);
+  }
+  .mobile-nav a.mobile-nav-create {
+    color: var(--brand-ink);
+    font-weight: 800;
+  }
+  .mobile-nav a.mobile-nav-create .nav-icon {
+    position: relative;
+    justify-content: center;
+    background: transparent;
+    color: #fff;
+  }
+  .mobile-nav a.mobile-nav-create .nav-icon::before {
+    position: absolute;
+    inset: 0 -6px;
+    border-radius: 100px;
+    background: linear-gradient(120deg, #a38adc, #7558c6);
+    box-shadow: 0 6px 12px rgb(83 53 155 / 30%);
+    content: "";
+  }
+  .mobile-nav a.mobile-nav-create .nav-icon .ui-icon {
+    position: relative;
   }
   .mobile-cta {
     display: flex;

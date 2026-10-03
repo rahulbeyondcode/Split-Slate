@@ -147,16 +147,20 @@ const GroupSettings = () => {
           </form>
         </FormProvider>
       ) : (
-        <Surface className="surface-pad flex items-center gap-3">
+        <Surface className="group-settings-identity surface-pad flex items-center gap-3">
           <Avatar icon={group.icon} square />
-          <div className="flex-1">
+          <div className="group-settings-summary flex-1">
             <p className="font-bold">{group.name}</p>
             <p className="soft-caption">
               {groupMembers.length} members · {groupExpenses.length} expenses · created{" "}
               {formatDisplayDate(group.createdAt)}
             </p>
           </div>
-          <button type="button" className="btn btn-secondary" onClick={() => setEditing(true)}>
+          <button
+            type="button"
+            className="group-settings-edit btn btn-secondary"
+            onClick={() => setEditing(true)}
+          >
             <Icon icon={Pencil} size={18} /> Edit name & icon
           </button>
         </Surface>

@@ -53,8 +53,9 @@ than adding a history entry per keystroke.
   cannot be less than the minimum.
 - Invalid bounds show field errors and suppress results until corrected.
 - Clearing all filters returns to the full unfiltered expense list.
-- Empty source and no-match states have distinct copy, and the result count reports matching versus
-  total expenses.
+- Empty source and no-match states have distinct copy. The matching-versus-total result count is
+  visible on mobile only while a filter is active; desktop continues showing it unfiltered. Invalid
+  filters still show corrective status text on both layouts.
 - Unavailable category, tag, payer, and member IDs are pruned from the URL when the list mounts;
   clearing removes filter parameters but retains a selected nondefault sort. Unknown query fields
   and invalid split types are ignored.
@@ -75,9 +76,13 @@ misleading total. Multi-payer contributions use stored integer hundredths; a mis
 reference produces an error rather than silently omitting transactions. See [[balance-calculation]]
 and [[main-screen]].
 
-The Expenses route fits the available viewport with the results list as its own scroll area. Sort
-and Filters popovers render outside that clipped page region, anchor to their controls, and scroll
-independently within the available viewport; they must not be clipped by the bounded ledger.
+On desktop/tablet, Expenses fits the available viewport and the results list scrolls separately.
+On mobile, the entire expense page scrolls through the final row in the main pane; the group header
+and ledger title/subtitle stay visible, then the search/sort/filter toolbar sticks beneath them
+after the insights banner scrolls past. Search fills its own row, with equal-width Sort and Filters
+buttons below. Sort and Filters popovers remain portaled outside the ledger, anchor below the entire
+mobile toolbar (leaving Clear all filters accessible), track their anchors while the pane scrolls,
+and scroll independently within the viewport. Desktop popover anchors remain unchanged.
 
 ## Sorting
 

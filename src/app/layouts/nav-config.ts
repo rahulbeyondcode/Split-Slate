@@ -2,8 +2,8 @@ import type { LucideIcon } from "lucide-react";
 import {
   Activity,
   ArrowLeftRight,
-  ChartNoAxesCombined,
   LayoutDashboard,
+  Plus,
   ReceiptText,
   Settings2,
   Shapes,
@@ -35,8 +35,8 @@ export const FOOTER_NAV: Record<string, NavItem[]> = {
   dashboard: [
     { label: "Groups", path: "/dashboard", icon: LayoutDashboard },
     { label: "Activity", path: "/activity", icon: Activity },
+    { label: "New group", path: "/groups/new", icon: Plus },
     { label: "Unsettled", path: "/unsettled", icon: ArrowLeftRight },
-    { label: "Analytics", path: "/analytics", icon: ChartNoAxesCombined },
     { label: "Settings", path: "/settings", icon: Settings2 },
   ],
   group: [

@@ -107,7 +107,7 @@ const TagManagement = () => {
 
   return (
     <div className="surface surface-pad flex flex-col gap-3">
-      <div className="flex items-center justify-between gap-4">
+      <div className="management-card-header flex items-center justify-between gap-4">
         <div>
           <h2 className="section-title">Tags</h2>
           <p className="soft-caption">{groupTags.length} available · free-form · group-scoped</p>
@@ -119,77 +119,79 @@ const TagManagement = () => {
         )}
       </div>
 
-      {tagError && (
-        <p role="alert" className="note money-negative">
-          {tagError}
-        </p>
-      )}
-      <ConfirmationDialog
-        open={Boolean(confirmTag)}
-        title={`Delete ${confirmTag?.name ?? "tag"}?`}
-        description={`This tag will be removed from ${confirmTagExpenseCount} ${confirmTagExpenseCount === 1 ? "expense" : "expenses"}. The expenses will not be deleted.`}
-        confirmLabel="Delete tag"
-        onCancel={() => setConfirmTagId(null)}
-        onConfirm={handleConfirmDelete}
-      />
+      <div className="management-card-content">
+        {tagError && (
+          <p role="alert" className="note money-negative">
+            {tagError}
+          </p>
+        )}
+        <ConfirmationDialog
+          open={Boolean(confirmTag)}
+          title={`Delete ${confirmTag?.name ?? "tag"}?`}
+          description={`This tag will be removed from ${confirmTagExpenseCount} ${confirmTagExpenseCount === 1 ? "expense" : "expenses"}. The expenses will not be deleted.`}
+          confirmLabel="Delete tag"
+          onCancel={() => setConfirmTagId(null)}
+          onConfirm={handleConfirmDelete}
+        />
 
-      {tagMode && (
-        <FormProvider {...tagForm}>
-          <form onSubmit={handleSaveTag} className="note flex flex-col gap-2">
-            <p className="text-sm font-medium text-gray-900">{tagFormTitle}</p>
-            <Input name="name" placeholder="Tag name" autoFocus />
-            <ColorPicker name="color" label="Tag color" />
-            <div className="flex gap-2 justify-end">
-              <button
-                type="button"
-                onClick={handleCancelTagForm}
-                disabled={isSubmitting}
-                className="px-4 py-2 text-sm text-gray-500 disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button type="submit" disabled={isSubmitting} className="btn btn-primary">
-                {isSubmitting ? "Saving..." : tagSubmitLabel}
-              </button>
-            </div>
-          </form>
-        </FormProvider>
-      )}
-
-      {groupTags.length > 0 ? (
-        <ul>
-          {groupTags.map((tag) => (
-            <li key={tag.id} className="ui-row flex-wrap">
-              <span className="flex min-w-0 flex-1 basis-40 items-center gap-2 text-sm font-medium text-gray-900">
-                <span
-                  className="h-3 w-3 shrink-0 rounded-full"
-                  style={{ backgroundColor: tag.color }}
-                  aria-hidden="true"
-                />
-                <span className="min-w-0 truncate">{tag.name}</span>
-              </span>
-              <div className="ml-auto flex shrink-0 items-center gap-3">
+        {tagMode && (
+          <FormProvider {...tagForm}>
+            <form onSubmit={handleSaveTag} className="note flex flex-col gap-2">
+              <p className="text-sm font-medium text-gray-900">{tagFormTitle}</p>
+              <Input name="name" placeholder="Tag name" autoFocus />
+              <ColorPicker name="color" label="Tag color" />
+              <div className="flex gap-2 justify-end">
                 <button
                   type="button"
-                  onClick={() => handleEditTag(tag)}
-                  className="btn btn-secondary !px-3"
+                  onClick={handleCancelTagForm}
+                  disabled={isSubmitting}
+                  className="px-4 py-2 text-sm text-gray-500 disabled:opacity-50"
                 >
-                  <Icon icon={Pencil} size={17} /> Edit
+                  Cancel
                 </button>
-                <button
-                  type="button"
-                  onClick={() => handleDeleteTag(tag)}
-                  className="btn btn-danger !px-3"
-                >
-                  <Icon icon={Trash2} size={17} /> Delete
+                <button type="submit" disabled={isSubmitting} className="btn btn-primary">
+                  {isSubmitting ? "Saving..." : tagSubmitLabel}
                 </button>
               </div>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="text-sm text-gray-500">No tags have been added yet.</p>
-      )}
+            </form>
+          </FormProvider>
+        )}
+
+        {groupTags.length > 0 ? (
+          <ul>
+            {groupTags.map((tag) => (
+              <li key={tag.id} className="ui-row management-entry tag-entry flex-wrap">
+                <span className="management-entry-identity flex min-w-0 flex-1 basis-40 items-center gap-2 text-sm font-medium text-gray-900">
+                  <span
+                    className="h-3 w-3 shrink-0 rounded-full"
+                    style={{ backgroundColor: tag.color }}
+                    aria-hidden="true"
+                  />
+                  <span className="min-w-0 truncate">{tag.name}</span>
+                </span>
+                <div className="management-entry-actions ml-auto flex shrink-0 items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => handleEditTag(tag)}
+                    className="btn btn-secondary !px-3"
+                  >
+                    <Icon icon={Pencil} size={17} /> Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteTag(tag)}
+                    className="btn btn-danger !px-3"
+                  >
+                    <Icon icon={Trash2} size={17} /> Delete
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-gray-500">No tags have been added yet.</p>
+        )}
+      </div>
     </div>
   );
 };

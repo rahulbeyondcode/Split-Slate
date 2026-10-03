@@ -61,6 +61,33 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/groups/trip/settings");
 });
 
+test("keeps a long group name readable above its edit button on mobile", async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(!isMobile, "Mobile group Settings layout only");
+  await page.setViewportSize({ width: 320, height: 800 });
+  const name = "Our friends' very long autumn trip together";
+  await page.evaluate(async (groupName) => {
+    const modulePath = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ modulePath)) as typeof DbModule;
+    await db.groups.update("trip", { name: groupName });
+  }, name);
+  await page.goto("/groups/trip/settings");
+
+  const card = page.locator(".group-settings-identity");
+  const summary = card.locator(".group-settings-summary");
+  const button = card.getByRole("button", { name: "Edit name & icon" });
+  await expect(summary.getByText(name)).toBeVisible();
+  const summaryBox = (await summary.boundingBox())!;
+  const buttonBox = (await button.boundingBox())!;
+  expect(buttonBox.y).toBeGreaterThanOrEqual(summaryBox.y + summaryBox.height);
+  expect(buttonBox.x).toBeGreaterThanOrEqual(summaryBox.x);
+  expect(buttonBox.x + buttonBox.width).toBeLessThanOrEqual(
+    (await card.boundingBox())!.x + (await card.boundingBox())!.width,
+  );
+});
+
 test("confirms a currency relabel without changing saved amounts", async ({ page }) => {
   const currencyRow = page.locator(".ui-row").filter({ hasText: "One currency per group" });
   await expect(currencyRow.locator(".avatar-square svg.ui-icon")).toBeVisible();

@@ -63,6 +63,13 @@ test("adds and edits categories with a full-width name field above the icon pick
   const selected = icons.getByRole("img", { name: "Selected icon: Hamburger" });
   await expect(selected).toHaveAttribute("title", "Hamburger");
   await name.fill("Coffee runs");
+  await expect(icons.locator(".emoji-picker-featured")).toBeVisible();
+  await icons.getByRole("button", { name: "Browse more" }).click();
+  await expect(icons.locator(".emoji-picker-featured")).toHaveCount(0);
+  await expect(icons.locator(".emoji-picker-gallery")).toBeVisible();
+  await icons.getByRole("button", { name: "Close gallery" }).click();
+  await expect(icons.locator(".emoji-picker-featured")).toBeVisible();
+  await expect(icons.locator(".emoji-picker-gallery")).toHaveCount(0);
   await icons.getByRole("button", { name: "Browse more" }).click();
   await icons.getByRole("button", { name: "Icon Hot beverage" }).last().click();
   await expect(icons.getByRole("img", { name: "Selected icon: Hot beverage" })).toHaveAttribute(

@@ -14,7 +14,7 @@ const Unsettled = () => {
   const transfers = dashboardTransfers(state);
   const { currency, get, give } = dashboardPositions(state);
   return (
-    <div className="page page-narrow">
+    <div className="page page-narrow mobile-sticky-page">
       <header className="mb-5">
         <h1 className="page-title">Unsettled</h1>
         <p className="soft-caption mt-1">

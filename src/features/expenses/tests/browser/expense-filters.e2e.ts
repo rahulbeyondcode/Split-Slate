@@ -123,6 +123,56 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/groups/trip/expenses");
 });
 
+test("stacks mobile search above usable sort and filter controls after scrolling", async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(!isMobile, "Mobile expense toolbar only");
+  await page.setViewportSize({ width: 320, height: 800 });
+  await page.evaluate(async () => {
+    const modulePath = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ modulePath)) as typeof DbModule;
+    const example = await db.expenses.get("dinner");
+    if (!example) throw new Error("Missing sample expense");
+    await db.expenses.bulkPut(
+      Array.from({ length: 20 }, (_, index) => ({
+        ...example,
+        expenseId: `extra-${index}`,
+        expenseName: `Extra ${index}`,
+        createdAt: index + 10,
+        when: example.when + index + 1,
+      })),
+    );
+  });
+  await page.reload();
+
+  const form = page.getByRole("form", { name: "Expense filters" });
+  const search = form.getByRole("searchbox", { name: "Search expenses" });
+  const sort = form.locator("summary").filter({ hasText: "Sort" });
+  const filters = form.locator("summary").filter({ hasText: "Filters" });
+  const searchBox = (await search.boundingBox())!;
+  const sortBox = (await sort.boundingBox())!;
+  const filtersBox = (await filters.boundingBox())!;
+  expect(sortBox.y).toBeGreaterThanOrEqual(searchBox.y + searchBox.height);
+  expect(Math.abs(sortBox.y - filtersBox.y)).toBeLessThan(2);
+  expect(Math.abs(sortBox.width - filtersBox.width)).toBeLessThan(2);
+  expect(searchBox.width).toBeGreaterThan(sortBox.width + filtersBox.width);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+
+  await page.locator("#main-content").evaluate((main) => {
+    main.scrollTop = main.scrollHeight / 2;
+  });
+  await expect(form).toBeInViewport();
+  await sort.click();
+  await expect(page.getByRole("group", { name: "Sort expenses" })).toBeVisible();
+  await filters.click();
+  await expect(page.getByRole("group", { name: "Categories" })).toBeVisible();
+  await search.fill("Airport taxi");
+  await expect(page.getByRole("status")).toHaveText("1 of 23 expenses");
+  await form.getByRole("button", { name: "Clear all filters" }).click();
+  await expect(page.getByRole("status")).toHaveCount(0);
+});
+
 test("summarizes matching expenses without changing full-group balances", async ({ page }) => {
   const insights = page.getByRole("region", { name: "Expense insights" });
   if ((page.viewportSize()?.width ?? 0) < 640) {
@@ -178,8 +228,13 @@ test("balances opened directly return to the group's expenses", async ({ page })
 
 test("filters expenses through every field, validates ranges, and clears all controls", async ({
   page,
+  isMobile,
 }) => {
-  await expect(page.getByRole("status")).toHaveText("3 of 3 expenses");
+  if (isMobile) {
+    await expect(page.getByRole("status")).toHaveCount(0);
+  } else {
+    await expect(page.getByRole("status")).toHaveText("3 of 3 expenses");
+  }
   await page.getByLabel("Search expenses", { exact: true }).fill(" dinner ");
   await page.locator("summary").filter({ hasText: "Filters" }).click();
   const fromDate = page.getByLabel("From date", { exact: true });
@@ -225,12 +280,17 @@ test("filters expenses through every field, validates ranges, and clears all con
   await page.getByRole("button", { name: "Clear all filters", exact: true }).click();
   await expect(page).toHaveURL(/\/groups\/trip\/expenses$/u);
   await expect(page.getByText("0 active filters", { exact: true })).toBeVisible();
-  await expect(page.getByRole("status")).toHaveText("3 of 3 expenses");
+  if (isMobile) {
+    await expect(page.getByRole("status")).toHaveCount(0);
+  } else {
+    await expect(page.getByRole("status")).toHaveText("3 of 3 expenses");
+  }
   await expect(page.getByLabel("Search expenses", { exact: true })).toHaveValue("");
 });
 
 test("preserves the query through expense detail and removes a deleted selected option", async ({
   page,
+  isMobile,
 }) => {
   await page.locator("summary").filter({ hasText: "Filters" }).click();
   await page.getByRole("group", { name: "Tags" }).getByLabel("Holiday").check();
@@ -256,7 +316,11 @@ test("preserves the query through expense detail and removes a deleted selected 
 
   await expect(page.getByText("0 active filters", { exact: true })).toBeVisible();
   await expect(page).toHaveURL(/\/groups\/trip\/expenses$/u);
-  await expect(page.getByRole("status")).toHaveText("3 of 3 expenses");
+  if (isMobile) {
+    await expect(page.getByRole("status")).toHaveCount(0);
+  } else {
+    await expect(page.getByRole("status")).toHaveText("3 of 3 expenses");
+  }
   await page.locator("summary").filter({ hasText: "Filters" }).click();
   await expect(page.getByRole("group", { name: "Tags" }).getByLabel("Holiday")).toHaveCount(0);
 });

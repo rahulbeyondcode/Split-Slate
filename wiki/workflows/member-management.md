@@ -9,7 +9,7 @@ metadata:
 
 Purpose: document member management, persisted membership guards, and remaining recovery limits.
 
-Last updated: 2026-09-30
+Last updated: 2026-10-04
 
 A member is a link from a group to a person in the global directory. See [[global-people-directory]] and [[people-directory]].
 
@@ -25,6 +25,10 @@ name/icon, and confirmed removal. A member with expense references has a greyed-
 Delete button that opens an explanation and links to the expense list prefiltered by that member's
 ID. The filter covers creator, paid, and owed references, so it includes every removal blocker.
 Expense editing and deletion are available through detail.
+On mobile, each member row gives the avatar and one-line name the full first row; long names are
+truncated with a `data-tooltip` revealing the full name on hover or focus/tap. Edit and Delete sit
+in a second row, filling the width available after the avatar offset with compact rounded corners.
+Desktop retains its existing single-row presentation and controls.
 
 `addMember` checks persisted group/person existence and `(groupId, personId)` links, then inserts
 within one read-write transaction spanning groups, people, and members. Concurrent calls cannot

@@ -4,6 +4,7 @@ import { Link, useOutletContext } from "react-router-dom";
 import ExpenseTags from "@/features/group-detail/components/expense-tags";
 
 import { overviewMembers } from "@/features/group-detail/utils/overview-members";
+import { useViewport } from "@/shared/hooks/use-viewport";
 import { calculateBalances, suggestTransfers } from "@/shared/utils/balances";
 import { formatCurrency } from "@/shared/utils/currency";
 
@@ -15,6 +16,7 @@ import Icon from "@/shared/ui/icon";
 import Surface from "@/shared/ui/surface";
 
 const GroupOverview = () => {
+  const { isMobile } = useViewport();
   const { group, groupMembers, groupCategories, groupExpenses, groupTags } =
     useOutletContext<GroupDetailContext>();
   const recent = groupExpenses
@@ -22,6 +24,7 @@ const GroupOverview = () => {
     .sort((a, b) => b.when - a.when)
     .slice(0, 3);
   const featuredMembers = overviewMembers(groupMembers, groupExpenses);
+  const showMemberDetails = !isMobile || featuredMembers.length < groupMembers.length;
   const transfers = suggestTransfers(
     calculateBalances(
       groupExpenses,
@@ -41,13 +44,17 @@ const GroupOverview = () => {
       <div className="responsive-grid">
         <Surface className="surface-pad">
           <div className="mb-4 flex items-center justify-between gap-3">
-            <h2 className="section-title">Members ({groupMembers.length})</h2>
-            <Link
-              to={`/groups/${group.id}/members`}
-              className="text-sm font-bold text-[var(--brand-ink)]"
-            >
-              View all members <Icon icon={ArrowRight} size={16} />
-            </Link>
+            <h2 className="section-title">
+              Members{showMemberDetails ? ` (${groupMembers.length})` : ""}
+            </h2>
+            {showMemberDetails && (
+              <Link
+                to={`/groups/${group.id}/members`}
+                className="text-sm font-bold text-[var(--brand-ink)]"
+              >
+                View all members <Icon icon={ArrowRight} size={16} />
+              </Link>
+            )}
           </div>
           <div className="flex flex-wrap gap-2">
             {featuredMembers.map((member) => (
@@ -96,16 +103,18 @@ const GroupOverview = () => {
                 >
                   <Link
                     to={`/groups/${group.id}/expenses/${expense.expenseId}`}
-                    className="flex min-w-0 items-center gap-3 py-3"
+                    className="expense-entry-link flex min-w-0 items-center gap-3 py-3"
                   >
                     <Avatar icon={category?.icon} square className="!h-10 !w-10 !text-xl" />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-bold">{expense.expenseName}</p>
-                      <p className="soft-caption truncate">
+                    <div className="expense-entry-copy min-w-0 flex-1">
+                      <p className="expense-entry-title truncate font-bold">
+                        {expense.expenseName}
+                      </p>
+                      <p className="expense-entry-meta soft-caption truncate">
                         {category?.name ?? "Category"} · {expense.splitType}
                       </p>
                     </div>
-                    <span className="money shrink-0 font-bold">
+                    <span className="expense-entry-amount money shrink-0 font-bold">
                       {formatCurrency(
                         expense.transactions.paid.reduce((sum, row) => sum + row.amount, 0),
                         group.currency,

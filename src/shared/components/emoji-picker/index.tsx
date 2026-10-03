@@ -85,9 +85,11 @@ const EmojiPicker = ({ name, kind, emojis }: PropsType) => {
           {open ? "Close gallery" : "Browse more"}
         </button>
       </div>
-      <div className="emoji-picker-featured" aria-label="Popular choices">
-        {featured.map(tile)}
-      </div>
+      {!open && (
+        <div className="emoji-picker-featured" aria-label="Popular choices">
+          {featured.map(tile)}
+        </div>
+      )}
       {open && (
         <div className="emoji-picker-gallery">
           <label className="emoji-picker-search">

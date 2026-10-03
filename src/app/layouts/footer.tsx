@@ -16,7 +16,11 @@ const AppFooter = () => {
           key={item.path}
           to={item.path}
           end={item.label !== "Expenses"}
-          className={({ isActive }) => (isActive ? "active" : "")}
+          className={({ isActive }) =>
+            [isActive && "active", item.path === "/groups/new" && "mobile-nav-create"]
+              .filter(Boolean)
+              .join(" ")
+          }
         >
           <span className="nav-icon" aria-hidden="true">
             <Icon icon={item.icon} size={22} />

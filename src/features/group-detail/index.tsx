@@ -4,6 +4,7 @@ import { Link, Navigate, Outlet, useLocation, useParams } from "react-router-dom
 import ExpenseFilterProvider from "@/features/expenses/components/expense-filter-provider";
 
 import { useStore } from "@/shared/configs/store";
+import { useViewport } from "@/shared/hooks/use-viewport";
 import { calculateGroupTotal, calculateMemberNet } from "@/shared/utils/balances";
 import { formatCurrency } from "@/shared/utils/currency";
 
@@ -15,6 +16,7 @@ import EmojiImage from "@/shared/ui/emoji-image";
 import Icon from "@/shared/ui/icon";
 
 const GroupDetail = () => {
+  const { isMobile } = useViewport();
   const { groupId } = useParams();
   const { pathname, search } = useLocation();
   const { groups, members, people, categories, tags, expenses, localUser } = useStore();
@@ -46,11 +48,15 @@ const GroupDetail = () => {
     groupExpenses: expenses.filter((expense) => expense.groupId === group.id),
   };
   const isExpenseForm = pathname.endsWith("/new") || pathname.endsWith("/edit");
-  const isContainedPage = [
-    `/groups/${groupId}/expenses`,
-    `/groups/${groupId}/members`,
-    `/groups/${groupId}/categories`,
-  ].includes(pathname);
+  const isMobileScrollablePage =
+    isMobile && [`/groups/${groupId}/expenses`, `/groups/${groupId}/categories`].includes(pathname);
+  const isContainedPage =
+    !isMobileScrollablePage &&
+    [
+      `/groups/${groupId}/expenses`,
+      `/groups/${groupId}/members`,
+      `/groups/${groupId}/categories`,
+    ].includes(pathname);
   const showGroupNavigation = [
     `/groups/${groupId}`,
     `/groups/${groupId}/expenses`,
@@ -67,6 +73,11 @@ const GroupDetail = () => {
   const person = context.groupMembers.find((item) => item.personId === localUser?.id);
   const net = person ? calculateMemberNet(context.groupExpenses, person.id) : 0;
   const total = calculateGroupTotal(context.groupExpenses);
+  const dashboardLink = isMobile && (
+    <Link to="/dashboard" className="page-back-link mobile-group-back">
+      <Icon icon={ArrowLeft} size={16} /> Back to dashboard
+    </Link>
+  );
 
   return (
     <ExpenseFilterProvider key={group.id} currency={group.currency}>
@@ -98,6 +109,7 @@ const GroupDetail = () => {
         ) : showGroupHeader ? (
           <>
             <header className="group-page-header flex flex-wrap items-center gap-4">
+              {dashboardLink}
               <Avatar icon={group.icon} square className="!h-16 !w-16 !text-3xl" />
               <div className="flex-1 min-w-0">
                 <h1 className="page-title">{group.name}</h1>
@@ -133,6 +145,7 @@ const GroupDetail = () => {
           </>
         ) : (
           <header className="group-page-header">
+            {dashboardLink}
             <h1 className="page-title">
               {pathname.endsWith("/members")
                 ? "Members"

@@ -9,7 +9,7 @@ metadata:
 
 Purpose: describe implemented tag management, expense references, and cascade boundaries.
 
-Last updated: 2026-10-01
+Last updated: 2026-10-04
 
 ## What Tags Are
 
@@ -40,6 +40,10 @@ Editing a tag can change its name, color, or both. Expenses reference the tag by
 ## Group Categories & Tags Screen
 
 The group **Categories & Tags** screen lists every tag record in the group, including tags not currently used by an expense. It supports add, rename, and delete operations.
+On mobile its tag card is 50vh tall within the scrolling page. Tags title, available count, and
+Add tag stay sticky while the card's rows scroll; each row places wide, softly rectangular Edit
+and Delete buttons below the tag name. The page title and group header also stay sticky. Tablet
+and desktop retain their existing card and action layout.
 
 Deleting a tag requires confirmation. `removeTag` performs one read-write IndexedDB transaction
 on tags and expenses:

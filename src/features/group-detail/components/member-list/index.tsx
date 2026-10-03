@@ -5,6 +5,7 @@ import { Link, useOutletContext } from "react-router-dom";
 import PersonEditor from "@/features/people/components/person-editor";
 
 import { useStore } from "@/shared/configs/store";
+import { useViewport } from "@/shared/hooks/use-viewport";
 import type { PersonEditorValues } from "@/features/people/helpers/schema";
 
 import type {
@@ -21,6 +22,7 @@ import Icon from "@/shared/ui/icon";
 type MemberMode = { type: "add" } | { type: "edit"; memberId: string } | null;
 
 const MemberList = () => {
+  const { isMobile } = useViewport();
   const { group, groupMembers, groupExpenses } = useOutletContext<GroupDetailContext>();
   const { localUser, people, addMember, addPerson, updatePerson, removeMember, setLocalUser } =
     useStore();
@@ -209,17 +211,33 @@ const MemberList = () => {
 
       <ul className="member-list-scroll surface px-5">
         {sortedMembers.map((member) => (
-          <li key={member.id} className="ui-row">
-            <span className="flex min-w-0 flex-1 items-center gap-3">
+          <li key={member.id} className="ui-row member-entry">
+            <span className="member-entry-identity flex min-w-0 flex-1 items-center gap-3">
               <Avatar icon={member.person?.icon} name={member.person?.name} />
-              <span className="min-w-0 truncate text-sm font-medium text-gray-900">
-                {member.person?.name ?? "Unknown person"}
-                {member.personId === localUser?.id && (
-                  <span className="ml-2 text-xs text-gray-400">You</span>
-                )}
-              </span>
+              {isMobile ? (
+                <button
+                  type="button"
+                  className="member-entry-tooltip"
+                  data-tooltip={member.person?.name ?? "Unknown person"}
+                  aria-label={`Show full name: ${member.person?.name ?? "Unknown person"}`}
+                >
+                  <span className="block truncate text-sm font-medium text-gray-900">
+                    {member.person?.name ?? "Unknown person"}
+                    {member.personId === localUser?.id && (
+                      <span className="ml-2 text-xs text-gray-400">You</span>
+                    )}
+                  </span>
+                </button>
+              ) : (
+                <span className="min-w-0 truncate text-sm font-medium text-gray-900">
+                  {member.person?.name ?? "Unknown person"}
+                  {member.personId === localUser?.id && (
+                    <span className="ml-2 text-xs text-gray-400">You</span>
+                  )}
+                </span>
+              )}
             </span>
-            <span className="ml-auto flex shrink-0 items-center gap-3">
+            <span className="member-entry-actions ml-auto flex shrink-0 items-center gap-3">
               <button
                 type="button"
                 onClick={() => handleOpenEdit(member.id)}

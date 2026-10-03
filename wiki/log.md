@@ -2,11 +2,71 @@
 
 Reverse-chronological record of all wiki changes.
 
-Last updated: 2026-10-03
+Last updated: 2026-10-04
 
 ---
 
+## 2026-10-04
+- UPDATED decisions/iconography.md — document the shared picker replacing featured suggestions with its open gallery on all screens
+- UPDATED decisions/testing-strategy.md — add shared picker browser coverage to urgent external verification
+- UPDATED wiki/index.md — surface picker display modes and pending verification
+- UPDATED wiki/log.md — record the approved shared picker behavior and verification updates
+- UPDATED workflows/main-screen.md — document mobile full-ledger category names alongside readable expense titles
+- UPDATED wiki/index.md — surface category labels and correct implemented group Settings/deletion status
+- UPDATED wiki/log.md — record the approved mobile category label and status correction
+- UPDATED workflows/main-screen.md — describe the mobile group Settings identity and second-row edit action
+- UPDATED wiki/index.md — surface the responsive Settings identity layout
+- UPDATED wiki/log.md — record the approved mobile Settings card fix
+- UPDATED workflows/main-screen.md and wiki/index.md — clarify the mobile expense-row summary and detail distinction
+- UPDATED wiki/log.md — record the approved expense-row documentation refinement
+- UPDATED workflows/main-screen.md — document readable wrapping mobile ledger and Overview expense titles with amounts below
+- UPDATED wiki/index.md — surface the responsive expense-row layout
+- UPDATED wiki/log.md — record the approved mobile expense-list layout update
+- UPDATED architecture/layout-architecture.md — document category/tag content-only scrolling that prevents rows showing above card headers
+- UPDATED wiki/index.md — reflect the mobile card-header scroll boundary
+- UPDATED wiki/log.md — record the approved category/tag header-gap correction
+- UPDATED architecture/layout-architecture.md — distinguish mobile scrolling category/tag cards from bounded desktop and member routes
+- UPDATED workflows/category-management.md and workflows/tag-management.md — document 50vh mobile cards, sticky controls, and second-row actions
+- UPDATED workflows/main-screen.md — describe the mobile category/tag page scroll contract
+- UPDATED decisions/testing-strategy.md — mark Playwright forbidden in this environment and urgent browser verification pending elsewhere
+- UPDATED wiki/index.md — surface mobile category/tag layout and urgent browser verification restriction
+- UPDATED wiki/log.md — record the approved responsive layout and verification policy updates
+- UPDATED workflows/main-screen.md — document mobile Paid by and Split detail cards stacked without changing desktop columns
+- UPDATED wiki/index.md — surface responsive expense detail in main-screen navigation
+- UPDATED wiki/log.md — record the approved mobile expense-detail layout
+- UPDATED workflows/member-management.md — document mobile one-line member names with data tooltip and full-width second-row actions
+- UPDATED workflows/filtering.md — record mobile filtered-only result count and popover placement below the sticky toolbar
+- UPDATED workflows/main-screen.md — distinguish mobile and desktop expense result-count visibility
+- UPDATED wiki/index.md — surface the mobile member layout and filtered-only count
+- UPDATED wiki/log.md — record the approved responsive member and filter UX updates
+- UPDATED architecture/layout-architecture.md — distinguish mobile full-page expense scrolling and stacked sticky controls from bounded desktop/group routes
+- UPDATED workflows/filtering.md — document mobile full-width search and sticky sort/filter below the title after insights scroll away
+- UPDATED workflows/main-screen.md — correct the mobile Expenses scrolling contract
+- UPDATED wiki/index.md — surface the mobile expense scroll and toolbar behavior in navigation summaries
+- UPDATED wiki/log.md — record the approved mobile expense layout documentation
+- UPDATED workflows/main-screen.md — document conditional mobile member count and View all at the six-member preview limit
+- UPDATED wiki/index.md — surface the conditional member preview in main-screen navigation
+- UPDATED wiki/log.md — record the approved mobile member-preview documentation
+- UPDATED architecture/layout-architecture.md — document sticky mobile Back to dashboard link on non-form group routes
+- UPDATED workflows/main-screen.md — describe group exit on mobile and existing form/desktop return paths
+- UPDATED wiki/index.md — surface the mobile group escape route in navigation summaries
+- UPDATED wiki/log.md — record the approved group-navigation documentation
+- UPDATED architecture/layout-architecture.md — replace floating mobile New group CTA with centered purple dashboard footer action
+- UPDATED workflows/dashboard.md — document mobile Unsettled subtitle and descriptive category-spending destination without desktop changes
+- UPDATED wiki/index.md — reflect the revised mobile navigation and dashboard summaries
+- UPDATED wiki/log.md — record the approved mobile navigation and copy updates
+- UPDATED workflows/dashboard.md — document mobile category subtitle and explicit View all without changing desktop layout or chart links
+- UPDATED wiki/index.md — surface mobile category View all in dashboard navigation summary
+- UPDATED wiki/log.md — record the approved mobile dashboard header documentation
+- UPDATED workflows/dashboard.md — describe category-preview links to Analytics and mobile Back navigation instead of a footer tab
+- UPDATED architecture/layout-architecture.md — reflect the four-item dashboard footer and chart entry point
+- UPDATED wiki/index.md — keep navigation summaries aligned with the mobile Analytics flow
+- UPDATED wiki/log.md — record the approved mobile navigation documentation
+
 ## 2026-10-03
+- UPDATED architecture/layout-architecture.md — document mobile-only persistent headings on Activity, Unsettled, Analytics, and app Settings
+- UPDATED wiki/index.md — surface mobile destination header behavior in layout navigation
+- UPDATED wiki/log.md — record the approved mobile layout documentation
 - CREATED debugging/mobile-pwa-install.md — record the observed Netlify manifest media type and browser-dependent install flow
 - UPDATED wiki/index.md — link the install troubleshooting page and reflect the install dialog
 - UPDATED wiki/log.md — record the approved install troubleshooting documentation

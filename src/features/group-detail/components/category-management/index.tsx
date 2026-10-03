@@ -119,7 +119,7 @@ const CategoryManagement = () => {
 
   return (
     <div className="surface surface-pad flex flex-col gap-3">
-      <div className="flex items-center justify-between gap-4">
+      <div className="management-card-header flex items-center justify-between gap-4">
         <div>
           <h2 className="section-title">Categories</h2>
           <p className="soft-caption">{groupCategories.length} available</p>
@@ -131,93 +131,95 @@ const CategoryManagement = () => {
         )}
       </div>
 
-      {categoryError && (
-        <p role="alert" className="note money-negative">
-          {categoryError}
-        </p>
-      )}
+      <div className="management-card-content">
+        {categoryError && (
+          <p role="alert" className="note money-negative">
+            {categoryError}
+          </p>
+        )}
 
-      {categoryMode && (
-        <FormProvider {...categoryForm}>
-          <form
-            onSubmit={handleSaveCategory}
-            className="flex min-w-0 flex-col gap-5 rounded-2xl border border-[var(--line)] bg-[var(--surface-soft)] p-4 sm:p-5"
-          >
-            <h3 className="section-title">{categoryFormTitle}</h3>
-            <div className="min-w-0">
-              <label className="field-label" htmlFor="group-category-name">
-                Category name
-              </label>
-              <Input
-                id="group-category-name"
-                name="name"
-                placeholder="e.g. Coffee runs"
-                wrapperClass="w-full"
-                autoFocus
-              />
-            </div>
-            <div className="min-w-0">
-              <span className="field-label">Choose an icon</span>
-              <EmojiPicker name="icon" kind="other" emojis={CATEGORY_EMOJIS} />
-            </div>
-            <div className="flex flex-wrap gap-2 justify-end">
-              <button
-                type="button"
-                onClick={handleCancelCategoryForm}
-                disabled={isSubmitting}
-                className="btn btn-secondary"
-              >
-                Cancel
-              </button>
-              <button type="submit" disabled={isSubmitting} className="btn btn-primary">
-                {isSubmitting ? "Saving..." : categorySubmitLabel}
-              </button>
-            </div>
-          </form>
-        </FormProvider>
-      )}
-
-      <ul>
-        {groupCategories.map((category) => {
-          const isBlocked =
-            groupCategories.length <= 1 ||
-            groupExpenses.some((expense) => expense.categoryId === category.id);
-          return (
-            <li key={category.id} className="ui-row flex-wrap">
-              <span className="flex min-w-0 flex-1 basis-40 items-center gap-3 font-bold">
-                <Avatar icon={category.icon} square className="!h-9 !w-9" />
-                <span className="min-w-0 truncate">{category.name}</span>
-                <span className="soft-caption shrink-0">
-                  {groupExpenses.filter((expense) => expense.categoryId === category.id).length}{" "}
-                  expenses
-                </span>
-              </span>
-              <div className="ml-auto flex shrink-0 items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => handleEditCategory(category)}
-                  className="btn btn-secondary !px-3"
-                >
-                  <Icon icon={Pencil} size={17} /> Edit
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDeleteCategory(category)}
-                  aria-describedby={isBlocked ? `blocked-category-${category.id}` : undefined}
-                  className={`btn !px-3 ${isBlocked ? "btn-blocked" : "btn-danger"}`}
-                >
-                  <Icon icon={Trash2} size={17} /> Delete
-                </button>
-                {isBlocked && (
-                  <span id={`blocked-category-${category.id}`} className="sr-only">
-                    Cannot delete this category yet. Select to learn why.
-                  </span>
-                )}
+        {categoryMode && (
+          <FormProvider {...categoryForm}>
+            <form
+              onSubmit={handleSaveCategory}
+              className="flex min-w-0 flex-col gap-5 rounded-2xl border border-[var(--line)] bg-[var(--surface-soft)] p-4 sm:p-5"
+            >
+              <h3 className="section-title">{categoryFormTitle}</h3>
+              <div className="min-w-0">
+                <label className="field-label" htmlFor="group-category-name">
+                  Category name
+                </label>
+                <Input
+                  id="group-category-name"
+                  name="name"
+                  placeholder="e.g. Coffee runs"
+                  wrapperClass="w-full"
+                  autoFocus
+                />
               </div>
-            </li>
-          );
-        })}
-      </ul>
+              <div className="min-w-0">
+                <span className="field-label">Choose an icon</span>
+                <EmojiPicker name="icon" kind="other" emojis={CATEGORY_EMOJIS} />
+              </div>
+              <div className="flex flex-wrap gap-2 justify-end">
+                <button
+                  type="button"
+                  onClick={handleCancelCategoryForm}
+                  disabled={isSubmitting}
+                  className="btn btn-secondary"
+                >
+                  Cancel
+                </button>
+                <button type="submit" disabled={isSubmitting} className="btn btn-primary">
+                  {isSubmitting ? "Saving..." : categorySubmitLabel}
+                </button>
+              </div>
+            </form>
+          </FormProvider>
+        )}
+
+        <ul>
+          {groupCategories.map((category) => {
+            const isBlocked =
+              groupCategories.length <= 1 ||
+              groupExpenses.some((expense) => expense.categoryId === category.id);
+            return (
+              <li key={category.id} className="ui-row management-entry category-entry flex-wrap">
+                <span className="management-entry-identity flex min-w-0 flex-1 basis-40 items-center gap-3 font-bold">
+                  <Avatar icon={category.icon} square className="!h-9 !w-9" />
+                  <span className="min-w-0 truncate">{category.name}</span>
+                  <span className="soft-caption shrink-0">
+                    {groupExpenses.filter((expense) => expense.categoryId === category.id).length}{" "}
+                    expenses
+                  </span>
+                </span>
+                <div className="management-entry-actions ml-auto flex shrink-0 items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => handleEditCategory(category)}
+                    className="btn btn-secondary !px-3"
+                  >
+                    <Icon icon={Pencil} size={17} /> Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteCategory(category)}
+                    aria-describedby={isBlocked ? `blocked-category-${category.id}` : undefined}
+                    className={`btn !px-3 ${isBlocked ? "btn-blocked" : "btn-danger"}`}
+                  >
+                    <Icon icon={Trash2} size={17} /> Delete
+                  </button>
+                  {isBlocked && (
+                    <span id={`blocked-category-${category.id}`} className="sr-only">
+                      Cannot delete this category yet. Select to learn why.
+                    </span>
+                  )}
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
       <dialog
         ref={blockedDialogRef}
         aria-labelledby="blocked-category-title"

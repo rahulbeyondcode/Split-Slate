@@ -9,7 +9,7 @@ metadata:
 
 Purpose: document the implemented responsive shell and distinguish navigation stubs from working routes.
 
-Last updated: 2026-10-02
+Last updated: 2026-10-04
 
 ## Viewport States
 
@@ -23,17 +23,28 @@ sidebar or activity panel.
 
 There is no persistent top bar or app chrome header on mobile. The greeting belongs to dashboard
 page content. The light/dark theme toggle is in Settings. See [[dashboard]] for details.
+The dashboard-level Activity, Unsettled, Analytics, and app Settings pages keep their title and
+subtitle visible while the main pane scrolls, including at the bottom. This is limited to mobile;
+the desktop activity panel and page headers retain their existing scrolling behavior.
 
 **Bottom nav** — always visible at the bottom; context-aware, changes items based on the current route:
 
 | Context | Items |
 |---------|-------|
-| Home | Groups, Activity, Unsettled, Analytics, Settings |
+| Home | Groups, Activity, New group, Unsettled, Settings |
 | Inside a group | Overview, Expenses, Members, Categories & Tags, Settings |
 
-The dashboard-level Activity, Unsettled, Analytics, and Settings destinations have routes, although
-some remain lightweight. All five in-group footer destinations resolve to nested group-detail routes.
-There is no FAB; the New Group action lives inside the dashboard.
+The centered New group footer action replaces the floating dashboard New group CTA on mobile; it
+uses the same purple accent and opens `/groups/new`. The dashboard-level Activity, Unsettled, and
+Settings destinations have footer links. Analytics
+retains its route, opened from the dashboard's Spending by category preview (heading or chart rows),
+with a mobile Back to dashboard link. All five in-group footer destinations resolve to nested group-detail routes.
+The group-context footer is unchanged; it has no New group action. Other route-specific floating
+actions, such as Add expense and Add contact, are unaffected.
+On mobile, non-form group headers include a Back to dashboard link above the group context. It
+stays visible with the sticky header on Overview, Expenses, Members, Categories & Tags, Balances,
+Settings, and expense detail. Expense forms keep their existing Back to expenses control, which
+returns to a screen with the dashboard link. Desktop retains the sidebar All groups link instead.
 
 **No sidebar.** Mobile navigation is handled by the context-aware bottom nav and route content;
 there is no persistent top bar.
@@ -89,12 +100,17 @@ A shared hook reads the window width and updates in real time whenever the viewp
 The post-onboarding shell keeps `#main-content` mounted across route changes. Its `.app-main`
 styles make that element the scroll container for ordinary routes, separate from `window`.
 Group headers remain sticky within that pane on all group routes, including forms and Settings.
-Expenses, Members, and Categories & Tags instead fit the available viewport (excluding the
-mobile footer); their lists or cards scroll independently only when needed. Category and tag
-cards size to content on mobile rather than forcing equal-height, unnecessary scroll areas.
-These three routes also lock document-level overflow so the browser cannot scroll the entire app
-offscreen and expose empty space beneath the sidebar and activity pane.
-Expense sort/filter overlays escape the bounded page so they can scroll without being cut off.
+Their mobile Back to dashboard link therefore stays reachable while scrolling non-form routes.
+On desktop and tablet, Expenses, Members, and Categories & Tags fit the available viewport;
+their lists or cards scroll independently only when needed. On mobile, Expenses instead scrolls
+through the entire main pane to its last row, while the group header, expense title/subtitle, and
+then the search/sort/filter toolbar stick in sequence. The insights banner scrolls away before the
+toolbar sticks. Mobile Categories & Tags also scrolls the main pane: each card is 50vh tall with
+only its content scrolling below a fixed-in-card title/subtitle/Add control, so rows cannot appear
+above or behind the header; the page's own
+Categories & Tags title sticks under the group header. Members remains viewport-bounded. Bounded
+routes lock document-level overflow so the browser cannot scroll the entire app offscreen.
+Expense sort/filter overlays remain portaled and scrollable outside the ledger.
 Without an explicit reset, a new ordinary route inherits the previous page's position. A shared
 `useScrollToTop` hook runs in the pathless root route layout, covering protected pages as well as
 onboarding, import, and restore. It resets both `#main-content` and the window to the top when the
@@ -174,11 +190,12 @@ Route content is shared across viewport states. The navigation chrome differs:
 
 | Route | Bottom nav items |
 |-------|-----------------|
-| Home | Groups, Activity, Unsettled, Analytics, Settings |
+| Home | Groups, Activity, New group, Unsettled, Settings |
 | Inside a group | Overview, Expenses, Members, Categories & Tags, Settings |
 
 All in-group destinations resolve to nested routes. Dashboard footer destinations also have routes,
-though some screens are still lightweight.
+though some screens are still lightweight. Analytics is a dashboard preview destination, not a
+footer tab; see [[dashboard]].
 
 ---
 

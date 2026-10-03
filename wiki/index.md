@@ -5,7 +5,7 @@ This wiki is the sole persistent compiled knowledge layer. The implementation in
 authoritative; `app-featureset-context/spec-sheet.md` is a historical baseline where later source
 and approved decisions have superseded it. Changes: [log.md](log.md)
 
-Last updated: 2026-10-03
+Last updated: 2026-10-04
 
 ---
 
@@ -19,7 +19,7 @@ Last updated: 2026-10-03
 - [Balance Calculation](architecture/balance-calculation.md) — fixed-hundredths member/group totals, all-member balances, and deterministic suggested transfers
 - [State Management](architecture/state-management.md) — hydrated Zustand slices plus persisted mutation boundaries, including all-or-nothing fresh-ID group import
 - [Split Types](architecture/split-types.md) — 5 split types with fixed-hundredths monetary allocations and exact ratios; numeric percentage-total display remains pending
-- [Layout Architecture](architecture/layout-architecture.md) — responsive shell, sticky group headers, document-locked viewport lists/cards, desktop group activity except Settings, and route resets
+- [Layout Architecture](architecture/layout-architecture.md) — responsive shell, mobile expense and category/tag scrolling with fixed card headers, bounded desktop lists/cards, and route resets
 
 ### Decisions
 - [Global People Directory](decisions/global-people-directory.md) — device-local friends list; members link to shared people; supersedes per-group members
@@ -31,11 +31,11 @@ Last updated: 2026-10-03
 - [Expense Edit and Delete](decisions/expense-edit-delete.md) — full editor, confirmed deletion, and immediate reference-only category/tag changes without rebuilding splits
 - [Group Deletion](decisions/group-deletion.md) — implemented permanent group-owned data cascade with confirmation; shared contacts remain
 - [Money Representation and Rounding](decisions/money-representation-and-rounding.md) — implemented fixed hundredths for every currency, exact allocation, and confirmed no-conversion relabeling
-- [Iconography](decisions/iconography.md) — scoped PNG pickers, incremental offline caching and repair, Lucide controls, error illustrations, and onboarding artwork
+- [Iconography](decisions/iconography.md) — shared featured-or-gallery PNG picker, offline caching and repair, Lucide controls, error illustrations, and onboarding artwork
 - [Confirmation Dialogs](decisions/confirmation-dialogs.md) — shared in-app destructive confirmation for groups, contacts, members, categories, and tags
 - [Selection Controls](decisions/selection-controls.md) — native checkboxes/radios with selected and visibly locked states across forms, filters, and transfer
 - [String Input Normalization](decisions/string-input-normalization.md) — required strings reject trimmed blanks; optional expense inputs have explicit blank-value semantics
-- [Testing Strategy](decisions/testing-strategy.md) — Vitest and desktop/mobile Playwright coverage for fixed-hundredths accounting, currency relabeling, filtering, and group transfer
+- [Testing Strategy](decisions/testing-strategy.md) — Vitest and browser coverage boundaries; URGENT pending layout and shared-picker Playwright verification elsewhere
 
 ### Systems
 - [IndexedDB Schema](systems/indexeddb-schema.md) — current tables, fixed-hundredths money, exact ratio metadata, and development schema policy
@@ -47,14 +47,14 @@ Last updated: 2026-10-03
 - [Development Tools](workflows/development-tools.md) — typed realistic presets, randomized onboarding contacts, individual creation buttons, and persistence boundaries
 - [Onboarding](workflows/onboarding.md) — implemented resumable setup plus Link/CSV/ZIP first-launch import with a short identity path
 - [Group Creation](workflows/group-creation.md) — standalone 4-step flow; writes begin only on final submission and then run sequentially
-- [Main Screen](workflows/main-screen.md) — group snapshot, matching-expense insights without member disclosure, Balances Back navigation, expense quick edits, group export/deletion
+- [Main Screen](workflows/main-screen.md) — group snapshot, readable mobile expense rows with category names, responsive Settings card, dashboard return, and expense correction
 - [Paid-By](workflows/paid-by.md) — implemented frequent-payer selection, atomic ranking updates, recent-payer defaults, and multi-payer entry
 - [People Directory](workflows/people-directory.md) — global friends list, per-group links for blocked contact deletion, and group-building picker
-- [Member Management](workflows/member-management.md) — one-click add form or existing-friend selection, edit/confirmed removal, blocked-removal links, and persisted guards
-- [Category Management](workflows/category-management.md) — group category CRUD, in-form creation, and immediate detail-page category changes; deactivation UI pending
-- [Tag Management](workflows/tag-management.md) — group tags, immediate detail-page selection/creation, list previews, and transactional cleanup
-- [Filtering](workflows/filtering.md) — URL-backed eight-field filtering, unclipped scrollable popovers, sort modes, and matching-expense insights
-- [Dashboard](workflows/dashboard.md) — greeting, formatted date, group summaries, Settings import, and category artwork across group activity
+- [Member Management](workflows/member-management.md) — one-click add, mobile two-row member actions with name tooltip, confirmed removal, and persisted guards
+- [Category Management](workflows/category-management.md) — group category CRUD, mobile sticky 50vh card/actions, in-form creation, and immediate detail changes; deactivation pending
+- [Tag Management](workflows/tag-management.md) — group tags, mobile sticky 50vh card/actions, immediate detail selection/creation, and transactional cleanup
+- [Filtering](workflows/filtering.md) — URL-backed filtering, mobile sticky toolbar and filtered-only count, accessible popover placement, sort modes, and expense insights
+- [Dashboard](workflows/dashboard.md) — greeting, group summaries, mobile New group footer action, Unsettled subtitle, and category View all to full spending breakdown
 
 ### Ideas (captured, not committed)
 - [Rewarded Ads](ideas/rewarded-ads.md) — optional ad-watch → credits → Pro unlock mechanic; fully opt-in
@@ -92,7 +92,7 @@ Last updated: 2026-10-03
 | Expense list + filtering           | DONE        |
 | Balances / who-owes-whom view      | DONE        |
 | Receipt attachments                | PENDING     |
-| Group settings + deletion          | PENDING     |
+| Group settings + deletion          | DONE        |
 | Group transfer (Link / CSV / ZIP)  | DONE        |
 | Group duplication                 | PENDING     |
 | Whole-app ZIP backup and restore  | DONE        |

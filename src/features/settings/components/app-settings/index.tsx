@@ -52,7 +52,7 @@ const AppSettings = () => {
     document.documentElement.dataset.theme = next ? "dark" : "light";
   };
   return (
-    <div className="page page-narrow flex flex-col gap-5">
+    <div className="page page-narrow mobile-sticky-page flex flex-col gap-5">
       <header>
         <h1 className="page-title">Settings</h1>
         <p className="soft-caption">App-level · everything stays on this device</p>

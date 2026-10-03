@@ -1,6 +1,6 @@
 # Dashboard View
 
-Last updated: 2026-10-02
+Last updated: 2026-10-04
 
 **Purpose:** Record the current dashboard implementation and the target cross-group summary design.
 
@@ -11,13 +11,22 @@ The dashboard currently renders:
 - A time-aware greeting using the local user's name and icon
 - The current local date in `12-Jan-2026` form; native date-entry controls elsewhere retain their
   browser-managed presentation and stored timestamps are unchanged
-- A New Group link
+- A New Group link in the dashboard content on wider screens; mobile instead has a centered
+  purple New group item in its footer, including when there are no groups. The dashboard no longer
+  shows a floating New group button.
 - An Import Group link in the empty state; app-level Settings also links to the public Link/CSV/ZIP
   intake route after groups exist
 - An empty-state prompt when there are no groups
 - Per-group balance cards and an overall balance summary (or a mixed-currency notice)
 - Unsettled-balance and category-spending previews; the desktop unsettled preview has a labelled
   View all link and arrow to `/unsettled`
+- The dashboard category preview shows up to six categories on mobile and desktop. Its heading
+  and each chart row link to `/analytics`; mobile also shows an explicit View all button and a
+  shortened subtitle beneath the heading. The desktop heading/subtitle layout is unchanged.
+  Analytics shows the full list and total, with the mobile page titled "Spending by category",
+  an all-groups/all-time description, and a Back to dashboard link rather than a mobile footer
+  destination. The desktop Analytics title and description are unchanged. The Unsettled balances
+  preview also has a mobile-only "Across all groups" subtitle below its heading.
 - Links from each group row to that group's Overview route
 
 The desktop right pane shows persisted expense activity from every group in recording order
@@ -110,19 +119,21 @@ A feed of recent actions across all groups. Each activity item is a two-line, tw
 
 ---
 
-## Planned Mobile Content Mapping
+## Mobile Content Mapping
 
-On mobile, the dashboard content is not a single pane — it is distributed across the bottom nav tabs. No content is dropped; it is reorganised:
+On mobile, the dashboard retains the groups and category preview. Other destinations are reached
+through the bottom navigation:
 
 | Desktop dashboard section | Mobile tab |
 |--------------------------|------------|
 | Groups list + overall summary | Groups tab |
 | Activity feed | Activity tab |
+| Create a group | Centered New group footer item |
 | Unsettled balances | Unsettled tab |
-| Category spending chart | Analytics tab |
+| Category spending chart | Groups tab preview → Analytics page via heading or chart row; Back returns to Dashboard |
 | App settings + profile editing | Settings tab |
 
-All footer destinations have routes; some remain lightweight. The Activity route reads persisted
+Analytics retains its route but no longer has a footer item. The Activity route reads persisted
 expense records rather than placeholder entries.
 
 ---

@@ -49,7 +49,7 @@ const Activity = ({ compact = false, groupId }: PropsType) => {
     );
   });
   return (
-    <div className={compact ? "" : "page page-narrow"}>
+    <div className={compact ? "" : "page page-narrow mobile-sticky-page"}>
       <header className={compact ? "activity-panel-header" : "mb-5"}>
         <h1 className={compact ? "section-title" : "page-title"}>Activity</h1>
         {!compact && <p className="soft-caption mt-1">Expenses recorded across your groups</p>}
