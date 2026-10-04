@@ -7,6 +7,13 @@ Last updated: 2026-10-05
 ---
 
 ## 2026-10-05
+- UPDATED architecture/layout-architecture.md — replace remaining expense-only panel claim with saved action events
+- UPDATED roadmap/product-roadmap.md — distinguish implemented action snapshots from earlier unrecoverable changes
+- UPDATED workflows/dashboard.md — reconcile saved events and legacy expense fallbacks with prior chart and activity corrections
+- UPDATED architecture/state-management.md — retain bootstrap recovery and draft behavior while documenting activity-event transaction scopes
+- UPDATED systems/indexeddb-schema.md — retain recovery behavior and document the version 2 upgrade
+- UPDATED wiki/index.md — merge activity, install, and wiki-reconciliation navigation and status
+- UPDATED wiki/log.md — combine both approved histories and record conflict reconciliation
 - UPDATED architecture/domain-models.md — correct tag-chip visibility in expense and Overview rows
 - UPDATED architecture/state-management.md — correct current group-draft subscription and preview routing claims
 - UPDATED workflows/people-directory.md — distinguish stored self Person from visible contacts and note missing mobile entry point
@@ -37,6 +44,19 @@ Last updated: 2026-10-05
 - UPDATED roadmap/product-roadmap.md — prioritize current browser-suite failures and mobile form repair, correct defaults and completed work
 - UPDATED wiki/index.md — reconcile navigation and current implementation summaries with corrected pages
 - UPDATED wiki/log.md — record approved wiki-wide source reconciliation
+- UPDATED debugging/mobile-pwa-install.md — document five-day install reminders, legacy dismissal recovery, and Settings retry
+- UPDATED wiki/index.md — surface the revised install flow in navigation and implementation status
+- UPDATED wiki/log.md — record the approved install-flow documentation update
+- UPDATED decisions/group-deletion.md — distinguish deleted domain data from retained activity snapshots
+- UPDATED wiki/index.md — reflect group-deletion history behavior in navigation
+- UPDATED wiki/log.md — record approved group-deletion documentation correction
+- UPDATED workflows/dashboard.md — distinguish saved action history from legacy expense previews
+- UPDATED architecture/layout-architecture.md — document persistent desktop action feed
+- UPDATED architecture/state-management.md — describe atomic event writes, hydration, and update date
+- UPDATED systems/indexeddb-schema.md — document version 2 activity table and correct bootstrap error handling
+- UPDATED decisions/full-backup.md — include activity snapshots and compatible older backups
+- UPDATED wiki/index.md — link updated activity, schema, and backup descriptions
+- UPDATED wiki/log.md — record approved activity history documentation
 - UPDATED workflows/category-management.md — document mobile-only add/edit modals with desktop/tablet inline forms
 - UPDATED workflows/tag-management.md — document mobile-only management add/edit modals with desktop/tablet inline forms
 - UPDATED workflows/member-management.md — document mobile-only add/edit person modals including existing-friend selection

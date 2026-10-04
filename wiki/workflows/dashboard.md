@@ -31,13 +31,16 @@ The dashboard currently renders:
   subtitle remain unchanged.
 - Links from each group row to that group's Overview route
 
-The desktop right pane shows persisted expense activity from every group in recording order
-(`createdAt` descending), with the recording date and time below the group name. On group
-routes other than Settings, that pane shows only that group's expenses, including expense forms.
-The dedicated Activity route shows the same cross-group feed; tablet renders no separate activity
-section.
-Activity rows display the expense category icon (or its group icon fallback) as a non-profile
-image on both surfaces. Profile-only rendering would replace those keys with the default avatar.
+The desktop right pane shows saved activity events across all groups in recording order (event
+`createdAt` descending). Create/update/delete actions for expenses, tags, categories, groups,
+members, and contacts, plus imported groups, are recorded separately from current entities. Deleted
+items retain their name, icon, amount (for expenses), and group snapshot; their rows are not links.
+Older expenses recorded before the event table, including transferred expenses, still appear as
+derived entries while they exist. Past deletions cannot be reconstructed. On group routes other than
+Settings, the panel filters by group, including expense forms. The dedicated Activity route shows
+the same cross-group feed; tablet renders no separate activity section.
+Expense rows display the category icon (or group fallback) as a non-profile image on both surfaces.
+Compact rows show the recording date and time below the group name.
 Compact desktop rows show the group and date/time on separate lines; longer titles and group names
 wrap for more visible content, with no hover/focus tooltip.
 Rendered dates use `DD-MMM-YYYY` and rendered times use padded 12-hour `hh:mm AM/PM`; expense
@@ -63,10 +66,8 @@ Light/dark mode toggle lives in Settings, not on the dashboard.
 ### Section Status
 
 Overall totals, per-group balance cards, the desktop unsettled preview, category spending at
-widths of 640px and above, and the expense-derived Activity view are implemented as described
-under Current Implementation.
-The sections below preserve intended behavior while distinguishing unfinished presentation and
-history from the working screens; they are not five wholly unimplemented sections.
+widths of 640px and above, and saved action activity are implemented as described under Current
+Implementation. The sections below distinguish remaining presentation work from working screens.
 
 #### 1. Overall Summary — implemented
 
@@ -114,22 +115,20 @@ There is no time filter.
 
 ---
 
-#### 5. Activity — expense-derived feed implemented; full action history pending
+#### 5. Activity — saved action feed with legacy expense fallbacks
 
-A feed of current recorded expenses across all groups, ordered by `createdAt`, appears in the
-desktop panel and the dedicated Activity route. Editing or deleting an expense does not retain an
-independent action snapshot; category, tag, member, contact, and group changes have no activity
-events. A persistent all-action history remains a target. Current expense rows show:
-
-- **Line 1:** Left — who paid for which expense; Right — amount (e.g. "₹2,400")
-- **Line 2:** Group name + recording date and time in the current implementation; relative time
-  (e.g. "Goa Trip — 7hrs ago") remains a target design detail
+The desktop panel and dedicated Activity route show saved, timestamped snapshots for supported
+create/update/delete actions across expenses, groups, categories, tags, members, and contacts, plus
+group imports. Rows show an action label, saved group name and recording date/time, and an amount
+for expense actions. Deleted-entity rows retain their snapshot but are not links. Expenses without
+a saved creation event appear as derived rows only while they still exist; older deleted actions
+cannot be reconstructed. Relative times (e.g. "7hrs ago") remain a target design detail.
 
 **Current placement by breakpoint:** desktop uses a dedicated right-side activity panel;
 mobile has an Activity footer destination. Tablet has neither panel nor stacked section.
 Adding a tablet section remains a target, not implemented behavior.
 
-**Empty state:** Empty feed with a no-records message.
+**Empty state:** The feed shows "No activity yet" when there are no events or legacy expenses.
 
 ---
 
@@ -149,8 +148,8 @@ destinations are reached through the bottom navigation:
 | Category spending chart | Groups tab preview at ≥640px → Analytics page; below 640px no visible dashboard link |
 | App settings + profile editing | Settings tab |
 
-Analytics retains its route but no longer has a footer item. The Activity route reads persisted
-expense records rather than placeholder entries.
+Analytics retains its route but no longer has a footer item. Activity reads persisted action
+snapshots and derives legacy entries for expenses with no saved creation event.
 
 ---
 

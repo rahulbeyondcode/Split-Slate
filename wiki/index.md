@@ -12,14 +12,14 @@ Last updated: 2026-10-05
 ## Navigation
 
 ### Roadmap
-- [Product Direction and Roadmap](roadmap/product-roadmap.md) — urgent mobile expense-form repair, group duplication, PWA release gates, and delivery horizons
+- [Product Direction and Roadmap](roadmap/product-roadmap.md) — urgent mobile expense-form repair, group duplication, PWA release gates, and local activity horizons
 
 ### Architecture
 - [Domain Models](architecture/domain-models.md) — current entity shapes, PNG icon keys, fixed-hundredths money, expense time, and visible tag chips
 - [Balance Calculation](architecture/balance-calculation.md) — fixed-hundredths member/group totals, all-member balances, and deterministic suggested transfers
-- [State Management](architecture/state-management.md) — Zustand slices, bootstrap recovery, create-group draft subscriptions, and atomic fresh-ID group import
+- [State Management](architecture/state-management.md) — Zustand bootstrap recovery, draft subscriptions, activity-inclusive atomic mutations, and fresh-ID group import
 - [Split Types](architecture/split-types.md) — 5 split types with fixed-hundredths monetary allocations and exact ratios; numeric percentage-total display remains pending
-- [Layout Architecture](architecture/layout-architecture.md) — responsive shell, mobile form-footer exception, narrow-mobile Analytics link gap, and unresolved long-management-page scrolling
+- [Layout Architecture](architecture/layout-architecture.md) — responsive shell, mobile scroll caveat and navigation gaps, and desktop activity event panel
 
 ### Decisions
 - [Global People Directory](decisions/global-people-directory.md) — device-local friends list; members link to shared people; supersedes per-group members
@@ -27,9 +27,9 @@ Last updated: 2026-10-05
 - [Solo Group Support](decisions/solo-group-support.md) — single-member groups work; onboarding story names the solo path, while the shared member-step helper remains generic
 - [Onboarding Persistence](decisions/onboarding-persistence.md) — resumable per-step standard setup plus atomic import-specific completion for fresh devices
 - [Import / Export Design](decisions/import-export.md) — selective Link/CSV/ZIP group transfer and atomic import; planned same-device duplication reuses selection without file generation
-- [Whole-App Backup and Restore](decisions/full-backup.md) — versioned ZIP, expected download name and wrong-file navigation, confirmed replace-only recovery; Drive deferred
+- [Whole-App Backup and Restore](decisions/full-backup.md) — versioned ZIP including activity history, confirmed replace-only recovery; Drive deferred
 - [Expense Edit and Delete](decisions/expense-edit-delete.md) — full editor, confirmed deletion, and immediate reference-only category/tag changes without rebuilding splits
-- [Group Deletion](decisions/group-deletion.md) — implemented permanent group-owned data cascade with confirmation; shared contacts remain
+- [Group Deletion](decisions/group-deletion.md) — confirmed domain-data cascade preserves shared contacts and non-navigable activity snapshots
 - [Money Representation and Rounding](decisions/money-representation-and-rounding.md) — implemented fixed hundredths for every currency, exact allocation, and confirmed no-conversion relabeling
 - [Iconography](decisions/iconography.md) — shared featured-or-gallery PNG picker, offline caching and repair, Lucide controls, error illustrations, and onboarding artwork
 - [Confirmation Dialogs](decisions/confirmation-dialogs.md) — shared in-app destructive confirmation for groups, contacts, members, categories, and tags
@@ -38,10 +38,10 @@ Last updated: 2026-10-05
 - [Testing Strategy](decisions/testing-strategy.md) — unit/browser coverage, current browser-suite failures, and outstanding mobile expense-form scroll verification
 
 ### Systems
-- [IndexedDB Schema](systems/indexeddb-schema.md) — current tables, PNG icon keys, fixed-hundredths money, and bootstrap recovery
+- [IndexedDB Schema](systems/indexeddb-schema.md) — version 2 activity snapshots, PNG icon keys, fixed-hundredths money, and bootstrap recovery
 
 ### Debugging
-- [Browser App Installation](debugging/mobile-pwa-install.md) — Netlify manifest response type and browser-dependent desktop/mobile install prompts
+- [Browser App Installation](debugging/mobile-pwa-install.md) — Netlify manifest response type, five-day install reminders, and Settings retry
 
 ### Workflows
 - [Development Tools](workflows/development-tools.md) — typed realistic presets, randomized onboarding contacts, individual creation buttons, and persistence boundaries
@@ -54,7 +54,7 @@ Last updated: 2026-10-05
 - [Category Management](workflows/category-management.md) — group category CRUD, mobile add/edit modals and sticky 50vh card/actions, in-form creation, and immediate detail changes; deactivation pending
 - [Tag Management](workflows/tag-management.md) — group tags, mobile management add/edit modals and expense-form creation, sticky 50vh card/actions, immediate detail selection/creation, and transactional cleanup
 - [Filtering](workflows/filtering.md) — URL-backed filtering, mobile sticky toolbar and filtered-only count, accessible popover placement, sort modes, and expense insights
-- [Dashboard](workflows/dashboard.md) — greeting, group summaries, Activity/Unsettled/Analytics routes, and mixed-currency and narrow-mobile spending-chart limits
+- [Dashboard](workflows/dashboard.md) — group summaries, saved action activity, and mixed-currency and narrow-mobile spending-chart limits
 
 ### Ideas (captured, not committed)
 - [Rewarded Ads](ideas/rewarded-ads.md) — optional ad-watch → credits → Pro unlock mechanic; fully opt-in
@@ -104,11 +104,10 @@ Last updated: 2026-10-05
 The Contacts screen supports contact CRUD, but `/friends` has no in-app mobile entry point. See
 [[people-directory]].
 
-The IndexedDB layer and Zustand store are complete for the current development scope. Schema
-changes intentionally require resetting the local database; versioned migrations are not needed
-while development data is disposable. All group-detail destinations have routes, but several are
-lightweight or partial. Dashboard-level footer destinations have routes, although some remain
-lightweight; see [[layout-architecture]].
+The IndexedDB layer and Zustand store are complete for the current development scope. Dexie
+version 2 adds activity events without clearing existing version 1 data. All group-detail
+destinations have routes, but several are lightweight or partial. Dashboard-level footer
+destinations have routes, although some remain lightweight; see [[layout-architecture]].
 
 Both reviewed defects are fixed for current writes: persisted tag cleanup cannot recreate deleted
 expenses or overwrite newer edits, and saved ratio text preserves accepted shares through
@@ -132,7 +131,7 @@ have desktop/mobile browser journeys, but the current full suite's transfer case
 the export questionnaire opens. Settlement Link/PDF/Excel sharing remains separate and pending.
 See [[import-export]] and [[testing-strategy]].
 
-The production build now has install metadata, a browser-dependent install dialog, an offline app
+The production build now has install metadata, a five-day install reminder with a Settings retry, an offline app
 shell, background verified icon downloads with incremental repair, and a user-controlled update prompt. Desktop/mobile-emulated PWA
 browser checks cover offline launch and cache repair. A real two-deployment update rehearsal,
 physical-device verification, storage pressure behavior, and versioned IndexedDB upgrades remain

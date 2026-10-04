@@ -48,6 +48,7 @@ interface AppStore {
   expenses: Expense[]     // all expenses; each includes when, splitType, splitMeta, attachmentIds
   categories: Category[]
   tags: Tag[]
+  activityEvents: ActivityEvent[] // immutable action snapshots, hydrated from IndexedDB
 
   // App bootstrap
   initialized: boolean
@@ -155,14 +156,19 @@ Two deliberate shape decisions:
 - `init()` hydrates entities and settings from IndexedDB and seeds missing settings rows.
 - If `init()` cannot open or read the database, it sets `initError` instead of completing hydration;
   the route protector shows reload and backup-restore actions. See [[indexeddb-schema]].
-- Tag deletion reads the persisted tag and its group's expenses in one transaction on tags and
-  expenses, then deletes the tag and updates only existing records' `tagIds`. It cannot recreate
+- `init()` also hydrates immutable activity-event snapshots. Writes to user-facing entities and
+  their events share Dexie transactions; events are appended to Zustand only after commit. Expense
+  rows created before the event table are derived at render time while the expense still exists.
+  Removed entities do not erase saved events, including a deleted group's history. See [[dashboard]].
+- Tag deletion reads the persisted tag and its group's expenses in one transaction on tags,
+  expenses, and activity events, then deletes the tag and updates only existing records' `tagIds`.
+  It cannot recreate
   deleted expenses or overwrite newer expense fields from stale hydrated state. After commit,
   Zustand removes the tag and refreshes that group's expense snapshot, retaining other groups'
   expense state. This is an action-specific refresh, not automatic full-store cross-tab sync.
   Failure leaves both persisted records and memory unchanged. See [[tag-management]].
 - Member addition checks persisted group/person links and inserts within one read-write
-  transaction on `members`, `groups`, and `people`. It verifies both referenced records before
+  transaction on `members`, `groups`, `people`, and activity events. It verifies both records before
   insertion and serializes duplicate checks across concurrent calls; Zustand updates after commit.
 - Expense creation and editing validate decimal input and calculated splits, then recheck persisted group,
   member/person, local-user, active-category, and tag references inside a Dexie transaction. The
@@ -174,17 +180,17 @@ Two deliberate shape decisions:
   with the old row replaced. Editing may retain its current inactive category.
 - Expense deletion checks persisted ownership, removes owned attachment rows by `expenseId`, deletes
   the expense, and updates payer ranking in one transaction on groups, members, people, expenses,
-  and attachments. Memory updates only after commit. Later edits cannot resurrect a deleted row.
+  attachments, and activity events. Memory updates only after commit. Later edits cannot resurrect
+  a deleted row.
 - Group import validates the complete portable package and receipt-file agreement before opening a
   read-write transaction across LocalUser, groups, people, members, categories, tags, expenses,
-  attachments, and settings. It generates a new group ID plus new group-owned record IDs, rewrites
+  attachments, settings, and activity events. It generates a new group ID plus new group-owned record IDs, rewrites
   all references, creates destination defaults when categories were omitted, and verifies persisted
   counts before commit. Any failure rolls back the complete import. The caller runs `init()` only
   after commit to rehydrate Zustand; no partially imported state is exposed. See [[import-export]].
-- Other composed operations are sequential rather than atomic. Examples include creating a group
-  and its creator member, mirroring the local user into `people`, deleting a person and cleaning up
-  member/group references, and the standalone group-creation submission. If a later write fails,
-  earlier successful database writes are retained.
+- The group/creator-member write, self-person mirror, and person-deletion cleanup now commit
+  atomically with their activity event. The standalone multi-step group-creation submission still
+  performs separate store actions sequentially; later failures do not undo earlier actions.
 
 The database definition lives in `src/shared/configs/db.ts`.
 

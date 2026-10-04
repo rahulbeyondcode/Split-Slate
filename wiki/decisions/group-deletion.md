@@ -9,7 +9,7 @@ metadata:
 
 Purpose: specify the irreversible group-owned data cascade without deleting shared identity.
 
-Last updated: 2026-09-29
+Last updated: 2026-10-04
 
 ## Decision
 
@@ -21,7 +21,7 @@ Implementation status: available in Group Settings. See [[confirmation-dialogs]]
 
 ## Cascade
 
-One Dexie transaction removes the group and every associated group-owned row from IndexedDB:
+One Dexie transaction removes the group and its associated domain records from IndexedDB:
 
 - All `members` with matching `groupId`
 - All `expenses` with matching `groupId`
@@ -29,6 +29,10 @@ One Dexie transaction removes the group and every associated group-owned row fro
 - All `categories` with matching `groupId`
 - All `tags` with matching `groupId`
 - The `group` record itself
+
+The transaction also saves a group-deletion activity event. Previously saved activity snapshots
+remain available in the cross-group feed even though the group and its owned domain records are
+gone; these snapshots cannot navigate back to the deleted group. See [[dashboard]].
 
 The global `people` directory, local identity, and data belonging to other groups remain. A failed
 write rolls back the entire deletion; Zustand changes only after the transaction commits, so the

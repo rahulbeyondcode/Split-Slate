@@ -9,7 +9,7 @@ metadata:
 
 Purpose: document the implemented responsive shell and distinguish navigation stubs from working routes.
 
-Last updated: 2026-10-04
+Last updated: 2026-10-05
 
 ## Viewport States
 
@@ -67,11 +67,12 @@ there is no persistent top bar.
   right; group Settings and unrelated screens do not show the activity panel
 - No footer
 
-The desktop activity panel shows expenses from all groups on the dashboard, ordered newest-first
-by recording time (`createdAt`) rather than the user-entered expense date (`when`). On a group's
-routes it shows only expenses belonging to that group, in the same order, with compact rows,
-except on group Settings. On the create-group route it is
-replaced by the live group-draft preview; there is no separate persisted activity entity.
+The desktop activity panel shows saved action events from all groups on the dashboard, ordered
+newest-first by recording time (`createdAt`) rather than expense occurrence (`when`). On a group's
+routes it shows only that group's events, in the same order, with compact rows, except on group
+Settings. Deleted-item rows remain visible without a link; older current expenses lacking a saved
+creation event appear as derived entries. On the create-group route it is replaced by the live
+group-draft preview. See [[dashboard]] and [[indexeddb-schema]].
 Its compact activity list is not wrapped in the shared `Surface`: the unlayered `.surface` rules
 take precedence over Tailwind's layered `border-0` and `shadow-none` utilities, leaving an unwanted
 card border/shadow around otherwise unpadded rows. The full Activity page still uses `Surface`.
@@ -191,7 +192,7 @@ Route content is shared across viewport states. The navigation chrome differs:
 
 - **Footer** — mobile only; route-aware, except on Add/Edit Expense forms
 - **Sidebar** — tablet and desktop app routes, except Add/Edit Expense focus-mode forms
-- **Activity panel** — desktop only (1080px+); Dashboard and non-Settings group routes show recorded expenses; create-group shows its live preview
+- **Activity panel** — desktop only (1080px+); Dashboard and non-Settings group routes show saved action events and legacy expense fallbacks; create-group shows its live preview
 
 ### Bottom nav behaviour by route (mobile)
 

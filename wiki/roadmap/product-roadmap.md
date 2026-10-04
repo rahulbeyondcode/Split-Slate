@@ -9,7 +9,7 @@ metadata:
 
 Purpose: provide a current planning compass without turning exploratory ideas into commitments.
 
-Last updated: 2026-10-04
+Last updated: 2026-10-05
 
 ## How to Read This Page
 
@@ -188,9 +188,10 @@ real-time updates, background merge, or automatic conflict resolution is promise
 
 Candidates, ordered roughly by dependency and user value:
 
-- Expand the implemented dashboard summaries, expense-derived Activity view, Unsettled route, and
-  category Analytics page; restore an Analytics entry point on narrow mobile screens and add
-  persistent cross-entity action history. See [[dashboard]].
+- Expand the implemented dashboard summaries, saved-action Activity view, Unsettled route, and
+  category Analytics page; restore an Analytics entry point on narrow mobile screens. Current
+  action snapshots do not reconstruct changes made before the activity table existed. See
+  [[dashboard]].
 - Add group and solo-group analytics by category, time, and date range.
 - Add recurring-expense templates with an explicit choice between confirmation and automatic
   creation.

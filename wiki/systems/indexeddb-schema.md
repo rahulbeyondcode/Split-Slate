@@ -9,28 +9,40 @@ metadata:
 
 Purpose: describe the persisted records, indexes, and implemented write boundaries.
 
-Last updated: 2026-10-04
+Last updated: 2026-10-05
 
 ## Current Implementation Scope
 
 `src/shared/configs/db.ts` currently declares these Dexie stores: `localUser`, `groups`, `people`,
-`members`, `categories`, `tags`, `expenses`, `attachments`, and `settings`.
+`members`, `categories`, `tags`, `expenses`, `attachments`, `settings`, and `activityEvents`.
 
-All schema revisions are currently declared as Dexie database version `1`. This is intentional
-during active development: after a schema change, the local `split-slate` database is cleared and
-the app starts against a fresh schema. Development data is disposable, so there is no general
-legacy database migration or backfill support. The ratio metadata read compatibility described
-below does not migrate records during bootstrap.
+Dexie version 2 adds `activityEvents` to version 1 without clearing existing groups or expenses.
+There is no historical-event backfill: current expenses without a saved creation event are shown
+as derived entries until deleted. Existing version 1 backups restore with an empty event table.
+Ratio metadata read compatibility does not rewrite records on bootstrap.
 
-Versioned Dexie upgrades will become necessary only when the project starts preserving user data
-across released schema changes. Until then, the reset-on-schema-change workflow is the supported
-development lifecycle and the lack of migrations is not an implementation blocker.
+Version 2 is a declared upgrade for the activity table; it does not backfill historical events.
+Other development schema changes have previously used a disposable-data reset. Preserving data
+across future schema revisions will require corresponding upgrades.
 
 App bootstrap catches database-opening and read failures in the initializer and sets `initError`.
 The route protector then displays a recovery screen with reload and backup-restore actions rather
 than waiting indefinitely for `initialized`.
 
 ## Tables
+
+### `activityEvents`
+
+Immutable action snapshots with `id` as UUID primary key and indexes on `groupId`,
+`[kind+subjectId]`, and `createdAt`. Rows store `kind`, `action`, `label`, `icon`,
+`groupId` (nullable for global contacts), `groupName`, `subjectId` (nullable),
+`amount` and `currency` (nullable), and recording `createdAt`. Deleted groups or entities are
+not foreign-key prerequisites: their saved snapshot remains visible on the cross-group feed.
+Successful mutations write events within their entity transaction. Whole-app backups include
+events; selective group transfers do not carry source activity history. See [[dashboard]] and
+[[full-backup]].
+
+---
 
 ### `localUser`
 Single-record store (only one local user per device).
