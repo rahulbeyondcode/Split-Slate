@@ -21,7 +21,7 @@ Tag names are trimmed and case-insensitively unique within a group. Every tag al
 
 ## Creating and Renaming Tags
 
-Tags can be created from the group's **Categories & Tags** screen by entering a name and choosing a color. The reusable color picker offers 10 named presets (stored as hex values) plus synchronized custom native-picker and manual hex-code controls. Valid output is always a six-digit hex code. Expense entry can select existing group tags. Inline tag creation from the full expense form remains pending; detail can create one in a modal and attach it automatically.
+Tags can be created from the group's **Categories & Tags** screen by entering a name and choosing a color. The reusable color picker offers 10 named presets (stored as hex values) plus synchronized custom native-picker and manual hex-code controls. Valid output is always a six-digit hex code. Expense entry can select existing group tags. On mobile, Add new tag opens the same name/color modal as expense detail, persists a new group tag, and selects it in the unfinished form; saving the expense commits the reference. Cancelling the expense after creating a tag leaves the new group tag available. Desktop expense entry has no inline creation action; detail can create one in a modal and attach it automatically.
 
 On expense detail, a dashed Add tags control stays visible even when no tags are assigned. Its
 popover lists every group tag with checkbox selections; each toggle saves the expense reference
@@ -42,8 +42,10 @@ Editing a tag can change its name, color, or both. Expenses reference the tag by
 The group **Categories & Tags** screen lists every tag record in the group, including tags not currently used by an expense. It supports add, rename, and delete operations.
 On mobile its tag card is 50vh tall within the scrolling page. Tags title, available count, and
 Add tag stay sticky while the card's rows scroll; each row places wide, softly rectangular Edit
-and Delete buttons below the tag name. The page title and group header also stay sticky. Tablet
-and desktop retain their existing card and action layout.
+and Delete buttons below the tag name. Add and Edit open a name/color modal on mobile rather than
+expanding the card inline; validation and save errors remain in the modal, and Cancel/Escape dismiss
+it without saving. The page title and group header also stay sticky. Tablet and desktop retain
+their existing inline form, card, and action layout.
 
 Deleting a tag requires confirmation. `removeTag` performs one read-write IndexedDB transaction
 on tags and expenses:

@@ -9,12 +9,14 @@ import ColorPicker from "@/shared/components/color-picker";
 import Input from "@/shared/components/form-elements/input";
 
 import { useStore } from "@/shared/configs/store";
+import { useViewport } from "@/shared/hooks/use-viewport";
 
 import type { GroupDetailContext } from "@/features/group-detail/types/group-detail.types";
 import type { Tag } from "@/shared/types/domain.types";
 
 import ConfirmationDialog from "@/shared/ui/confirmation-dialog";
 import Icon from "@/shared/ui/icon";
+import MobileEditorDialog from "@/shared/ui/mobile-editor-dialog";
 
 const tagFormSchema = z.object({
   name: z.string().trim().min(1, "Tag name is required"),
@@ -30,6 +32,7 @@ type TagMode = "add" | "edit" | null;
 const DEFAULT_TAG_COLOR = "#6366f1";
 
 const TagManagement = () => {
+  const { isMobile } = useViewport();
   const { group, groupTags, groupExpenses } = useOutletContext<GroupDetailContext>();
   const { addTag, updateTag, removeTag } = useStore();
   const [tagMode, setTagMode] = useState<TagMode>(null);
@@ -104,6 +107,46 @@ const TagManagement = () => {
   const confirmTagExpenseCount = groupExpenses.filter((expense) =>
     expense.tagIds.includes(confirmTagId ?? ""),
   ).length;
+  const editor = tagMode && (
+    <FormProvider {...tagForm}>
+      <form
+        onSubmit={handleSaveTag}
+        className={isMobile ? "flex min-w-0 flex-col gap-5" : "note flex flex-col gap-2"}
+      >
+        {isMobile ? (
+          <h3 className="section-title">{tagFormTitle}</h3>
+        ) : (
+          <p className="text-sm font-medium text-gray-900">{tagFormTitle}</p>
+        )}
+        {isMobile ? (
+          <div className="min-w-0">
+            <label className="field-label" htmlFor="group-tag-name">
+              Tag name
+            </label>
+            <Input id="group-tag-name" name="name" placeholder="Tag name" autoFocus />
+          </div>
+        ) : (
+          <Input name="name" placeholder="Tag name" autoFocus />
+        )}
+        <ColorPicker name="color" label="Tag color" />
+        <div className="flex gap-2 justify-end">
+          <button
+            type="button"
+            onClick={handleCancelTagForm}
+            disabled={isSubmitting}
+            className={
+              isMobile ? "btn btn-secondary" : "px-4 py-2 text-sm text-gray-500 disabled:opacity-50"
+            }
+          >
+            Cancel
+          </button>
+          <button type="submit" disabled={isSubmitting} className="btn btn-primary">
+            {isSubmitting ? "Saving..." : tagSubmitLabel}
+          </button>
+        </div>
+      </form>
+    </FormProvider>
+  );
 
   return (
     <div className="surface surface-pad flex flex-col gap-3">
@@ -120,7 +163,7 @@ const TagManagement = () => {
       </div>
 
       <div className="management-card-content">
-        {tagError && (
+        {tagError && !isMobile && (
           <p role="alert" className="note money-negative">
             {tagError}
           </p>
@@ -134,28 +177,23 @@ const TagManagement = () => {
           onConfirm={handleConfirmDelete}
         />
 
-        {tagMode && (
-          <FormProvider {...tagForm}>
-            <form onSubmit={handleSaveTag} className="note flex flex-col gap-2">
-              <p className="text-sm font-medium text-gray-900">{tagFormTitle}</p>
-              <Input name="name" placeholder="Tag name" autoFocus />
-              <ColorPicker name="color" label="Tag color" />
-              <div className="flex gap-2 justify-end">
-                <button
-                  type="button"
-                  onClick={handleCancelTagForm}
-                  disabled={isSubmitting}
-                  className="px-4 py-2 text-sm text-gray-500 disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-                <button type="submit" disabled={isSubmitting} className="btn btn-primary">
-                  {isSubmitting ? "Saving..." : tagSubmitLabel}
-                </button>
-              </div>
-            </form>
-          </FormProvider>
-        )}
+        {tagMode &&
+          (isMobile ? (
+            <MobileEditorDialog
+              title={tagFormTitle}
+              onCancel={handleCancelTagForm}
+              busy={isSubmitting}
+            >
+              {tagError && (
+                <p role="alert" className="note money-negative mb-4">
+                  {tagError}
+                </p>
+              )}
+              {editor}
+            </MobileEditorDialog>
+          ) : (
+            editor
+          ))}
 
         {groupTags.length > 0 ? (
           <ul>

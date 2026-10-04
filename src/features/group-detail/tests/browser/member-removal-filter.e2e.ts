@@ -118,8 +118,9 @@ test("keeps long mobile member names accessible above their edit and delete acti
     .toBe("1");
 
   await row.getByRole("button", { name: "Edit" }).click();
-  await expect(page.getByRole("heading", { name: "Edit person" })).toBeVisible();
-  await page.getByRole("button", { name: "Cancel" }).click();
+  const editor = page.getByRole("dialog", { name: "Edit person" });
+  await expect(editor.getByRole("heading", { name: "Edit person" })).toBeVisible();
+  await editor.getByRole("button", { name: "Cancel" }).click();
   await row.getByRole("button", { name: `Delete ${name}` }).click();
   await expect(page.getByRole("dialog", { name: `Remove ${name}?` })).toBeVisible();
 });
@@ -148,13 +149,60 @@ test("explains blocked removal and links to every expense referencing the member
   await expect(page.getByRole("status")).toHaveText("3 of 4 expenses");
 });
 
-test("opens the new-person form on the first Add member click", async ({ page }) => {
+test("opens the new-person form on the first Add member click", async ({ page, isMobile }) => {
+  await page.evaluate(async () => {
+    const path = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;
+    await db.people.put({ id: "new-friend", name: "Dana", icon: "🐨" });
+  });
+  await page.reload();
   await page.getByRole("button", { name: "Add member" }).click();
-  await expect(page.getByRole("heading", { name: "Add a person" })).toBeVisible();
-  await expect(page.getByRole("textbox", { name: "Name" })).toBeVisible();
-  await page.getByRole("button", { name: "Cancel" }).click();
+  const editor = isMobile
+    ? page.getByRole("dialog", { name: "Add a person" })
+    : page.locator(".member-editor");
+  await expect(editor.getByRole("heading", { name: "Add a person" })).toBeVisible();
+  await expect(editor.getByRole("textbox", { name: "Name" })).toBeVisible();
+  await expect(editor.getByRole("button", { name: /Dana/u })).toBeVisible();
+  await editor.getByRole("button", { name: "Cancel" }).click();
   await expect(page.getByRole("heading", { name: "Add a person" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Add member" })).toBeVisible();
+});
+
+test("edits a person in a mobile dialog and inline at tablet width", async ({ page, isMobile }) => {
+  const row = page.locator(".member-list-scroll li").filter({ hasText: "Cal" });
+  await row.getByRole("button", { name: "Edit" }).click();
+  const editor = isMobile
+    ? page.getByRole("dialog", { name: "Edit person" })
+    : page.locator(".member-editor");
+  await expect(editor.getByRole("textbox", { name: "Name" })).toHaveValue("Cal");
+  await editor.getByRole("button", { name: "Cancel" }).click();
+
+  await page.setViewportSize({ width: 820, height: 900 });
+  await page.getByRole("button", { name: "Add member" }).click();
+  await expect(
+    page.locator(".member-editor").getByRole("heading", { name: "Add a person" }),
+  ).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Add a person" })).toHaveCount(0);
+});
+
+test("creates and edits a group member from mobile dialogs", async ({ page, isMobile }) => {
+  test.skip(!isMobile, "Mobile-only member dialogs");
+  await page.getByRole("button", { name: "Add member" }).click();
+  const addDialog = page.getByRole("dialog", { name: "Add a person" });
+  await addDialog.getByRole("textbox", { name: "Name" }).fill("Dee");
+  await addDialog.getByRole("button", { name: "Add", exact: true }).click();
+  await expect(addDialog).toHaveCount(0);
+
+  const row = page.locator(".member-list-scroll li").filter({ hasText: "Dee" });
+  await expect(row).toBeVisible();
+  await row.getByRole("button", { name: "Edit" }).click();
+  const editDialog = page.getByRole("dialog", { name: "Edit person" });
+  await editDialog.getByRole("textbox", { name: "Name" }).fill("Dee Updated");
+  await editDialog.getByRole("button", { name: "Save" }).click();
+  await expect(editDialog).toHaveCount(0);
+  await expect(
+    page.locator(".member-list-scroll li").filter({ hasText: "Dee Updated" }),
+  ).toBeVisible();
 });
 
 test("confirms eligible member removal without deleting the contact", async ({ page }) => {

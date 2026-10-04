@@ -43,6 +43,14 @@ const SplitEditor = ({ members, currency }: PropsType) => {
   };
   const handleSplitChange = (event: ChangeEvent<HTMLSelectElement>) =>
     changeSplit(event.target.value);
+  const allSelected = participants.every((row) => row.selected);
+  const handleToggleAll = () => {
+    setValue(
+      "participants",
+      getValues("participants").map((row) => ({ ...row, selected: !allSelected })),
+      { shouldDirty: true, shouldValidate: true },
+    );
+  };
   const inputLabel =
     splitType === "shares"
       ? "Shares"
@@ -55,6 +63,13 @@ const SplitEditor = ({ members, currency }: PropsType) => {
   return (
     <fieldset className="flex flex-col gap-3">
       <legend className="field-label">Split between</legend>
+      <button
+        type="button"
+        onClick={handleToggleAll}
+        className="btn btn-secondary self-start md:hidden"
+      >
+        {allSelected ? "Unselect all" : "Select all"}
+      </button>
       <div className="segmented flex flex-wrap !rounded-2xl" role="group" aria-label="Split method">
         {(
           [
@@ -105,7 +120,7 @@ const SplitEditor = ({ members, currency }: PropsType) => {
       {members.map((member, index) => {
         const share = preview.find((row) => row.memberId === member.id);
         return (
-          <div key={member.id} className="ui-row">
+          <div key={member.id} className="ui-row expense-split-row">
             <label className="flex cursor-pointer items-center gap-2 text-sm">
               <input
                 type="checkbox"

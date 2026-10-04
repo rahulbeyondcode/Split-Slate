@@ -7,6 +7,24 @@ Last updated: 2026-10-04
 ---
 
 ## 2026-10-04
+- UPDATED workflows/category-management.md — document mobile-only add/edit modals with desktop/tablet inline forms
+- UPDATED workflows/tag-management.md — document mobile-only management add/edit modals with desktop/tablet inline forms
+- UPDATED workflows/member-management.md — document mobile-only add/edit person modals including existing-friend selection
+- UPDATED wiki/index.md — surface mobile-only management modal behavior
+- UPDATED wiki/log.md — record the approved mobile management modal change
+- UPDATED workflows/main-screen.md — mark the unresolved mobile expense scroll/action issue urgent after rolling back failed scroll changes
+- UPDATED wiki/index.md — flag mobile expense-form scroll/actions as urgent and unresolved
+- UPDATED wiki/log.md — record the approved scroll-only rollback and urgent follow-up
+- UPDATED workflows/main-screen.md — correct mobile form scroll contract after the nested-fieldset clipping regression; browser verification remains pending
+- UPDATED wiki/index.md — remove the unverified claim that mobile expense scrolling has no blank tail
+- UPDATED wiki/log.md — record the approved scroll correction and documentation update
+- UPDATED workflows/main-screen.md — clarify mobile expense-form scroll ending, bulk split selection, and inline tag creation
+- UPDATED workflows/tag-management.md — document mobile expense-form tag creation and the persistence boundary
+- UPDATED wiki/index.md — surface mobile form scroll, bulk split, and tag creation behavior
+- UPDATED wiki/log.md — record the approved mobile expense-form follow-up
+- UPDATED workflows/main-screen.md — document mobile fixed expense actions, hour focus, and full-row split selection
+- UPDATED wiki/index.md — surface mobile expense form behavior in the navigation summary
+- UPDATED wiki/log.md — record the approved mobile expense form update
 - UPDATED decisions/iconography.md — document the shared picker replacing featured suggestions with its open gallery on all screens
 - UPDATED decisions/testing-strategy.md — add shared picker browser coverage to urgent external verification
 - UPDATED wiki/index.md — surface picker display modes and pending verification

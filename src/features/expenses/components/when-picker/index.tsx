@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useController, useFormContext } from "react-hook-form";
 
 import type { ExpenseTimeParts } from "@/features/expenses/utils/expense-time";
 import { composeExpenseTime, parseExpenseTime } from "@/features/expenses/utils/expense-time";
+import { useViewport } from "@/shared/hooks/use-viewport";
 
 import type { ExpenseFormValues } from "@/features/expenses/types/expenses.types";
 
@@ -11,8 +12,10 @@ interface PropsType {
 }
 
 const WhenPicker = ({ defaultDate }: PropsType) => {
+  const { isMobile } = useViewport();
   const { control } = useFormContext<ExpenseFormValues>();
   const { field, fieldState } = useController({ name: "when", control });
+  const minuteRef = useRef<HTMLInputElement>(null);
   const [parts, setParts] = useState(() => {
     const initial = parseExpenseTime(field.value);
     return { ...initial, date: field.value ? initial.date : defaultDate };
@@ -24,7 +27,10 @@ const WhenPicker = ({ defaultDate }: PropsType) => {
     field.onChange(composeExpenseTime(next));
   };
   const handleHourChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    updateParts({ hour: event.target.value });
+    const hour = event.target.value;
+    updateParts({ hour });
+    if (isMobile && (/^[2-9]$/.test(hour) || /^(0[1-9]|1[0-2])$/.test(hour)))
+      minuteRef.current?.focus();
   };
   const handleMinuteChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     updateParts({ minute: event.target.value });
@@ -32,9 +38,10 @@ const WhenPicker = ({ defaultDate }: PropsType) => {
   const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     updateParts({ date: event.target.value });
   };
-  const handleHourBlur = () => {
-    if (/^\d{1,2}$/.test(parts.hour) && Number(parts.hour) >= 1 && Number(parts.hour) <= 12)
-      updateParts({ hour: parts.hour.padStart(2, "0") });
+  const handleHourBlur = (event: React.FocusEvent<HTMLInputElement>) => {
+    const hour = event.currentTarget.value;
+    if (/^\d{1,2}$/.test(hour) && Number(hour) >= 1 && Number(hour) <= 12)
+      updateParts({ hour: hour.padStart(2, "0") });
     field.onBlur();
   };
   const handleMinuteBlur = () => {
@@ -99,6 +106,7 @@ const WhenPicker = ({ defaultDate }: PropsType) => {
               :
             </span>
             <input
+              ref={minuteRef}
               type="text"
               inputMode="numeric"
               maxLength={2}

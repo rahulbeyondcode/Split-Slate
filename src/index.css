@@ -2659,6 +2659,35 @@ body:has(.group-page-contained),
   .form-toolbar {
     padding: 14px 18px;
   }
+  .expense-split-row {
+    position: relative;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--surface);
+    cursor: pointer;
+  }
+  .expense-split-row:last-child {
+    border-bottom: 1px solid var(--line);
+  }
+  .expense-split-row:has(input[type="checkbox"]:checked) {
+    border-color: var(--brand);
+    background: var(--brand-soft);
+  }
+  .expense-split-row:has(input[type="checkbox"]:focus-visible) {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
+  .expense-split-row > label::before {
+    position: absolute;
+    inset: 0;
+    content: "";
+  }
+  .expense-split-row > label > input,
+  .expense-split-row > div {
+    position: relative;
+    z-index: 1;
+  }
 }
 @keyframes blob-drift-one {
   0%,

@@ -9,7 +9,7 @@ metadata:
 
 Purpose: describe implemented group navigation, expense workflows, balances, and group transfer.
 
-Last updated: 2026-10-02
+Last updated: 2026-10-04
 
 ## Current Implementation
 
@@ -138,6 +138,15 @@ full-group total, and a separate link opens full-group Balances. Invalid filters
 Unavailable selected option IDs are pruned when the list remounts, and desktop/mobile browser
 journeys cover the controls; see [[filtering]].
 
+### URGENT: Mobile Expense Form Scrolling — Fix Required
+
+The mobile Add/Edit Expense page still has an unresolved scroll and action-button positioning issue.
+Save/Cancel originally stuck in the middle of the form; attempts to fix their position introduced
+excess blank scrolling and then clipped form content. Those scroll-specific changes were rolled back.
+Do not treat the form's bottom action bar or scroll-to-last-row behavior as fixed. Investigate the
+actual scroll/layout boundary and verify a mobile-only repair in a permitted browser environment
+before marking this resolved. Desktop styling must remain unchanged.
+
 ### Expense Recording
 
 - **Add Expense** button — always visible and prominent
@@ -151,12 +160,18 @@ journeys cover the controls; see [[filtering]].
 - **Use current time** fills the hour, minute, and AM/PM from the device clock when clicked without
   changing the selected expense date. Manual entry remains available and time remains required;
   omitting it does not silently assign the save time, which could misdate a past expense.
+- Mobile hour entry advances to minutes after a valid two-digit 12-hour value or a single digit
+  from 2 to 9; an initial 0 or 1 waits for a second digit. Mobile split-participant rows toggle
+  when tapped anywhere outside an editable value field and show a brand-colored selected background
+  and border; Select all / Unselect all controls the entire participant list. The mobile form can
+  also create and select a new tag in a modal without clearing the unfinished expense. Desktop form
+  styling and hour focus remain unchanged.
 - One or multiple payers, all five split types, and existing optional group tags are supported.
 - React Hook Form and Zod validate input; the store revalidates current persisted references and
   saves the expense plus frequent-payer ranking atomically in IndexedDB.
-- A missing local membership or active category blocks entry. Receipts and tag creation inside the
-  full form remain pending; detail supports tag creation. See [[split-types]], [[paid-by]], and
-  [[money-representation-and-rounding]].
+- A missing local membership or active category blocks entry. Receipts remain pending. Desktop form
+  tag creation is not exposed; expense detail and the mobile form support it. See [[split-types]],
+  [[tag-management]], [[paid-by]], and [[money-representation-and-rounding]].
 
 ### Expense Correction
 

@@ -8,6 +8,7 @@ import { Link, useLocation, useNavigate, useOutletContext, useParams } from "rea
 import CategoryCreator from "@/features/expenses/components/category-creator";
 import PayerSelector from "@/features/expenses/components/payer-selector";
 import SplitEditor from "@/features/expenses/components/split-editor";
+import TagCreator from "@/features/expenses/components/tag-creator";
 import WhenPicker from "@/features/expenses/components/when-picker";
 import Input from "@/shared/components/form-elements/input";
 
@@ -29,11 +30,12 @@ import Icon from "@/shared/ui/icon";
 const ExpenseForm = () => {
   const { group, groupMembers, groupCategories, groupTags, groupExpenses } =
     useOutletContext<GroupDetailContext>();
-  const { localUser, addCategory, addExpense, updateExpense } = useStore();
+  const { localUser, addCategory, addTag, addExpense, updateExpense } = useStore();
   const { expenseId } = useParams();
   const expense = groupExpenses.find((item) => item.expenseId === expenseId);
   const [openedAt] = useState(Date.now);
   const [isCreatingCategory, setIsCreatingCategory] = useState(false);
+  const [isCreatingTag, setIsCreatingTag] = useState(false);
   const navigate = useNavigate();
   const { search } = useLocation();
   const saving = useRef(false);
@@ -78,6 +80,14 @@ const ExpenseForm = () => {
     const category = await addCategory(group.id, name, icon);
     methods.setValue("categoryId", category.id, { shouldDirty: true, shouldValidate: true });
     setIsCreatingCategory(false);
+  };
+  const handleAddTag = async (name: string, color: string) => {
+    const tag = await addTag(group.id, name, color);
+    methods.setValue("tagIds", [...methods.getValues("tagIds"), tag.id], {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    setIsCreatingTag(false);
   };
   const handleSave = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -207,6 +217,13 @@ const ExpenseForm = () => {
                 ) : (
                   <p className="soft-caption">No tags in this group yet.</p>
                 )}
+                <button
+                  type="button"
+                  onClick={() => setIsCreatingTag(true)}
+                  className="btn btn-secondary self-start md:hidden"
+                >
+                  <Icon icon={Plus} size={17} /> Add new tag
+                </button>
               </fieldset>
               <WhenPicker defaultDate={localDateTime(openedAt).slice(0, 10)} />
             </div>
@@ -253,6 +270,13 @@ const ExpenseForm = () => {
           existingNames={groupCategories.map((category) => category.name)}
           onAdd={handleAddCategory}
           onCancel={() => setIsCreatingCategory(false)}
+        />
+      )}
+      {isCreatingTag && (
+        <TagCreator
+          existingNames={groupTags.map((tag) => tag.name)}
+          onAdd={handleAddTag}
+          onCancel={() => setIsCreatingTag(false)}
         />
       )}
     </FormProvider>

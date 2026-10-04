@@ -9,6 +9,7 @@ import EmojiPicker from "@/shared/components/emoji-picker";
 import Input from "@/shared/components/form-elements/input";
 
 import { useStore } from "@/shared/configs/store";
+import { useViewport } from "@/shared/hooks/use-viewport";
 import { createRequiredStringSchema } from "@/shared/utils/string-validation";
 
 import { CATEGORY_EMOJIS } from "@/shared/constants/emojis";
@@ -18,6 +19,7 @@ import type { Category } from "@/shared/types/domain.types";
 import Avatar from "@/shared/ui/avatar";
 import ConfirmationDialog from "@/shared/ui/confirmation-dialog";
 import Icon from "@/shared/ui/icon";
+import MobileEditorDialog from "@/shared/ui/mobile-editor-dialog";
 
 const categoryFormSchema = z.object({
   name: createRequiredStringSchema("Category name is required"),
@@ -28,6 +30,7 @@ type CategoryFormValues = z.infer<typeof categoryFormSchema>;
 type CategoryMode = "add" | "edit" | null;
 
 const CategoryManagement = () => {
+  const { isMobile } = useViewport();
   const { group, groupCategories, groupExpenses } = useOutletContext<GroupDetailContext>();
   const { addCategory, updateCategory, removeCategory } = useStore();
   const [categoryMode, setCategoryMode] = useState<CategoryMode>(null);
@@ -116,6 +119,49 @@ const CategoryManagement = () => {
     (expense) => expense.categoryId === blockedCategoryId,
   ).length;
   const confirmCategory = groupCategories.find((category) => category.id === confirmCategoryId);
+  const editor = categoryMode && (
+    <FormProvider {...categoryForm}>
+      <form
+        onSubmit={handleSaveCategory}
+        className={
+          isMobile
+            ? "flex min-w-0 flex-col gap-5"
+            : "flex min-w-0 flex-col gap-5 rounded-2xl border border-[var(--line)] bg-[var(--surface-soft)] p-4 sm:p-5"
+        }
+      >
+        <h3 className="section-title">{categoryFormTitle}</h3>
+        <div className="min-w-0">
+          <label className="field-label" htmlFor="group-category-name">
+            Category name
+          </label>
+          <Input
+            id="group-category-name"
+            name="name"
+            placeholder="e.g. Coffee runs"
+            wrapperClass="w-full"
+            autoFocus
+          />
+        </div>
+        <div className="min-w-0">
+          <span className="field-label">Choose an icon</span>
+          <EmojiPicker name="icon" kind="other" emojis={CATEGORY_EMOJIS} />
+        </div>
+        <div className="flex flex-wrap gap-2 justify-end">
+          <button
+            type="button"
+            onClick={handleCancelCategoryForm}
+            disabled={isSubmitting}
+            className="btn btn-secondary"
+          >
+            Cancel
+          </button>
+          <button type="submit" disabled={isSubmitting} className="btn btn-primary">
+            {isSubmitting ? "Saving..." : categorySubmitLabel}
+          </button>
+        </div>
+      </form>
+    </FormProvider>
+  );
 
   return (
     <div className="surface surface-pad flex flex-col gap-3">
@@ -132,51 +178,29 @@ const CategoryManagement = () => {
       </div>
 
       <div className="management-card-content">
-        {categoryError && (
+        {categoryError && !isMobile && (
           <p role="alert" className="note money-negative">
             {categoryError}
           </p>
         )}
 
-        {categoryMode && (
-          <FormProvider {...categoryForm}>
-            <form
-              onSubmit={handleSaveCategory}
-              className="flex min-w-0 flex-col gap-5 rounded-2xl border border-[var(--line)] bg-[var(--surface-soft)] p-4 sm:p-5"
+        {categoryMode &&
+          (isMobile ? (
+            <MobileEditorDialog
+              title={categoryFormTitle}
+              onCancel={handleCancelCategoryForm}
+              busy={isSubmitting}
             >
-              <h3 className="section-title">{categoryFormTitle}</h3>
-              <div className="min-w-0">
-                <label className="field-label" htmlFor="group-category-name">
-                  Category name
-                </label>
-                <Input
-                  id="group-category-name"
-                  name="name"
-                  placeholder="e.g. Coffee runs"
-                  wrapperClass="w-full"
-                  autoFocus
-                />
-              </div>
-              <div className="min-w-0">
-                <span className="field-label">Choose an icon</span>
-                <EmojiPicker name="icon" kind="other" emojis={CATEGORY_EMOJIS} />
-              </div>
-              <div className="flex flex-wrap gap-2 justify-end">
-                <button
-                  type="button"
-                  onClick={handleCancelCategoryForm}
-                  disabled={isSubmitting}
-                  className="btn btn-secondary"
-                >
-                  Cancel
-                </button>
-                <button type="submit" disabled={isSubmitting} className="btn btn-primary">
-                  {isSubmitting ? "Saving..." : categorySubmitLabel}
-                </button>
-              </div>
-            </form>
-          </FormProvider>
-        )}
+              {categoryError && (
+                <p role="alert" className="note money-negative mb-4">
+                  {categoryError}
+                </p>
+              )}
+              {editor}
+            </MobileEditorDialog>
+          ) : (
+            editor
+          ))}
 
         <ul>
           {groupCategories.map((category) => {

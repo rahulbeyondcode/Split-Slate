@@ -18,6 +18,7 @@ import Avatar from "@/shared/ui/avatar";
 import ConfirmationDialog from "@/shared/ui/confirmation-dialog";
 import EmojiImage from "@/shared/ui/emoji-image";
 import Icon from "@/shared/ui/icon";
+import MobileEditorDialog from "@/shared/ui/mobile-editor-dialog";
 
 type MemberMode = { type: "add" } | { type: "edit"; memberId: string } | null;
 
@@ -140,6 +141,56 @@ const MemberList = () => {
     if (mode?.type === "edit" && mode.memberId === confirmMemberId) closeEditor();
     setConfirmMemberId(null);
   };
+  const addEditor = mode?.type === "add" && (
+    <fieldset
+      disabled={isAddingMember}
+      aria-busy={isAddingMember}
+      className={
+        isMobile
+          ? "flex min-w-0 flex-col gap-3 disabled:opacity-60"
+          : "member-editor flex min-w-0 flex-col gap-3 disabled:opacity-60"
+      }
+    >
+      {availablePeople.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
+            Add from friends
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {availablePeople.map((person) => (
+              <button
+                key={person.id}
+                type="button"
+                onClick={() => handleAddExistingPerson(person)}
+                className="chip"
+              >
+                <EmojiImage icon={person.icon} kind="profile" />
+                <span>{person.name}</span>
+                <Icon icon={Plus} size={16} className="text-[var(--brand-ink)]" />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <PersonEditor
+        existingNames={existingNames()}
+        onSave={handleCreatePerson}
+        onCancel={closeEditor}
+        submitLabel="Add"
+      />
+    </fieldset>
+  );
+  const editEditor = editingMember?.person && (
+    <div className={isMobile ? "" : "member-editor py-2"}>
+      <PersonEditor
+        existingNames={existingNames(editingMember.personId)}
+        initial={{ name: editingMember.person.name, icon: editingMember.person.icon }}
+        onSave={handleEditMember(editingMember)}
+        onCancel={closeEditor}
+      />
+    </div>
+  );
 
   return (
     <section className="member-list flex flex-col gap-3">
@@ -155,59 +206,39 @@ const MemberList = () => {
         )}
       </div>
 
-      {memberError && (
+      {memberError && (!isMobile || !mode) && (
         <p role="alert" className="note money-negative">
           {memberError}
         </p>
       )}
 
-      {mode?.type === "add" && (
-        <fieldset
-          disabled={isAddingMember}
-          aria-busy={isAddingMember}
-          className="member-editor flex min-w-0 flex-col gap-3 disabled:opacity-60"
-        >
-          {availablePeople.length > 0 && (
-            <div className="flex flex-col gap-2">
-              <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
-                Add from friends
+      {mode?.type === "add" &&
+        (isMobile ? (
+          <MobileEditorDialog title="Add a person" onCancel={closeEditor} busy={isAddingMember}>
+            {memberError && (
+              <p role="alert" className="note money-negative mb-4">
+                {memberError}
               </p>
-              <div className="flex flex-wrap gap-2">
-                {availablePeople.map((person) => (
-                  <button
-                    key={person.id}
-                    type="button"
-                    onClick={() => handleAddExistingPerson(person)}
-                    className="chip"
-                  >
-                    <EmojiImage icon={person.icon} kind="profile" />
-                    <span>{person.name}</span>
-                    <Icon icon={Plus} size={16} className="text-[var(--brand-ink)]" />
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+            )}
+            {addEditor}
+          </MobileEditorDialog>
+        ) : (
+          addEditor
+        ))}
 
-          <PersonEditor
-            existingNames={existingNames()}
-            onSave={handleCreatePerson}
-            onCancel={closeEditor}
-            submitLabel="Add"
-          />
-        </fieldset>
-      )}
-
-      {editingMember?.person && (
-        <div className="member-editor py-2">
-          <PersonEditor
-            existingNames={existingNames(editingMember.personId)}
-            initial={{ name: editingMember.person.name, icon: editingMember.person.icon }}
-            onSave={handleEditMember(editingMember)}
-            onCancel={closeEditor}
-          />
-        </div>
-      )}
+      {editingMember?.person &&
+        (isMobile ? (
+          <MobileEditorDialog title="Edit person" onCancel={closeEditor}>
+            {memberError && (
+              <p role="alert" className="note money-negative mb-4">
+                {memberError}
+              </p>
+            )}
+            {editEditor}
+          </MobileEditorDialog>
+        ) : (
+          editEditor
+        ))}
 
       <ul className="member-list-scroll surface px-5">
         {sortedMembers.map((member) => (

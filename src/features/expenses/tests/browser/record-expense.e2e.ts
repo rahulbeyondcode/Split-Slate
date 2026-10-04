@@ -84,6 +84,94 @@ test("fills the current clock time without changing the selected expense date", 
   await expect(date).toHaveValue("2026-09-18");
 });
 
+test("advances from valid mobile hours but waits for a second digit after 0 or 1", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "Mobile-only time entry");
+  const hour = page.getByRole("textbox", { name: "Hour" });
+  const minute = page.getByRole("textbox", { name: "Minute" });
+
+  await hour.fill("");
+  await hour.pressSequentially("0");
+  await expect(hour).toBeFocused();
+  await hour.pressSequentially("9");
+  await expect(minute).toBeFocused();
+  await expect(hour).toHaveValue("09");
+
+  await hour.fill("");
+  await hour.pressSequentially("1");
+  await expect(hour).toBeFocused();
+  await hour.pressSequentially("2");
+  await expect(minute).toBeFocused();
+  await expect(hour).toHaveValue("12");
+
+  await hour.fill("2");
+  await expect(minute).toBeFocused();
+  await expect(hour).toHaveValue("02");
+
+  await hour.fill("20");
+  await expect(hour).toBeFocused();
+  await expect(hour).toHaveValue("20");
+});
+
+test("does not change desktop hour focus behavior", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Desktop-only focus regression");
+  const hour = page.getByRole("textbox", { name: "Hour" });
+  await hour.fill("2");
+  await expect(hour).toBeFocused();
+});
+
+test("selects and unselects all mobile split participants", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "Mobile-only split selection");
+  const participants = page.locator(".expense-split-row input[type=checkbox]");
+  await page.getByRole("button", { name: "Unselect all" }).click();
+  await expect(page.locator(".expense-split-row input[type=checkbox]:checked")).toHaveCount(0);
+  await page.getByRole("button", { name: "Select all" }).click();
+  for (const participant of await participants.all()) await expect(participant).toBeChecked();
+});
+
+test("toggles mobile split participants by tapping the row without changing split inputs", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "Mobile-only split selection");
+  const cal = page.getByRole("checkbox", { name: "Cal" });
+  const row = page.locator(".expense-split-row").filter({ has: cal });
+
+  await row.click({ position: { x: 120, y: 10 } });
+  await expect(cal).not.toBeChecked();
+  await row.click({ position: { x: 120, y: 10 } });
+  await expect(cal).toBeChecked();
+  await expect(row).toHaveCSS("border-color", "rgb(121, 94, 203)");
+
+  await page.getByRole("combobox", { name: "Split method" }).selectOption("shares");
+  await page.getByLabel("Shares for Cal").fill("2");
+  await expect(cal).toBeChecked();
+});
+
+test("creates and selects a new tag without losing the unfinished mobile expense", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "Mobile-only tag creation");
+  await page.getByLabel("Expense name", { exact: true }).fill("Weekend lunch");
+  await page.getByLabel("Amount (INR)", { exact: true }).fill("42");
+  await page.getByRole("button", { name: "Add new tag" }).click();
+  const dialog = page.getByRole("dialog", { name: "Create new tag" });
+  await dialog.getByRole("textbox", { name: "Tag name" }).fill("Weekend");
+  await dialog.getByRole("button", { name: "Create tag" }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(page.getByRole("checkbox", { name: "Weekend" })).toBeChecked();
+  await expect(page.getByLabel("Expense name", { exact: true })).toHaveValue("Weekend lunch");
+  await expect(page.getByLabel("Amount (INR)", { exact: true })).toHaveValue("42");
+  await page.getByRole("button", { name: "Save expense" }).click();
+  const saved = await page.evaluate(async () => {
+    const { db } = (await import(
+      /* @vite-ignore */ "/src/shared/configs/db.ts"
+    )) as typeof DbModule;
+    return { tags: await db.tags.toArray(), expenses: await db.expenses.toArray() };
+  });
+  expect(saved.expenses[0].tagIds).toContain(saved.tags.find((tag) => tag.name === "Weekend")?.id);
+});
+
 test("records an equal expense, updates balances, and survives reload", async ({ page }) => {
   const tag = page.getByLabel("Holiday", { exact: true });
   await expect(tag).toHaveClass(/choice-control/u);

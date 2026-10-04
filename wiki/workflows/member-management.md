@@ -28,7 +28,10 @@ Expense editing and deletion are available through detail.
 On mobile, each member row gives the avatar and one-line name the full first row; long names are
 truncated with a `data-tooltip` revealing the full name on hover or focus/tap. Edit and Delete sit
 in a second row, filling the width available after the avatar offset with compact rounded corners.
-Desktop retains its existing single-row presentation and controls.
+On mobile Add member opens a modal containing the existing-friend picker and the new-person editor;
+Edit opens the person editor in a modal. Errors remain visible inside the modal, and Cancel/Escape
+dismisses it without saving. Tablet and desktop retain inline add/edit forms and their existing row
+presentation and controls.
 
 `addMember` checks persisted group/person existence and `(groupId, personId)` links, then inserts
 within one read-write transaction spanning groups, people, and members. Concurrent calls cannot
@@ -44,7 +47,8 @@ and sequential writes; the additions above do not make every deletion operation 
 Members can be added to a group at any time after group creation — not just during onboarding. Either pick an existing person from the directory or add a new person inline from the group-details Members screen. People already linked to the group are excluded from the picker, and the store rejects duplicate memberships defensively.
 
 The Members screen opens the new-person form on the first Add member click, while also showing
-available existing friends for one-click linking. Cancel closes the add form.
+available existing friends for one-click linking. On mobile they appear together in a modal; on
+tablet and desktop they remain inline. Cancel closes the add form.
 
 The Members screen ignores repeated additions while a save is pending and disables its add form
 and member edit/delete controls until that save finishes. The database transaction is the

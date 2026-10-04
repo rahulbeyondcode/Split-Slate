@@ -18,7 +18,9 @@ implements mandatory category selection with defaults.
 On mobile the screen scrolls as a page, while the category card itself is 50vh tall and scrolls
 independently. Its Categories title, available count, and Add category button stay sticky inside
 that card, below the sticky page and group headings. Each category keeps its name/count above a
-second row of wide, softly rectangular Edit/Delete buttons. Tablet/desktop layout is unchanged.
+second row of wide, softly rectangular Edit/Delete buttons. Add and Edit open a name/icon modal on
+mobile rather than expanding the card inline; validation and save errors remain in the modal, and
+Cancel/Escape dismiss it without saving. Tablet/desktop keep the existing inline form and layout.
 
 Category deactivation is a future task. The `isActive` field and store update capability already
 exist, but the management screen has no Activate/Deactivate control. This state is worth retaining
@@ -74,7 +76,8 @@ After the group name/icon and currency are set, the creator is shown the master 
 
 The group **Categories & Tags** screen can currently add a custom category through a name field
 followed by a wrapping emoji picker, matching the stacked onboarding category editor. The same
-layout supports editing the name and icon; deletion remains subject to the rules below. The former
+fields support editing the name and icon; on mobile these forms open in a modal, while tablet and
+desktop retain inline editing. Deletion remains subject to the rules below. The former
 side-by-side layout squeezed the name input beside the full emoji grid in narrow columns. Choosing
 an unselected entry from the master list after group creation is not currently exposed as a
 separate UI.

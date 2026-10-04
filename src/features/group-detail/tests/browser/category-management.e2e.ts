@@ -46,12 +46,15 @@ test.beforeEach(async ({ page }) => {
 
 test("adds and edits categories with a full-width name field above the icon picker", async ({
   page,
+  isMobile,
 }) => {
   const categories = page
     .locator(".surface")
     .filter({ has: page.getByRole("heading", { name: "Categories", exact: true }) });
   await categories.getByRole("button", { name: "Add category" }).click();
-  const form = categories.locator("form");
+  const form = isMobile
+    ? page.getByRole("dialog", { name: "Add category" }).locator("form")
+    : categories.locator("form");
   const name = form.getByLabel("Category name");
   const icons = form.getByRole("group", { name: "Choose icon" });
   await expect(name).toBeVisible();
@@ -81,12 +84,21 @@ test("adds and edits categories with a full-width name field above the icon pick
   const row = categories.getByRole("listitem").filter({ hasText: "Coffee runs" });
   await expect(row.locator('img[src$="/food-and-drinks/hot-beverage-3d.png"]')).toBeVisible();
   await row.getByRole("button", { name: "Edit" }).click();
-  await expect(form.getByRole("heading", { name: "Edit category" })).toBeVisible();
-  await expect(name).toHaveValue("Coffee runs");
-  await name.fill("Cafe trips");
-  await icons.getByRole("button", { name: "Browse more" }).click();
-  await icons.getByRole("button", { name: "Icon Clinking beer mugs" }).click();
-  await form.getByRole("button", { name: "Save", exact: true }).click();
+  const editForm = isMobile
+    ? page.getByRole("dialog", { name: "Edit category" }).locator("form")
+    : categories.locator("form");
+  await expect(editForm.getByRole("heading", { name: "Edit category" })).toBeVisible();
+  await expect(editForm.getByLabel("Category name")).toHaveValue("Coffee runs");
+  await editForm.getByLabel("Category name").fill("Cafe trips");
+  await editForm
+    .getByRole("group", { name: "Choose icon" })
+    .getByRole("button", { name: "Browse more" })
+    .click();
+  await editForm
+    .getByRole("group", { name: "Choose icon" })
+    .getByRole("button", { name: "Icon Clinking beer mugs" })
+    .click();
+  await editForm.getByRole("button", { name: "Save", exact: true }).click();
   await expect(
     categories
       .getByRole("listitem")
@@ -100,4 +112,46 @@ test("adds and edits categories with a full-width name field above the icon pick
       .filter({ hasText: "Cafe trips" })
       .locator('img[src$="/food-and-drinks/clinking-beer-mugs-3d.png"]'),
   ).toBeVisible();
+});
+
+test("adds and edits tags in a mobile dialog and inline on desktop", async ({ page, isMobile }) => {
+  const tags = page
+    .locator(".surface")
+    .filter({ has: page.getByRole("heading", { name: "Tags", exact: true }) });
+  await tags.getByRole("button", { name: "Add tag" }).click();
+  const addForm = isMobile
+    ? page.getByRole("dialog", { name: "Add tag" }).locator("form")
+    : tags.locator("form");
+  await addForm.getByPlaceholder("Tag name").fill("Weekend");
+  await addForm.getByRole("button", { name: "Green #22c55e" }).click();
+  await addForm.getByRole("button", { name: "Add", exact: true }).click();
+  const row = tags.getByRole("listitem").filter({ hasText: "Weekend" });
+  await expect(row).toBeVisible();
+
+  await row.getByRole("button", { name: "Edit" }).click();
+  const editForm = isMobile
+    ? page.getByRole("dialog", { name: "Edit tag" }).locator("form")
+    : tags.locator("form");
+  await expect(editForm.getByPlaceholder("Tag name")).toHaveValue("Weekend");
+  await editForm.getByPlaceholder("Tag name").fill("Holiday");
+  await editForm.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(tags.getByRole("listitem").filter({ hasText: "Holiday" })).toBeVisible();
+});
+
+test("keeps category and tag editors inline at tablet width", async ({ page }) => {
+  await page.setViewportSize({ width: 820, height: 900 });
+  const categories = page
+    .locator(".surface")
+    .filter({ has: page.getByRole("heading", { name: "Categories", exact: true }) });
+  await categories.getByRole("button", { name: "Add category" }).click();
+  await expect(categories.locator("form")).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Add category" })).toHaveCount(0);
+  await categories.locator("form").getByRole("button", { name: "Cancel" }).click();
+
+  const tags = page
+    .locator(".surface")
+    .filter({ has: page.getByRole("heading", { name: "Tags", exact: true }) });
+  await tags.getByRole("button", { name: "Add tag" }).click();
+  await expect(tags.locator("form")).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Add tag" })).toHaveCount(0);
 });

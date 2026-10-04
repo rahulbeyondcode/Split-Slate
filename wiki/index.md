@@ -47,12 +47,12 @@ Last updated: 2026-10-04
 - [Development Tools](workflows/development-tools.md) — typed realistic presets, randomized onboarding contacts, individual creation buttons, and persistence boundaries
 - [Onboarding](workflows/onboarding.md) — implemented resumable setup plus Link/CSV/ZIP first-launch import with a short identity path
 - [Group Creation](workflows/group-creation.md) — standalone 4-step flow; writes begin only on final submission and then run sequentially
-- [Main Screen](workflows/main-screen.md) — group snapshot, readable mobile expense rows with category names, responsive Settings card, dashboard return, and expense correction
+- [Main Screen](workflows/main-screen.md) — group snapshot, expense correction and mobile split/tag controls; **URGENT: mobile expense-form scroll/actions unresolved**
 - [Paid-By](workflows/paid-by.md) — implemented frequent-payer selection, atomic ranking updates, recent-payer defaults, and multi-payer entry
 - [People Directory](workflows/people-directory.md) — global friends list, per-group links for blocked contact deletion, and group-building picker
-- [Member Management](workflows/member-management.md) — one-click add, mobile two-row member actions with name tooltip, confirmed removal, and persisted guards
-- [Category Management](workflows/category-management.md) — group category CRUD, mobile sticky 50vh card/actions, in-form creation, and immediate detail changes; deactivation pending
-- [Tag Management](workflows/tag-management.md) — group tags, mobile sticky 50vh card/actions, immediate detail selection/creation, and transactional cleanup
+- [Member Management](workflows/member-management.md) — one-click add, mobile add/edit modals and two-row actions, confirmed removal, and persisted guards
+- [Category Management](workflows/category-management.md) — group category CRUD, mobile add/edit modals and sticky 50vh card/actions, in-form creation, and immediate detail changes; deactivation pending
+- [Tag Management](workflows/tag-management.md) — group tags, mobile management add/edit modals and expense-form creation, sticky 50vh card/actions, immediate detail selection/creation, and transactional cleanup
 - [Filtering](workflows/filtering.md) — URL-backed filtering, mobile sticky toolbar and filtered-only count, accessible popover placement, sort modes, and expense insights
 - [Dashboard](workflows/dashboard.md) — greeting, group summaries, mobile New group footer action, Unsettled subtitle, and category View all to full spending breakdown
 
@@ -90,6 +90,7 @@ Last updated: 2026-10-04
 | Split types (5 types)              | DONE        |
 | Paid-by (frequent payers UI)       | DONE        |
 | Expense list + filtering           | DONE        |
+| Mobile expense-form scroll/actions | URGENT FIX REQUIRED |
 | Balances / who-owes-whom view      | DONE        |
 | Receipt attachments                | PENDING     |
 | Group settings + deletion          | DONE        |
