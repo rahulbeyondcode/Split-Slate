@@ -9,7 +9,7 @@ metadata:
 
 Purpose: map store ownership, persistence order, and the exact validation and transaction boundaries.
 
-Last updated: 2026-09-29
+Last updated: 2026-10-05
 
 ## Technology
 
@@ -51,11 +51,13 @@ interface AppStore {
 
   // App bootstrap
   initialized: boolean
+  initError: string | null
   init: () => Promise<void>
 
   // Actions — Expenses
   addExpense: (input: CreateExpenseInput) => Promise<Expense>
   updateExpense: (expenseId: UUID, input: CreateExpenseInput) => Promise<Expense>
+  updateExpenseDetails: (expenseId: UUID, groupId: UUID, patch: { categoryId?: UUID; tagIds?: UUID[] }) => Promise<Expense>
   removeExpense: (expenseId: UUID, groupId: UUID) => Promise<void>
 
   // Actions — Groups
@@ -128,9 +130,10 @@ is seeded when the flow mounts and cleared when it unmounts, so leaving the flow
 Its sole purpose is to decouple the form from any live view of it. The form owns the source of truth
 while editing; the draft is a read-only projection other parts of the UI can subscribe to without
 coupling to the form. The current consumer is the activity panel's live preview on the create-group
-route. Its route matcher anticipates a future edit route, but no such route is registered. Because
-consumers subscribe to the draft rather than the form, the form pane itself does not re-render on
-these updates.
+route, selected only when the path is exactly `/groups/new`; other group routes show expense activity.
+`CreateGroupFlow` currently calls `useStore()` without a selector, so updating the draft also
+notifies the form component. Separating the preview's data source from the form is not a guarantee
+that the form avoids re-rendering on draft changes.
 
 Two deliberate shape decisions:
 
@@ -150,6 +153,8 @@ Two deliberate shape decisions:
   UI constraints hold as database-enforced invariants.
 - Zustand holds the hydrated in-memory view of persisted entities; it does not use `persist` middleware.
 - `init()` hydrates entities and settings from IndexedDB and seeds missing settings rows.
+- If `init()` cannot open or read the database, it sets `initError` instead of completing hydration;
+  the route protector shows reload and backup-restore actions. See [[indexeddb-schema]].
 - Tag deletion reads the persisted tag and its group's expenses in one transaction on tags and
   expenses, then deletes the tag and updates only existing records' `tagIds`. It cannot recreate
   deleted expenses or overwrite newer expense fields from stale hydrated state. After commit,

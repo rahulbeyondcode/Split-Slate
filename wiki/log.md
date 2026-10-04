@@ -2,11 +2,41 @@
 
 Reverse-chronological record of all wiki changes.
 
-Last updated: 2026-10-04
+Last updated: 2026-10-05
 
 ---
 
+## 2026-10-05
+- UPDATED architecture/domain-models.md — correct tag-chip visibility in expense and Overview rows
+- UPDATED architecture/state-management.md — correct current group-draft subscription and preview routing claims
+- UPDATED workflows/people-directory.md — distinguish stored self Person from visible contacts and note missing mobile entry point
+- UPDATED workflows/dashboard.md — correct compact activity placement and spending-chart display with mixed currencies or no expenses
+- UPDATED wiki/index.md — reflect corrected behavior and mobile Contacts access gap
+- UPDATED wiki/log.md — record approved cross-verification corrections
+
 ## 2026-10-04
+- UPDATED decisions/testing-strategy.md — correct Playwright root and coverage, record current run failures, and isolate unverified mobile-form scrolling
+- UPDATED workflows/group-creation.md — distinguish group and creator writes from an atomic transaction
+- UPDATED workflows/member-management.md — specify sequential, non-atomic deletion boundaries
+- UPDATED architecture/domain-models.md — correct expense time default and recording-date visibility
+- UPDATED architecture/layout-architecture.md — document mobile form-footer exception, PNG group avatars, and observed long-page window scrolling
+- UPDATED architecture/state-management.md — include initError, recovery flow, and focused expense-detail mutation
+- UPDATED systems/indexeddb-schema.md — correct icon keys, time default, and bootstrap recovery behavior
+- UPDATED decisions/global-people-directory.md — qualify voluntary person-snapshot export and add purpose
+- UPDATED decisions/onboarding-persistence.md — add page purpose
+- UPDATED decisions/solo-group-support.md — distinguish explicit onboarding solo story from shared helper text
+- UPDATED decisions/money-representation-and-rounding.md — correct historical deployment wording and implemented import limit
+- UPDATED decisions/import-export.md — remove obsolete browser-suite repair pairing from duplication plan
+- UPDATED workflows/people-directory.md — use current Contacts label and PNG picker description
+- UPDATED workflows/onboarding.md — remove resolved identity-guard gaps and clarify final save button
+- UPDATED workflows/category-management.md — describe PNG image keys and add page purpose
+- UPDATED workflows/main-screen.md — remove obsolete Help/menu and tab terminology
+- UPDATED workflows/dashboard.md — separate implemented summaries and expense-derived activity from future history
+- UPDATED ideas/category-settings-ui.md — add page purpose
+- UPDATED ideas/rewarded-ads.md — add page purpose
+- UPDATED roadmap/product-roadmap.md — prioritize current browser-suite failures and mobile form repair, correct defaults and completed work
+- UPDATED wiki/index.md — reconcile navigation and current implementation summaries with corrected pages
+- UPDATED wiki/log.md — record approved wiki-wide source reconciliation
 - UPDATED workflows/category-management.md — document mobile-only add/edit modals with desktop/tablet inline forms
 - UPDATED workflows/tag-management.md — document mobile-only management add/edit modals with desktop/tablet inline forms
 - UPDATED workflows/member-management.md — document mobile-only add/edit person modals including existing-friend selection

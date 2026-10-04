@@ -9,7 +9,7 @@ metadata:
 
 Purpose: describe persisted domain shapes and their implemented invariants.
 
-Last updated: 2026-09-30
+Last updated: 2026-10-05
 
 ## LocalUser (Device Owner)
 
@@ -131,7 +131,9 @@ transaction as duplicate detection and insertion. Directory-wide self deletion i
 - Every tag has a required color used as its visual identifier
 - Tags are optional on expenses — an expense stores zero or more tag references in `tagIds[]`
 - Renaming a tag updates one tag record; ID-based expense references need no rewrite. The entry
-  picker and expense detail show current tag names/colors; list/overview rows do not display tags yet.
+  picker and expense detail show current tag names/colors. The full expense list and recent Overview
+  rows show up to three colored tag chips per expense, with Show more for additional tags. See
+  [[tag-management]].
 - Deleting a tag atomically reads its persisted group expenses, removes the tag, and updates only
   existing expense tag references. It does not recreate deleted records or overwrite newer edits;
   after commit, that group's expense state is refreshed. See [[tag-management]].
@@ -152,7 +154,7 @@ See [[tag-management]] for the full lifecycle.
   categoryId: UUID,
   tagIds: UUID[],                            // optional references to group tags; empty when no tags apply
   createdAt: number,                         // automatic — when the entry was added to the app
-  when: number,                              // user-entered — when the money was actually spent (unix ms, defaults to now, date + time)
+  when: number,                              // user-entered date + required time of spending (unix ms)
   splitType: 'equal' | 'amount' | 'shares' | 'percentage' | 'adjustment',
   splitMeta: { memberId: UUID, value: string | number }[],  // exact decimal text for ratios; integer hundredths for adjustments; numeric legacy ratios remain readable
   transactions: {
@@ -183,8 +185,9 @@ would exceed `Number.MAX_SAFE_INTEGER` hundredths, keeping derived balances and 
 the supported numeric range. An update replaces the old total instead of counting it twice.
 
 - Updates preserve expense/group IDs, creator identity, creation time, and attachment IDs.
-- `createdAt` is set automatically by the app and never shown to or edited by the user
-- `when` is shown in the UI as the expense date — defaults to the current date and time, user can change it
+- `createdAt` is set automatically and cannot be edited; expense detail shows its recording date
+- `when` is the occurred date and time: a new form pre-fills today's local date but leaves time
+  blank until the user enters it or chooses **Use current time**
 - `tagIds` is always present but may be empty; every referenced tag must belong to the same group as the expense
 - `splitMeta` is needed for shares, percentage, and adjustment types — the raw input values cannot be derived back from `owes[]` alone. See [[split-types]] for per-type details.
 - `attachmentIds` is always present and creation currently writes an empty array. The separate

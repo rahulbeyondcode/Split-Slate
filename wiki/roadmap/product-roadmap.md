@@ -9,7 +9,7 @@ metadata:
 
 Purpose: provide a current planning compass without turning exploratory ideas into commitments.
 
-Last updated: 2026-10-02
+Last updated: 2026-10-04
 
 ## How to Read This Page
 
@@ -87,23 +87,29 @@ remain pending. Current detail lives in [[index]], [[domain-models]], and
 
 ## Next Tasks
 
-### Resolve Browser Suite Failures
+### Repair Mobile Expense-Form Scrolling
 
-The 2026-09-30 full Playwright run passed 74 of 92 desktop/mobile tests. The 18 failures are
-confined to `src/features/expenses/tests/browser/expense-filters.e2e.ts` (4) and
-`src/features/import-export/tests/browser/export-group.e2e.ts` plus
-`src/features/import-export/tests/browser/import-group.e2e.ts` (14). The expense-filter failures
-include controls or rows intercepted by an overlapping filter panel; import/export failures include
-selectors for controls or copy that no longer match the rendered flow. These are observed test
-failures, not yet confirmed root causes or proof that the underlying features are broken.
+The mobile Add/Edit Expense scroll and Save/Cancel position issue remains urgent and unresolved.
+Earlier attempts caused blank scrolling or clipped content and were rolled back. Reproduce the
+scroll boundary, repair it without changing desktop layout, and verify access to the last field and
+actions in a mobile browser. The existing scroll-navigation tests do not establish this behavior.
+See [[main-screen]].
 
-Next: investigate each failing flow, fix the UI or assertions according to actual behavior, and
-rerun the full desktop/mobile browser suite. The expense-entry suite (32/32), unit tests (394/394),
-and lint/format/type checks passed on the same working tree.
+### Investigate Current Browser-Suite Failures
+
+The 2026-10-04 full Playwright run on the current source passed 118 tests, failed 30, and skipped
+18 viewport-specific cases. The failures span expense entry/detail/filter assertions, one mobile
+category/tag/member scroll assertion, and Link/CSV/ZIP group-transfer journeys on both viewports.
+At least the 14 group-transfer failures start with tests looking for a questionnaire without opening
+the now-collapsed **Export group** panel in Settings; this is a confirmed test/UI mismatch, not
+evidence that transfer itself is broken. Triage the remaining failures against current UI and
+behavior before attributing them to product regressions, repair code or assertions accordingly,
+then rerun both viewport projects. A prior working-tree run reported 150 passing tests and 18
+intentional skips; it does **not** validate this source snapshot. See [[testing-strategy]].
 
 ### Group Duplication
 
-Add a same-device **Duplicate group** flow alongside the browser-suite repair task. It should reuse
+Add a same-device **Duplicate group** flow. It should reuse
 the export questionnaire's content choices and dependency behavior: group information is required;
 categories, tags, members, expenses, and available receipt attachments can be selected under the
 same inclusion rules. Instead of generating a Link, CSV, or ZIP, the chosen content is cloned into
@@ -135,8 +141,9 @@ The following Horizon 1 work is implemented:
 
 Five-second entry is an acceptance benchmark for the common case, not permission to skip
 validation. Current defaults are the most recent recorded payer, equal split across all current
-members, current local date/time, and the first active category. Remembered participants and other
-remembered choices remain candidates; usability work must establish the entry-time benchmark.
+members, today's local date with the time left blank until entered or explicitly filled, and the
+first active category. Remembered participants and other choices remain candidates; usability work
+must establish the entry-time benchmark.
 
 ## Horizon 2 — Make the Local Product Safe to Release
 
@@ -145,15 +152,15 @@ app is installed.
 
 Approved or required work:
 
-- Complete the remaining expense-history refinements. The eight planned filters, stale-option
-  cleanup, direct desktop/mobile filter coverage, and detail display are implemented.
+- The eight expense filters, stale-option cleanup, direct desktop/mobile filter coverage, and
+  detail display are implemented. Mobile Add/Edit Expense scrolling still requires repair.
 - Finish category activation/deactivation controls; active-category expense-picker behavior is implemented.
 - Implement receipt attachment ingestion, compression, and lazy loading; expense-deletion cascades are implemented.
 - Continue hardening the implemented Link/CSV/ZIP editable snapshot transfer in [[import-export]].
   Selective export, integrity validation, fresh-ID atomic import, identity mapping, and
   receipt-aware ZIP round-trips are implemented. Merge and synchronization are deliberate non-goals.
-- Provide a single local whole-app ZIP download and validated replace-only restore from a fresh or
-  existing device, including receipts and app settings; see [[full-backup]]. Google Drive backup
+- Whole-app local ZIP download and validated replace-only restore are implemented for fresh and
+  existing devices, including receipts and app settings; see [[full-backup]]. Google Drive backup
   and synchronization remain outside this local scope.
 - Add explicit backup/export reminders without making them spammy.
 - Installable metadata, production service-worker app-shell caching, offline deep-link launch,
@@ -181,8 +188,9 @@ real-time updates, background merge, or automatic conflict resolution is promise
 
 Candidates, ordered roughly by dependency and user value:
 
-- Finish dashboard summaries, cross-group activity, unsettled views, and category analytics. See
-  [[dashboard]].
+- Expand the implemented dashboard summaries, expense-derived Activity view, Unsettled route, and
+  category Analytics page; restore an Analytics entry point on narrow mobile screens and add
+  persistent cross-entity action history. See [[dashboard]].
 - Add group and solo-group analytics by category, time, and date range.
 - Add recurring-expense templates with an explicit choice between confirmation and automatic
   creation.
@@ -267,14 +275,14 @@ be reintroduced:
 - The approved design has five split methods, not only equal, exact amount, and percentage.
 - Group creation instantiates selected default/custom categories; it does not blindly create a
   fixed global list.
-- Unreferenced categories can be guard-deleted; referenced ones can be deactivated, and tags have
-  their own lifecycle.
+- Unreferenced categories can be guard-deleted; the store models deactivation of referenced
+  categories, but no management toggle exists yet. Tags have their own lifecycle.
 - Onboarding currently finishes at the dashboard. Last-opened-group launch behavior is not an
   approved current feature.
 - Portable transfer is no longer CSV-only or read-only; selective Link, CSV, and ZIP snapshots create
   new editable groups with fresh group-owned IDs.
-- PWA installation and offline application caching are pending, even though entity data already
-  lives in IndexedDB.
+- Offline application caching and install metadata are implemented; physical-device and
+  multi-deployment release verification is still pending.
 
 ## Related
 

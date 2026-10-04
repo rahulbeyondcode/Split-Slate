@@ -9,7 +9,7 @@ metadata:
 
 Purpose: describe the implemented standard and import-based first-launch flows.
 
-Last updated: 2026-09-26
+Last updated: 2026-10-04
 
 ## Standard First-Launch Flow
 
@@ -37,20 +37,27 @@ For users opening the app for the first time without any imported data.
 - **Group creator is auto-added as a Member at creation** — a group-scoped Member record links the
   LocalUser automatically. The UI excludes the creator from selectable people; `addMember`
   atomically rejects persisted duplicate links, and `removeMember` protects the local user's
-  membership. Referenced-ID existence checks and directory-wide self-deletion protection remain
-  gaps; see [[member-management]].
+  membership. The add action checks persisted group/person existence and the directory-delete
+  action checks persisted self identity; see [[member-management]].
 
 ---
 
 ## Persistence & Resume
 
-The five setup steps (identity → group → currency → categories → members) **save to IndexedDB when each step's "Save and Proceed" button is pressed**, rather than committing everything at the end. Within a step, all input is held in a single central form (React/Zustand state) and **nothing is written on individual toggles or adds** — only Save and Proceed commits that step. Progress is tracked in the `"onboarding"` row of the `settings` store, holding a monotonic `lastCompletedStep` (plus `groupId` and `complete`). The Zustand store derives which step to render as the step after `lastCompletedStep`; the viewed step itself is not persisted (Back moves it in memory only, Save and Proceed advances the frontier).
+The five setup steps (identity → group → currency → categories → members) **save to IndexedDB when
+their completion button is pressed**: Save and Proceed on the first four, Save and Finish on members.
+Within a step, input is held in the central form and **nothing is written on individual toggles or
+adds**. Progress is tracked in the `"onboarding"` row of the `settings` store, holding a monotonic
+`lastCompletedStep` (plus `groupId` and `complete`). The Zustand store derives which step to render
+as the step after `lastCompletedStep`; the viewed step itself is not persisted (Back moves it in
+memory only, Save and Proceed advances the frontier).
 
 Consequences:
 - **Resumable** — closing the app mid-flow and reopening lands the user on the step after the last
   completed step, with all previously confirmed data intact. An incomplete session arriving at the
   intro page is redirected straight into the setup flow.
-- **Commit-on-button** — input on a step that was never confirmed with Save and Proceed is not persisted; this is intentional ("save only when you press the button").
+- **Commit-on-button** — input on a step never confirmed with its completion button is not
+  persisted; the final Save and Finish also marks onboarding complete after member writes succeed.
 - **Completion is an explicit flag** — `onboarding.complete`, not `localUser` presence, gates entry to the app (the user record is created at the very first step).
 
 See [[onboarding-persistence]] for the full rationale, the step→save mapping, and the create-once group/currency handling.

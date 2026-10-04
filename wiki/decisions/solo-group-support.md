@@ -9,30 +9,33 @@ metadata:
 
 Purpose: explain solo groups, their creation behavior, and their zero-net balance display.
 
-Last updated: 2026-09-20
+Last updated: 2026-10-04
 
 ## Decision
 
 A group with only one member (the device owner) is valid. The "add members" step in onboarding is
 **optional** — the creator can finish with only themselves. There is **no separate "Skip" button**:
-pressing "Save and Finish" without adding anyone produces a solo group. The implemented helper text
-does not explicitly name the solo path, so that clarity portion of this decision remains open.
+pressing "Save and Finish" without adding anyone produces a solo group. The onboarding story already
+says "Add friends now, or start solo and invite them later." The member-step helper says
+"Optional — adding members can wait." Neither it nor the standalone creation step explicitly
+names the solo path.
 
 ## Why
 
 - The data model already supports 1-member groups — no new architecture needed.
 - A solo group is useful: tracking personal trip expenses, logging costs before friends join, or simply using the app as a lightweight personal expense log.
-- Explicitly explaining the solo path would prevent users from thinking the app is broken or that
-  they accidentally bypassed a required step; the current helper only says people can be added later.
+- Explicitly explaining the solo path in the shared helper could reinforce the onboarding story
+  and clarify standalone creation; the helper currently only says people can be added later.
 
 ## Onboarding Behavior
 
-The shared "Add Members" step can be completed without adding anyone. Onboarding uses "Save and
-Finish"; standalone group creation uses "Create group". Both proceed with just the creator. The
-shared helper text is:
-> "You're already in this group. Pick from your friends or add someone new — you can always add them later."
+The "Add Members" step can be completed without adding anyone. Onboarding uses "Save and
+Finish"; standalone group creation uses "Create group". Both proceed with just the creator. Both
+present the helper "Optional — adding members can wait." with the members heading (supplied by
+onboarding's step presentation or by the standalone component, respectively).
 
-This text permits the solo path but does not explicitly tell the user that finishing solo is valid.
+That text permits the solo path without naming it. Onboarding separately names the solo option in
+its story panel; standalone creation has only the generic helper.
 
 See [[onboarding]] for the full group creation flow and step order.
 
@@ -41,7 +44,7 @@ See [[onboarding]] for the full group creation flow and step order.
 - The implemented overview shows a zero net position for a solo group: its sole member pays and
   owes the same total.
 - The Balances view shows no suggested transfers for a solo group and explains that expenses track
-  personal spending with no one to repay. The explicit onboarding solo-path helper remains pending.
+  personal spending with no one to repay. Explicit shared member-step helper copy remains pending.
 
 ## What This Removes
 

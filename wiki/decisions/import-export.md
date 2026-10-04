@@ -10,7 +10,7 @@ metadata:
 Purpose: define the implemented offline group-transfer contract and distinguish it from future
 settlement sharing.
 
-Last updated: 2026-10-01
+Last updated: 2026-10-04
 
 ## Decision
 
@@ -52,7 +52,7 @@ attachment references. The manifest records source and included counts so omissi
 
 ## Planned Same-Device Group Duplication
 
-Group duplication is a next task alongside browser-suite repair, not an implemented export format.
+Group duplication is a planned next task, not an implemented export format.
 It reuses this questionnaire's selectable group content and dependency rules, but creates a new
 local group from the selected content rather than producing a Link, CSV, or ZIP. The original group
 is not changed. The exact same-device identity, ID-remapping, and write behavior should be resolved

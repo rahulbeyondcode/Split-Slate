@@ -5,26 +5,26 @@ This wiki is the sole persistent compiled knowledge layer. The implementation in
 authoritative; `app-featureset-context/spec-sheet.md` is a historical baseline where later source
 and approved decisions have superseded it. Changes: [log.md](log.md)
 
-Last updated: 2026-10-04
+Last updated: 2026-10-05
 
 ---
 
 ## Navigation
 
 ### Roadmap
-- [Product Direction and Roadmap](roadmap/product-roadmap.md) — browser-suite repair, group duplication, PWA release gates, and delivery horizons
+- [Product Direction and Roadmap](roadmap/product-roadmap.md) — urgent mobile expense-form repair, group duplication, PWA release gates, and delivery horizons
 
 ### Architecture
-- [Domain Models](architecture/domain-models.md) — current entity shapes, saved PNG icon keys, fixed-hundredths money, currency relabeling, and pending tag-display/attachment behavior
+- [Domain Models](architecture/domain-models.md) — current entity shapes, PNG icon keys, fixed-hundredths money, expense time, and visible tag chips
 - [Balance Calculation](architecture/balance-calculation.md) — fixed-hundredths member/group totals, all-member balances, and deterministic suggested transfers
-- [State Management](architecture/state-management.md) — hydrated Zustand slices plus persisted mutation boundaries, including all-or-nothing fresh-ID group import
+- [State Management](architecture/state-management.md) — Zustand slices, bootstrap recovery, create-group draft subscriptions, and atomic fresh-ID group import
 - [Split Types](architecture/split-types.md) — 5 split types with fixed-hundredths monetary allocations and exact ratios; numeric percentage-total display remains pending
-- [Layout Architecture](architecture/layout-architecture.md) — responsive shell, mobile expense and category/tag scrolling with fixed card headers, bounded desktop lists/cards, and route resets
+- [Layout Architecture](architecture/layout-architecture.md) — responsive shell, mobile form-footer exception, narrow-mobile Analytics link gap, and unresolved long-management-page scrolling
 
 ### Decisions
 - [Global People Directory](decisions/global-people-directory.md) — device-local friends list; members link to shared people; supersedes per-group members
 - [Expense Model Design](decisions/expense-model-design.md) — fixed-hundredths paid/owed allocations and exact decimal ratio metadata, with numeric legacy read compatibility
-- [Solo Group Support](decisions/solo-group-support.md) — single-member creation and zero-net overview/balances are implemented; onboarding solo-helper copy remains pending
+- [Solo Group Support](decisions/solo-group-support.md) — single-member groups work; onboarding story names the solo path, while the shared member-step helper remains generic
 - [Onboarding Persistence](decisions/onboarding-persistence.md) — resumable per-step standard setup plus atomic import-specific completion for fresh devices
 - [Import / Export Design](decisions/import-export.md) — selective Link/CSV/ZIP group transfer and atomic import; planned same-device duplication reuses selection without file generation
 - [Whole-App Backup and Restore](decisions/full-backup.md) — versioned ZIP, expected download name and wrong-file navigation, confirmed replace-only recovery; Drive deferred
@@ -35,10 +35,10 @@ Last updated: 2026-10-04
 - [Confirmation Dialogs](decisions/confirmation-dialogs.md) — shared in-app destructive confirmation for groups, contacts, members, categories, and tags
 - [Selection Controls](decisions/selection-controls.md) — native checkboxes/radios with selected and visibly locked states across forms, filters, and transfer
 - [String Input Normalization](decisions/string-input-normalization.md) — required strings reject trimmed blanks; optional expense inputs have explicit blank-value semantics
-- [Testing Strategy](decisions/testing-strategy.md) — Vitest and browser coverage boundaries; URGENT pending layout and shared-picker Playwright verification elsewhere
+- [Testing Strategy](decisions/testing-strategy.md) — unit/browser coverage, current browser-suite failures, and outstanding mobile expense-form scroll verification
 
 ### Systems
-- [IndexedDB Schema](systems/indexeddb-schema.md) — current tables, fixed-hundredths money, exact ratio metadata, and development schema policy
+- [IndexedDB Schema](systems/indexeddb-schema.md) — current tables, PNG icon keys, fixed-hundredths money, and bootstrap recovery
 
 ### Debugging
 - [Browser App Installation](debugging/mobile-pwa-install.md) — Netlify manifest response type and browser-dependent desktop/mobile install prompts
@@ -49,12 +49,12 @@ Last updated: 2026-10-04
 - [Group Creation](workflows/group-creation.md) — standalone 4-step flow; writes begin only on final submission and then run sequentially
 - [Main Screen](workflows/main-screen.md) — group snapshot, expense correction and mobile split/tag controls; **URGENT: mobile expense-form scroll/actions unresolved**
 - [Paid-By](workflows/paid-by.md) — implemented frequent-payer selection, atomic ranking updates, recent-payer defaults, and multi-payer entry
-- [People Directory](workflows/people-directory.md) — global friends list, per-group links for blocked contact deletion, and group-building picker
+- [People Directory](workflows/people-directory.md) — shared contacts excluding self from the list; mobile route lacks an in-app entry point
 - [Member Management](workflows/member-management.md) — one-click add, mobile add/edit modals and two-row actions, confirmed removal, and persisted guards
 - [Category Management](workflows/category-management.md) — group category CRUD, mobile add/edit modals and sticky 50vh card/actions, in-form creation, and immediate detail changes; deactivation pending
 - [Tag Management](workflows/tag-management.md) — group tags, mobile management add/edit modals and expense-form creation, sticky 50vh card/actions, immediate detail selection/creation, and transactional cleanup
 - [Filtering](workflows/filtering.md) — URL-backed filtering, mobile sticky toolbar and filtered-only count, accessible popover placement, sort modes, and expense insights
-- [Dashboard](workflows/dashboard.md) — greeting, group summaries, mobile New group footer action, Unsettled subtitle, and category View all to full spending breakdown
+- [Dashboard](workflows/dashboard.md) — greeting, group summaries, Activity/Unsettled/Analytics routes, and mixed-currency and narrow-mobile spending-chart limits
 
 ### Ideas (captured, not committed)
 - [Rewarded Ads](ideas/rewarded-ads.md) — optional ad-watch → credits → Pro unlock mechanic; fully opt-in
@@ -81,7 +81,7 @@ Last updated: 2026-10-04
 | Group detail routes                | DONE        |
 | Group overview                     | DONE        |
 | Group creation flow                | DONE        |
-| People directory (friends list)    | DONE        |
+| People directory (friends list)    | IN PROGRESS |
 | Member management                  | DONE        |
 | Category management                | IN PROGRESS |
 | Tag management                     | IN PROGRESS |
@@ -101,6 +101,9 @@ Last updated: 2026-10-04
 | Installable/offline PWA support    | IN PROGRESS |
 | Automated tests                    | IN PROGRESS |
 
+The Contacts screen supports contact CRUD, but `/friends` has no in-app mobile entry point. See
+[[people-directory]].
+
 The IndexedDB layer and Zustand store are complete for the current development scope. Schema
 changes intentionally require resetting the local database; versioned migrations are not needed
 while development data is disposable. All group-detail destinations have routes, but several are
@@ -114,19 +117,20 @@ cannot be recovered automatically; invalid legacy inputs need correction before 
 [[tag-management]] and [[expense-edit-delete]].
 
 Expense filtering is implemented across eight logical fields with cross-field AND matching,
-within-field OR selection, non-persisted group-local form state, active counts, and distinct empty
-states. Utility coverage is complete for the current predicate and validation contract; direct UI
-interaction coverage exercises every filter on desktop and mobile, and selected IDs deleted on
-another group route are removed automatically when the list remounts. Eight URL-backed sort modes
-apply after filtering without increasing the active count, including single-category and exact
-tag-set grouping. See [[filtering]].
+within-field OR selection, URL-backed state (not IndexedDB persistence), active counts, and distinct
+empty states. Utility tests cover the current predicate and validation contract; browser suites
+exercise filters on desktop and mobile, but the latest full run has a failing desktop filter case.
+Selected IDs deleted on another group route are removed automatically when the list remounts.
+Eight URL-backed sort modes apply after filtering without increasing the active count, including
+single-category and exact tag-set grouping. See [[filtering]].
 
 Group transfer is implemented as selective snapshot export and fresh editable import. Link is
 bounded to 32,000 characters without receipts; CSV carries typed data without blobs; ZIP optionally
 carries verified receipts. Fresh group-owned IDs, count/reference/integrity validation, recipient
 identity mapping, default categories, same-name numbering, and the complete IndexedDB transaction
-are covered on desktop and mobile. Settlement Link/PDF/Excel sharing remains separate and pending.
-See [[import-export]].
+have desktop/mobile browser journeys, but the current full suite's transfer cases fail before
+the export questionnaire opens. Settlement Link/PDF/Excel sharing remains separate and pending.
+See [[import-export]] and [[testing-strategy]].
 
 The production build now has install metadata, a browser-dependent install dialog, an offline app
 shell, background verified icon downloads with incremental repair, and a user-controlled update prompt. Desktop/mobile-emulated PWA

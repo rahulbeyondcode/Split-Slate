@@ -7,7 +7,9 @@ metadata:
 
 # Idea: Rewarded Ads
 
-Last updated: 2026-05-17
+Purpose: preserve an optional, uncommitted way to earn access to proposed Pro features.
+
+Last updated: 2026-10-04
 
 ## Concept
 

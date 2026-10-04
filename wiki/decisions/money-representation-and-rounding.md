@@ -10,7 +10,7 @@ metadata:
 Purpose: prevent floating-point accounting errors while guaranteeing that every computed split
 adds back to its expense total.
 
-Last updated: 2026-09-29
+Last updated: 2026-10-04
 
 ## Implementation Status
 
@@ -23,9 +23,10 @@ The split calculator uses exact integer quotas, largest remainders, and ascendin
 ties. Shares/percentage inputs allow six decimal places and use scaled integer ratios. The form
 and store reject invalid amounts and unbalanced contributions for creation and updates.
 
-The app is undeployed and its development IndexedDB was cleared before this change. No legacy
-records or transfer files required migration or compatibility handling; the current transfer
-schema retained its version. See [[indexeddb-schema]].
+Development IndexedDB was cleared before the fixed-hundredths change. At that time no saved records
+or transfer files required money migration, so the transfer schema retained its version. This is a
+historical migration decision, not a claim that the app has never been deployed. See
+[[indexeddb-schema]].
 
 ## Currency-Independent Hundredths
 
@@ -94,7 +95,8 @@ spending also bounds each member's cumulative paid, owed, and net amounts. Concu
 serialized by the transaction, so they cannot independently pass against an outdated total.
 
 This guard applies to creation and updates; it does not repair existing invalid development data.
-Future imports must enforce the same limit. See [[state-management]].
+The implemented group-transfer import enforces the same limit. See [[import-export]] and
+[[state-management]].
 
 ## Deterministic Split Rounding
 

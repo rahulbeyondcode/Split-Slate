@@ -7,7 +7,9 @@ metadata:
 
 # Decision: Global People Directory (Members Link to People)
 
-Last updated: 2026-06-12
+Purpose: explain why group memberships refer to one device-local people directory.
+
+Last updated: 2026-10-04
 
 ## Decision
 
@@ -23,8 +25,12 @@ This supersedes the earlier group-scoped-members decision, which gave every pers
 
 ## What Stays True (the old reasoning still holds)
 
-- **Privacy-first:** people are still just name + icon. No email, phone, or account. The directory never leaves the device.
-- **Offline-first:** nothing syncs. The directory is local to one device.
+- **Privacy-first:** people are still just name + icon. No email, phone, or account is needed.
+  Selected Person snapshots can leave the device when the user intentionally exports a group or
+  downloads and shares a whole-app backup; neither is automatic synchronization. See
+  [[import-export]] and [[full-backup]].
+- **Offline-first:** nothing syncs automatically. The directory is local to one device until the
+  user explicitly transfers a snapshot.
 
 The old decision conflated *global* identity with *online* identity. A purely local directory keeps both privacy and offline guarantees while dropping only the per-group duplication.
 

@@ -27,18 +27,22 @@ The dashboard-level Activity, Unsettled, Analytics, and app Settings pages keep 
 subtitle visible while the main pane scrolls, including at the bottom. This is limited to mobile;
 the desktop activity panel and page headers retain their existing scrolling behavior.
 
-**Bottom nav** — always visible at the bottom; context-aware, changes items based on the current route:
+**Bottom nav** — fixed at the bottom of ordinary mobile app routes and context-aware; Add/Edit
+Expense forms hide it to give the form focus:
 
 | Context | Items |
 |---------|-------|
 | Home | Groups, Activity, New group, Unsettled, Settings |
 | Inside a group | Overview, Expenses, Members, Categories & Tags, Settings |
+| Add/Edit Expense | No bottom nav |
 
 The centered New group footer action replaces the floating dashboard New group CTA on mobile; it
 uses the same purple accent and opens `/groups/new`. The dashboard-level Activity, Unsettled, and
-Settings destinations have footer links. Analytics
-retains its route, opened from the dashboard's Spending by category preview (heading or chart rows),
-with a mobile Back to dashboard link. All five in-group footer destinations resolve to nested group-detail routes.
+Settings destinations have footer links. Analytics retains its route, with a mobile Back to
+dashboard link but no footer item. The dashboard's category preview links to it only at widths of
+640px and above; at narrower mobile widths the preview is hidden, so there is currently no
+dashboard link to Analytics. All five in-group footer destinations resolve to nested group-detail
+routes. See [[dashboard]].
 The group-context footer is unchanged; it has no New group action. Other route-specific floating
 actions, such as Add expense and Add contact, are unaffected.
 On mobile, non-form group headers include a Back to dashboard link above the group context. It
@@ -98,7 +102,10 @@ A shared hook reads the window width and updates in real time whenever the viewp
 ## Route Scroll Position
 
 The post-onboarding shell keeps `#main-content` mounted across route changes. Its `.app-main`
-styles make that element the scroll container for ordinary routes, separate from `window`.
+styles intend that element to be the scroll container for ordinary routes. In the 2026-10-04
+mobile browser run, a long Categories & Tags fixture also scrolled `window`, failing the test's
+zero-window-scroll assertion. The actual scroll boundary in that case needs investigation; do not
+assume `window` never scrolls on every mobile group route. See [[testing-strategy]].
 Group headers remain sticky within that pane on all group routes, including forms and Settings.
 Their mobile Back to dashboard link therefore stays reachable while scrolling non-form routes.
 On desktop and tablet, Expenses, Members, and Categories & Tags fit the available viewport;
@@ -147,7 +154,7 @@ On dashboard routes, top to bottom:
 Inside a group, top to bottom:
 
 1. **App logo** — always at the top
-2. **Back to dashboard** — returns to the dashboard groups list
+2. **All groups** — returns to the dashboard groups list
 3. **Current group summary** — non-clickable group icon/name/currency plus member and expense counts
 4. **Group menu items** — Overview, Expenses, Members, Categories & Tags, Settings
 5. **Profile link** — anchored at the bottom
@@ -170,7 +177,7 @@ Settings remains reachable through the group sidebar or mobile footer.
 
 Each group in the sidebar list is a self-contained component with:
 
-- **Group icon** — emoji or letter avatar
+- **Group icon** — saved PNG image key rendered as an avatar, with a local image fallback
 - **Group name**
 - **Member avatars** — up to three, followed by an overflow count
 - **Expense count** — e.g. "21 expenses"
@@ -182,8 +189,8 @@ Each group in the sidebar list is a self-contained component with:
 
 Route content is shared across viewport states. The navigation chrome differs:
 
-- **Footer** — mobile only; route-aware; switches its content based on the current path
-- **Sidebar** — tablet and desktop only; always visible
+- **Footer** — mobile only; route-aware, except on Add/Edit Expense forms
+- **Sidebar** — tablet and desktop app routes, except Add/Edit Expense focus-mode forms
 - **Activity panel** — desktop only (1080px+); Dashboard and non-Settings group routes show recorded expenses; create-group shows its live preview
 
 ### Bottom nav behaviour by route (mobile)
@@ -192,6 +199,7 @@ Route content is shared across viewport states. The navigation chrome differs:
 |-------|-----------------|
 | Home | Groups, Activity, New group, Unsettled, Settings |
 | Inside a group | Overview, Expenses, Members, Categories & Tags, Settings |
+| Add/Edit Expense | No bottom nav |
 
 All in-group destinations resolve to nested routes. Dashboard footer destinations also have routes,
 though some screens are still lightweight. Analytics is a dashboard preview destination, not a

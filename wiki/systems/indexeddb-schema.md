@@ -9,7 +9,7 @@ metadata:
 
 Purpose: describe the persisted records, indexes, and implemented write boundaries.
 
-Last updated: 2026-09-29
+Last updated: 2026-10-04
 
 ## Current Implementation Scope
 
@@ -26,9 +26,9 @@ Versioned Dexie upgrades will become necessary only when the project starts pres
 across released schema changes. Until then, the reset-on-schema-change workflow is the supported
 development lifecycle and the lack of migrations is not an implementation blocker.
 
-App bootstrap currently calls the async store initializer without an error boundary or visible
-failure state. A schema/opening failure can leave the route protector waiting indefinitely for
-`initialized`.
+App bootstrap catches database-opening and read failures in the initializer and sets `initError`.
+The route protector then displays a recovery screen with reload and backup-restore actions rather
+than waiting indefinitely for `initialized`.
 
 ## Tables
 
@@ -39,7 +39,7 @@ Single-record store (only one local user per device).
 |------------|--------|----------------|
 | id         | UUID   | primary key    |
 | name       | string |                |
-| icon       | string |                |
+| icon       | string | profile PNG image key |
 
 ---
 
@@ -49,7 +49,7 @@ Single-record store (only one local user per device).
 |------------------|----------|--------------------------------------------------------------------|
 | id               | UUID     | primary key                                                        |
 | name             | string   |                                                                    |
-| icon             | string   | emoji character                                                    |
+| icon             | string   | non-profile PNG image key                                          |
 | currency         | string   | ISO 4217 code e.g. "INR"; defaults to "INR"; set at group creation |
 | createdAt        | number   | unix ms                                                            |
 | frequentPayerIds | UUID[]   | top-five memberIds ranked after each expense create/update/delete |
@@ -67,7 +67,7 @@ Global device-local directory of people ("friends list"), reused across every gr
 |-------|--------|--------------|
 | id    | UUID   | primary key  |
 | name  | string |              |
-| icon  | string | emoji        |
+| icon  | string | profile PNG image key |
 
 ---
 
@@ -96,8 +96,8 @@ person-deletion guard resolves memberships from hydrated state rather than query
 | createdBy     | UUID    | memberId                                                           |
 | categoryId    | UUID    | foreign key to categories — **mandatory**                          |
 | tagIds        | UUID[]  | optional references to group tags; empty array if no tags apply    |
-| createdAt     | number  | unix ms — set automatically by the app, never user-edited          |
-| when          | number  | unix ms — user-entered date + time of the actual expense; defaults to now |
+| createdAt     | number  | unix ms — automatic recording time, visible in expense detail but not editable |
+| when          | number  | unix ms — occurred date + required time; the new form defaults only the date to today |
 | splitType     | string  | `'equal' \| 'amount' \| 'shares' \| 'percentage' \| 'adjustment'` |
 | splitMeta     | object[] | `{ memberId: UUID, value: string \| number }[]` — exact decimal strings for shares/percentages, integer hundredths for adjustments; numeric legacy ratios remain readable |
 | transactions  | object  | `{ paid: [], owes: [] }` — monetary amounts use integer hundredths regardless of currency |
@@ -155,7 +155,7 @@ design, not current behavior.
 | id       | UUID    | primary key                   |
 | groupId  | UUID    | index → foreign key to groups |
 | name     | string  |                               |
-| icon     | string  | emoji character               |
+| icon     | string  | non-profile PNG image key     |
 | isActive | boolean | expense picker and creation validation honor this flag; management toggle remains planned |
 
 Index: `groupId` — used to fetch categories for a group.
@@ -201,7 +201,7 @@ The currently-viewed step is **not** stored here — it is Zustand-only, derived
 | Field   | Type                          | Notes                                                       |
 |---------|-------------------------------|------------------------------------------------------------|
 | id      | `'categories'`                | primary key — fixed constant                               |
-| master  | `{ name: string; icon: string }[]` | the full master category list, each with a preset emoji icon (user-editable in future) |
+| master  | `{ name: string; icon: string }[]` | the full master category list, each with a preset PNG image key (user-editable in future) |
 | default | string[]                      | names (subset of `master`) pre-selected when creating a group; icons resolved from `master` |
 
 Both arrays are **seeded from code constants on first launch** (`SEED_MASTER_CATEGORIES`,

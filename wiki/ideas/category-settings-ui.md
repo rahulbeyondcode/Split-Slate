@@ -7,7 +7,9 @@ metadata:
 
 # Category Settings UI
 
-Last updated: 2026-06-10
+Purpose: track the proposed controls for changing DB-backed master and default group categories.
+
+Last updated: 2026-10-04
 
 **Status: data layer built; settings UI still TODO**
 

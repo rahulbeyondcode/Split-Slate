@@ -7,6 +7,8 @@ metadata:
 
 # Category Management
 
+Purpose: explain group-category selection, editing, guarded deletion, and pending activation UI.
+
 Last updated: 2026-10-04
 
 ## Implementation Status
@@ -40,13 +42,15 @@ expense editor remains available. See [[expense-edit-delete]].
 ## Two Levels of Categories
 
 ### App-Level Master List
-The app ships with a curated master list of common categories, **each paired with a preset emoji
-icon**. It is **seeded from a code constant on first launch into the `"categories"` row of the
+The app ships with a curated master list of common categories, **each paired with a preset PNG image
+key**. It is **seeded from a code constant on first launch into the `"categories"` row of the
 `settings` store** (see [[indexeddb-schema]]) and is DB-backed. Its shape supports future editing,
 but there is no settings UI or store action that persists master/default-list changes yet; see
 [[category-settings-ui]]. A subset is the **default pre-selected set** for new groups.
 
-Every category — master or custom — carries an emoji `icon`. Master entries use their preset icon; custom categories get an icon the user picks when creating them.
+Every category — master or custom — carries an `icon` image key. Master entries use their preset
+key; custom categories use a locally available image selected in the picker. Legacy saved category
+emoji may still resolve to matching images without rewriting their stored values. See [[iconography]].
 
 ### Group-Level Categories
 Each group has its own category list. These are the categories members actually pick from when adding expenses. They are group-scoped records in the `categories` table.
@@ -75,7 +79,7 @@ After the group name/icon and currency are set, the creator is shown the master 
 ## Adding Categories After Group Creation
 
 The group **Categories & Tags** screen can currently add a custom category through a name field
-followed by a wrapping emoji picker, matching the stacked onboarding category editor. The same
+followed by a wrapping image picker, matching the stacked onboarding category editor. The same
 fields support editing the name and icon; on mobile these forms open in a modal, while tablet and
 desktop retain inline editing. Deletion remains subject to the rules below. The former
 side-by-side layout squeezed the name input beside the full emoji grid in narrow columns. Choosing

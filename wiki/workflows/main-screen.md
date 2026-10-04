@@ -135,8 +135,9 @@ count, and invalid bounds still show a correction message.
 The compact Expense insights card shows matching count, total, rounded average, and top category;
 it does not show member contributions or settlement balances. The group header retains the
 full-group total, and a separate link opens full-group Balances. Invalid filters suppress the summary.
-Unavailable selected option IDs are pruned when the list remounts, and desktop/mobile browser
-journeys cover the controls; see [[filtering]].
+Unavailable selected option IDs are pruned when the list remounts. Desktop/mobile browser journeys
+exercise the controls, but the 2026-10-04 full run failed one desktop filter case; see
+[[filtering]] and [[testing-strategy]].
 
 ### URGENT: Mobile Expense Form Scrolling — Fix Required
 
@@ -187,7 +188,7 @@ Detail deletion requires confirmation and atomically removes the expense and own
 refreshes frequent payers, then returns to the list. All balance displays derive the updated store.
 Missing or cross-group detail/edit IDs show a not-found state. See [[expense-edit-delete]].
 
-### Group Settings and Planned Menu
+### Group Settings and Transfer
 
 - Delete group prompts for irreversible confirmation, atomically removes group-owned records,
   preserves shared contacts, and returns to the dashboard. See [[group-deletion]] and [[full-backup]].
@@ -202,8 +203,6 @@ Missing or cross-group detail/edit IDs show a not-found state. See [[expense-edi
   Settings. Group Settings contains only the export action; import creates a separate editable group
   and does not belong to the current group.
 - Human-readable Link/PDF/Excel settlement sharing remains a separate future settlement feature.
-- Settings
-- Help
 
 ---
 
@@ -211,8 +210,8 @@ Missing or cross-group detail/edit IDs show a not-found state. See [[expense-edi
 
 - [[onboarding]] — how the user arrives at the main screen for the first time
 - [[dashboard]] — current dashboard and planned cross-group sections
-- [[layout-architecture]] — current route-aware sidebar/footer and unimplemented navigation stubs
-- [[balance-calculation]] — how the Balances tab derives its data
+- [[layout-architecture]] — current route-aware sidebar/footer and responsive scrolling
+- [[balance-calculation]] — how the Balances view derives its data
 - [[solo-group-support]] — implemented zero-net overview and solo balance behavior
-- [[import-export]] — Export and Import options in the group menu
+- [[import-export]] — Group Settings export and the separate app-level import flow
 - [[product-roadmap]] — delivery horizons and the unresolved settlement-model decision

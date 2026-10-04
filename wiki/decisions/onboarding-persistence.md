@@ -7,7 +7,9 @@ metadata:
 
 # Onboarding Persistence — Per-Step Save + Resume
 
-Last updated: 2026-09-26
+Purpose: explain why standard setup saves each completed step and how it resumes after reload.
+
+Last updated: 2026-10-04
 
 ## Decision
 
@@ -42,7 +44,10 @@ Onboarding progress lives as one row in the shared `settings` table (a discrimin
 
 **Only `lastCompletedStep` is persisted; the currently-viewed step is Zustand-only.** The flow is strictly linear with no step-bypass, so being on a step already implies every earlier step is done — the viewed step does not need persisting. On load it is derived as the step after `lastCompletedStep`.
 
-- **Save and Proceed** writes the row: validates the current step's slice of the central form, saves the step's domain data, then advances `lastCompletedStep = max(lastCompletedStep, viewedStep)`. Within a step nothing is written until this button — all input lives in the central form first.
+- **Save and Proceed** (first four steps) validates the current step's slice of the central form,
+  saves its domain data, then advances `lastCompletedStep = max(lastCompletedStep, viewedStep)`.
+  The members step uses **Save and Finish** to write its domain data and mark onboarding complete.
+  Within a step nothing is written until its completion button — all input lives in the form first.
 - **Back** is a pure in-memory Zustand move (decrement the viewed step); it does not touch IndexedDB.
 
 `lastCompletedStep` is **monotonic** — clamped forward via `max` so it never rewinds. This matters when the user walks forward several steps, goes Back to edit an earlier one, and clicks Next: the edited data is re-saved, but the frontier stays at the furthest step reached, so resume still lands at the true frontier instead of re-walking already-completed steps. No cascade-invalidation is needed because later steps (categories, members) do not depend on the values of earlier ones.

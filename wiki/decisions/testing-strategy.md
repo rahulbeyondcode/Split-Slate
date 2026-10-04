@@ -12,18 +12,12 @@ browser coverage for behavior that depends on browser storage, navigation, or of
 
 Last updated: 2026-10-04
 
-## URGENT: Browser Verification Pending Outside This Environment
+## Outstanding Browser Coverage
 
-Do **not** run Playwright in the current working environment. This user-directed restriction
-overrides the focused-suite step below for browser tests. Changes to mobile expense scrolling,
-filter controls, member actions, category/tag cards, and expense detail need **urgent Playwright
-verification in a permitted environment** before they are considered browser-validated. Relevant
-suites include `scroll-navigation.e2e.ts`, `expense-filters.e2e.ts`,
-`member-removal-filter.e2e.ts`, `expense-detail-quick-edit.e2e.ts`,
-`category-management.e2e.ts`, and `profile-icons.e2e.ts` under their respective feature
-`tests/browser/` directories. The last two verify that opening the shared icon gallery hides
-featured suggestions for both icon collections. Do not report these newer browser checks as
-passing without running them there.
+The mobile Add/Edit Expense form's scroll-to-last-field and Save/Cancel positioning remain
+unverified and unresolved. Existing `scroll-navigation.e2e.ts` cases exercise the expense ledger,
+group views, and route resets, **not** the form's bottom scroll boundary. A passing browser suite
+does not establish that this mobile layout works. See [[main-screen]] and [[product-roadmap]].
 
 ## Decision
 
@@ -67,9 +61,11 @@ src/
 
 Only directories that contain tests are committed because Git does not retain empty directories.
 Unit/integration test files use the production filename followed by `.test.ts` or `.test.tsx`.
-Playwright journeys use `.e2e.ts` under each feature's `tests/browser/` directory. The Playwright
-root is `src/features`, so expense and import/export journeys share the same desktop/mobile project
-configuration. Cross-directory imports continue to use the `@/` alias.
+Playwright journeys use `.e2e.ts` under feature `tests/browser/` directories or app
+`tests/router/`. The main Playwright root is `src/`; its match patterns include both of those
+locations, with shared desktop/mobile Chromium projects. PWA production-build tests use a separate
+`playwright.pwa.config.ts` configuration and `.pwa.ts` files. Cross-directory imports continue to
+use the `@/` alias.
 
 ## Test Boundaries
 
@@ -144,6 +140,15 @@ A test slice is complete when:
 
 ## Current Status
 
+On 2026-10-04, `pnpm test` passed 411 Vitest cases and `pnpm check` passed. The full
+`pnpm test:e2e` run passed 118 cases, failed 30, and skipped 18 viewport-specific cases.
+Failures include expense entry/detail/filter assertions, a mobile category/tag/member scroll
+assertion, and group-transfer journeys. The transfer tests try to use a questionnaire that is
+hidden until the Settings **Export group** button opens it; this accounts for 14 failures across
+desktop and mobile. Other failures need separate test-versus-product investigation. This run does
+not verify mobile Add/Edit Expense scroll-to-last-field or Save/Cancel placement. See
+[[product-roadmap]].
+
 Vitest covers the existing helpers and schemas plus money conversion, currency formatting, all five
 split methods, expense input validation, and payer defaults/ranking. Expense-store integration tests
 use `fake-indexeddb` and assert persisted state, hydration, concurrent writes, stale-reference
@@ -156,9 +161,13 @@ and rollback. The application uses browser IndexedDB; Playwright also uses real 
 Playwright suites are configured for Chromium at desktop and mobile sizes. Expense journeys cover
 form recording and editing across all five split methods, multiple payers, detail navigation, tags,
 confirmed deletion, list/balance updates, reload persistence, cancellation, retry after rejection,
-inactive historical categories, solo balances, and missing/cross-group expense routes. Test data lives in isolated browser contexts. Run `pnpm test:e2e` after
-`pnpm exec playwright install chromium`. Traces/results are written under `/tmp/split-slate-playwright`.
-Other feature/component/browser coverage remains pending.
+inactive historical categories, solo balances, and missing/cross-group expense routes. Tests also
+cover app-route recovery, dashboard navigation/activity, group deletion, category/member/contact
+flows, group transfer, and whole-app backup. PWA tests exercise the production service worker and
+offline/cache paths separately. Test data lives in isolated browser contexts. Run `pnpm test:e2e`
+(and `pnpm test:pwa` for production-build PWA checks) after installing Chromium with
+`pnpm exec playwright install chromium`. Traces/results are written under their configured `/tmp`
+Playwright output directories. Component tests with React Testing Library remain planned.
 
 Additional Vitest suites cover form-value round-trips and fixed two-decimal precision across currency labels; all-member balances,
 transfer conservation, ID tie-breaking, and safe-integer boundaries; member reference checks,

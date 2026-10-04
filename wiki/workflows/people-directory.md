@@ -9,15 +9,19 @@ metadata:
 
 Purpose: explain the shared people directory and its membership/deletion boundaries.
 
-Last updated: 2026-09-29
+Last updated: 2026-10-05
 
 A single device-local list of people, reused across every group. See [[global-people-directory]] for why this is global rather than per-group.
 
 ## Friends List Screen
 
-Reached from the dashboard sidebar ("All Friends"). Lists every person with their icon. From here a person can be created, edited, or deleted.
+Reached from the dashboard sidebar on tablet/desktop ("Contacts"). The screen lists contacts other
+than the device owner, with their icons, and allows creating, editing, and deleting those contacts.
+On mobile, `/friends` still renders the screen and its New contact action when opened directly, but
+no in-app navigation link to that route is available: the sidebar is hidden and the bottom nav has
+no Contacts item. See [[layout-architecture]].
 
-- **Create:** an emoji + name editor adds a new person to the directory.
+- **Create:** a profile-image picker + name editor adds a new person to the directory.
 - **Edit:** name and icon can be changed at any time. The change propagates to every group the person is in, because groups resolve a member's display through the person link rather than storing their own copy.
 - **Delete:** allowed only for non-self people and only when the person is referenced by **no expense in any group**. On delete, their group memberships and any frequent-payer references are pruned. A blocked contact has a greyed-out but clickable Delete button: its popup explains the restriction and offers a filtered expense-list link for each affected group. Each link uses that group's member ID for the contact and includes creator, payer, and owed references.
 
@@ -25,7 +29,9 @@ The store checks persisted LocalUser identity before directory deletion. Self de
 even when hydrated `localUser` or member state is absent. Expense-involvement checks and membership
 cleanup otherwise still rely on hydrated state; the multi-record deletion remains sequential.
 
-The device owner appears in the directory as a person too (shared identity with the LocalUser) so "you" can participate and be balanced uniformly.
+The device owner is stored in the directory as a Person sharing the LocalUser ID, so "you" can
+participate and be balanced uniformly. The Contacts screen deliberately filters out this self
+record; the owner can edit their profile in Settings or from their group-member row.
 
 ## Picking People at Group Creation
 

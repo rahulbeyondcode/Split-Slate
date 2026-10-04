@@ -39,8 +39,10 @@ create duplicate memberships even when client state is stale. `removeMember` rej
 members and protects the local user's member link. `removePerson` separately checks persisted
 LocalUser identity before deletion, even if hydrated identity is missing.
 
-Expense-involvement removal guards and other person/member cascade steps still use hydrated state
-and sequential writes; the additions above do not make every deletion operation transactional.
+Expense-involvement removal guards still use hydrated state. `removeMember` deletes its link and
+then updates the group's frequent-payer references sequentially; `removePerson` deletes its person
+and member links and updates affected groups sequentially. These deletion actions are not atomic
+multi-record transactions; successful earlier writes can remain if a later write fails.
 
 ## Adding Members
 
