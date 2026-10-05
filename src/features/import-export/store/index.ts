@@ -36,16 +36,26 @@ import type {
 export const readGroupExportSource = async (groupId: string): Promise<GroupExportSource> =>
   db.transaction(
     "r",
-    [db.groups, db.people, db.members, db.categories, db.tags, db.expenses, db.attachments],
+    [
+      db.groups,
+      db.people,
+      db.members,
+      db.categories,
+      db.tags,
+      db.expenses,
+      db.settlements,
+      db.attachments,
+    ],
     async () => {
       const group = await db.groups.get(groupId);
       if (!group) throw new Error("Group not found");
 
-      const [members, categories, tags, expenses] = await Promise.all([
+      const [members, categories, tags, expenses, settlements] = await Promise.all([
         db.members.where("groupId").equals(groupId).toArray(),
         db.categories.where("groupId").equals(groupId).toArray(),
         db.tags.where("groupId").equals(groupId).toArray(),
         db.expenses.where("groupId").equals(groupId).toArray(),
+        db.settlements.where("groupId").equals(groupId).toArray(),
       ]);
       const personIds = [...new Set(members.map((member) => member.personId))];
       const people = personIds.length ? await db.people.bulkGet(personIds) : [];
@@ -79,6 +89,7 @@ export const readGroupExportSource = async (groupId: string): Promise<GroupExpor
         categories,
         tags,
         expenses,
+        settlements,
         attachmentFiles,
       };
     },
@@ -134,6 +145,7 @@ export const importGroupTransfer = async ({
       db.categories,
       db.tags,
       db.expenses,
+      db.settlements,
       db.attachments,
       db.settings,
       db.activityEvents,
@@ -253,6 +265,15 @@ export const importGroupTransfer = async ({
         tagIds: expense.tagIds.map((id) => tagIds.get(id)!),
         attachmentIds: expense.attachmentIds.map((id) => id),
       }));
+      const importedSettlements = bundle.settlements.map((settlement) => ({
+        ...settlement,
+        id: uuid(),
+        groupId: destinationGroupId,
+        fromMemberId: memberIds.get(settlement.fromMemberId)!,
+        toMemberId: memberIds.get(settlement.toMemberId)!,
+        recordedBy: memberIds.get(settlement.recordedBy)!,
+        tagIds: settlement.tagIds.map((id) => tagIds.get(id)!),
+      }));
       const attachmentIds = new Map(
         bundle.attachments.map((attachment) => [attachment.id, uuid()]),
       );
@@ -292,6 +313,7 @@ export const importGroupTransfer = async ({
       await db.categories.bulkAdd(importedCategories);
       if (importedTags.length) await db.tags.bulkAdd(importedTags);
       if (importedExpenses.length) await db.expenses.bulkAdd(importedExpenses);
+      if (importedSettlements.length) await db.settlements.bulkAdd(importedSettlements);
       if (importedAttachments.length) await db.attachments.bulkAdd(importedAttachments);
       if (!existingLocalUser || !onboarding?.complete) {
         const completedOnboarding: OnboardingSettings = {
@@ -303,7 +325,7 @@ export const importGroupTransfer = async ({
         await db.settings.put(completedOnboarding);
       }
 
-      const [memberCount, categoryCount, tagCount, expenseCount, attachmentCount] =
+      const [memberCount, categoryCount, tagCount, expenseCount, attachmentCount, settlementCount] =
         await Promise.all([
           db.members.where("groupId").equals(destinationGroupId).count(),
           db.categories.where("groupId").equals(destinationGroupId).count(),
@@ -315,13 +337,15 @@ export const importGroupTransfer = async ({
                 .anyOf(importedExpenses.map((item) => item.expenseId))
                 .count()
             : Promise.resolve(0),
+          db.settlements.where("groupId").equals(destinationGroupId).count(),
         ]);
       if (
         memberCount !== importedMembers.length ||
         categoryCount !== importedCategories.length ||
         tagCount !== importedTags.length ||
         expenseCount !== importedExpenses.length ||
-        attachmentCount !== importedAttachments.length
+        attachmentCount !== importedAttachments.length ||
+        settlementCount !== importedSettlements.length
       ) {
         throw new Error("Imported data could not be verified");
       }
@@ -340,6 +364,7 @@ const backupTables = [
   db.categories,
   db.tags,
   db.expenses,
+  db.settlements,
   db.attachments,
   db.settings,
 ];
@@ -355,6 +380,7 @@ export const readFullBackupSource = async (): Promise<FullBackupSource> =>
       categories,
       tags,
       expenses,
+      settlements,
       attachments,
       settings,
     ] = await Promise.all([
@@ -366,6 +392,7 @@ export const readFullBackupSource = async (): Promise<FullBackupSource> =>
       db.categories.toArray(),
       db.tags.toArray(),
       db.expenses.toArray(),
+      db.settlements.toArray(),
       db.attachments.toArray(),
       db.settings.toArray(),
     ]);
@@ -378,6 +405,7 @@ export const readFullBackupSource = async (): Promise<FullBackupSource> =>
       categories,
       tags,
       expenses,
+      settlements,
       attachments,
       settings,
     };
@@ -395,6 +423,7 @@ export const restoreFullBackup = async (snapshot: FullBackupSnapshot): Promise<v
     if (data.categories.length) await db.categories.bulkAdd(data.categories);
     if (data.tags.length) await db.tags.bulkAdd(data.tags);
     if (data.expenses.length) await db.expenses.bulkAdd(data.expenses);
+    if (data.settlements?.length) await db.settlements.bulkAdd(data.settlements);
     if (attachments.length) await db.attachments.bulkAdd(attachments);
     await db.settings.bulkAdd(data.settings);
 
@@ -408,6 +437,7 @@ export const restoreFullBackup = async (snapshot: FullBackupSnapshot): Promise<v
       data.categories.length,
       data.tags.length,
       data.expenses.length,
+      data.settlements?.length ?? 0,
       attachments.length,
       data.settings.length,
     ];

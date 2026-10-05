@@ -116,7 +116,7 @@ export const createPeopleSlice: SliceCreator<PeopleSlice> = (set, get) => ({
         e.transactions.owes.some((t) => memberIds.includes(t.memberId)),
     );
     if (inUse) {
-      throw new Error("Cannot delete a person involved in expenses; reassign those expenses first");
+      throw new Error("Cannot delete a person involved in expenses or payments");
     }
 
     const affectedGroups = get().groups.filter((g) =>
@@ -124,13 +124,22 @@ export const createPeopleSlice: SliceCreator<PeopleSlice> = (set, get) => ({
     );
     const event = await db.transaction(
       "rw",
-      db.people,
-      db.members,
-      db.groups,
-      db.activityEvents,
+      [db.people, db.members, db.groups, db.settlements, db.activityEvents],
       async () => {
         const person = await db.people.get(personId);
         if (!person) throw new Error("Person not found");
+        const persistedMembers = await db.members.where("personId").equals(personId).toArray();
+        const referencedIds = persistedMembers.map((item) => item.id);
+        if (
+          (await db.settlements.toArray()).some(
+            (item) =>
+              referencedIds.includes(item.fromMemberId) ||
+              referencedIds.includes(item.toMemberId) ||
+              referencedIds.includes(item.recordedBy),
+          )
+        ) {
+          throw new Error("Cannot delete a person involved in payments");
+        }
         await db.people.delete(personId);
         await db.members.bulkDelete(memberIds);
         for (const group of affectedGroups) {

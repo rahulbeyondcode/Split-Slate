@@ -137,7 +137,7 @@ const ExportContentSelector = ({ attachmentCount }: PropsType) => {
           <span className="block text-[var(--muted)]">
             {selection.attachments
               ? "Required by selected receipt files"
-              : "All expenses, splits, and payment allocations"}
+              : "All expenses, splits, and recorded group payments"}
           </span>
         </span>
       </label>

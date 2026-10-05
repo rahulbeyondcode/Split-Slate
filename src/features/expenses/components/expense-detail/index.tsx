@@ -111,8 +111,8 @@ const ExpenseDetail = () => {
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">Expense not found</h2>
         <p>This expense is not available in this group.</p>
-        <Link to={`/groups/${group.id}/expenses${search}`} className="text-blue-700">
-          Back to expenses
+        <Link to={`/groups/${group.id}/expenses${search}`} className="btn btn-secondary self-start">
+          <Icon icon={ArrowLeft} size={18} /> Back to expenses
         </Link>
       </section>
     );

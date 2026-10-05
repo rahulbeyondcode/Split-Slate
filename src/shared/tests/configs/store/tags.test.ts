@@ -73,6 +73,26 @@ afterEach(async () => {
 });
 
 describe("removeTag", () => {
+  it("cleans optional payment tags while preserving the payment and its amount", async () => {
+    await db.people.add({ id: "friend", name: "Bea", icon: "🐻" });
+    await db.members.add({ id: "b", groupId: "g", personId: "friend" });
+    await db.settlements.add({
+      id: "payment",
+      groupId: "g",
+      kind: "payment",
+      fromMemberId: "b",
+      toMemberId: "a",
+      recordedBy: "a",
+      amount: 250,
+      when: 1,
+      createdAt: 1,
+      tagIds: ["trip", "keep"],
+    });
+    await useStore.getState().init();
+    await useStore.getState().removeTag("trip");
+    expect(await db.settlements.get("payment")).toMatchObject({ amount: 250, tagIds: ["keep"] });
+    expect(useStore.getState().settlements).toMatchObject([{ id: "payment", tagIds: ["keep"] }]);
+  });
   it("removes only the tag and its group references, preserving allocations, receipts, and rankings", async () => {
     const original = { ...expense(), attachmentIds: ["receipt"] };
     const other = { ...expense("other", ["foreign"]), groupId: "elsewhere" };

@@ -38,7 +38,7 @@ One per device. Not synced in MVP/V2. The device owner is also mirrored as a Per
 A single device-local directory of people ("friends list"), reused across every group. A person is created once and referenced by group members. The device owner appears here too, sharing the `LocalUser` id. See [[global-people-directory]] and [[people-directory]].
 
 - **Editing** a person's name/icon propagates to every group, because members resolve display through the person link
-- **Deletion** is blocked by the store when the person is involved in an expense. The implemented
+- **Deletion** is blocked by the store when the person is involved in an expense or payment. The implemented
   people UI hides deletion for the self Person, and `removePerson` checks the persisted LocalUser
   before any deletion, including when hydrated identity is stale or absent.
 
@@ -59,7 +59,7 @@ A single device-local directory of people ("friends list"), reused across every 
 
 **Currency** is singular per group (MVP: no multi-currency). Onboarding and standalone creation set
 it, defaulting to INR. Settings can change its display/grouping label; if expenses exist, the user
-confirms that their numeric amounts will not be exchanged or rewritten. Every amount uses fixed
+  confirms that their expense and payment amounts will not be exchanged or rewritten. Every amount uses fixed
 hundredths regardless of this label.
 
 **Initial value of `frequentPayerIds`** on group creation: `[creatorMemberId]`. Other members are added after the group row exists, but the creator remains the only frequent payer until expense history exists.
@@ -129,14 +129,14 @@ transaction as duplicate detection and insertion. Directory-wide self deletion i
 - Tags are durable group-scoped records and cannot be reused across groups
 - Tag names are trimmed and case-insensitively unique within one group; different groups may use the same name
 - Every tag has a required color used as its visual identifier
-- Tags are optional on expenses — an expense stores zero or more tag references in `tagIds[]`
+- Tags are optional on expenses and payments — each stores zero or more references in `tagIds[]`
 - Renaming a tag updates one tag record; ID-based expense references need no rewrite. The entry
   picker and expense detail show current tag names/colors. The full expense list and recent Overview
   rows show up to three colored tag chips per expense, with Show more for additional tags. See
   [[tag-management]].
-- Deleting a tag atomically reads its persisted group expenses, removes the tag, and updates only
-  existing expense tag references. It does not recreate deleted records or overwrite newer edits;
-  after commit, that group's expense state is refreshed. See [[tag-management]].
+- Deleting a tag atomically reads persisted group expenses and payments, removes the tag, and updates
+  only existing tag references. It does not recreate deleted records or overwrite newer edits;
+  after commit, both group collections are refreshed. See [[tag-management]].
 - Tags have no `isActive` field; they are either present or deleted
 
 See [[tag-management]] for the full lifecycle.
@@ -199,6 +199,29 @@ See [[expense-model-design]] for why both arrays are stored, and [[balance-calcu
 
 ---
 
+## Payment (`Settlement`)
+
+```ts
+{
+  id: UUID,
+  groupId: UUID,
+  kind: 'payment',
+  fromMemberId: UUID,
+  toMemberId: UUID,
+  recordedBy: UUID,
+  amount: number,        // positive integer hundredths in the group's currency
+  when: number,          // editable unix-ms payment date/time
+  createdAt: number,     // automatic recording time
+  tagIds: UUID[]         // optional same-group tags
+}
+```
+
+The payer and recipient are distinct group members; the recorder is the device owner's member in
+that group. A payment is neither an expense nor a category-spending event. Its amount adjusts group
+net balances, not paid/owed expense transactions. See [[settlement-recording]].
+
+---
+
 ## Related
 
 - [[balance-calculation]] — how net balances are derived from expenses
@@ -206,3 +229,4 @@ See [[expense-model-design]] for why both arrays are stored, and [[balance-calcu
 - [[indexeddb-schema]] — how these models map to IndexedDB tables
 - [[state-management]] — Zustand store shape
 - [[tag-management]] — group tag lifecycle and optional expense references
+- [[settlement-recording]] — group-only payment lifecycle and exclusions

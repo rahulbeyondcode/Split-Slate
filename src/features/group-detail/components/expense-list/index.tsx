@@ -6,6 +6,7 @@ import { Link, useLocation, useOutletContext } from "react-router-dom";
 import ExpenseFilters from "@/features/expenses/components/expense-filters";
 import ExpenseInsights from "@/features/group-detail/components/expense-insights";
 import ExpenseTags from "@/features/group-detail/components/expense-tags";
+import SettlementEntry from "@/features/settlements/components/settlement-entry";
 
 import {
   countActiveExpenseFilters,
@@ -30,7 +31,7 @@ const ExpenseList = () => {
   const ledgerRef = useRef<HTMLElement>(null);
   const titleRef = useRef<HTMLElement>(null);
   const { search } = useLocation();
-  const { group, groupExpenses, groupMembers, groupCategories, groupTags } =
+  const { group, groupExpenses, groupSettlements, groupMembers, groupCategories, groupTags } =
     useOutletContext<GroupDetailContext>();
   const { control } = useFormContext<ExpenseFilterValues>();
   const values = useWatch({ control });
@@ -44,13 +45,56 @@ const ExpenseList = () => {
         groupTags,
       )
     : [];
+  const showPayments =
+    parsed.success && !hasFilters && ["newest", "oldest"].includes(parsed.data.sort);
+  const entries = [
+    ...sorted.map((expense) => ({ type: "expense" as const, when: expense.when, expense })),
+    ...(showPayments
+      ? groupSettlements.map((settlement) => ({
+          type: "payment" as const,
+          when: settlement.when,
+          settlement,
+        }))
+      : []),
+  ].sort((a, b) =>
+    parsed.success && parsed.data.sort === "oldest" ? a.when - b.when : b.when - a.when,
+  );
+  const entryIds = entries
+    .map((entry) => (entry.type === "payment" ? entry.settlement.id : entry.expense.expenseId))
+    .join("|");
+  useLayoutEffect(() => {
+    if (isMobile) return;
+    const list = ledgerRef.current?.querySelector<HTMLElement>(".expense-ledger-list");
+    if (!list) return;
+    const allRows = Array.from(
+      list.querySelectorAll<HTMLElement>("ul[aria-label='Expenses'] > li"),
+    );
+    if (allRows.length <= 10) return;
+    const rows = allRows.slice(0, 10);
+
+    const updateHeight = () => {
+      const height =
+        rows[9].getBoundingClientRect().bottom -
+        list.getBoundingClientRect().top +
+        list.scrollTop +
+        list.clientTop;
+      list.style.setProperty("--expense-ten-rows-height", `${Math.ceil(height)}px`);
+    };
+    const observer = new ResizeObserver(updateHeight);
+    rows.forEach((row) => observer.observe(row));
+    updateHeight();
+    return () => {
+      observer.disconnect();
+      list.style.removeProperty("--expense-ten-rows-height");
+    };
+  }, [entryIds, isMobile]);
   useLayoutEffect(() => {
     const ledger = ledgerRef.current;
     const title = titleRef.current;
     const groupHeader = ledger
       ?.closest(".group-page")
       ?.querySelector<HTMLElement>(".group-page-header");
-    if (!isMobile || !ledger || !title || !groupHeader) return;
+    if (!ledger || !title || !groupHeader) return;
 
     const updateOffsets = () => {
       ledger.style.setProperty("--expense-group-header-height", `${groupHeader.offsetHeight}px`);
@@ -65,21 +109,30 @@ const ExpenseList = () => {
       ledger.style.removeProperty("--expense-group-header-height");
       ledger.style.removeProperty("--expense-title-height");
     };
-  }, [isMobile]);
+  }, []);
 
   return (
     <section ref={ledgerRef} className="expense-ledger flex flex-col gap-4">
       <header ref={titleRef} className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="section-title">All expenses</h2>
-          <p className="soft-caption mt-1">Search and filter your complete expense history.</p>
+          <h2 className="section-title">Expenses and payments</h2>
+          <p className="soft-caption mt-1">
+            Payments are green; they change balances, not spending totals.
+          </p>
         </div>
-        <Link
-          to={`/groups/${group.id}/expenses/new${search}`}
-          className="btn btn-primary max-sm:!hidden"
-        >
-          <Icon icon={Plus} size={18} /> Add expense
-        </Link>
+        <div className="flex flex-wrap gap-2 justify-end">
+          {groupMembers.length > 1 && (
+            <Link to={`/groups/${group.id}/balances?record=1`} className="btn btn-secondary">
+              <Icon icon={Plus} size={18} /> Add payment
+            </Link>
+          )}
+          <Link
+            to={`/groups/${group.id}/expenses/new${search}`}
+            className="btn btn-primary max-sm:!hidden"
+          >
+            <Icon icon={Plus} size={18} /> Add expense
+          </Link>
+        </div>
       </header>
       {parsed.success && (
         <ExpenseInsights
@@ -91,14 +144,20 @@ const ExpenseList = () => {
         />
       )}
       <ExpenseFilters />
+      {parsed.success && !showPayments && groupSettlements.length > 0 && (
+        <p className="soft-caption">
+          Payments are hidden while expense filters or non-date sorting are active. Clear them to
+          see payments in the timeline, or open Balances.
+        </p>
+      )}
       {(!isMobile || hasFilters || !parsed.success) && (
         <span role="status" className="soft-caption">
           {parsed.success
-            ? `${sorted.length} of ${groupExpenses.length} expenses`
+            ? `${sorted.length} of ${groupExpenses.length} expenses${showPayments ? ` · ${groupSettlements.length} payments` : ""}`
             : "Correct the highlighted filters to see results."}
         </span>
       )}
-      {!parsed.success ? null : groupExpenses.length === 0 ? (
+      {!parsed.success ? null : groupExpenses.length === 0 && entries.length === 0 ? (
         <EmptyState
           icon={ReceiptText}
           title="No expenses yet"
@@ -109,7 +168,7 @@ const ExpenseList = () => {
             </Link>
           }
         />
-      ) : sorted.length === 0 ? (
+      ) : entries.length === 0 ? (
         <EmptyState
           icon={SearchX}
           title="Nothing matches"
@@ -118,7 +177,20 @@ const ExpenseList = () => {
       ) : (
         <Surface className="expense-ledger-list px-5">
           <ul aria-label="Expenses">
-            {sorted.map((expense) => {
+            {entries.map((entry) => {
+              if (entry.type === "payment")
+                return (
+                  <li key={entry.settlement.id}>
+                    <SettlementEntry
+                      settlement={entry.settlement}
+                      members={groupMembers}
+                      tags={groupTags}
+                      currency={group.currency}
+                      to={`/groups/${group.id}/balances`}
+                    />
+                  </li>
+                );
+              const expense = entry.expense;
               const category = groupCategories.find((item) => item.id === expense.categoryId);
               const payers = expense.transactions.paid.map(
                 (payer) =>

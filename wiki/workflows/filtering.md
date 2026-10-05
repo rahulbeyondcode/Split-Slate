@@ -76,13 +76,16 @@ misleading total. Multi-payer contributions use stored integer hundredths; a mis
 reference produces an error rather than silently omitting transactions. See [[balance-calculation]]
 and [[main-screen]].
 
-On desktop/tablet, Expenses fits the available viewport and the results list scrolls separately.
-On mobile, the entire expense page scrolls through the final row in the main pane; the group header
-and ledger title/subtitle stay visible, then the search/sort/filter toolbar sticks beneath them
-after the insights banner scrolls past. Search fills its own row, with equal-width Sort and Filters
-buttons below. Sort and Filters popovers remain portaled outside the ledger, anchor below the entire
-mobile toolbar (leaving Clear all filters accessible), track their anchors while the pane scrolls,
-and scroll independently within the viewport. Desktop popover anchors remain unchanged.
+On desktop/tablet, the main pane scrolls like mobile so insights scroll away while the group header,
+ledger title/subtitle, and search/sort/filter toolbar remain sticky. Those sticky surfaces and the
+spacing around the filter toolbar are painted with the solid page background so scrolling rows do
+not show through. The ledger independently scrolls after ten rendered expense/payment entries,
+using their measured heights; shorter filtered lists do
+not get a fixed-height empty area. On mobile, the entire expense page scrolls through the final row
+in the main pane with no inner ledger scroll. Search fills its own row, with equal-width Sort and
+Filters buttons below. Sort and Filters popovers remain portaled outside the ledger, anchor below the
+entire mobile toolbar (leaving Clear all filters accessible), track their anchors while the pane
+scrolls, and scroll independently within the viewport. Desktop popover anchors remain unchanged.
 
 ## Sorting
 

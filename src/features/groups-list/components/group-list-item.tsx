@@ -12,14 +12,20 @@ interface PropsType {
 
 const GroupListItem = ({ groupId }: PropsType) => {
   const { groupId: currentId } = useParams();
-  const { groups, members, expenses, localUser } = useStore();
+  const { groups, members, expenses, settlements, localUser } = useStore();
   const group = groups.find((item) => item.id === groupId);
   if (!group) return null;
   const entries = expenses.filter((expense) => expense.groupId === groupId);
   const person = members.find(
     (member) => member.groupId === groupId && member.personId === localUser?.id,
   );
-  const amount = person ? calculateMemberNet(entries, person.id) : 0;
+  const amount = person
+    ? calculateMemberNet(
+        entries,
+        person.id,
+        settlements.filter((item) => item.groupId === groupId),
+      )
+    : 0;
   return (
     <Link
       to={`/groups/${groupId}`}

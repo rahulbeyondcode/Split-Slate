@@ -24,6 +24,7 @@ const PeopleList = () => {
     groups,
     members,
     expenses,
+    settlements,
     addPerson,
     updatePerson,
     removePerson,
@@ -48,7 +49,16 @@ const PeopleList = () => {
               expense.transactions.paid.some((row) => row.memberId === member.id) ||
               expense.transactions.owes.some((row) => row.memberId === member.id)),
         ).length;
-        return group && count ? [{ group, memberId: member.id, count }] : [];
+        const paymentCount = settlements.filter(
+          (settlement) =>
+            settlement.groupId === member.groupId &&
+            [settlement.fromMemberId, settlement.toMemberId, settlement.recordedBy].includes(
+              member.id,
+            ),
+        ).length;
+        return group && (count || paymentCount)
+          ? [{ group, memberId: member.id, count, paymentCount }]
+          : [];
       })
       .sort((a, b) => a.group.name.localeCompare(b.group.name));
   const handleAdd = async (values: PersonEditorValues) => {
@@ -133,12 +143,16 @@ const PeopleList = () => {
               const linked = members.filter((member) => member.personId === person.id);
               const groupIds = new Set(linked.map((member) => member.groupId));
               const blockingGroups = blockingGroupsFor(person.id);
-              const count = blockingGroups.reduce((total, item) => total + item.count, 0);
+              const count = blockingGroups.reduce(
+                (total, item) => total + item.count + item.paymentCount,
+                0,
+              );
               const balances = linked.map((member) => ({
                 group: groups.find((group) => group.id === member.groupId),
                 net: calculateMemberNet(
                   expenses.filter((expense) => expense.groupId === member.groupId),
                   member.id,
+                  settlements.filter((settlement) => settlement.groupId === member.groupId),
                 ),
               }));
               return (
@@ -157,7 +171,7 @@ const PeopleList = () => {
                         <p className="font-bold">{person.name}</p>
                         <p className="soft-caption">
                           {groupIds.size
-                            ? `${groupIds.size} ${groupIds.size === 1 ? "group" : "groups"} · ${count} expenses`
+                            ? `${groupIds.size} ${groupIds.size === 1 ? "group" : "groups"} · ${count} records`
                             : "not in any group yet"}
                         </p>
                       </div>
@@ -203,7 +217,8 @@ const PeopleList = () => {
                         </button>
                         {count > 0 && (
                           <span id={`blocked-contact-${person.id}`} className="sr-only">
-                            Cannot delete while this contact is in an expense. Select to learn why.
+                            Cannot delete while this contact is in an expense or payment. Select to
+                            learn why.
                           </span>
                         )}
                       </div>
@@ -243,25 +258,42 @@ const PeopleList = () => {
           Cannot delete {blockedPerson?.name ?? "this contact"}
         </h2>
         <p id="blocked-contact-description" className="mt-3 text-sm leading-relaxed">
-          {blockedPerson?.name ?? "This contact"} is referenced as a creator, payer, or split
-          participant in expenses across the groups below. Edit those references or delete the
-          expenses before removing this contact. An expense they created must be deleted, since its
-          creator cannot be reassigned.
+          {blockedPerson?.name ?? "This contact"} is referenced in expenses or recorded payments
+          across the groups below. Edit those references or delete the records before removing this
+          contact. An expense they created must be deleted, since its creator cannot be reassigned.
         </p>
         <div className="mt-4 flex flex-col gap-2">
-          {blockedGroups.map(({ group, memberId, count }) => (
-            <Link
-              key={memberId}
-              to={`/groups/${group.id}/expenses?${new URLSearchParams({ memberIds: memberId })}`}
-              className="btn btn-secondary justify-between !rounded-xl"
-            >
-              <span className="min-w-0 truncate">
-                <EmojiImage icon={group.icon} /> {group.name}
-              </span>
-              <span className="shrink-0">
-                {count} {count === 1 ? "expense" : "expenses"} <Icon icon={ArrowRight} size={16} />
-              </span>
-            </Link>
+          {blockedGroups.map(({ group, memberId, count, paymentCount }) => (
+            <div key={memberId} className="flex flex-col gap-2">
+              {count > 0 && (
+                <Link
+                  to={`/groups/${group.id}/expenses?${new URLSearchParams({ memberIds: memberId })}`}
+                  className="btn btn-secondary justify-between !rounded-xl"
+                >
+                  <span className="min-w-0 truncate">
+                    <EmojiImage icon={group.icon} /> {group.name}
+                  </span>
+                  <span className="shrink-0">
+                    {count} {count === 1 ? "expense" : "expenses"}{" "}
+                    <Icon icon={ArrowRight} size={16} />
+                  </span>
+                </Link>
+              )}
+              {paymentCount > 0 && (
+                <Link
+                  to={`/groups/${group.id}/balances`}
+                  className="btn btn-secondary justify-between !rounded-xl"
+                >
+                  <span className="min-w-0 truncate">
+                    <EmojiImage icon={group.icon} /> {group.name}
+                  </span>
+                  <span className="shrink-0">
+                    {paymentCount} {paymentCount === 1 ? "payment" : "payments"}{" "}
+                    <Icon icon={ArrowRight} size={16} />
+                  </span>
+                </Link>
+              )}
+            </div>
           ))}
         </div>
         <div className="mt-5 flex justify-end">

@@ -64,6 +64,25 @@ describe("addMember", () => {
 });
 
 describe("removePerson", () => {
+  it("does not delete a contact referenced only by a recorded payment", async () => {
+    const friend = await useStore.getState().addMember("g", "friend");
+    await db.settlements.add({
+      id: "payment",
+      groupId: "g",
+      kind: "payment",
+      fromMemberId: friend.id,
+      toMemberId: "a",
+      recordedBy: "a",
+      amount: 100,
+      when: 1,
+      createdAt: 1,
+      tagIds: [],
+    });
+    await useStore.getState().init();
+    await expect(useStore.getState().removeMember(friend.id)).rejects.toThrow("payments");
+    await expect(useStore.getState().removePerson("friend")).rejects.toThrow("payments");
+    expect(await db.people.get("friend")).toBeDefined();
+  });
   it("protects persisted self identity even when client identity and memberships are missing", async () => {
     useStore.setState({ localUser: null, members: [] });
     const before = await db.people.get("self");

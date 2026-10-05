@@ -9,22 +9,22 @@ metadata:
 
 Purpose: document member management, persisted membership guards, and remaining recovery limits.
 
-Last updated: 2026-10-04
+Last updated: 2026-10-05
 
 A member is a link from a group to a person in the global directory. See [[global-people-directory]] and [[people-directory]].
 
 ## Implementation Status
 
 The store implements `addMember` and guarded `removeMember` actions. It blocks removal when the
-member appears in an expense and removes a successfully deleted member ID from
-`frequentPayerIds`. The people-directory store also blocks deleting a person with expense
+member appears in an expense or recorded payment and removes a successfully deleted member ID from
+`frequentPayerIds`. The people-directory store also blocks deleting a person with expense/payment
 involvement and otherwise cleans up that person's member links and payer references.
 
 The group Members route supports adding existing or new people, editing the linked person's
-name/icon, and confirmed removal. A member with expense references has a greyed-out but clickable
-Delete button that opens an explanation and links to the expense list prefiltered by that member's
-ID. The filter covers creator, paid, and owed references, so it includes every removal blocker.
-Expense editing and deletion are available through detail.
+name/icon, and confirmed removal. A member with expense or payment references has a greyed-out but
+clickable Delete button that explains both counts. Expense blockers link to the list prefiltered by
+that member's ID; payment blockers link to recorded payments on Balances. Expense editing and
+deletion are available through detail. See [[settlement-recording]].
 On mobile, each member row gives the avatar and one-line name the full first row; long names are
 truncated with a `data-tooltip` revealing the full name on hover or focus/tap. Edit and Delete sit
 in a second row, filling the width available after the avatar offset with compact rounded corners.
@@ -39,10 +39,10 @@ create duplicate memberships even when client state is stale. `removeMember` rej
 members and protects the local user's member link. `removePerson` separately checks persisted
 LocalUser identity before deletion, even if hydrated identity is missing.
 
-Expense-involvement removal guards still use hydrated state. `removeMember` deletes its link and
-then updates the group's frequent-payer references sequentially; `removePerson` deletes its person
-and member links and updates affected groups sequentially. These deletion actions are not atomic
-multi-record transactions; successful earlier writes can remain if a later write fails.
+Expense involvement is checked from hydrated state; payment references are rechecked against
+persisted rows within the removal transaction. `removeMember` deletes its link and updates payer
+references in one transaction; `removePerson` deletes the person and member links and updates
+affected groups in one transaction. Failed transactions leave those records unchanged.
 
 ## Adding Members
 
@@ -71,24 +71,25 @@ Because a person is shared across groups, removal has two distinct meanings:
 
 ### Remove from one group
 
-Deletes only the member link for that group; the person stays in the directory. Allowed only if the person has **no involvement in any expense in that group** — i.e. they do not appear in `createdBy`, `paid[]`, or `owes[]` of any expense in the group. An eligible removal requires confirmation that explicitly states the person remains in the friends directory. The device owner cannot be removed from a group they created.
+Deletes only the member link for that group; the person stays in the directory. Allowed only if the person has **no involvement in expenses or recorded payments in that group** — neither an expense creator/payer/participant nor a payment payer/recipient/recorder. An eligible removal requires confirmation that states the person remains in the directory. The device owner cannot be removed from their group.
 
 ### Delete from the directory
 
-Removes the person everywhere. Allowed only if the person is referenced by **no expense in any group**. On delete, all their member links and any `frequentPayerIds` references are pruned. See [[global-people-directory]].
-Blocked directory deletion offers one member-filtered expense link per affected group, since a person
-has a different member ID in each group. See [[people-directory]].
+Removes the person everywhere. Allowed only if their group memberships are referenced by **no
+expense or payment in any group**. On delete, all their member links and `frequentPayerIds`
+references are pruned. Blocked directory deletion offers expense links and each affected group's
+Balances route for payment records. See [[global-people-directory]] and [[people-directory]].
 
-If they appear in one or more expenses, the relevant removal is blocked.
+If they appear in expenses or payments, the relevant removal is blocked.
 Both removal scopes protect the device owner. The directory guard reads persisted LocalUser before
 any deletion, rather than relying only on hidden UI controls or hydrated identity.
 
 ### Blocked-Removal Recovery
 
-1. The app blocks removal and explains expense involvement in a popup. Its link opens the list with
-   the member-involved URL filter applied.
-2. Edit their paid-by and split references or delete the expenses with confirmation.
-3. Once no expense references the member, removal becomes available.
+1. The app blocks removal and explains expense/payment involvement. The expense link applies a
+   member-involved URL filter; the payment link opens Balances.
+2. Edit expense paid-by/split references or payment participants, or delete records with confirmation.
+3. Once neither type references the member, removal becomes available.
 
 Editing preserves `createdBy`; creator references cannot be reassigned. An expense whose creator
 must be removed must itself be deleted. The filter link also includes creator-only references.

@@ -136,7 +136,7 @@ test("explains blocked removal and links to every expense referencing the member
   await blockedDelete.click();
   const explanation = page.getByRole("dialog", { name: "Cannot remove Bea" });
   await expect(explanation).toBeVisible();
-  await expect(explanation).toContainText("3 group expenses");
+  await expect(explanation).toContainText("3 expenses and 0 payments");
   await explanation.getByRole("link", { name: "View Bea's expenses" }).click();
   await expect(page).toHaveURL(/\/groups\/trip\/expenses\?memberIds=b$/u);
   await expect(page.getByRole("status")).toHaveText("3 of 4 expenses");

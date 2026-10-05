@@ -22,7 +22,11 @@ import {
 } from "@/features/import-export/tests/fixtures/transfer-fixture";
 
 const backupSource = (): FullBackupSource => {
-  const group = createExportSource({ withAttachments: true, expenseCount: 2 });
+  const group = createExportSource({
+    withAttachments: true,
+    withSettlements: true,
+    expenseCount: 2,
+  });
   return {
     activityEvents: [],
     localUser: [{ ...group.people[0] }],
@@ -32,6 +36,7 @@ const backupSource = (): FullBackupSource => {
     categories: group.categories,
     tags: group.tags,
     expenses: group.expenses,
+    settlements: group.settlements,
     attachments: group.attachmentFiles,
     settings: [
       { id: "onboarding", complete: true, lastCompletedStep: "members", groupId: group.group.id },
@@ -50,6 +55,7 @@ describe("whole-app backup ZIP", () => {
     expect(restored.data.groups).toEqual(source.groups);
     expect(restored.data.people).toEqual(source.people);
     expect(restored.data.expenses).toEqual(source.expenses);
+    expect(restored.data.settlements).toEqual(source.settlements);
     expect(restored.data.settings).toEqual(source.settings);
     expect(await Promise.all(restored.attachments.map((file) => file.blob.text()))).toEqual([
       "receipt 1",
@@ -130,6 +136,7 @@ describe("whole-app backup ZIP", () => {
       categories: [],
       tags: [],
       expenses: [],
+      settlements: [],
       attachments: [],
       settings: source.settings.map((row) =>
         row.id === "onboarding" ? { ...row, groupId: null } : row,

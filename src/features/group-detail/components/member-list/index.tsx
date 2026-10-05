@@ -24,7 +24,8 @@ type MemberMode = { type: "add" } | { type: "edit"; memberId: string } | null;
 
 const MemberList = () => {
   const { isMobile } = useViewport();
-  const { group, groupMembers, groupExpenses } = useOutletContext<GroupDetailContext>();
+  const { group, groupMembers, groupExpenses, groupSettlements } =
+    useOutletContext<GroupDetailContext>();
   const { localUser, people, addMember, addPerson, updatePerson, removeMember, setLocalUser } =
     useStore();
   const [mode, setMode] = useState<MemberMode>(null);
@@ -122,12 +123,21 @@ const MemberList = () => {
         expense.transactions.paid.some((transaction) => transaction.memberId === memberId) ||
         expense.transactions.owes.some((transaction) => transaction.memberId === memberId),
     ).length;
+  const memberPaymentCount = (memberId: string) =>
+    groupSettlements.filter(
+      (payment) =>
+        payment.fromMemberId === memberId ||
+        payment.toMemberId === memberId ||
+        payment.recordedBy === memberId,
+    ).length;
+  const memberRecordCount = (memberId: string) =>
+    memberExpenseCount(memberId) + memberPaymentCount(memberId);
   const blockedMember = groupMembers.find((member) => member.id === blockedMemberId);
   const confirmMember = groupMembers.find((member) => member.id === confirmMemberId);
 
   const handleDeleteMember = (member: GroupMemberWithPerson) => {
     setMemberError(null);
-    if (memberExpenseCount(member.id)) {
+    if (memberRecordCount(member.id)) {
       setBlockedMemberId(member.id);
       blockedDialogRef.current?.showModal();
       return;
@@ -279,9 +289,10 @@ const MemberList = () => {
               </button>
               {member.personId !== localUser?.id && (
                 <>
-                  {memberExpenseCount(member.id) > 0 && (
+                  {memberRecordCount(member.id) > 0 && (
                     <span id={`blocked-member-${member.id}`} className="sr-only">
-                      Cannot remove while this member is in an expense. Select to learn why.
+                      Cannot remove while this member is in an expense or payment. Select to learn
+                      why.
                     </span>
                   )}
                   <button
@@ -289,10 +300,10 @@ const MemberList = () => {
                     onClick={() => handleDeleteMember(member)}
                     disabled={isAddingMember}
                     aria-describedby={
-                      memberExpenseCount(member.id) ? `blocked-member-${member.id}` : undefined
+                      memberRecordCount(member.id) ? `blocked-member-${member.id}` : undefined
                     }
                     aria-label={`Delete ${member.person?.name ?? "member"}`}
-                    className={`btn ${memberExpenseCount(member.id) ? "btn-blocked" : "btn-danger"}`}
+                    className={`btn ${memberRecordCount(member.id) ? "btn-blocked" : "btn-danger"}`}
                   >
                     <Icon icon={Trash2} size={17} /> Delete
                   </button>
@@ -314,11 +325,12 @@ const MemberList = () => {
         </h2>
         <p id="blocked-member-description" className="mt-3 text-sm leading-relaxed">
           {blockedMember?.person?.name ?? "This member"} is referenced by{" "}
-          {blockedMember ? memberExpenseCount(blockedMember.id) : 0} group{" "}
-          {blockedMember && memberExpenseCount(blockedMember.id) === 1 ? "expense" : "expenses"} as
-          a creator, payer, or split participant. Edit those references or delete the expenses
-          before removing this member. An expense they created must be deleted, since its creator
-          cannot be reassigned.
+          {blockedMember ? memberExpenseCount(blockedMember.id) : 0}{" "}
+          {blockedMember && memberExpenseCount(blockedMember.id) === 1 ? "expense" : "expenses"} and{" "}
+          {blockedMember ? memberPaymentCount(blockedMember.id) : 0}{" "}
+          {blockedMember && memberPaymentCount(blockedMember.id) === 1 ? "payment" : "payments"}.
+          Edit or delete those records before removing this member. An expense they created must be
+          deleted, since its creator cannot be reassigned.
         </p>
         <div className="mt-5 flex flex-wrap justify-end gap-2">
           <button
@@ -329,12 +341,17 @@ const MemberList = () => {
           >
             Close
           </button>
-          {blockedMember && (
+          {blockedMember && memberExpenseCount(blockedMember.id) > 0 && (
             <Link
               to={`/groups/${group.id}/expenses?${new URLSearchParams({ memberIds: blockedMember.id })}`}
               className="btn btn-primary"
             >
               View {blockedMember.person?.name ?? "member"}'s expenses
+            </Link>
+          )}
+          {blockedMember && memberPaymentCount(blockedMember.id) > 0 && (
+            <Link to={`/groups/${group.id}/balances`} className="btn btn-primary">
+              View recorded payments
             </Link>
           )}
         </div>

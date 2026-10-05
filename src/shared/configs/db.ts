@@ -10,6 +10,7 @@ import type {
   Member,
   Person,
   SettingsRecord,
+  Settlement,
   Tag,
 } from "@/shared/types/domain.types";
 
@@ -22,6 +23,7 @@ class SplitSlateDatabase extends Dexie {
   categories!: EntityTable<Category, "id">;
   tags!: EntityTable<Tag, "id">;
   expenses!: EntityTable<Expense, "expenseId">;
+  settlements!: EntityTable<Settlement, "id">;
   attachments!: EntityTable<Attachment, "id">;
   settings!: EntityTable<SettingsRecord, "id">;
 
@@ -39,6 +41,7 @@ class SplitSlateDatabase extends Dexie {
       settings: "id",
     });
     this.version(2).stores({ activityEvents: "id, groupId, [kind+subjectId], createdAt" });
+    this.version(3).stores({ settlements: "id, groupId" });
   }
 }
 

@@ -136,7 +136,10 @@ test("opens Analytics from the mobile dashboard chart and returns via Back", asy
   await expect(chart.getByText("All groups · ever")).toBeVisible();
   await chart.getByRole("link", { name: "View all" }).click();
   await expect(page).toHaveURL(/\/analytics$/u);
-  await page.getByRole("link", { name: "Back to dashboard" }).click();
+  const dashboardBack = page.getByRole("link", { name: "Back to dashboard" });
+  await expect(dashboardBack).toHaveCSS("border-style", "none");
+  await expect(dashboardBack).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  await dashboardBack.click();
   await expect(page).toHaveURL(/\/dashboard$/u);
 
   await chart.getByRole("link", { name: "Spending by category" }).click();

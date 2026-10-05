@@ -80,7 +80,7 @@ test("shows three tags on overview and ledger until expanded", async ({ page }) 
   await page.getByRole("button", { name: "Show less tags for Lunch" }).click();
   await expect(overviewTags.getByRole("listitem")).toHaveCount(3);
 
-  await page.getByRole("link", { name: "View all expenses" }).click();
+  await page.locator(".recent-activity-card").getByRole("link", { name: "View all (1)" }).click();
   const ledgerTags = page.getByRole("list", { name: "Tags for Lunch" });
   await expect(ledgerTags.getByRole("listitem")).toHaveCount(3);
   await expect(page.getByRole("button", { name: "Clear all filters" })).toHaveCount(0);

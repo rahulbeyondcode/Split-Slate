@@ -2,9 +2,9 @@ import { ArrowRight, Plus, ReceiptText } from "lucide-react";
 import { Link, useOutletContext } from "react-router-dom";
 
 import ExpenseTags from "@/features/group-detail/components/expense-tags";
+import SettlementEntry from "@/features/settlements/components/settlement-entry";
 
 import { overviewMembers } from "@/features/group-detail/utils/overview-members";
-import { useViewport } from "@/shared/hooks/use-viewport";
 import { calculateBalances, suggestTransfers } from "@/shared/utils/balances";
 import { categorySpending } from "@/shared/utils/category-spending";
 import { formatCurrency } from "@/shared/utils/currency";
@@ -18,23 +18,30 @@ import Icon from "@/shared/ui/icon";
 import Surface from "@/shared/ui/surface";
 
 const GroupOverview = () => {
-  const { isMobile } = useViewport();
-  const { group, groupMembers, groupCategories, groupExpenses, groupTags } =
+  const { group, groupMembers, groupCategories, groupExpenses, groupSettlements, groupTags } =
     useOutletContext<GroupDetailContext>();
-  const recent = groupExpenses
-    .slice()
+  const recent = [
+    ...groupExpenses.map((expense) => ({ type: "expense" as const, when: expense.when, expense })),
+    ...groupSettlements.map((settlement) => ({
+      type: "payment" as const,
+      when: settlement.when,
+      settlement,
+    })),
+  ]
     .sort((a, b) => b.when - a.when)
     .slice(0, 5);
   const categories = categorySpending(groupExpenses, groupCategories).slice(0, 6);
   const maxCategory = categories[0]?.amount || 1;
   const featuredMembers = overviewMembers(groupMembers, groupExpenses);
-  const showMemberDetails = !isMobile || featuredMembers.length < groupMembers.length;
   const transfers = suggestTransfers(
     calculateBalances(
       groupExpenses,
       groupMembers.map((member) => member.id),
+      groupSettlements,
     ),
   );
+  const memberName = (id: string) =>
+    groupMembers.find((member) => member.id === id)?.person?.name ?? "Unknown";
   return (
     <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between gap-2">
@@ -45,21 +52,9 @@ const GroupOverview = () => {
           </Link>
         )}
       </div>
-      <div className="responsive-grid">
-        <Surface className="surface-pad">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <h2 className="section-title">
-              Members{showMemberDetails ? ` (${groupMembers.length})` : ""}
-            </h2>
-            {showMemberDetails && (
-              <Link
-                to={`/groups/${group.id}/members`}
-                className="text-sm font-bold text-[var(--brand-ink)]"
-              >
-                View all members <Icon icon={ArrowRight} size={16} />
-              </Link>
-            )}
-          </div>
+      <div className="responsive-grid overview-summary-grid">
+        <Surface className="surface-pad overview-action-card">
+          <h2 className="section-title mb-4">Members</h2>
           <div className="flex flex-wrap gap-2">
             {featuredMembers.map((member) => (
               <Link key={member.id} to={`/groups/${group.id}/members`} className="chip">
@@ -72,33 +67,68 @@ const GroupOverview = () => {
               </Link>
             ))}
           </div>
+          <div className="overview-card-cta-wrap">
+            <Link to={`/groups/${group.id}/members`} className="overview-card-cta">
+              <span>Manage Members ({groupMembers.length})</span>
+              <Icon icon={ArrowRight} size={16} />
+            </Link>
+          </div>
         </Surface>
-        <Surface className="surface-pad">
+        <Surface className="surface-pad overview-action-card">
           <h2 className="section-title">Suggested transfers</h2>
-          <p className="soft-caption mt-1">These suggestions do not record payments.</p>
-          <p className="mt-4 font-bold">
-            {transfers.length
-              ? `${transfers.length} ${transfers.length === 1 ? "transfer" : "transfers"} to settle`
-              : "All square!"}
-          </p>
-          <Link to={`/groups/${group.id}/balances`} className="btn btn-secondary mt-4">
-            View all balances <Icon icon={ArrowRight} size={16} />
-          </Link>
+          {transfers.length ? (
+            <ul className="overview-transfer-list mt-4">
+              {transfers.slice(0, 3).map((transfer) => (
+                <li
+                  key={`${transfer.fromMemberId}-${transfer.toMemberId}`}
+                  className="overview-transfer-row"
+                >
+                  <span className="overview-transfer-people">
+                    <span>{memberName(transfer.fromMemberId)}</span>
+                    <Icon icon={ArrowRight} size={14} />
+                    <span>{memberName(transfer.toMemberId)}</span>
+                  </span>
+                  <strong className="money">
+                    {formatCurrency(transfer.amount, group.currency)}
+                  </strong>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-4 font-bold">All square!</p>
+          )}
+          <div className="overview-card-cta-wrap">
+            <Link to={`/groups/${group.id}/balances`} className="overview-card-cta">
+              <span>View all balances ({transfers.length})</span>
+              <Icon icon={ArrowRight} size={16} />
+            </Link>
+          </div>
         </Surface>
       </div>
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="section-title">Recent expenses ({groupExpenses.length})</h2>
-        <Link
-          to={`/groups/${group.id}/expenses`}
-          className="text-sm font-bold text-[var(--brand-ink)]"
-        >
-          View all expenses <Icon icon={ArrowRight} size={16} />
-        </Link>
-      </div>
-      {recent.length ? (
-        <Surface className="px-5">
+      <Surface className="recent-activity-card px-5">
+        <div className="recent-activity-header flex flex-wrap items-center justify-between gap-3">
+          <h2 className="section-title">Recent transactions</h2>
+          <Link to={`/groups/${group.id}/expenses`} className="btn btn-secondary !px-3 shrink-0">
+            View all ({groupExpenses.length + groupSettlements.length})
+            <Icon icon={ArrowRight} size={16} />
+          </Link>
+        </div>
+        {recent.length ? (
           <ul>
-            {recent.map((expense) => {
+            {recent.map((entry) => {
+              if (entry.type === "payment")
+                return (
+                  <li key={entry.settlement.id}>
+                    <SettlementEntry
+                      settlement={entry.settlement}
+                      members={groupMembers}
+                      tags={groupTags}
+                      currency={group.currency}
+                      to={`/groups/${group.id}/balances`}
+                    />
+                  </li>
+                );
+              const expense = entry.expense;
               const category = groupCategories.find((item) => item.id === expense.categoryId);
               return (
                 <li
@@ -135,19 +165,19 @@ const GroupOverview = () => {
               );
             })}
           </ul>
-        </Surface>
-      ) : (
-        <EmptyState
-          icon={ReceiptText}
-          title="No expenses yet"
-          description="The slate is clean. Add the first expense and the math begins."
-          action={
-            <Link to={`/groups/${group.id}/expenses/new`} className="btn btn-primary">
-              <Icon icon={Plus} size={18} /> Add expense
-            </Link>
-          }
-        />
-      )}
+        ) : (
+          <EmptyState
+            icon={ReceiptText}
+            title="No expenses yet"
+            description="The slate is clean. Add the first expense and the math begins."
+            action={
+              <Link to={`/groups/${group.id}/expenses/new`} className="btn btn-primary">
+                <Icon icon={Plus} size={18} /> Add expense
+              </Link>
+            }
+          />
+        )}
+      </Surface>
       <section aria-label="Group spending by category">
         <Surface className="surface-pad">
           <div className="flex items-start justify-between gap-3">

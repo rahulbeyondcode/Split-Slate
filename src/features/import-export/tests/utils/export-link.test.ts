@@ -9,6 +9,12 @@ import {
   encodeTransferPayload,
   TransferLinkTooLargeError,
 } from "@/features/import-export/utils/export-link";
+import {
+  canonicalTransferJson,
+  digestBytes,
+} from "@/features/import-export/utils/transfer-integrity";
+
+import type { PortableGroup } from "@/features/import-export/types/import-export.types";
 
 import {
   createExportSource,
@@ -22,6 +28,57 @@ const incompressibleText = (byteLength: number): string => {
 };
 
 describe("transfer links", () => {
+  it("imports signed version-1 links without inventing payments", async () => {
+    const { bundle } = await buildGroupTransfer(createExportSource(), {
+      ...GROUP_ONLY_SELECTION,
+      expenses: true,
+    });
+    const { settlements: unused, ...legacyData } = bundle;
+    void unused;
+    const { settlements: sourcePayments, ...sourceCounts } = bundle.manifest.sourceCounts;
+    const { settlements: includedPayments, ...includedCounts } = bundle.manifest.includedCounts;
+    void sourcePayments;
+    void includedPayments;
+    const legacy = {
+      ...legacyData,
+      schemaVersion: 1,
+      manifest: {
+        ...bundle.manifest,
+        sourceCounts,
+        includedCounts,
+      },
+    };
+    const unsigned = {
+      ...legacy,
+      manifest: {
+        selection: legacy.manifest.selection,
+        sourceCounts,
+        includedCounts,
+      },
+    };
+    const digest = await digestBytes(
+      new TextEncoder().encode(canonicalTransferJson(unsigned as PortableGroup)),
+    );
+    const encoded = btoa(
+      String.fromCharCode(
+        ...zlibSync(
+          strToU8(
+            JSON.stringify({
+              ...legacy,
+              manifest: { ...legacy.manifest, integrity: { algorithm: "SHA-256", digest } },
+            }),
+          ),
+        ),
+      ),
+    )
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/u, "");
+    const restored = await decodeTransferPayload(`#v1.${encoded}`);
+    expect(restored.settlements).toEqual([]);
+    expect(restored.schemaVersion).toBe(2);
+    expect(restored.expenses).toEqual(bundle.expenses);
+  });
   it("round-trips validated Unicode data through an import URL", async () => {
     const value = await createTransfer();
     value.bundle.group.name = "गोवा 🏖️ Trip";
@@ -30,17 +87,17 @@ describe("transfer links", () => {
       value.bundle.manifest.selection,
     );
     const payload = await encodeTransferPayload(resealed.bundle);
-    expect(payload).toMatch(/^v1\.[A-Za-z0-9_-]+$/u);
+    expect(payload).toMatch(/^v2\.[A-Za-z0-9_-]+$/u);
     await expect(decodeTransferPayload(`#${payload}`)).resolves.toEqual(
       await compactLinkIds(resealed.bundle),
     );
     await expect(createTransferLink(resealed.bundle, "https://example.com/app/")).resolves.toMatch(
-      /^https:\/\/example\.com\/app\/import#v1\./u,
+      /^https:\/\/example\.com\/app\/import#v2\./u,
     );
   });
 
   it("rejects malformed, unsupported, oversized, and integrity-invalid payloads", async () => {
-    await expect(decodeTransferPayload("#v2.abc")).rejects.toThrow("Unsupported");
+    await expect(decodeTransferPayload("#v3.abc")).rejects.toThrow("Unsupported");
     await expect(decodeTransferPayload("#v1.not+base64url")).rejects.toThrow(
       "could not be decoded",
     );

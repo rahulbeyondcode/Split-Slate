@@ -30,6 +30,7 @@ const seedSource = async (source: GroupExportSource) => {
   await db.categories.bulkAdd(source.categories);
   if (source.tags.length) await db.tags.bulkAdd(source.tags);
   if (source.expenses.length) await db.expenses.bulkAdd(source.expenses);
+  if (source.settlements.length) await db.settlements.bulkAdd(source.settlements);
   if (source.attachmentFiles.length) await db.attachments.bulkAdd(source.attachmentFiles);
 };
 
@@ -86,6 +87,28 @@ describe("readGroupExportSource", () => {
 });
 
 describe("importGroupTransfer", () => {
+  it("imports payments with fresh IDs, remapped members, and optional tags", async () => {
+    const source = createExportSource({ withSettlements: true });
+    const bundle = (
+      await buildGroupTransfer(source, {
+        categories: true,
+        tags: true,
+        members: true,
+        expenses: true,
+        attachments: false,
+      })
+    ).bundle;
+    const result = await importGroupTransfer({
+      source: { bundle, attachmentFiles: [] },
+      identity: { type: "member", memberId: bundle.members[0].id },
+    });
+    const [payment] = await db.settlements.where("groupId").equals(result.group.id).toArray();
+    expect(payment.id).not.toBe(source.settlements[0].id);
+    expect(payment.amount).toBe(source.settlements[0].amount);
+    expect(payment.fromMemberId).not.toBe(source.settlements[0].fromMemberId);
+    expect(payment.tagIds).toHaveLength(1);
+    expect((await db.tags.get(payment.tagIds[0]))?.groupId).toBe(result.group.id);
+  });
   it("imports a compact link with original Person IDs and fresh group-owned IDs", async () => {
     const { bundle } = await buildGroupTransfer(createExportSource(), {
       categories: true,

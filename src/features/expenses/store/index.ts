@@ -1,5 +1,6 @@
 import { writeActivity } from "@/features/activity/utils/activity-events";
 import { db } from "@/shared/configs/db";
+import { calculateBalances } from "@/shared/utils/balances";
 import {
   prepareExpense,
   remainingPayerRanking,
@@ -36,6 +37,7 @@ export const createExpensesSlice: SliceCreator<ExpensesSlice> = (set) => ({
         db.categories,
         db.tags,
         db.expenses,
+        db.settlements,
         db.activityEvents,
       ],
       async () => {
@@ -67,6 +69,7 @@ export const createExpensesSlice: SliceCreator<ExpensesSlice> = (set) => ({
         db.categories,
         db.tags,
         db.expenses,
+        db.settlements,
         db.activityEvents,
       ],
       async () => {
@@ -138,6 +141,7 @@ export const createExpensesSlice: SliceCreator<ExpensesSlice> = (set) => ({
         db.people,
         db.categories,
         db.expenses,
+        db.settlements,
         db.attachments,
         db.activityEvents,
       ],
@@ -145,6 +149,16 @@ export const createExpensesSlice: SliceCreator<ExpensesSlice> = (set) => ({
         const expense = await requireExpense(expenseId, groupId);
         if (!(await db.groups.get(groupId))) throw new Error("Group not found");
         const ranking = await remainingPayerRanking(groupId, expenseId);
+        const remaining = (await db.expenses.where("groupId").equals(groupId).toArray()).filter(
+          (item) => item.expenseId !== expenseId,
+        );
+        const payments = await db.settlements.where("groupId").equals(groupId).toArray();
+        const members = await db.members.where("groupId").equals(groupId).toArray();
+        calculateBalances(
+          remaining,
+          members.map((member) => member.id),
+          payments,
+        );
         // The attachment owner index also catches records omitted from attachmentIds.
         await db.attachments.where("expenseId").equals(expenseId).delete();
         await db.expenses.delete(expenseId);

@@ -86,6 +86,18 @@ beforeEach(async () => {
       },
     },
   ]);
+  await db.settlements.add({
+    id: "payment",
+    groupId: "trip",
+    kind: "payment",
+    fromMemberId: "b",
+    toMemberId: "a",
+    recordedBy: "a",
+    amount: 25,
+    when: 3,
+    createdAt: 3,
+    tagIds: ["holiday"],
+  });
   await db.attachments.bulkAdd([
     {
       id: "receipt",
@@ -125,6 +137,7 @@ describe("removeGroup", () => {
     expect((await db.categories.toArray()).map((row) => row.id)).toEqual(["bills"]);
     expect((await db.tags.toArray()).map((row) => row.id)).toEqual(["monthly"]);
     expect((await db.expenses.toArray()).map((row) => row.expenseId)).toEqual(["rent"]);
+    expect(await db.settlements.count()).toBe(0);
     expect((await db.attachments.toArray()).map((row) => row.id)).toEqual(["home-receipt"]);
     expect(await db.people.count()).toBe(2);
     expect(await db.localUser.count()).toBe(1);
@@ -144,6 +157,7 @@ describe("removeGroup", () => {
     expect(await db.groups.count()).toBe(0);
     expect(await db.members.count()).toBe(0);
     expect(await db.expenses.count()).toBe(0);
+    expect(await db.settlements.count()).toBe(0);
     expect(await db.attachments.count()).toBe(0);
     expect(await db.settings.get("onboarding")).toMatchObject({ complete: true, groupId: null });
     expect(useStore.getState()).toMatchObject({
@@ -168,6 +182,7 @@ describe("removeGroup", () => {
     expect(await db.groups.count()).toBe(2);
     expect(await db.members.count()).toBe(3);
     expect(await db.expenses.count()).toBe(2);
+    expect(await db.settlements.count()).toBe(1);
     expect(await db.attachments.count()).toBe(2);
     expect(await db.tags.count()).toBe(2);
     expect(await db.categories.count()).toBe(2);

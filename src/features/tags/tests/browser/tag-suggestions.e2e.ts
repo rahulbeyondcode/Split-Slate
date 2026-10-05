@@ -67,14 +67,12 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/groups/current/categories");
 });
 
-test("copies a tag name and color with multiple group sources", async ({ page, isMobile }) => {
+test("copies a tag name and color with multiple group sources", async ({ page }) => {
   const card = page
-    .locator(".surface")
+    .locator(".management-section")
     .filter({ has: page.getByRole("heading", { name: "Tags", exact: true }) });
   await card.getByRole("button", { name: "Add tag" }).click();
-  const form = isMobile
-    ? page.getByRole("dialog", { name: "Add tag" }).locator("form")
-    : card.locator("form");
+  const form = page.getByRole("dialog", { name: "Add tag" }).locator("form");
   await form.getByPlaceholder("Tag name").fill("fuel");
   const suggestion = form
     .getByLabel("tag suggestions from other groups")

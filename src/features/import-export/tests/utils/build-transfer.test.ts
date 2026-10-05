@@ -20,6 +20,7 @@ describe("buildGroupTransfer", () => {
       tags: 0,
       members: 0,
       expenses: 0,
+      settlements: 0,
       attachments: 0,
     });
     expect(result.bundle.manifest.sourceCounts.attachments).toBe(1);
@@ -45,6 +46,20 @@ describe("buildGroupTransfer", () => {
     expect(result.bundle.expenses[0].tagIds).toEqual([]);
     expect(result.bundle.expenses[0].attachmentIds).toEqual([]);
     expect(result.attachmentFiles).toEqual([]);
+  });
+
+  it("exports payments with expenses, but only selected tag references", async () => {
+    const source = createExportSource({ withSettlements: true });
+    const without = await buildGroupTransfer(source, GROUP_ONLY_SELECTION);
+    expect(without.bundle.settlements).toEqual([]);
+    expect(without.bundle.manifest.sourceCounts.settlements).toBe(1);
+    const included = await buildGroupTransfer(source, {
+      ...GROUP_ONLY_SELECTION,
+      expenses: true,
+    });
+    expect(included.bundle.settlements).toHaveLength(1);
+    expect(included.bundle.settlements[0].tagIds).toEqual([]);
+    expect(included.bundle.manifest.includedCounts.settlements).toBe(1);
   });
 
   it("automatically includes the complete dependency chain for receipts", async () => {

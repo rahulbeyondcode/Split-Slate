@@ -9,7 +9,7 @@ metadata:
 
 Purpose: describe implemented group navigation, expense workflows, balances, and group transfer.
 
-Last updated: 2026-10-04
+Last updated: 2026-10-06
 
 ## Current Implementation
 
@@ -24,22 +24,22 @@ also lists groups and currently sorts them by `createdAt` descending.
 
 `/groups/:groupId` is an implemented parent route with nested routes for Overview, Analytics,
 Expenses, Add Expense, Expense Detail/Edit, Balances, Members, Categories & Tags, and Settings. The parent resolves the active group's
-members, people, categories, tags, and expenses and supplies them to child screens through the
+members, people, categories, tags, expenses, and payments and supplies them to child screens through the
 router outlet context. An unknown group shows a not-found state with a return link to the dashboard.
 
 The current child screens are:
 
 - **Overview** — the group's snapshot: local net position, group total in the header, up to six
   members ranked by the number of expenses they paid for, suggested-transfer count, five most
-  recent expenses, and a group-only category-spending preview after them with links to full views
+  recent expenses and payments, and a group-only category-spending preview after them with links to full views
 - **Analytics** — `/groups/:groupId/analytics` shows all-time category totals for that group, using
   its own currency even when other groups use different currencies; `/analytics` remains app-wide
-- **Expenses** — the complete searchable, filterable ledger sorted by `when` descending, showing
-  name, total paid, payer names, date/time, and category; compact filter-aware insights show
-  matched spending without a member breakdown or the large local-balance hero
+- **Expenses** — searchable, filterable expenses with recorded payments interleaved by date when
+  unfiltered and date-sorted; compact insights and category analytics remain expense-only
 - **Add Expense** — `/groups/:groupId/expenses/new`, with validated local recording and five split methods
 - **Expense Detail/Edit** — payer/split breakdown and tags, prefilled editing, and confirmed hard deletion
-- **Balances** — every member's net position and deterministic suggested payments
+- **Balances** — payment-aware net positions, suggested transfers, Add payment, Settle up prefill,
+  recorded payment history, editing, and confirmed deletion
 - **Members** — add existing/new people, edit linked names/icons, and confirmed guarded removal
 - **Categories & Tags** — add, edit, and guarded-delete controls for both record types
 - **Settings** — editable group name/icon and currency, selective Link/CSV/ZIP export, and confirmed permanent group deletion; no import action
@@ -48,20 +48,34 @@ On mobile, the group Settings identity card wraps the group name and summary bes
 Edit name & icon sits below the text instead of squeezing that first row. Desktop keeps the
 single-row identity card.
 
-The group's default route opens Overview. Its "View all expenses", "View all balances", and
+The group's default route opens Overview. Its recent-activity "View all", "View all balances", and
 category-spending "View all" links open the full ledger, per-member balances, and group-scoped
 Analytics respectively. Expenses is also available through the sidebar and mobile navigation.
 There is no additional group-view tab bar. The large local-balance hero appears only on Overview.
+The Members and Suggested transfers cards end in full-width, center-labeled actions with right-edge
+arrows. The Members title has no count; "Manage Members (N)" carries the full group count and is
+available even when every member fits in the preview. The transfer card lists the first three
+suggested payer-to-recipient amounts (or "All square!") and its "View all balances (N)" action
+shows the total number of suggestions. No payment disclaimer is repeated inside that card.
+The two preview cards stack on mobile and tablet, and sit side by side on desktop.
+The "Recent transactions" heading and bordered "View all (N)" action sit inside the same card as
+the five most recent expense and payment entries (or the empty-state content), linking to the full
+Expenses ledger. N counts all of the group's expenses and payments, not just the five shown in the
+preview; edit and delete events belong to the separate activity pane, not this card.
 
-The Balances screen has a Back control that returns to the originating group screen, including its
-filter URL; direct entry without in-app history falls back to the group's Expenses screen. Group
-headers stay visible while scrolling. On mobile, their Back to dashboard link exits any non-form
-group screen, including expense detail and Settings; expense forms return to Expenses first. The
-desktop sidebar still provides All groups. Mobile Expenses scrolls the main pane to the last row,
-with the title/subtitle and filter controls sticking below the group header after insights pass.
-Desktop/tablet Expenses and Members across viewports retain bounded lists that scroll individually
-as needed. Mobile Categories & Tags scrolls the page as well as two individually scrollable 50vh
-cards with sticky card headers; desktop/tablet retain their bounded card layout. See
+The Balances screen has a rounded secondary Back control matching expense detail; it returns to the
+originating group screen, including its filter URL. Direct entry without in-app history falls back
+to the group's Expenses screen. Group Analytics uses the same Back style without extra top spacing. Group
+headers stay visible while scrolling. On mobile, their plain text-and-arrow Back to dashboard link
+exits any non-form group screen, including expense detail and Settings; expense forms return to
+Expenses first. The desktop sidebar still provides All groups. Expenses scrolls the main pane at
+all widths, with the title/subtitle and filter controls sticking below the group header after
+insights pass. On desktop and tablet the ledger itself scrolls after ten rendered entries; mobile
+reaches the last row in the main pane. Members retains a bounded list. Mobile Categories & Tags
+scrolls only the main pane between sections and the content of each 50vh card independently; the
+browser window does not scroll. The section titles and Add buttons sit above the cards, not sticky
+inside them; the visible page title is omitted. Add/Edit category and tag forms open in dialogs
+at every width. On tablet the bounded cards stack vertically; desktop keeps them side by side. See
 [[layout-architecture]] and [[filtering]].
 
 On desktop, the activity panel follows group routes except Settings, including expense forms;
@@ -71,12 +85,10 @@ and mobile footer retain Settings navigation. See [[layout-architecture]].
 The Overview member preview counts each expense once per member with a positive paid contribution,
 even when multiple members pay for the same expense. Higher counts appear first; equal counts and
 members with no payments are ordered alphabetically by name. Only six members are shown; the Members
-route still lists the entire group. On mobile, the preview heading omits its count and View all
-members link when all members fit (six or fewer); both appear once there are more than six. The
-mobile Members footer and member chips still open the full list. Desktop keeps the count and link
-regardless of group size.
+route still lists the entire group. The heading stays "Members" at every width and the footer CTA
+always shows the full count. The mobile Members footer and member chips still open the full list.
 
-Changing currency when expenses exist requires confirmation: saved amounts retain their numeric
+Changing currency when expenses or payments exist requires confirmation: saved amounts retain their numeric
 values and are displayed under the new currency label without exchange conversion. The same
 integer hundredths are used for every group currency. See [[money-representation-and-rounding]].
 
@@ -84,7 +96,7 @@ The group header's Add Expense link opens the entry form. Successful saves retur
 list and update overview/sidebar balances through the shared store. Failed saves retain form inputs
 and show an error; cancellation writes nothing. Submissions are guarded against repeated clicks.
 Dashboard and sidebar group rows link to the Overview. The sidebar group-list items display the
-local member's calculated net position derived from paid and owed transactions.
+local member's calculated net position derived from expense allocations and recorded payments.
 
 The group outlet is keyed by `group.id`. Changing the active group remounts child screens and
 resets their form/editor state, including category and tag editors.
@@ -96,16 +108,30 @@ resets their form/editor state, including category and tag editors.
 The following sections distinguish the existing expense list and entry form from the remaining
 target experience. Delivery priorities live in [[product-roadmap]].
 
-### Expense and Balance Views
+### Expense, Payment, and Balance Views
 
-Overview is the default route. Expenses shows the chronological list of all group expenses; Balances
-shows net positions and suggested payments. Neither view uses an in-page tab bar.
+Overview is the default route. Expenses interleaves dated expense rows and distinct green payment
+blocks with a transfer icon when unfiltered and date-sorted; filtered and non-date-sorted expense
+views hide payments with explanatory copy. Balances shows each member's net after group payments,
+current suggested transfers, and a recorded-payment history. Neither view uses a new tab bar.
+Net per member and Who owes whom stack on mobile and tablet; desktop retains side-by-side cards.
 
-- Balances is **read-only in MVP** — shows who owes whom and how much, nothing else
-- No settlement action, no mark-as-settled, no notifications in MVP
-- **Settlement design is unresolved:** an earlier V2 proposal paired a binary fully-settled toggle
-  with push notifications. The roadmap requires a separate decision comparing that model with
-  explicit repayment records, including partial repayment, before implementation.
+- Add payment accepts any positive amount between two different group members with an editable
+  date/time and optional tags, but no category. One payment is scoped to one group; the user
+  allocates any cross-group outside payment manually.
+- Add payment, Settle up, and Edit open the same modal rather than an inline form. **Paid by** and
+  **Received by** use searchable group-member dropdowns with each person's avatar and name.
+  Payment date/time uses the expense form's styled date and 12-hour hour/minute/AM–PM controls;
+  new payments start with today's date and no time, while edits restore their saved date/time.
+- Settle up preselects the suggested payer, recipient and amount. An amount beyond the suggestion
+  warns without blocking the save. Suggested transfers appear as separate, softly tinted cards
+  with From/To avatar-and-name columns, a centered direction arrow, and names that wrap rather than
+  truncate. An amount row beneath them emphasizes the total and keeps the content-sized Settle up
+  button aligned right and prominent in a solid brand color. The introductory payment explanation
+  above the cards serves as the only disclaimer. Editing and confirmed deletion recalculate balances.
+- Payments are made outside Split Slate and recorded locally; neither suggestions nor opening the
+  form moves money. Expenses and category spending/insights remain unchanged. No binary settled
+  toggle, automatic confirmation, or notifications are implemented. See [[settlement-recording]].
 - The Balances view has no suggested transfers for a solo group (net = 0 with one member) and
   explains its personal-spending purpose. Suggested payments do not record repayments.
 
@@ -116,7 +142,7 @@ shows net positions and suggested payments. Neither view uses an in-page tab bar
 - Paid by (member name)
 - Local date and 12-hour time (`when` — the actual expense time, not `createdAt`)
 
-Expenses are sorted by `when` descending. Rows show the local date as `12-Jan-2026` and local
+Expenses and visible payments are sorted by `when` descending. Expense rows show the local date as `12-Jan-2026` and local
 12-hour time as `03:45 PM` beneath the
 amount, plus payer names and the category icon beside the name. Names link to detail, which offers
 editing, quick category/tag changes, and confirmed deletion.
@@ -141,14 +167,15 @@ Unavailable selected option IDs are pruned when the list remounts. Desktop/mobil
 exercise the controls and pass in the 2026-10-05 full run; see
 [[filtering]] and [[testing-strategy]].
 
-### URGENT: Mobile Expense Form Scrolling — Fix Required
+### URGENT: Mobile Expense Form Scrolling — Browser Verification Required
 
-The mobile Add/Edit Expense page still has an unresolved scroll and action-button positioning issue.
-Save/Cancel originally stuck in the middle of the form; attempts to fix their position introduced
-excess blank scrolling and then clipped form content. Those scroll-specific changes were rolled back.
-Do not treat the form's bottom action bar or scroll-to-last-row behavior as fixed. Investigate the
-actual scroll/layout boundary and verify a mobile-only repair in a permitted browser environment
-before marking this resolved. Desktop styling must remain unchanged.
+The mobile Add/Edit Expense page previously left document scrolling unlocked while the main pane
+was scrollable. The form now scopes overflow to `#main-content`, clips the document and shell, and
+removes the main pane's reserved bottom-footer padding (the footer is hidden on expense forms).
+The form and split editor do not add inner scroll areas. The Save/Cancel toolbar remains after the
+fields and sticky at the bottom of the main scroll pane. Earlier scroll fixes introduced excess
+blank space or clipped the last rows: this replacement and scroll-to-last-row behavior must still
+be verified in a permitted browser before the issue can be marked resolved. Desktop is unchanged.
 
 ### Expense Recording
 
@@ -163,12 +190,17 @@ before marking this resolved. Desktop styling must remain unchanged.
 - **Use current time** fills the hour, minute, and AM/PM from the device clock when clicked without
   changing the selected expense date. Manual entry remains available and time remains required;
   omitting it does not silently assign the save time, which could misdate a past expense.
-- Mobile hour entry advances to minutes after a valid two-digit 12-hour value or a single digit
-  from 2 to 9; an initial 0 or 1 waits for a second digit. Mobile split-participant rows toggle
-  when tapped anywhere outside an editable value field and show a brand-colored selected background
-  and border; Select all / Unselect all controls the entire participant list. The mobile form can
+- The shared expense/payment picker advances Hour to Minute on mobile, tablet, and desktop after a
+  valid two-digit 12-hour value or a single digit from 2 to 9; an initial 0 or 1 waits for a second
+  digit. Backspace in an empty Minute field returns focus to the end of Hour; deleting minute digits
+  first stays in Minute. Mobile split-participant rows toggle when tapped anywhere outside an editable
+  value field and show a brand-colored selected background and border; the whole **Select all**
+  checkbox label toggles the entire participant list without changing its text. The mobile form can
   also create and select a new tag in a modal without clearing the unfinished expense. Desktop form
-  styling and hour focus remain unchanged.
+  styling remains unchanged.
+- In the expense form, Add new category and the mobile-only Add new tag sit beside their choice pills
+  with dashed borders. Split-participant names and their value/preview areas are justified to
+  opposite sides for each split method, wrapping long names or values rather than hiding them.
 - One or multiple payers, all five split types, and existing optional group tags are supported.
 - React Hook Form and Zod validate input; the store revalidates current persisted references and
   saves the expense plus frequent-payer ranking atomically in IndexedDB.

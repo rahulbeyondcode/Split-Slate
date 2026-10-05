@@ -49,11 +49,22 @@ describe("portable group CSV", () => {
     const transfer = await buildGroupTransfer(createExportSource(), selection);
     const csv = await createPortableGroupCsv(transfer.bundle);
     await expect(
-      parsePortableGroupCsv(csv.replace('"1","manifest"', '"2","manifest"')),
+      parsePortableGroupCsv(csv.replace('"2","manifest"', '"3","manifest"')),
     ).rejects.toThrow("version");
     await expect(parsePortableGroupCsv('"schemaVersion')).rejects.toThrow("unterminated");
     await expect(
       parsePortableGroupCsv(csv.replace("Expense 1", "Changed expense")),
     ).rejects.toThrow("integrity");
+  });
+
+  it("round-trips tagged payments separately from expenses", async () => {
+    const transfer = await buildGroupTransfer(
+      createExportSource({ withSettlements: true }),
+      selection,
+    );
+    const csv = await createPortableGroupCsv(transfer.bundle);
+    const parsed = await parsePortableGroupCsv(csv);
+    expect(parsed.settlements).toEqual(transfer.bundle.settlements);
+    expect(csv).toContain('"settlement"');
   });
 });

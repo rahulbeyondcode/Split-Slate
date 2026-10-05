@@ -11,6 +11,7 @@ export const compactLinkIds = async (bundle: PortableGroup): Promise<PortableGro
   const categoryIds = assign(bundle.categories.map((category) => category.id));
   const tagIds = assign(bundle.tags.map((tag) => tag.id));
   const expenseIds = assign(bundle.expenses.map((expense) => expense.expenseId));
+  const settlementIds = assign(bundle.settlements.map((settlement) => settlement.id));
   const attachmentIds = assign(bundle.attachments.map((attachment) => attachment.id));
   const { integrity, ...manifest } = bundle.manifest;
   void integrity;
@@ -56,6 +57,15 @@ export const compactLinkIds = async (bundle: PortableGroup): Promise<PortableGro
       },
       tagIds: expense.tagIds.map((id) => tagIds.get(id)!),
       attachmentIds: expense.attachmentIds.map((id) => attachmentIds.get(id)!),
+    })),
+    settlements: bundle.settlements.map((settlement) => ({
+      ...settlement,
+      id: settlementIds.get(settlement.id)!,
+      groupId,
+      fromMemberId: memberIds.get(settlement.fromMemberId)!,
+      toMemberId: memberIds.get(settlement.toMemberId)!,
+      recordedBy: memberIds.get(settlement.recordedBy)!,
+      tagIds: settlement.tagIds.map((id) => tagIds.get(id)!),
     })),
     attachments: bundle.attachments.map((attachment) => ({
       ...attachment,

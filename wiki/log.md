@@ -2,11 +2,108 @@
 
 Reverse-chronological record of all wiki changes.
 
-Last updated: 2026-10-05
+Last updated: 2026-10-06
 
 ---
 
+## 2026-10-06
+- UPDATED wiki/index.md — flag unrun lint/build/tests for the latest commit as the highest-priority next task
+- UPDATED AGENTS.md — require running lint, build, and tests before any other task
+- UPDATED decisions/import-export.md — document scrolling to the revealed Group Settings export questionnaire at every width
+- UPDATED wiki/index.md — reflect the auto-scrolled export questionnaire
+- UPDATED decisions/import-export.md — replace generated-link field and separate Copy action with one-click clipboard copy and inline success feedback
+- UPDATED wiki/index.md — reflect one-click transfer-link copying
+- UPDATED architecture/layout-architecture.md — document mobile Categories & Tags main-pane and card scrolling without window scrolling
+- UPDATED workflows/main-screen.md — describe the scroll boundary and all-width management dialogs
+- UPDATED workflows/category-management.md — describe all-width Add/Edit modal and mobile scroll boundary
+- UPDATED workflows/tag-management.md — describe all-width Add/Edit modal and mobile scroll boundary
+- UPDATED wiki/index.md — update Categories & Tags layout and dialog summaries
+- UPDATED workflows/main-screen.md — stack Categories and Tags on tablet while preserving desktop columns
+- UPDATED workflows/category-management.md — document short-name desktop actions beside category titles and long-name wrapping
+- UPDATED workflows/tag-management.md — document tablet stacking and short-name desktop action alignment
+- UPDATED wiki/index.md — reflect responsive Categories and Tags layouts
+- UPDATED workflows/filtering.md — document solid sticky Expenses backgrounds and coverage of the filter-bar spacing
+- UPDATED wiki/index.md — reflect the opaque sticky expense toolbar
+- UPDATED workflows/category-management.md — remove inline category usage counts so full names can wrap; retain counts in blocked-delete dialogs
+- UPDATED wiki/index.md — reflect category name and usage-count placement
+- UPDATED architecture/layout-architecture.md — restore plain Back to dashboard links without changing other Back controls
+- UPDATED workflows/main-screen.md — distinguish plain mobile dashboard navigation from secondary Back buttons
+- UPDATED wiki/index.md — reflect original dashboard Back styling in Layout Architecture navigation
+- UPDATED workflows/main-screen.md — call the expense/payment preview Recent transactions without including edit/delete activity
+- UPDATED wiki/index.md — reflect the concise Recent transactions heading
+- UPDATED workflows/main-screen.md — distinguish recent expense/payment entries from the separate edit/delete activity pane
+- UPDATED wiki/index.md — name the recent-entry card without conflating it with activity history
+- UPDATED workflows/main-screen.md — shorten Recent activity heading and move the full expense/payment count to its bordered View all action
+- UPDATED wiki/index.md — reflect the counted Recent activity navigation
+- UPDATED workflows/main-screen.md — place recent expense/payment title and View all inside its card, including empty state
+- UPDATED wiki/index.md — reflect in-card recent-activity navigation on Overview
+- UPDATED workflows/main-screen.md — stack Members and Suggested transfers preview cards on tablets
+- UPDATED wiki/index.md — reflect tablet Overview stacking
+- UPDATED workflows/main-screen.md — describe centered overview CTAs, three-transfer preview and counts, and tablet-stacked Balances
+- UPDATED workflows/category-management.md — move dark Add category action above the card and remove mobile section stickiness
+- UPDATED workflows/tag-management.md — move dark Add tag action above the card and remove mobile section stickiness
+- UPDATED wiki/index.md — reflect updated overview, Balances, and Categories & Tags layouts
+- UPDATED workflows/main-screen.md — make Settle up stand out on transfer cards and rely on the existing payment explanation
+- UPDATED wiki/index.md — reflect prominent transfer actions in Main Screen navigation
+- UPDATED workflows/main-screen.md — describe the revised suggested-transfer cards and subdued disclaimer
+- UPDATED wiki/index.md — reflect the transfer-card design in Main Screen navigation
+- UPDATED workflows/main-screen.md — keep the mobile split checkbox label as Select all in both states
+- UPDATED wiki/index.md — reflect the fixed-label Select all control in Main Screen navigation
+- UPDATED workflows/main-screen.md — replace mobile split Select/Unselect buttons with a clickable All checkbox
+- UPDATED wiki/index.md — refresh Main Screen expense-entry navigation
+- UPDATED workflows/main-screen.md — describe scoped mobile expense-form scroll implementation and split/add-pill layout without claiming browser verification
+- UPDATED architecture/layout-architecture.md — record intended single main-pane scroll on mobile expense forms and verification caveat
+- UPDATED decisions/testing-strategy.md — add mobile form scroll browser case and retain unverified status
+- UPDATED wiki/index.md — reflect pending mobile scroll browser verification
+- UPDATED architecture/layout-architecture.md — document group Analytics spacing and consistent secondary Back controls
+- UPDATED workflows/main-screen.md — document Back styling and correct desktop/tablet Expenses scroll behavior
+- UPDATED wiki/index.md — refresh layout and Main Screen navigation
+
 ## 2026-10-05
+- UPDATED workflows/main-screen.md — replace compact full-width Settle up description with spacious rows and right-aligned content-sized action
+- UPDATED wiki/index.md — reflect roomier settlement suggestions in Main Screen navigation
+- UPDATED workflows/main-screen.md — describe compact suggested-transfer rows with shared amount and Settle up line
+- UPDATED wiki/index.md — refresh Main Screen navigation for settlement suggestion layout
+- UPDATED architecture/layout-architecture.md — replace viewport-locked desktop/tablet Expenses with pane scrolling and a ten-entry inner ledger
+- UPDATED workflows/filtering.md — document all-viewport insights scroll-away and measured ten-row desktop/tablet ledger
+- UPDATED wiki/index.md — refresh layout and filtering navigation for expense scrolling
+- UPDATED workflows/main-screen.md — document shared all-viewport Hour-to-Minute and empty-Minute Backspace focus rules
+- UPDATED wiki/index.md — reflect cross-device time-entry behavior in Main Screen navigation
+- UPDATED workflows/main-screen.md — document modal payment entry, searchable member dropdowns, shared time controls, and separated Settle up action
+- UPDATED decisions/settlement-recording.md — record payment-entry interaction and explicit-time behavior
+- UPDATED wiki/index.md — refresh payment form navigation descriptions
+- UPDATED workflows/main-screen.md — correct sidebar net and chronological payment-row descriptions
+- UPDATED wiki/index.md — clarify mixed-ledger navigation
+- UPDATED systems/indexeddb-schema.md — keep expense write invariants in expense section and record balance guard
+- UPDATED wiki/index.md — clarify database invariant summary
+- UPDATED architecture/balance-calculation.md — record cross-mutation safe-balance validation
+- UPDATED wiki/index.md — note safe payment-aware balance boundary
+- UPDATED workflows/people-directory.md — document expense/payment-aware blocked deletion links
+- UPDATED wiki/index.md — refresh People Directory deletion summary
+- UPDATED workflows/member-management.md — reflect payment-aware blocking and transactional deletion
+- UPDATED wiki/index.md — refresh member-management guard summary
+- UPDATED roadmap/product-roadmap.md — mark approved group-only external payment recording implemented
+- UPDATED wiki/index.md — update roadmap navigation
+- UPDATED decisions/import-export.md — record payment inclusion and old-transfer compatibility
+- UPDATED decisions/full-backup.md — record payment rows/events and old-backup compatibility
+- UPDATED wiki/index.md — refresh portability navigation
+- UPDATED workflows/main-screen.md — document payment form, balances, and mixed activity rows
+- UPDATED wiki/index.md — refresh Main Screen payment navigation
+- UPDATED systems/indexeddb-schema.md — describe version 3 payment rows and lifecycle
+- UPDATED wiki/index.md — update database navigation and migration status
+- UPDATED architecture/balance-calculation.md — explain external payment effects without changing spending
+- UPDATED architecture/domain-models.md — define payment row and optional tag references
+- UPDATED architecture/state-management.md — describe payment slice and hydration
+- UPDATED wiki/index.md — refresh architecture navigation for recorded payments
+- CREATED decisions/settlement-recording.md — document approved group-only external payment model
+- UPDATED wiki/index.md — link payment decision and mark recording implemented
+- UPDATED wiki/log.md — record approved offline payment decision
+- UPDATED workflows/main-screen.md — align the pending settlement workflow with approved external repayment recording
+- UPDATED wiki/index.md — reflect the corrected Main Screen settlement summary
+- UPDATED wiki/log.md — record the approved Main Screen settlement correction
+- UPDATED roadmap/product-roadmap.md — approve device-local recording of external repayments while retaining implementation decision gates
+- UPDATED wiki/index.md — distinguish pending repayment recording from implemented read-only balances
+- UPDATED wiki/log.md — record the approved settlement-direction update
 - UPDATED decisions/global-people-directory.md — distinguish shared people identities from recurring group-owned category names
 - UPDATED wiki/index.md — clarify the people-directory decision in navigation
 - UPDATED wiki/log.md — record the approved people-versus-category clarification

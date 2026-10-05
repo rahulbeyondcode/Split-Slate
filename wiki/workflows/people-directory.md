@@ -23,7 +23,7 @@ no Contacts item. See [[layout-architecture]].
 
 - **Create:** a profile-image picker + name editor adds a new person to the directory.
 - **Edit:** name and icon can be changed at any time. The change propagates to every group the person is in, because groups resolve a member's display through the person link rather than storing their own copy.
-- **Delete:** allowed only for non-self people and only when the person is referenced by **no expense in any group**. On delete, their group memberships and any frequent-payer references are pruned. A blocked contact has a greyed-out but clickable Delete button: its popup explains the restriction and offers a filtered expense-list link for each affected group. Each link uses that group's member ID for the contact and includes creator, payer, and owed references.
+- **Delete:** allowed only for non-self people with **no expense or recorded payment references in any group**. On delete, their group memberships and frequent-payer references are pruned. A blocked contact has a clickable muted Delete button. Its popup offers a member-filtered expense link for expense blockers and a group Balances link for payment blockers. See [[settlement-recording]].
 
 The store checks persisted LocalUser identity before directory deletion. Self deletion is rejected
 even when hydrated `localUser` or member state is absent. Expense-involvement checks and membership

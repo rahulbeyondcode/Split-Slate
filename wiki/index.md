@@ -5,40 +5,48 @@ This wiki is the sole persistent compiled knowledge layer. The implementation in
 authoritative; `app-featureset-context/spec-sheet.md` is a historical baseline where later source
 and approved decisions have superseded it. Changes: [log.md](log.md)
 
-Last updated: 2026-10-05
+Last updated: 2026-10-06
+
+---
+
+> **🔴 HIGHEST PRIORITY NEXT TASK — before any other task:** Lint, build, and tests were
+> **NOT run** for the latest commit (`feat: add group payments and responsive UI polish`).
+> Run `pnpm lint`, `pnpm build`, and the full test suite first, and fix any failures.
+> Do not begin any other work until this is done. See [log.md](log.md).
 
 ---
 
 ## Navigation
 
 ### Roadmap
-- [Product Direction and Roadmap](roadmap/product-roadmap.md) — urgent mobile expense-form repair, group duplication, PWA release gates, and local activity horizons
+- [Product Direction and Roadmap](roadmap/product-roadmap.md) — urgent mobile expense-form repair, group duplication, PWA release gates, and implemented group-only repayment recording
 
 ### Architecture
-- [Domain Models](architecture/domain-models.md) — current entity shapes, PNG icon keys, fixed-hundredths money, expense time, and visible tag chips
-- [Balance Calculation](architecture/balance-calculation.md) — fixed-hundredths member/group totals, all-member balances, and deterministic suggested transfers
-- [State Management](architecture/state-management.md) — Zustand bootstrap recovery, draft subscriptions, atomic group-activity pruning, and fresh-ID group import
+- [Domain Models](architecture/domain-models.md) — expense and payment shapes, PNG icon keys, fixed-hundredths money, and optional group tags
+- [Balance Calculation](architecture/balance-calculation.md) — safe payment-aware balances, expense-only spending, and deterministic suggested transfers
+- [State Management](architecture/state-management.md) — Zustand hydration and transactional expense, payment, and group mutations
 - [Split Types](architecture/split-types.md) — 5 split types with fixed-hundredths monetary allocations and exact ratios; numeric percentage-total display remains pending
-- [Layout Architecture](architecture/layout-architecture.md) — responsive shell, scoped Analytics navigation, mobile scroll caveat, and desktop activity panel with group-deletion retention
+- [Layout Architecture](architecture/layout-architecture.md) — responsive shell, bounded mobile Categories & Tags scrolling, mobile form scroll caveat, and ten-row desktop/tablet ledger
 
 ### Decisions
 - [Global People Directory](decisions/global-people-directory.md) — shared device-local people identities versus group-owned category labels; supersedes per-group members
 - [Expense Model Design](decisions/expense-model-design.md) — fixed-hundredths paid/owed allocations and exact decimal ratio metadata, with numeric legacy read compatibility
 - [Solo Group Support](decisions/solo-group-support.md) — single-member groups work; onboarding story names the solo path, while the shared member-step helper remains generic
 - [Onboarding Persistence](decisions/onboarding-persistence.md) — resumable per-step standard setup plus atomic import-specific completion for fresh devices
-- [Import / Export Design](decisions/import-export.md) — selective Link/CSV/ZIP group transfer and atomic import; planned same-device duplication reuses selection without file generation
-- [Whole-App Backup and Restore](decisions/full-backup.md) — versioned ZIP including activity history, nullable post-deletion onboarding group, and replace-only recovery
+- [Import / Export Design](decisions/import-export.md) — version 2 Link/CSV/ZIP includes payments; auto-scrolled questionnaire and one-click link copy, with version 1 imports supported
+- [Whole-App Backup and Restore](decisions/full-backup.md) — ZIP includes payments and activity history, nullable post-deletion onboarding group, and replace-only recovery
 - [Expense Edit and Delete](decisions/expense-edit-delete.md) — full editor, modal-confirmed deletion, and immediate reference-only category/tag changes without rebuilding splits
 - [Group Deletion](decisions/group-deletion.md) — atomic owned-data and activity cascade retains only group-created/deleted entries and shared contacts
 - [Money Representation and Rounding](decisions/money-representation-and-rounding.md) — implemented fixed hundredths for every currency, exact allocation, and confirmed no-conversion relabeling
 - [Iconography](decisions/iconography.md) — shared featured-or-gallery PNG picker, offline caching and repair, Lucide controls, error illustrations, and onboarding artwork
 - [Confirmation Dialogs](decisions/confirmation-dialogs.md) — shared in-app destructive confirmation for groups, expenses, contacts, members, categories, and tags
 - [Selection Controls](decisions/selection-controls.md) — native checkboxes/radios with selected and visibly locked states across forms, filters, and transfer
+- [Offline Payment Recording](decisions/settlement-recording.md) — group-only repayment records, modal member/date entry, correction, and portability
 - [String Input Normalization](decisions/string-input-normalization.md) — required strings reject trimmed blanks; optional expense inputs have explicit blank-value semantics
-- [Testing Strategy](decisions/testing-strategy.md) — unit/browser coverage, green desktop/mobile browser suites, and outstanding mobile expense-form scroll verification
+- [Testing Strategy](decisions/testing-strategy.md) — unit/browser coverage and pending browser verification of mobile expense-form scrolling
 
 ### Systems
-- [IndexedDB Schema](systems/indexeddb-schema.md) — version 2 activity snapshots with group-deletion pruning, PNG icon keys, and bootstrap recovery
+- [IndexedDB Schema](systems/indexeddb-schema.md) — version 3 payments, safe expense/balance writes, and bootstrap recovery
 
 ### Debugging
 - [Browser App Installation](debugging/mobile-pwa-install.md) — Netlify manifest response type, five-day install reminders, and Settings retry
@@ -47,13 +55,13 @@ Last updated: 2026-10-05
 - [Development Tools](workflows/development-tools.md) — typed realistic presets, randomized onboarding contacts, individual creation buttons, and persistence boundaries
 - [Onboarding](workflows/onboarding.md) — resumable setup with category suggestions plus Link/CSV/ZIP first-launch import
 - [Group Creation](workflows/group-creation.md) — standalone 4-step flow, cross-group category suggestions, and sequential save after final submission
-- [Main Screen](workflows/main-screen.md) — group snapshot with five expenses and category analytics, expense correction and mobile split/tag controls; **URGENT: mobile expense-form scroll/actions unresolved**
+- [Main Screen](workflows/main-screen.md) — tablet-stacked preview cards, counted Recent transactions, and Categories & Tags scroll/modal layout; **URGENT: mobile form scroll/actions unverified in browser**
 - [Paid-By](workflows/paid-by.md) — implemented frequent-payer selection, atomic ranking updates, recent-payer defaults, and multi-payer entry
-- [People Directory](workflows/people-directory.md) — shared contacts excluding self from the list; mobile route lacks an in-app entry point
-- [Member Management](workflows/member-management.md) — one-click add, mobile add/edit modals and two-row actions, confirmed removal, and persisted guards
-- [Category Management](workflows/category-management.md) — group category CRUD, cross-group name/icon suggestions, mobile modals, and in-form creation; deactivation pending
-- [Tag Management](workflows/tag-management.md) — group-scoped tags, cross-group name/color suggestions, mobile add/edit modals, detail creation, and transactional cleanup
-- [Filtering](workflows/filtering.md) — URL-backed filtering, mobile sticky toolbar and filtered-only count, accessible popover placement, sort modes, and expense insights
+- [People Directory](workflows/people-directory.md) — shared contacts with expense/payment-aware deletion guards; mobile route lacks an in-app entry point
+- [Member Management](workflows/member-management.md) — one-click add, mobile modals, and expense/payment-aware removal guards
+- [Category Management](workflows/category-management.md) — category CRUD via all-width modal, tablet-stacked cards, and blocked-delete usage counts; deactivation pending
+- [Tag Management](workflows/tag-management.md) — group-scoped tags, all-width Add/Edit modal, tablet-stacked cards, and transactional cleanup
+- [Filtering](workflows/filtering.md) — URL-backed filtering, opaque sticky expense toolbar, ten-row desktop/tablet ledger, sort modes, and expense insights
 - [Dashboard](workflows/dashboard.md) — group summaries, pruned deletion activity, and exact-name app-wide versus group-scoped category analytics
 
 ### Ideas (captured, not committed)
@@ -92,6 +100,7 @@ Last updated: 2026-10-05
 | Expense list + filtering           | DONE        |
 | Mobile expense-form scroll/actions | URGENT FIX REQUIRED |
 | Balances / who-owes-whom view      | DONE        |
+| Offline repayment recording        | DONE        |
 | Receipt attachments                | PENDING     |
 | Group settings + deletion          | DONE        |
 | Group transfer (Link / CSV / ZIP)  | DONE        |
@@ -105,9 +114,13 @@ The Contacts screen supports contact CRUD, but `/friends` has no in-app mobile e
 [[people-directory]].
 
 The IndexedDB layer and Zustand store are complete for the current development scope. Dexie
-version 2 adds activity events without clearing existing version 1 data. All group-detail
+version 2 adds activity events and version 3 adds payments without clearing existing data. All group-detail
 destinations have routes, but several are lightweight or partial. Dashboard-level footer
 destinations have routes, although some remain lightweight; see [[layout-architecture]].
+
+Balances include recorded payments made outside the app; the suggestions themselves are read-only.
+Payments do not rewrite expenses or spending analytics. See [[settlement-recording]] and
+[[balance-calculation]].
 
 Both reviewed defects are fixed for current writes: persisted tag cleanup cannot recreate deleted
 expenses or overwrite newer edits, and saved ratio text preserves accepted shares through
@@ -144,13 +157,13 @@ permanent storage. See [[mobile-pwa-install]], [[iconography]] and [[product-roa
 
 1. Expense creation and editing enforce `sum(paid[].amount) == sum(owes[].amount)` with positive totals and safe-integer hundredths
 2. People are global (one device-local directory); a group member is a link to a person, so the same person in two groups is one Person referenced twice
-3. Balance = totalPaid − totalOwed (per member, per group) — not a running ledger
+3. Balance = expense paid − expense owed + external payments made − external payments received (per member, per group); spending totals remain expense-only
 4. Categories can be renamed and guard-deleted now; new expenses omit inactive categories, while an edit may retain its current inactive category; the management toggle is planned
 5. No global user in MVP/V2 — only a device-local `localUser`
 6. Group creation automatically adds the LocalUser as a Member linked to their self Person; the picker excludes existing members, `addMember` atomically verifies referenced group/person existence and rejects duplicate links; `removeMember` blocks removing the local user, and `removePerson` checks persisted identity to block directory-wide self deletion
 7. `categoryId` is mandatory on every expense — no uncategorised expenses
 8. Currency is single per group (defaults to INR); Settings can relabel saved numbers without exchange conversion after confirmation — no mixed-currency expenses in MVP
-9. Tags are named and colored group-scoped records referenced optionally through `Expense.tagIds`; deletion reads persisted group expenses and updates only their tag references in one transaction, then refreshes that group's expense state without recreating deleted expenses
+9. Tags are named and colored group-scoped records referenced optionally by expenses and payments; deletion updates persisted tag references in one transaction without recreating deleted records
 10. A group must have at least one category — enforced at creation (categories step requires ≥1 selected) so every expense can be categorised
 11. Expense creation and editing parse and store fixed integer hundredths for every currency; splits use deterministic largest-remainder allocation, and displays always use two decimal places
 12. Expense creation and editing reject saves that would push total group spending above `Number.MAX_SAFE_INTEGER` hundredths; the check uses BigInt within the expense transaction to protect derived balances and displays, with updates replacing the old expense amount

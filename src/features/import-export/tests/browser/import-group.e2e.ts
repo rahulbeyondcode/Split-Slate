@@ -85,12 +85,14 @@ test.beforeEach(async ({ page }) => {
 test("imports a Link on a fresh device and maps the chosen member to local identity", async ({
   page,
 }) => {
+  await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.getByRole("button", { name: "Export group" }).click();
   await page.getByLabel(/^Expenses/).check();
   await page.getByRole("button", { name: "Got it" }).click();
   await page.getByLabel(/^Tags/).check();
-  await page.getByRole("button", { name: "Create transfer link" }).click();
-  const link = await page.getByLabel("Transfer link", { exact: true }).inputValue();
+  await page.getByRole("button", { name: "Copy transfer link" }).click();
+  await expect(page.getByRole("status")).toHaveText("Transfer link copied successfully.");
+  const link = await page.evaluate(() => navigator.clipboard.readText());
 
   await page.evaluate(async () => {
     const modulePath = "/src/shared/configs/db.ts";
@@ -125,10 +127,12 @@ test("imports a Link on a fresh device and maps the chosen member to local ident
 });
 
 test("requires a choice for same-name contacts and cancels without writing", async ({ page }) => {
+  await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.getByRole("button", { name: "Export group" }).click();
   await page.getByLabel(/^Members/).check();
-  await page.getByRole("button", { name: "Create transfer link" }).click();
-  const link = await page.getByLabel("Transfer link", { exact: true }).inputValue();
+  await page.getByRole("button", { name: "Copy transfer link" }).click();
+  await expect(page.getByRole("status")).toHaveText("Transfer link copied successfully.");
+  const link = await page.evaluate(() => navigator.clipboard.readText());
   await page.evaluate(async () => {
     const modulePath = "/src/shared/configs/db.ts";
     const { db } = (await import(/* @vite-ignore */ modulePath)) as typeof DbModule;

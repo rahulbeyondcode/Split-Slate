@@ -9,7 +9,7 @@ metadata:
 
 Purpose: describe implemented tag management, expense references, and cascade boundaries.
 
-Last updated: 2026-10-05
+Last updated: 2026-10-06
 
 ## What Tags Are
 
@@ -48,12 +48,14 @@ Editing a tag can change its name, color, or both. Expenses reference the tag by
 ## Group Categories & Tags Screen
 
 The group **Categories & Tags** screen lists every tag record in the group, including tags not currently used by an expense. It supports add, rename, and delete operations.
-On mobile its tag card is 50vh tall within the scrolling page. Tags title, available count, and
-Add tag stay sticky while the card's rows scroll; each row places wide, softly rectangular Edit
-and Delete buttons below the tag name. Add and Edit open a name/color modal on mobile rather than
-expanding the card inline; validation and save errors remain in the modal, and Cancel/Escape dismiss
-it without saving. The page title and group header also stay sticky. Tablet and desktop retain
-their existing inline form, card, and action layout.
+On mobile its tag card is 50vh tall within the main-pane scroll, without browser-window scrolling.
+Tags title, available count, and the dark Add tag button sit above the card rather than sticking
+inside it; each row places wide, softly rectangular Edit and Delete buttons below the tag name.
+Add and Edit open a name/color modal at every width rather than expanding the card inline;
+validation and save errors remain in the modal, and Cancel/Escape dismiss it without saving. The
+shared group Back header remains sticky, but the duplicate visible page title is omitted. Tablet
+stacks Categories above Tags; desktop keeps the bounded cards side by side. Short tag names share
+a row with Edit/Delete at laptop widths.
 
 Deleting a tag requires confirmation. `removeTag` performs one read-write IndexedDB transaction
 on tags, expenses, and activity events:

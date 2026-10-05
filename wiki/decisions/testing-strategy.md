@@ -10,14 +10,16 @@ metadata:
 Purpose: keep accounting tests fast, make every implemented area verifiable, and reserve real
 browser coverage for behavior that depends on browser storage, navigation, or offline capability.
 
-Last updated: 2026-10-04
+Last updated: 2026-10-06
 
 ## Outstanding Browser Coverage
 
-The mobile Add/Edit Expense form's scroll-to-last-field and Save/Cancel positioning remain
-unverified and unresolved. Existing `scroll-navigation.e2e.ts` cases exercise the expense ledger,
-group views, and route resets, **not** the form's bottom scroll boundary. A passing browser suite
-does not establish that this mobile layout works. See [[main-screen]] and [[product-roadmap]].
+The mobile Add/Edit Expense form now has a scoped single-main-pane scroll implementation, but its
+scroll-to-last-field and Save/Cancel positioning remain **unverified in a browser**. A mobile case
+in `record-expense.e2e.ts` checks the scroll boundary, last split row, and toolbar; it must run in a
+working browser before this issue can be closed. Existing `scroll-navigation.e2e.ts` cases exercise
+the expense ledger, group views, and route resets, not the form's bottom scroll boundary. Passing
+unit tests do not establish that this mobile layout works. See [[main-screen]] and [[product-roadmap]].
 
 ## Decision
 

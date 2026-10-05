@@ -17,6 +17,7 @@ const getSetting = <T extends SettingsRecord["id"]>(id: T) =>
 export const createAppSlice: SliceCreator<AppSlice> = (set) => ({
   activityEvents: [],
   expenses: [],
+  settlements: [],
   initialized: false,
   initError: null,
 
@@ -30,6 +31,7 @@ export const createAppSlice: SliceCreator<AppSlice> = (set) => ({
         categories,
         tags,
         expenses,
+        settlements,
         activityEvents,
         onboarding,
         categorySettings,
@@ -41,6 +43,7 @@ export const createAppSlice: SliceCreator<AppSlice> = (set) => ({
         db.categories.toArray(),
         db.tags.toArray(),
         db.expenses.toArray(),
+        db.settlements.toArray(),
         db.activityEvents.toArray(),
         getSetting("onboarding"),
         getSetting("categories"),
@@ -75,6 +78,7 @@ export const createAppSlice: SliceCreator<AppSlice> = (set) => ({
         categories,
         tags,
         expenses,
+        settlements,
         activityEvents,
         initialized: true,
         initError: null,

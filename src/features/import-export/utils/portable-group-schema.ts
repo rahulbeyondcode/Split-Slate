@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { calculateBalances } from "@/shared/utils/balances";
+
 import { EXPORT_SCHEMA_VERSION } from "@/features/import-export/constants/export.constants";
 import { CURRENCIES } from "@/shared/constants/currencies";
 
@@ -34,6 +36,7 @@ const countsSchema = z.object({
   tags: countSchema,
   members: countSchema,
   expenses: countSchema,
+  settlements: countSchema,
   attachments: countSchema,
 });
 
@@ -104,6 +107,18 @@ const attachmentSchema = z.object({
   mimeType: z.string().trim().min(1),
   createdAt: timestampSchema,
 });
+const settlementSchema = z.object({
+  id: idSchema,
+  groupId: idSchema,
+  kind: z.literal("payment"),
+  fromMemberId: idSchema,
+  toMemberId: idSchema,
+  recordedBy: idSchema,
+  amount: amountSchema.positive(),
+  when: z.number().int().safe().nonnegative(),
+  createdAt: timestampSchema,
+  tagIds: z.array(idSchema),
+});
 
 const addDuplicateIssues = (
   values: string[],
@@ -132,6 +147,7 @@ export const portableGroupSchema = z
     categories: z.array(categorySchema),
     tags: z.array(tagSchema),
     expenses: z.array(expenseSchema),
+    settlements: z.array(settlementSchema),
     attachments: z.array(attachmentSchema),
   })
   .superRefine((data, context) => {
@@ -141,10 +157,12 @@ export const portableGroupSchema = z
       tags: data.tags.length,
       members: data.members.length,
       expenses: data.expenses.length,
+      settlements: data.settlements.length,
       attachments: data.attachments.length,
     };
 
     for (const key of Object.keys(actualCounts) as (keyof typeof actualCounts)[]) {
+      const selected = key === "settlements" ? selection.expenses : selection[key];
       if (includedCounts[key] !== actualCounts[key]) {
         context.addIssue({
           code: "custom",
@@ -159,14 +177,14 @@ export const portableGroupSchema = z
           message: "Source count cannot be smaller than the included count",
         });
       }
-      if (!selection[key] && includedCounts[key] !== 0) {
+      if (!selected && includedCounts[key] !== 0) {
         context.addIssue({
           code: "custom",
           path: ["manifest", "selection", key],
           message: "Unselected content must not be included",
         });
       }
-      if (selection[key] && includedCounts[key] !== sourceCounts[key]) {
+      if (selected && includedCounts[key] !== sourceCounts[key]) {
         context.addIssue({
           code: "custom",
           path: ["manifest", "includedCounts", key],
@@ -181,6 +199,7 @@ export const portableGroupSchema = z
       [data.categories.map((item) => item.id), "categories"],
       [data.tags.map((item) => item.id), "tags"],
       [data.expenses.map((item) => item.expenseId), "expenses"],
+      [data.settlements.map((item) => item.id), "settlements"],
       [data.attachments.map((item) => item.id), "attachments"],
     ] as const;
     for (const [ids, name] of collections) addDuplicateIssues(ids, [name], context);
@@ -398,6 +417,36 @@ export const portableGroupSchema = z
       }
     });
 
+    data.settlements.forEach((settlement, index) => {
+      if (settlement.groupId !== data.group.id) {
+        context.addIssue({
+          code: "custom",
+          path: ["settlements", index, "groupId"],
+          message: "Payment belongs to another group",
+        });
+      }
+      if (
+        settlement.fromMemberId === settlement.toMemberId ||
+        !members.has(settlement.fromMemberId) ||
+        !members.has(settlement.toMemberId) ||
+        !members.has(settlement.recordedBy)
+      ) {
+        context.addIssue({
+          code: "custom",
+          path: ["settlements", index],
+          message: "Payment member is missing or duplicated",
+        });
+      }
+      addDuplicateIssues(settlement.tagIds, ["settlements", index, "tagIds"], context);
+      if (settlement.tagIds.some((id) => !tags.has(id))) {
+        context.addIssue({
+          code: "custom",
+          path: ["settlements", index, "tagIds"],
+          message: "Payment tag is missing",
+        });
+      }
+    });
+
     const groupTotal = data.expenses.reduce(
       (total, expense) =>
         total +
@@ -413,5 +462,23 @@ export const portableGroupSchema = z
         path: ["expenses"],
         message: "Group spending exceeds the supported safe-integer limit",
       });
+    }
+    if (
+      data.settlements.every(
+        (item) =>
+          members.has(item.fromMemberId) &&
+          members.has(item.toMemberId) &&
+          item.fromMemberId !== item.toMemberId,
+      )
+    ) {
+      try {
+        calculateBalances(data.expenses, [...members], data.settlements);
+      } catch {
+        context.addIssue({
+          code: "custom",
+          path: ["settlements"],
+          message: "Payment balances are invalid or exceed the supported range",
+        });
+      }
     }
   });

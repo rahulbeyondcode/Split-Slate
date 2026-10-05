@@ -128,6 +128,7 @@ const ImportReview = ({ source, onImported }: PropsType) => {
     { label: "Tags", value: counts.tags },
     { label: "Members", value: counts.members },
     { label: "Expenses", value: counts.expenses },
+    { label: "Payments", value: counts.settlements },
     { label: "Receipts", value: counts.attachments },
   ];
 

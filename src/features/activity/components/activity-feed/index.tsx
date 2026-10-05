@@ -61,6 +61,7 @@ const ActivityFeed = ({ compact = false, groupId }: PropsType) => {
         const base = `/groups/${event.groupId}`;
         if (event.kind === "category" || event.kind === "tag") destination = `${base}/categories`;
         else if (event.kind === "member") destination = `${base}/members`;
+        else if (event.kind === "settlement") destination = `${base}/balances`;
         else if (event.kind === "expense" && event.subjectId) {
           if (state.expenses.some((expense) => expense.expenseId === event.subjectId)) {
             destination = `${base}/expenses/${event.subjectId}`;

@@ -14,8 +14,9 @@ Last updated: 2026-10-05
 ## Scope
 
 Settings downloads one versioned ZIP with every SplitSlate IndexedDB table: identity, global
-people directory, groups, memberships, categories, tags, expenses, receipts (including blobs), and
-settings, and activity snapshots. It also includes the app's saved light/dark theme. The ZIP is a full local snapshot, not a
+people directory, groups, memberships, categories, tags, expenses, recorded group payments,
+receipts (including blobs), settings, and activity snapshots. It also includes the app's saved
+light/dark theme. The ZIP is a full local snapshot, not a
 group transfer or live synchronization. It is not encrypted; the UI warns users to protect the file.
 No Google Drive connection or account is required. See [[import-export]] for selective group
 sharing, which creates a new group with new IDs instead of restoring a device.
@@ -35,14 +36,15 @@ identity. The dialog identifies the backup and shows counts. Its replace action 
 seconds and explains that existing SplitSlate data will be permanently removed. Cancel changes
 nothing.
 
-After confirmation, a single Dexie transaction clears and replaces all ten app tables, retains
+After confirmation, a single Dexie transaction clears and replaces all eleven app tables, retains
 source IDs and relationships, and verifies collection counts before commit. A failure rolls back
 both deletion and insertion. Only after commit does the app apply the saved theme and rehydrate
 Zustand. This replaces SplitSlate storage for the site, not other websites' browser storage. There
 is no merge or contact-name reconciliation during device restore.
 Previously produced version 1 backups without activity snapshots remain restorable; replacing a
-device with one of those backups leaves the new activity table empty. New backups include history
-even for deleted groups, whose name is retained in each event snapshot.
+device with one of those backups leaves the activity table empty. Older backups without payment
+rows also restore with an empty payment table. New backups include payment activity and history
+even for deleted groups, whose name is retained in each event snapshot. See [[settlement-recording]].
 
 ## Limits
 

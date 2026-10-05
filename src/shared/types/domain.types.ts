@@ -45,7 +45,7 @@ export interface ActivityEvent {
   groupId: string | null;
   groupName: string;
   subjectId: string | null;
-  kind: "expense" | "category" | "tag" | "group" | "member" | "person";
+  kind: "expense" | "settlement" | "category" | "tag" | "group" | "member" | "person";
   action: "created" | "updated" | "deleted" | "imported";
   label: string;
   icon: string;
@@ -81,6 +81,19 @@ export interface Expense {
   };
   tagIds: string[];
   attachmentIds: string[];
+}
+
+export interface Settlement {
+  id: string;
+  groupId: string;
+  kind: "payment";
+  fromMemberId: string;
+  toMemberId: string;
+  recordedBy: string;
+  amount: number; // integer hundredths in the group's currency
+  when: number;
+  createdAt: number;
+  tagIds: string[];
 }
 
 export interface Attachment {

@@ -83,6 +83,33 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/groups/trip/settings");
 });
 
+test("scrolls to the revealed export form below the sticky header at every width", async ({
+  page,
+}) => {
+  for (const width of [390, 1440]) {
+    await page.setViewportSize({ width, height: 700 });
+    await page.reload();
+    const main = page.locator("#main-content");
+    const button = page.getByRole("button", { name: "Export group" });
+    await button.scrollIntoViewIfNeeded();
+    const scrollBefore = await main.evaluate((element) => element.scrollTop);
+    await button.click();
+    const heading = page.getByRole("heading", { name: "Export group", exact: true });
+    await expect(heading).toBeVisible();
+    await expect
+      .poll(() => main.evaluate((element) => element.scrollTop))
+      .toBeGreaterThan(scrollBefore);
+    await expect(heading).toBeInViewport();
+    await expect
+      .poll(async () => {
+        const headingBox = (await heading.boundingBox())!;
+        const headerBox = (await page.locator(".group-page-header").boundingBox())!;
+        return headingBox.y - headerBox.y - headerBox.height;
+      })
+      .toBeGreaterThanOrEqual(0);
+  }
+});
+
 test("enforces questionnaire dependencies and receipt-aware format availability", async ({
   page,
 }) => {
@@ -145,7 +172,7 @@ test("enforces questionnaire dependencies and receipt-aware format availability"
   await dependencyNotice.getByRole("button", { name: "Got it" }).click();
   await expect(dependencyNotice).not.toBeVisible();
   await expect(page.getByLabel(/^Expenses/)).toBeDisabled();
-  const linkButton = page.getByRole("button", { name: "Create transfer link" });
+  const linkButton = page.getByRole("button", { name: "Copy transfer link" });
   await expect(linkButton).toHaveAttribute("data-unavailable", "true");
   await linkButton.click();
   await expect(page.getByRole("dialog", { name: "Transfer link unavailable" })).toContainText(
@@ -201,7 +228,7 @@ test("explains when selected content is too large for a link", async ({ page }) 
   await page.getByRole("button", { name: "Export group" }).click();
   await page.getByLabel(/^Expenses/).check();
   await page.getByRole("button", { name: "Got it" }).click();
-  const linkButton = page.getByRole("button", { name: "Create transfer link" });
+  const linkButton = page.getByRole("button", { name: "Copy transfer link" });
   await expect(linkButton).toHaveAttribute("data-unavailable", "true");
   await expect(page.getByText("Too much selected for a link.", { exact: false })).toBeVisible();
   await linkButton.click();
@@ -213,19 +240,31 @@ test("explains when selected content is too large for a link", async ({ page }) 
   await expect(page.getByText("32,000 characters")).toHaveCount(0);
 });
 
-test("creates a durable import link and downloads a selected typed CSV", async ({ page }) => {
+test("copies a durable import link in one click and downloads a selected typed CSV", async ({
+  page,
+}) => {
+  await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.getByRole("button", { name: "Export group" }).click();
   await page.getByLabel(/^Expenses/).check();
   await page.getByRole("button", { name: "Got it" }).click();
   await page.getByLabel(/^Tags/).check();
-  await page.getByRole("button", { name: "Create transfer link" }).click();
-  const link = await page.getByLabel("Transfer link", { exact: true }).inputValue();
+  const copyButton = page.getByRole("button", { name: "Copy transfer link" });
+  await copyButton.click();
+  const copiedStatus = page.getByRole("status");
+  await expect(copiedStatus).toHaveText("Transfer link copied successfully.");
+  expect((await copiedStatus.boundingBox())!.y).toBeGreaterThan(
+    (await copyButton.boundingBox())!.y,
+  );
+  await expect(page.locator("#transfer-link")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Copy link", exact: true })).toHaveCount(0);
+  const link = await page.evaluate(() => navigator.clipboard.readText());
   expect(link.length).toBeLessThanOrEqual(32_000);
-  expect(link).toContain("/import#v1.");
+  expect(link).toContain("/import#v2.");
 
   await page.getByLabel(/^Tags/).uncheck();
-  await expect(page.getByLabel("Transfer link", { exact: true })).toHaveCount(0);
+  await expect(copiedStatus).toHaveCount(0);
   await page.getByLabel(/^Tags/).check();
+  await expect(copiedStatus).toHaveCount(0);
 
   const downloadPromise = page.waitForEvent("download");
   await page.getByRole("button", { name: "Download CSV" }).click();
@@ -245,6 +284,24 @@ test("creates a durable import link and downloads a selected typed CSV", async (
   await expect(page.getByRole("status")).toHaveText(
     "CSV downloaded. Receipt files are not included.",
   );
+});
+
+test("reports a clipboard failure without showing a link or a false success", async ({ page }) => {
+  await page.getByRole("button", { name: "Export group" }).click();
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: {
+        writeText: async () => {
+          throw new Error("Permission denied");
+        },
+      },
+    });
+  });
+  await page.getByRole("button", { name: "Copy transfer link" }).click();
+  await expect(page.getByText("Could not copy the transfer link.", { exact: false })).toBeVisible();
+  await expect(page.getByRole("status")).toHaveCount(0);
+  await expect(page.locator("#transfer-link")).toHaveCount(0);
 });
 
 test("downloads ZIP with verified selected receipt bytes", async ({ page }) => {

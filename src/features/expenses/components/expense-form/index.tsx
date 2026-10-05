@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus } from "lucide-react";
+import { ArrowLeft, Plus } from "lucide-react";
 import type { FormEvent } from "react";
 import { useRef, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -9,7 +9,6 @@ import CategoryCreator from "@/features/expenses/components/category-creator";
 import PayerSelector from "@/features/expenses/components/payer-selector";
 import SplitEditor from "@/features/expenses/components/split-editor";
 import TagCreator from "@/features/expenses/components/tag-creator";
-import WhenPicker from "@/features/expenses/components/when-picker";
 import Input from "@/shared/components/form-elements/input";
 
 import {
@@ -26,6 +25,7 @@ import type { GroupDetailContext } from "@/features/group-detail/types/group-det
 
 import EmojiImage from "@/shared/ui/emoji-image";
 import Icon from "@/shared/ui/icon";
+import WhenPicker from "@/shared/ui/when-picker";
 
 const ExpenseForm = () => {
   const { group, groupMembers, groupCategories, groupTags, groupExpenses } =
@@ -124,8 +124,8 @@ const ExpenseForm = () => {
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">Expense not found</h2>
         <p>This expense is not available in this group.</p>
-        <Link to={`/groups/${group.id}/expenses${search}`} className="text-blue-700">
-          Back to expenses
+        <Link to={`/groups/${group.id}/expenses${search}`} className="btn btn-secondary self-start">
+          <Icon icon={ArrowLeft} size={18} /> Back to expenses
         </Link>
       </section>
     );
@@ -176,57 +176,49 @@ const ExpenseForm = () => {
                     </span>
                   </label>
                 ))}
+                <button
+                  type="button"
+                  onClick={() => setIsCreatingCategory(true)}
+                  className="chip add-choice-chip"
+                >
+                  <Icon icon={Plus} size={16} /> Add new category
+                </button>
               </div>
               {!categories.length && (
                 <p className="soft-caption mt-2">No active categories yet. Add one to continue.</p>
               )}
-              <button
-                type="button"
-                onClick={() => setIsCreatingCategory(true)}
-                className="btn btn-secondary mt-3"
-              >
-                <Icon icon={Plus} size={17} /> Add new category
-              </button>
               {errors.categoryId && (
                 <span role="alert" className="money-negative text-xs">
                   {errors.categoryId.message}
                 </span>
               )}
             </fieldset>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <fieldset className="flex flex-col gap-2">
-                <legend className="field-label">Tags (optional)</legend>
-                {groupTags.length ? (
-                  <div className="flex flex-wrap gap-2">
-                    {groupTags.map((tag) => (
-                      <label key={tag.id} className="chip choice-pill">
-                        <input
-                          type="checkbox"
-                          value={tag.id}
-                          {...methods.register("tagIds")}
-                          className="choice-control"
-                        />
-                        <span
-                          className="h-2 w-2 rounded-full"
-                          style={{ backgroundColor: tag.color }}
-                        />
-                        {tag.name}
-                      </label>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="soft-caption">No tags in this group yet.</p>
-                )}
+            <fieldset className="flex flex-col gap-2">
+              <legend className="field-label">Tags (optional)</legend>
+              <div className="flex flex-wrap gap-2">
+                {groupTags.map((tag) => (
+                  <label key={tag.id} className="chip choice-pill">
+                    <input
+                      type="checkbox"
+                      value={tag.id}
+                      {...methods.register("tagIds")}
+                      className="choice-control"
+                    />
+                    <span className="h-2 w-2 rounded-full" style={{ backgroundColor: tag.color }} />
+                    {tag.name}
+                  </label>
+                ))}
                 <button
                   type="button"
                   onClick={() => setIsCreatingTag(true)}
-                  className="btn btn-secondary self-start md:hidden"
+                  className="chip choice-pill add-choice-chip md:hidden"
                 >
-                  <Icon icon={Plus} size={17} /> Add new tag
+                  <Icon icon={Plus} size={16} /> Add new tag
                 </button>
-              </fieldset>
-              <WhenPicker defaultDate={localDateTime(openedAt).slice(0, 10)} />
-            </div>
+              </div>
+              {!groupTags.length && <p className="soft-caption">No tags in this group yet.</p>}
+            </fieldset>
+            <WhenPicker defaultDate={localDateTime(openedAt).slice(0, 10)} />
             <p className="soft-caption">
               Notes and new attachments are not available yet. Existing expense data is preserved.
             </p>

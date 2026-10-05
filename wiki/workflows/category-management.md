@@ -9,7 +9,7 @@ metadata:
 
 Purpose: explain group-category selection, editing, guarded deletion, and pending activation UI.
 
-Last updated: 2026-10-05
+Last updated: 2026-10-06
 
 ## Implementation Status
 
@@ -17,12 +17,17 @@ The group **Categories & Tags** route currently implements category list/read, c
 edit, and guarded delete. Store guards enforce non-empty case-insensitively unique names, prevent
 deleting an in-use category, and preserve at least one category per group. Group creation also
 implements mandatory category selection with defaults.
-On mobile the screen scrolls as a page, while the category card itself is 50vh tall and scrolls
-independently. Its Categories title, available count, and Add category button stay sticky inside
-that card, below the sticky page and group headings. Each category keeps its name/count above a
-second row of wide, softly rectangular Edit/Delete buttons. Add and Edit open a name/icon modal on
-mobile rather than expanding the card inline; validation and save errors remain in the modal, and
-Cancel/Escape dismiss it without saving. Tablet/desktop keep the existing inline form and layout.
+On mobile the main pane scrolls between sections without scrolling the browser window, while the
+category card itself is 50vh tall and scrolls independently. Categories title, available count,
+and the dark Add category button are above the card, not sticky within it; the shared group Back
+header remains sticky. The duplicate visible Categories & Tags page title is omitted. Each
+category shows its full, wrapping name without an inline expense count above a second row of
+wide, softly rectangular Edit/Delete buttons. Blocked deletion keeps the usage count in its
+explanation modal instead. Add and Edit open a name/icon modal at every width rather than expanding
+the card inline; validation and save errors remain in the modal, and Cancel/Escape dismiss it
+without saving. Tablet stacks Categories above Tags; desktop keeps the bounded cards side by side.
+At laptop widths, short category names share a row with Edit/Delete, while long names wrap and
+move the actions below.
 
 Category deactivation is a future task. The `isActive` field and store update capability already
 exist, but the management screen has no Activate/Deactivate control. This state is worth retaining

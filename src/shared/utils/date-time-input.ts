@@ -1,11 +1,11 @@
-export interface ExpenseTimeParts {
+export interface DateTimeParts {
   date: string;
   hour: string;
   minute: string;
   period: "AM" | "PM";
 }
 
-export const parseExpenseTime = (value: string): ExpenseTimeParts => {
+export const parseLocalDateTime = (value: string): DateTimeParts => {
   const match = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})$/.exec(value);
   if (!match) return { date: "", hour: "", minute: "", period: "AM" };
 
@@ -18,7 +18,7 @@ export const parseExpenseTime = (value: string): ExpenseTimeParts => {
   };
 };
 
-export const composeExpenseTime = ({ date, hour, minute, period }: ExpenseTimeParts): string => {
+export const composeLocalDateTime = ({ date, hour, minute, period }: DateTimeParts): string => {
   if (!date) return "";
   const hours = Number(hour);
   const minutes = Number(minute);

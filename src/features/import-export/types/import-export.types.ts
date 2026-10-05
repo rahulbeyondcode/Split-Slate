@@ -9,6 +9,7 @@ import type {
   Group,
   Member,
   Person,
+  Settlement,
   Tag,
 } from "@/shared/types/domain.types";
 
@@ -24,6 +25,7 @@ export type ExportRecordType =
   | "category"
   | "tag"
   | "expense"
+  | "settlement"
   | "attachment";
 
 export interface GroupExportSource {
@@ -33,6 +35,7 @@ export interface GroupExportSource {
   categories: Category[];
   tags: Tag[];
   expenses: Expense[];
+  settlements: Settlement[];
   attachmentFiles: Attachment[];
 }
 

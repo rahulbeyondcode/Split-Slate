@@ -1,39 +1,45 @@
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { useController, useFormContext } from "react-hook-form";
 
-import type { ExpenseTimeParts } from "@/features/expenses/utils/expense-time";
-import { composeExpenseTime, parseExpenseTime } from "@/features/expenses/utils/expense-time";
-import { useViewport } from "@/shared/hooks/use-viewport";
-
-import type { ExpenseFormValues } from "@/features/expenses/types/expenses.types";
+import type { DateTimeParts } from "@/shared/utils/date-time-input";
+import { composeLocalDateTime, parseLocalDateTime } from "@/shared/utils/date-time-input";
 
 interface PropsType {
   defaultDate: string;
 }
 
 const WhenPicker = ({ defaultDate }: PropsType) => {
-  const { isMobile } = useViewport();
-  const { control } = useFormContext<ExpenseFormValues>();
+  const { control } = useFormContext<{ when: string }>();
   const { field, fieldState } = useController({ name: "when", control });
+  const hourRef = useRef<HTMLInputElement>(null);
   const minuteRef = useRef<HTMLInputElement>(null);
+  const timeLabelId = useId();
   const [parts, setParts] = useState(() => {
-    const initial = parseExpenseTime(field.value);
+    const initial = parseLocalDateTime(field.value);
     return { ...initial, date: field.value ? initial.date : defaultDate };
   });
 
-  const updateParts = (patch: Partial<ExpenseTimeParts>) => {
+  const updateParts = (patch: Partial<DateTimeParts>) => {
     const next = { ...parts, ...patch };
     setParts(next);
-    field.onChange(composeExpenseTime(next));
+    field.onChange(composeLocalDateTime(next));
   };
   const handleHourChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const hour = event.target.value;
     updateParts({ hour });
-    if (isMobile && (/^[2-9]$/.test(hour) || /^(0[1-9]|1[0-2])$/.test(hour)))
-      minuteRef.current?.focus();
+    if (/^[2-9]$/.test(hour) || /^(0[1-9]|1[0-2])$/.test(hour)) minuteRef.current?.focus();
   };
   const handleMinuteChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     updateParts({ minute: event.target.value });
+  };
+  const handleMinuteKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key !== "Backspace" || event.currentTarget.value !== "") return;
+    event.preventDefault();
+    const hour = hourRef.current;
+    if (!hour) return;
+    hour.focus();
+    const end = hour.value.length;
+    hour.setSelectionRange(end, end);
   };
   const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     updateParts({ date: event.target.value });
@@ -78,7 +84,7 @@ const WhenPicker = ({ defaultDate }: PropsType) => {
         </label>
         <div className="when-picker-field">
           <div className="flex items-center justify-between gap-2">
-            <span className="when-picker-caption" id="expense-time-label">
+            <span className="when-picker-caption" id={timeLabelId}>
               Time
             </span>
             <button
@@ -89,8 +95,9 @@ const WhenPicker = ({ defaultDate }: PropsType) => {
               Use current time
             </button>
           </div>
-          <div className="when-picker-time" role="group" aria-labelledby="expense-time-label">
+          <div className="when-picker-time" role="group" aria-labelledby={timeLabelId}>
             <input
+              ref={hourRef}
               type="text"
               inputMode="numeric"
               maxLength={2}
@@ -112,6 +119,7 @@ const WhenPicker = ({ defaultDate }: PropsType) => {
               maxLength={2}
               value={parts.minute}
               onChange={handleMinuteChange}
+              onKeyDown={handleMinuteKeyDown}
               onBlur={handleMinuteBlur}
               aria-label="Minute"
               aria-invalid={fieldState.error ? true : undefined}

@@ -1,6 +1,7 @@
 import { create } from "zustand";
 
 import { createExpensesSlice } from "@/features/expenses/store";
+import { createSettlementsSlice } from "@/features/settlements/store";
 import { createAppSlice } from "@/shared/configs/store/app-slice";
 import { createCategoriesSlice } from "@/shared/configs/store/categories-slice";
 import { createGroupDraftSlice } from "@/shared/configs/store/group-draft-slice";
@@ -14,6 +15,7 @@ import type { AppStore } from "@/shared/configs/store/types";
 export const useStore = create<AppStore>()((...args) => ({
   ...createAppSlice(...args),
   ...createExpensesSlice(...args),
+  ...createSettlementsSlice(...args),
   ...createPeopleSlice(...args),
   ...createGroupsSlice(...args),
   ...createCategoriesSlice(...args),

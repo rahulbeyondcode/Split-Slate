@@ -9,7 +9,6 @@ import ColorPicker from "@/shared/components/color-picker";
 import Input from "@/shared/components/form-elements/input";
 
 import { useStore } from "@/shared/configs/store";
-import { useViewport } from "@/shared/hooks/use-viewport";
 import type { EntitySuggestion } from "@/shared/utils/entity-suggestions";
 
 import type { GroupDetailContext } from "@/features/group-detail/types/group-detail.types";
@@ -34,7 +33,6 @@ type TagMode = "add" | "edit" | null;
 const DEFAULT_TAG_COLOR = "#6366f1";
 
 const TagManagement = () => {
-  const { isMobile } = useViewport();
   const { group, groupTags, groupExpenses } = useOutletContext<GroupDetailContext>();
   const { addTag, updateTag, removeTag } = useStore();
   const [tagMode, setTagMode] = useState<TagMode>(null);
@@ -127,25 +125,14 @@ const TagManagement = () => {
   ).length;
   const editor = tagMode && (
     <FormProvider {...tagForm}>
-      <form
-        onSubmit={handleSaveTag}
-        className={isMobile ? "flex min-w-0 flex-col gap-5" : "note flex flex-col gap-2"}
-      >
-        {isMobile ? (
-          <h3 className="section-title">{tagFormTitle}</h3>
-        ) : (
-          <p className="text-sm font-medium text-gray-900">{tagFormTitle}</p>
-        )}
-        {isMobile ? (
-          <div className="min-w-0">
-            <label className="field-label" htmlFor="group-tag-name">
-              Tag name
-            </label>
-            <Input id="group-tag-name" name="name" placeholder="Tag name" autoFocus />
-          </div>
-        ) : (
-          <Input name="name" placeholder="Tag name" autoFocus />
-        )}
+      <form onSubmit={handleSaveTag} className="flex min-w-0 flex-col gap-5">
+        <h3 className="section-title">{tagFormTitle}</h3>
+        <div className="min-w-0">
+          <label className="field-label" htmlFor="group-tag-name">
+            Tag name
+          </label>
+          <Input id="group-tag-name" name="name" placeholder="Tag name" autoFocus />
+        </div>
         {tagMode === "add" && (
           <EntitySuggestions
             kind="tag"
@@ -162,9 +149,7 @@ const TagManagement = () => {
             type="button"
             onClick={handleCancelTagForm}
             disabled={isSubmitting || suggesting}
-            className={
-              isMobile ? "btn btn-secondary" : "px-4 py-2 text-sm text-gray-500 disabled:opacity-50"
-            }
+            className="btn btn-secondary"
           >
             Cancel
           </button>
@@ -177,24 +162,69 @@ const TagManagement = () => {
   );
 
   return (
-    <div className="surface surface-pad flex flex-col gap-3">
+    <section className="management-section flex min-h-0 flex-col gap-3">
       <div className="management-card-header flex items-center justify-between gap-4">
         <div>
           <h2 className="section-title">Tags</h2>
-          <p className="soft-caption">{groupTags.length} available · free-form · group-scoped</p>
+          <p className="soft-caption">{groupTags.length} available</p>
         </div>
         {tagMode !== "add" && (
-          <button type="button" onClick={handleAddTagClick} className="btn btn-secondary">
+          <button type="button" onClick={handleAddTagClick} className="btn btn-primary">
             <Icon icon={Plus} size={18} /> Add tag
           </button>
         )}
       </div>
 
-      <div className="management-card-content">
-        {tagError && !isMobile && (
-          <p role="alert" className="note money-negative">
-            {tagError}
-          </p>
+      <div className="surface surface-pad flex min-h-0 flex-col gap-3">
+        <div className="management-card-content">
+          {groupTags.length > 0 ? (
+            <ul>
+              {groupTags.map((tag) => (
+                <li key={tag.id} className="ui-row management-entry tag-entry flex-wrap">
+                  <span className="management-entry-identity flex min-w-0 flex-1 basis-40 items-center gap-2 text-sm font-medium text-gray-900">
+                    <span
+                      className="h-3 w-3 shrink-0 rounded-full"
+                      style={{ backgroundColor: tag.color }}
+                      aria-hidden="true"
+                    />
+                    <span className="min-w-0 truncate">{tag.name}</span>
+                  </span>
+                  <div className="management-entry-actions ml-auto flex shrink-0 items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => handleEditTag(tag)}
+                      className="btn btn-secondary !px-3"
+                    >
+                      <Icon icon={Pencil} size={17} /> Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteTag(tag)}
+                      className="btn btn-danger !px-3"
+                    >
+                      <Icon icon={Trash2} size={17} /> Delete
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-gray-500">No tags have been added yet.</p>
+          )}
+        </div>
+        {tagMode && (
+          <MobileEditorDialog
+            title={tagFormTitle}
+            onCancel={handleCancelTagForm}
+            busy={isSubmitting || suggesting}
+          >
+            {tagError && (
+              <p role="alert" className="note money-negative mb-4">
+                {tagError}
+              </p>
+            )}
+            {editor}
+          </MobileEditorDialog>
         )}
         <ConfirmationDialog
           open={Boolean(confirmTag)}
@@ -204,61 +234,8 @@ const TagManagement = () => {
           onCancel={() => setConfirmTagId(null)}
           onConfirm={handleConfirmDelete}
         />
-
-        {tagMode &&
-          (isMobile ? (
-            <MobileEditorDialog
-              title={tagFormTitle}
-              onCancel={handleCancelTagForm}
-              busy={isSubmitting || suggesting}
-            >
-              {tagError && (
-                <p role="alert" className="note money-negative mb-4">
-                  {tagError}
-                </p>
-              )}
-              {editor}
-            </MobileEditorDialog>
-          ) : (
-            editor
-          ))}
-
-        {groupTags.length > 0 ? (
-          <ul>
-            {groupTags.map((tag) => (
-              <li key={tag.id} className="ui-row management-entry tag-entry flex-wrap">
-                <span className="management-entry-identity flex min-w-0 flex-1 basis-40 items-center gap-2 text-sm font-medium text-gray-900">
-                  <span
-                    className="h-3 w-3 shrink-0 rounded-full"
-                    style={{ backgroundColor: tag.color }}
-                    aria-hidden="true"
-                  />
-                  <span className="min-w-0 truncate">{tag.name}</span>
-                </span>
-                <div className="management-entry-actions ml-auto flex shrink-0 items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => handleEditTag(tag)}
-                    className="btn btn-secondary !px-3"
-                  >
-                    <Icon icon={Pencil} size={17} /> Edit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteTag(tag)}
-                    className="btn btn-danger !px-3"
-                  >
-                    <Icon icon={Trash2} size={17} /> Delete
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-sm text-gray-500">No tags have been added yet.</p>
-        )}
       </div>
-    </div>
+    </section>
   );
 };
 

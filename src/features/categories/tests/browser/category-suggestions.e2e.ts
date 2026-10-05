@@ -61,17 +61,12 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/groups/current/categories");
 });
 
-test("copies a first-letter match and keeps category records group-scoped", async ({
-  page,
-  isMobile,
-}) => {
+test("copies a first-letter match and keeps category records group-scoped", async ({ page }) => {
   const card = page
-    .locator(".surface")
+    .locator(".management-section")
     .filter({ has: page.getByRole("heading", { name: "Categories", exact: true }) });
   await card.getByRole("button", { name: "Add category" }).click();
-  const form = isMobile
-    ? page.getByRole("dialog", { name: "Add category" }).locator("form")
-    : card.locator("form");
+  const form = page.getByRole("dialog", { name: "Add category" }).locator("form");
   await form.getByLabel("Category name").fill("f");
   const suggestion = form
     .getByLabel("category suggestions from other groups")

@@ -4,6 +4,7 @@ import { localDateTime } from "@/features/expenses/utils/expense-form-values";
 import { createExpenseSchema, expenseTransactions } from "@/features/expenses/utils/expense-schema";
 import { rankPayers } from "@/features/expenses/utils/paid-by";
 import { db } from "@/shared/configs/db";
+import { calculateBalances } from "@/shared/utils/balances";
 
 import type { CreateExpenseInput } from "@/features/expenses/types/expenses.types";
 import type { Expense } from "@/shared/types/domain.types";
@@ -72,6 +73,12 @@ export const prepareExpense = async (input: CreateExpenseInput, existing?: Expen
     throw new Error(
       "This expense would exceed the group's supported total. Use a new group for additional expenses.",
     );
+  const payments = await db.settlements.where("groupId").equals(group.id).toArray();
+  calculateBalances(
+    next,
+    members.map((member) => member.id),
+    payments,
+  );
   const frequentPayerIds = rankPayers(
     members.map((member) => ({
       id: member.id,

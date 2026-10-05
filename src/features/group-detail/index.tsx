@@ -19,7 +19,8 @@ const GroupDetail = () => {
   const { isMobile } = useViewport();
   const { groupId } = useParams();
   const { pathname, search } = useLocation();
-  const { groups, members, people, categories, tags, expenses, localUser } = useStore();
+  const { groups, members, people, categories, tags, expenses, settlements, localUser } =
+    useStore();
   if (!groupId) return <Navigate to="/dashboard" replace />;
   const group = groups.find((item) => item.id === groupId);
   if (!group)
@@ -46,17 +47,13 @@ const GroupDetail = () => {
     groupCategories: categories.filter((category) => category.groupId === group.id),
     groupTags: tags.filter((tag) => tag.groupId === group.id),
     groupExpenses: expenses.filter((expense) => expense.groupId === group.id),
+    groupSettlements: settlements.filter((settlement) => settlement.groupId === group.id),
   };
   const isExpenseForm = pathname.endsWith("/new") || pathname.endsWith("/edit");
-  const isMobileScrollablePage =
-    isMobile && [`/groups/${groupId}/expenses`, `/groups/${groupId}/categories`].includes(pathname);
+  const isMobileScrollablePage = isMobile && pathname === `/groups/${groupId}/categories`;
   const isContainedPage =
     !isMobileScrollablePage &&
-    [
-      `/groups/${groupId}/expenses`,
-      `/groups/${groupId}/members`,
-      `/groups/${groupId}/categories`,
-    ].includes(pathname);
+    [`/groups/${groupId}/members`, `/groups/${groupId}/categories`].includes(pathname);
   const showGroupNavigation = [
     `/groups/${groupId}`,
     `/groups/${groupId}/analytics`,
@@ -72,10 +69,12 @@ const GroupDetail = () => {
     ].includes(pathname);
   const isOverview = pathname === `/groups/${groupId}`;
   const person = context.groupMembers.find((item) => item.personId === localUser?.id);
-  const net = person ? calculateMemberNet(context.groupExpenses, person.id) : 0;
+  const net = person
+    ? calculateMemberNet(context.groupExpenses, person.id, context.groupSettlements)
+    : 0;
   const total = calculateGroupTotal(context.groupExpenses);
   const dashboardLink = isMobile && (
-    <Link to="/dashboard" className="page-back-link mobile-group-back">
+    <Link to="/dashboard" className="page-back-link dashboard-back-link mobile-group-back">
       <Icon icon={ArrowLeft} size={16} /> Back to dashboard
     </Link>
   );
@@ -147,7 +146,7 @@ const GroupDetail = () => {
         ) : (
           <header className="group-page-header">
             {dashboardLink}
-            <h1 className="page-title">
+            <h1 className={pathname.endsWith("/categories") ? "sr-only" : "page-title"}>
               {pathname.endsWith("/members")
                 ? "Members"
                 : pathname.endsWith("/categories")

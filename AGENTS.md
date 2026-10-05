@@ -4,6 +4,12 @@ This project uses Andrej Karpathy's LLM Wiki pattern. The wiki is the primary co
 
 ---
 
+# 🔴 HIGHEST PRIORITY — DO THIS FIRST, BEFORE ANY OTHER TASK
+
+**Lint, build, and tests were NOT run for the latest commit** (`feat: add group payments and responsive UI polish`). Before doing anything else — before any new task, feature, fix, or refactor — run `pnpm lint`, `pnpm build`, and the full test suite, and fix any failures. Treat this as task #1 until it is completed and confirmed. Do not start other work first.
+
+---
+
 # STRICT RULES — NO EXCEPTIONS
 
 These are hard stops. Not guidelines. Not suggestions.

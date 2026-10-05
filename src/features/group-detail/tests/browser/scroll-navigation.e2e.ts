@@ -63,20 +63,30 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/groups/trip/expenses");
 });
 
-test("scrolls expenses in the mobile pane or desktop list and resets on navigation", async ({
+test("scrolls the expense page and limits the desktop ledger to ten rows, then resets on navigation", async ({
   page,
   isMobile,
 }) => {
   const main = page.locator("#main-content");
   const ledger = page.locator(".expense-ledger-list");
   const header = page.locator(".group-page-header");
+  const title = page.locator(".expense-ledger > header");
+  const toolbar = page.getByRole("form", { name: "Expense filters" });
+  const pageBackground = await header.evaluate(
+    (element) => getComputedStyle(element).backgroundColor,
+  );
+  for (const sticky of [title, toolbar]) {
+    await expect(sticky).toHaveCSS("background-color", pageBackground);
+    await expect(sticky).toHaveCSS("opacity", "1");
+  }
+  expect(await toolbar.evaluate((element) => getComputedStyle(element).boxShadow)).not.toBe(
+    "none",
+  );
   const navigation = page
     .getByRole("navigation", { name: "Group navigation" })
     .or(page.getByRole("navigation", { name: "Bottom navigation" }));
 
   if (isMobile) {
-    const title = page.locator(".expense-ledger > header");
-    const toolbar = page.getByRole("form", { name: "Expense filters" });
     const banner = page.getByRole("region", { name: "Expense insights" });
     await expect
       .poll(() => main.evaluate((element) => element.scrollHeight > element.clientHeight))
@@ -108,20 +118,51 @@ test("scrolls expenses in the mobile pane or desktop list and resets on navigati
     await expect
       .poll(() => ledger.evaluate((element) => element.scrollHeight > element.clientHeight))
       .toBe(true);
+    await expect
+      .poll(() => main.evaluate((element) => element.scrollHeight > element.clientHeight))
+      .toBe(true);
+    const tenthRow = ledger.getByRole("list", { name: "Expenses" }).locator(":scope > li").nth(9);
+    const ledgerBox = (await ledger.boundingBox())!;
+    const tenthBox = (await tenthRow.boundingBox())!;
+    expect(Math.abs(ledgerBox.y + ledgerBox.height - (tenthBox.y + tenthBox.height))).toBeLessThan(
+      3,
+    );
+    await main.evaluate((element) => {
+      element.scrollTop = element.scrollHeight;
+    });
+    await expect.poll(() => main.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+    const title = page.locator(".expense-ledger > header");
+    const toolbar = page.getByRole("form", { name: "Expense filters" });
+    const banner = page.getByRole("region", { name: "Expense insights" });
+    const groupBottom = (await header.boundingBox())!.y + (await header.boundingBox())!.height;
+    const titleBox = (await title.boundingBox())!;
+    const toolbarBox = (await toolbar.boundingBox())!;
+    expect(Math.abs(titleBox.y - groupBottom)).toBeLessThan(3);
+    expect(Math.abs(toolbarBox.y - (titleBox.y + titleBox.height))).toBeLessThan(3);
+    expect((await banner.boundingBox())!.y + (await banner.boundingBox())!.height).toBeLessThan(
+      toolbarBox.y,
+    );
+    const pageScroll = await main.evaluate((element) => element.scrollTop);
     await ledger.evaluate((element) => {
       element.scrollTop = element.scrollHeight;
     });
     await expect.poll(() => ledger.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
-    await expect.poll(() => main.evaluate((element) => element.scrollTop)).toBe(0);
+    await expect(
+      ledger.getByRole("list", { name: "Expenses" }).locator("li").last(),
+    ).toBeInViewport();
+    await expect.poll(() => main.evaluate((element) => element.scrollTop)).toBe(pageScroll);
   }
   await expect(header).toBeInViewport();
 
   await navigation.getByRole("link", { name: "Overview" }).click();
-  await expect(page.getByRole("heading", { name: "Recent expenses (32)" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Recent transactions" })).toBeVisible();
+  await expect(
+    page.locator(".recent-activity-card").getByRole("link", { name: "View all (32)" }),
+  ).toBeVisible();
   await expect.poll(() => main.evaluate((element) => element.scrollTop)).toBe(0);
 
   await navigation.getByRole("link", { name: "Expenses" }).click();
-  await expect(page.getByRole("heading", { name: "All expenses" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Expenses and payments" })).toBeVisible();
   await expect.poll(() => main.evaluate((element) => element.scrollTop)).toBe(0);
 
   if (isMobile) {
@@ -134,10 +175,45 @@ test("scrolls expenses in the mobile pane or desktop list and resets on navigati
     });
   }
   await page.goBack();
-  await expect(page.getByRole("heading", { name: "Recent expenses (32)" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Recent transactions" })).toBeVisible();
   await page.goForward();
-  await expect(page.getByRole("heading", { name: "All expenses" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Expenses and payments" })).toBeVisible();
   await expect.poll(() => main.evaluate((element) => element.scrollTop)).toBe(0);
+});
+
+test("tablet expense ledger scrolls after ten rows and short filtered results do not", async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(isMobile, "Tablet-sized viewport in the desktop project");
+  await page.setViewportSize({ width: 820, height: 800 });
+  const main = page.locator("#main-content");
+  const ledger = page.locator(".expense-ledger-list");
+  const rows = ledger.getByRole("list", { name: "Expenses" }).locator(":scope > li");
+  await expect(rows).toHaveCount(32);
+  await expect
+    .poll(() => ledger.evaluate((element) => element.scrollHeight > element.clientHeight))
+    .toBe(true);
+  await expect
+    .poll(() => main.evaluate((element) => element.scrollHeight > element.clientHeight))
+    .toBe(true);
+  const ledgerBox = (await ledger.boundingBox())!;
+  const tenthBox = (await rows.nth(9).boundingBox())!;
+  expect(Math.abs(ledgerBox.y + ledgerBox.height - (tenthBox.y + tenthBox.height))).toBeLessThan(3);
+  await main.evaluate((element) => {
+    element.scrollTop = element.scrollHeight;
+  });
+  const banner = page.getByRole("region", { name: "Expense insights" });
+  const toolbar = page.getByRole("form", { name: "Expense filters" });
+  expect((await banner.boundingBox())!.y + (await banner.boundingBox())!.height).toBeLessThan(
+    (await toolbar.boundingBox())!.y,
+  );
+
+  await page.getByRole("searchbox", { name: "Search expenses" }).fill("Expense 31");
+  await expect(rows).toHaveCount(1);
+  await expect
+    .poll(() => ledger.evaluate((element) => element.scrollHeight <= element.clientHeight))
+    .toBe(true);
 });
 
 test("shows full expense titles above amounts in mobile list and overview", async ({
@@ -179,7 +255,7 @@ test("keeps category, tag, and member lists inside their own cards", async ({ pa
   await page.goto("/groups/trip/categories");
   const main = page.locator("#main-content");
   const header = page.locator(".group-page-header");
-  const cards = page.locator(".group-management-grid > .surface");
+  const cards = page.locator(".group-management-grid > .management-section > .surface");
   for (const card of await cards.all()) {
     const scroller = isMobile ? card.locator(".management-card-content") : card;
     await expect
@@ -223,10 +299,6 @@ test("keeps category, tag, and member lists inside their own cards", async ({ pa
   });
   await page.goto("/groups/trip/categories");
   await page.evaluate(() => window.scrollTo(0, 10000));
-  if (isMobile) {
-    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
-    await page.evaluate(() => window.scrollTo(0, 0));
-  }
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
   for (const card of await cards.all()) {
     const scroller = isMobile ? card.locator(".management-card-content") : card;
@@ -256,7 +328,7 @@ test("keeps category, tag, and member lists inside their own cards", async ({ pa
   await expect(header).toBeInViewport();
 });
 
-test("lets mobile Categories & Tags page scroll around two 50vh cards with sticky headers", async ({
+test("lets mobile Categories & Tags page scroll around two 50vh cards with headers above them", async ({
   page,
   isMobile,
 }) => {
@@ -286,8 +358,8 @@ test("lets mobile Categories & Tags page scroll around two 50vh cards with stick
   await page.goto("/groups/trip/categories");
 
   const main = page.locator("#main-content");
-  const cards = page.locator(".group-management-grid > .surface");
-  const heading = page.locator(".group-management > h2");
+  const cards = page.locator(".group-management-grid > .management-section > .surface");
+  const headings = page.locator(".management-card-header");
   await expect(cards).toHaveCount(2);
   await expect
     .poll(() => main.evaluate((element) => element.scrollHeight > element.clientHeight))
@@ -300,8 +372,8 @@ test("lets mobile Categories & Tags page scroll around two 50vh cards with stick
       element.scrollTop = element.scrollHeight;
     });
     await expect.poll(() => scroller.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
-    const cardHeader = card.locator(".management-card-header");
-    await expect(cardHeader).toBeVisible();
+    const cardHeader = card.locator("..").locator(".management-card-header");
+    await expect(cardHeader).toHaveCSS("position", "static");
     expect((await scroller.boundingBox())!.y).toBeGreaterThanOrEqual(
       (await cardHeader.boundingBox())!.y + (await cardHeader.boundingBox())!.height,
     );
@@ -324,7 +396,9 @@ test("lets mobile Categories & Tags page scroll around two 50vh cards with stick
   await main.evaluate((element) => {
     element.scrollTop = element.scrollHeight;
   });
+  await expect.poll(() => main.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
   await expect(page.locator(".group-page-header")).toBeInViewport();
-  await expect(heading).toBeInViewport();
-  await expect(cards.nth(1).getByRole("button", { name: "Add tag" })).toBeInViewport();
+  await expect(headings.nth(0)).not.toBeInViewport();
+  await expect(headings.nth(1).getByRole("button", { name: "Add tag" })).toBeInViewport();
 });

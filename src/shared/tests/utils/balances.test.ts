@@ -7,7 +7,7 @@ import {
   suggestTransfers,
 } from "@/shared/utils/balances";
 
-import type { Expense, Transaction } from "@/shared/types/domain.types";
+import type { Expense, Settlement, Transaction } from "@/shared/types/domain.types";
 
 interface ExpenseData {
   id: string;
@@ -53,6 +53,23 @@ const EXPENSES: Expense[] = [
   }),
 ];
 
+const payment = (
+  amount: number,
+  fromMemberId = "member-c",
+  toMemberId = "member-a",
+): Settlement => ({
+  id: "payment",
+  groupId: "group-1",
+  kind: "payment",
+  fromMemberId,
+  toMemberId,
+  recordedBy: "member-a",
+  amount,
+  when: 1,
+  createdAt: 1,
+  tagIds: [],
+});
+
 describe("calculateMemberNet", () => {
   it("returns zero when there are no expenses", () => {
     expect(calculateMemberNet([], "member-a")).toBe(0);
@@ -80,6 +97,38 @@ describe("calculateGroupTotal", () => {
 });
 
 describe("calculateBalances", () => {
+  it("reduces debt for partial payments without changing group spending", () => {
+    const balances = calculateBalances(
+      EXPENSES,
+      ["member-a", "member-b", "member-c"],
+      [payment(2_000)],
+    );
+    expect([...balances]).toEqual([
+      ["member-a", 4_500],
+      ["member-b", -1_500],
+      ["member-c", -3_000],
+    ]);
+    expect(calculateMemberNet(EXPENSES, "member-a", [payment(2_000)])).toBe(4_500);
+    expect(calculateGroupTotal(EXPENSES)).toBe(14_000);
+    expect(suggestTransfers(balances).reduce((sum, transfer) => sum + transfer.amount, 0)).toBe(
+      4_500,
+    );
+  });
+  it("allows real overpayments to reverse group balances", () => {
+    expect([
+      ...calculateBalances(EXPENSES, ["member-a", "member-b", "member-c"], [payment(7_000)]),
+    ]).toEqual([
+      ["member-a", -500],
+      ["member-b", -1_500],
+      ["member-c", 2_000],
+    ]);
+    expect(() =>
+      calculateBalances(EXPENSES, ["member-a", "member-b", "member-c"], [payment(0)]),
+    ).toThrow("Invalid payment amount");
+    expect(() =>
+      calculateBalances(EXPENSES, ["member-a", "member-b", "member-c"], [payment(1, "missing")]),
+    ).toThrow("missing or duplicate");
+  });
   it("includes uninvolved members with zero balance", () => {
     expect([
       ...calculateBalances(EXPENSES, ["member-a", "member-b", "member-c", "member-d"]),

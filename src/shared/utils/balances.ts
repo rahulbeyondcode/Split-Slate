@@ -1,5 +1,5 @@
 import type { SuggestedTransfer } from "@/shared/types/balances.types";
-import type { Expense } from "@/shared/types/domain.types";
+import type { Expense, Settlement } from "@/shared/types/domain.types";
 
 const safeAmount = (amount: bigint): number => {
   const result = Number(amount);
@@ -7,17 +7,32 @@ const safeAmount = (amount: bigint): number => {
   return result;
 };
 
-export const calculateMemberNet = (expenses: Expense[], memberId: string): number =>
+export const calculateMemberNet = (
+  expenses: Expense[],
+  memberId: string,
+  settlements: Settlement[] = [],
+): number =>
   safeAmount(
-    expenses.reduce((net, expense) => {
-      const paid = expense.transactions.paid
-        .filter((row) => row.memberId === memberId)
-        .reduce((sum, row) => sum + BigInt(row.amount), 0n);
-      const owed = expense.transactions.owes
-        .filter((row) => row.memberId === memberId)
-        .reduce((sum, row) => sum + BigInt(row.amount), 0n);
-      return net + paid - owed;
-    }, 0n),
+    settlements.reduce(
+      (net, settlement) => {
+        if (!Number.isSafeInteger(settlement.amount) || settlement.amount <= 0)
+          throw new Error("Invalid payment amount");
+        return (
+          net +
+          (settlement.fromMemberId === memberId ? BigInt(settlement.amount) : 0n) -
+          (settlement.toMemberId === memberId ? BigInt(settlement.amount) : 0n)
+        );
+      },
+      expenses.reduce((net, expense) => {
+        const paid = expense.transactions.paid
+          .filter((row) => row.memberId === memberId)
+          .reduce((sum, row) => sum + BigInt(row.amount), 0n);
+        const owed = expense.transactions.owes
+          .filter((row) => row.memberId === memberId)
+          .reduce((sum, row) => sum + BigInt(row.amount), 0n);
+        return net + paid - owed;
+      }, 0n),
+    ),
   );
 
 export const calculateGroupTotal = (expenses: Expense[]): number =>
@@ -32,6 +47,7 @@ export const calculateGroupTotal = (expenses: Expense[]): number =>
 export const calculateBalances = (
   expenses: Expense[],
   memberIds: string[],
+  settlements: Settlement[] = [],
 ): Map<string, number> => {
   const balances = new Map(memberIds.map((id) => [id, 0n]));
   for (const expense of expenses) {
@@ -46,6 +62,24 @@ export const calculateBalances = (
         balances.set(row.memberId, balances.get(row.memberId)! + sign * BigInt(row.amount));
       }
     }
+  }
+  for (const settlement of settlements) {
+    if (
+      !balances.has(settlement.fromMemberId) ||
+      !balances.has(settlement.toMemberId) ||
+      settlement.fromMemberId === settlement.toMemberId
+    )
+      throw new Error("A payment references a missing or duplicate member");
+    if (!Number.isSafeInteger(settlement.amount) || settlement.amount <= 0)
+      throw new Error("Invalid payment amount");
+    balances.set(
+      settlement.fromMemberId,
+      balances.get(settlement.fromMemberId)! + BigInt(settlement.amount),
+    );
+    balances.set(
+      settlement.toMemberId,
+      balances.get(settlement.toMemberId)! - BigInt(settlement.amount),
+    );
   }
   return new Map([...balances].map(([id, amount]) => [id, safeAmount(amount)]));
 };

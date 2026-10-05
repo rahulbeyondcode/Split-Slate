@@ -14,16 +14,18 @@ Last updated: 2026-10-05
 ## Current Implementation Scope
 
 `src/shared/configs/db.ts` currently declares these Dexie stores: `localUser`, `groups`, `people`,
-`members`, `categories`, `tags`, `expenses`, `attachments`, `settings`, and `activityEvents`.
+`members`, `categories`, `tags`, `expenses`, `settlements`, `attachments`, `settings`, and
+`activityEvents`.
 
 Dexie version 2 adds `activityEvents` to version 1 without clearing existing groups or expenses.
+Version 3 adds `settlements` without rewriting historical expense rows. Old groups start with no
+recorded payments.
 There is no historical-event backfill: current expenses without a saved creation event are shown
 as derived entries until deleted. Existing version 1 backups restore with an empty event table.
 Ratio metadata read compatibility does not rewrite records on bootstrap.
 
-Version 2 is a declared upgrade for the activity table; it does not backfill historical events.
-Other development schema changes have previously used a disposable-data reset. Preserving data
-across future schema revisions will require corresponding upgrades.
+Version 2 does not backfill historical events. Other development schema changes have previously used
+a disposable-data reset. Future revisions still require explicit upgrades when data must survive.
 
 App bootstrap catches database-opening and read failures in the initializer and sets `initError`.
 The route protector then displays a recovery screen with reload and backup-restore actions rather
@@ -40,7 +42,8 @@ Immutable action snapshots with `id` as UUID primary key and indexes on `groupId
 snapshots while the group exists. Group deletion atomically removes all its activity except the
 group-created record and the new group-deleted record; neither surviving row needs a live group.
 Successful mutations write events within their entity transaction. Whole-app backups include
-events; selective group transfers do not carry source activity history. See [[dashboard]] and
+events, including payment create/edit/delete actions; selective group transfers do not carry source
+activity history. See [[dashboard]], [[settlement-recording]], and
 [[full-backup]].
 
 ---
@@ -129,12 +132,33 @@ cannot be recovered automatically; invalid legacy ratios require correction befo
 See [[expense-edit-delete]].
 
 Creation and updates validate safe-integer hundredths and equal paid/owed totals. Within
-one Dexie transaction each save rechecks persisted group, member/person, creator, active-category, and tag
-references, checks the aggregate group-spending limit, and writes the expense and payer ranking.
-Updates retain creation metadata and attachment IDs, replace the old amount for the spending-limit
-check, and may retain the expense's current inactive category. The formatter consumes hundredths
-and displays two decimal places even for currencies with different ISO defaults. See
+one Dexie transaction each save rechecks persisted group, member/person, creator, active-category,
+and tag references, checks aggregate group spending and derived member balances, and writes the
+expense and payer ranking. Updates retain creation metadata and attachment IDs, replace the old
+amount for the spending limit, and may retain the current inactive category. The formatter displays
+two decimal places even for currencies with different ISO defaults. See
 [[money-representation-and-rounding]] and [[state-management]].
+
+---
+
+### `settlements` (Dexie version 3)
+
+| Field        | Type    | Notes                                   |
+|--------------|---------|-----------------------------------------|
+| id           | UUID    | primary key                             |
+| groupId      | UUID    | index → group owner                     |
+| kind         | string  | `'payment'`                             |
+| fromMemberId | UUID    | group member who paid                   |
+| toMemberId   | UUID    | distinct group member who received     |
+| recordedBy   | UUID    | group member representing this device  |
+| amount       | number  | positive safe-integer hundredths       |
+| when         | number  | editable unix-ms external payment time |
+| createdAt    | number  | automatic unix-ms recording time       |
+| tagIds       | UUID[]  | optional same-group tags                |
+
+Payment writes and activity snapshots share a transaction. Group deletion removes owned payments;
+tag deletion updates only their tag IDs. Balances consume these rows independently of expense
+spending totals. See [[settlement-recording]] and [[balance-calculation]].
 
 ---
 
@@ -186,11 +210,9 @@ Index: `groupId` — used to fetch categories for a group.
 
 Index: `groupId` — used to fetch all tags for a group.
 
-Tags are optional from the expense perspective and have no `isActive` field. Tag deletion reads
-the persisted tag and its group expenses in one IndexedDB transaction, then deletes the tag and
-updates only existing expense tag references. It cannot recreate deleted expenses or overwrite
-newer fields from hydrated state. After commit, the group's expense snapshot is refreshed in
-Zustand. See [[tag-management]].
+Tags are optional on expenses and payments and have no `isActive` field. Tag deletion reads their
+persisted group rows in one IndexedDB transaction, deletes the tag, and updates only existing tag
+references. After commit, both group snapshots are refreshed in Zustand. See [[tag-management]].
 
 ---
 
@@ -233,6 +255,7 @@ See [[category-settings-ui]].
 | Members of a group            | members     | groupId    |
 | Groups a person belongs to    | members     | personId   |
 | Expenses of a group           | expenses    | groupId    |
+| Payments of a group           | settlements | groupId    |
 | Categories of a group         | categories  | groupId    |
 | Tags of a group               | tags        | groupId    |
 | Single expense by ID          | expenses    | primary    |

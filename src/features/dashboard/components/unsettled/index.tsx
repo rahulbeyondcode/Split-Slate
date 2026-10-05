@@ -18,7 +18,7 @@ const Unsettled = () => {
       <header className="mb-5">
         <h1 className="page-title">Unsettled</h1>
         <p className="soft-caption mt-1">
-          Suggested transfers between you and others · no payments are recorded here
+          Suggested transfers between you and others · record payments within each group
         </p>
       </header>
       {currency && (
@@ -62,7 +62,7 @@ const Unsettled = () => {
         <EmptyState
           icon={CircleCheck}
           title="All square!"
-          description="No unsettled balances. Go split something."
+          description="No unsettled balances in your groups."
         />
       )}
     </div>

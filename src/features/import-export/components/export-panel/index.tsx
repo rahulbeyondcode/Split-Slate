@@ -27,12 +27,7 @@ interface PropsType {
   attachmentCount: number;
 }
 
-type ExportOperation = "link" | "csv" | "zip" | "copy" | null;
-
-interface GeneratedLink {
-  selectionKey: string;
-  value: string;
-}
+type ExportOperation = "link" | "csv" | "zip" | null;
 
 interface LinkAvailability {
   selectionKey: string;
@@ -59,8 +54,8 @@ const ExportPanel = ({ groupId, groupName, attachmentCount }: PropsType) => {
       name: ["categories", "tags", "members", "expenses", "attachments"],
     });
   const [operation, setOperation] = useState<ExportOperation>(null);
-  const [transferLink, setTransferLink] = useState<GeneratedLink | null>(null);
   const [message, setMessage] = useState("");
+  const [linkCopied, setLinkCopied] = useState(false);
   const [error, setError] = useState("");
   const [linkAvailability, setLinkAvailability] = useState<LinkAvailability | null>(null);
   const [linkDialogReason, setLinkDialogReason] = useState<"size" | "receipts" | null>(null);
@@ -72,9 +67,15 @@ const ExportPanel = ({ groupId, groupName, attachmentCount }: PropsType) => {
     expensesSelected,
     attachmentsSelected,
   ]);
+  const selectionKeyRef = useRef(currentSelectionKey);
+  selectionKeyRef.current = currentSelectionKey;
   const linkStatus =
     linkAvailability?.selectionKey === currentSelectionKey ? linkAvailability.status : "unknown";
   const linkUnavailable = attachmentsSelected || linkStatus === "too-large";
+
+  useEffect(() => {
+    setLinkCopied(false);
+  }, [currentSelectionKey]);
 
   useEffect(() => {
     if (attachmentsSelected) return undefined;
@@ -118,6 +119,7 @@ const ExportPanel = ({ groupId, groupName, attachmentCount }: PropsType) => {
   const startOperation = (next: ExportOperation) => {
     setOperation(next);
     setMessage("");
+    setLinkCopied(false);
     setError("");
   };
 
@@ -131,22 +133,24 @@ const ExportPanel = ({ groupId, groupName, attachmentCount }: PropsType) => {
     if (!valid) throw new Error("Choose a valid set of group content");
     const selection = methods.getValues();
     const source = await readGroupExportSource(groupId);
-    return { source: await buildGroupTransfer(source, selection), selection };
+    return buildGroupTransfer(source, selection);
   };
 
-  const handleCreateLink = async () => {
+  const handleCopyLink = async () => {
     startOperation("link");
-    setTransferLink(null);
+    const selectionKey = currentSelectionKey;
     try {
-      const { selection, source } = await prepareTransfer();
+      const source = await prepareTransfer();
       const appBaseUrl = new URL(import.meta.env.BASE_URL, window.location.origin).toString();
-      setTransferLink({
-        selectionKey: JSON.stringify(Object.values(selection)),
-        value: await createTransferLink(source.bundle, appBaseUrl),
-      });
-      setMessage(
-        "Transfer link ready. The recipient can import a new editable copy of this group.",
-      );
+      const link = await createTransferLink(source.bundle, appBaseUrl);
+      try {
+        await navigator.clipboard.writeText(link);
+      } catch {
+        setError("Could not copy the transfer link. Check clipboard permissions and try again.");
+        setOperation(null);
+        return;
+      }
+      if (selectionKeyRef.current === selectionKey) setLinkCopied(true);
       setOperation(null);
     } catch (failure) {
       if (failure instanceof TransferLinkTooLargeError) {
@@ -168,26 +172,13 @@ const ExportPanel = ({ groupId, groupName, attachmentCount }: PropsType) => {
       setLinkDialogReason("size");
       return;
     }
-    void handleCreateLink();
-  };
-
-  const handleCopyLink = async () => {
-    if (!transferLink || transferLink.selectionKey !== currentSelectionKey) return;
-    startOperation("copy");
-    try {
-      await navigator.clipboard.writeText(transferLink.value);
-      setMessage("Transfer link copied.");
-      setOperation(null);
-    } catch {
-      setError("Could not copy automatically. Select and copy the link below.");
-      setOperation(null);
-    }
+    void handleCopyLink();
   };
 
   const handleDownloadCsv = async () => {
     startOperation("csv");
     try {
-      const { source } = await prepareTransfer();
+      const source = await prepareTransfer();
       downloadFile(
         await createPortableGroupCsv(source.bundle),
         "text/csv;charset=utf-8",
@@ -203,7 +194,7 @@ const ExportPanel = ({ groupId, groupName, attachmentCount }: PropsType) => {
   const handleDownloadZip = async () => {
     startOperation("zip");
     try {
-      const { source } = await prepareTransfer();
+      const source = await prepareTransfer();
       const archive = await createPortableGroupZip(source);
       downloadFile(
         archive.buffer as ArrayBuffer,
@@ -281,8 +272,13 @@ const ExportPanel = ({ groupId, groupName, attachmentCount }: PropsType) => {
               onClick={handleLinkClick}
               className={`btn mt-auto ${linkUnavailable ? "btn-blocked" : "btn-primary"}`}
             >
-              {operation === "link" ? "Creating…" : "Create transfer link"}
+              {operation === "link" ? "Creating and copying…" : "Copy transfer link"}
             </button>
+            {linkCopied && (
+              <p role="status" className="text-sm font-semibold text-[var(--positive)]">
+                Transfer link copied successfully.
+              </p>
+            )}
           </article>
 
           <article className="surface surface-pad flex flex-col gap-3">
@@ -324,28 +320,6 @@ const ExportPanel = ({ groupId, groupName, attachmentCount }: PropsType) => {
           Keep downloaded ZIP and CSV files unchanged. Editing them may prevent import.
         </StatusBanner>
 
-        {transferLink?.selectionKey === currentSelectionKey && !linkUnavailable && (
-          <div className="flex flex-col gap-2 rounded border border-gray-200 p-4">
-            <label htmlFor="transfer-link" className="text-sm font-medium">
-              Transfer link
-            </label>
-            <input
-              id="transfer-link"
-              readOnly
-              value={transferLink.value}
-              onFocus={(event) => event.currentTarget.select()}
-              className="form-input min-w-0"
-            />
-            <button
-              type="button"
-              disabled={busy}
-              onClick={handleCopyLink}
-              className="btn btn-secondary self-start"
-            >
-              {operation === "copy" ? "Copying…" : "Copy link"}
-            </button>
-          </div>
-        )}
         <dialog
           ref={linkDialogRef}
           aria-labelledby="link-unavailable-title"

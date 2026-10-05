@@ -14,7 +14,8 @@ export const groupPosition = (state: AppStore, group: Group) => {
     (item) => item.groupId === group.id && item.personId === state.localUser?.id,
   );
   const entries = state.expenses.filter((expense) => expense.groupId === group.id);
-  return member ? calculateMemberNet(entries, member.id) : 0;
+  const payments = state.settlements.filter((settlement) => settlement.groupId === group.id);
+  return member ? calculateMemberNet(entries, member.id, payments) : 0;
 };
 
 export const dashboardPositions = (state: AppStore) => {
@@ -34,9 +35,11 @@ export const dashboardTransfers = (state: AppStore) =>
     const self = groupMembers.find((member) => member.personId === state.localUser?.id);
     if (!self) return [];
     const expenses = state.expenses.filter((expense) => expense.groupId === group.id);
+    const payments = state.settlements.filter((settlement) => settlement.groupId === group.id);
     const balances = calculateBalances(
       expenses,
       groupMembers.map((member) => member.id),
+      payments,
     );
     return suggestTransfers(balances)
       .filter((transfer) => transfer.fromMemberId === self.id || transfer.toMemberId === self.id)

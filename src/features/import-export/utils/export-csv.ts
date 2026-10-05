@@ -11,6 +11,9 @@ import type {
 
 type CsvColumn = (typeof EXPORT_CSV_COLUMNS)[number];
 type CsvRow = Record<CsvColumn, string>;
+const LEGACY_COLUMNS = EXPORT_CSV_COLUMNS.filter(
+  (column) => !["fromMemberId", "toMemberId", "recordedBy", "amount", "kind"].includes(column),
+);
 
 const emptyRow = (): CsvRow =>
   Object.fromEntries(EXPORT_CSV_COLUMNS.map((column) => [column, ""])) as CsvRow;
@@ -92,6 +95,23 @@ const bundleRows = (bundle: PortableGroup): CsvRow[] => [
         owes: json(expense.transactions.owes),
         tagIds: json(expense.tagIds),
         attachmentIds: json(expense.attachmentIds),
+      }),
+    ),
+  ...bundle.settlements
+    .slice()
+    .sort(byId)
+    .map((settlement) =>
+      makeRow("settlement", {
+        id: settlement.id,
+        groupId: settlement.groupId,
+        kind: settlement.kind,
+        fromMemberId: settlement.fromMemberId,
+        toMemberId: settlement.toMemberId,
+        recordedBy: settlement.recordedBy,
+        amount: String(settlement.amount),
+        when: String(settlement.when),
+        createdAt: String(settlement.createdAt),
+        tagIds: json(settlement.tagIds),
       }),
     ),
   ...bundle.attachments
@@ -180,21 +200,23 @@ const parseInteger = (value: string, field: string, signed = false): number => {
 export const parsePortableGroupCsv = async (csv: string): Promise<PortableGroup> => {
   const rows = parseCsvRows(csv.replace(/^\uFEFF/u, ""));
   const header = rows.shift();
-  if (!header || header.join("\u0000") !== EXPORT_CSV_COLUMNS.join("\u0000")) {
+  const legacy = header?.join("\u0000") === LEGACY_COLUMNS.join("\u0000");
+  const columns = legacy ? LEGACY_COLUMNS : EXPORT_CSV_COLUMNS;
+  if (!header || header.join("\u0000") !== columns.join("\u0000")) {
     throw new Error("CSV header is not a supported Split Slate transfer");
   }
   const records = rows
     .filter((row) => row.some(Boolean))
     .map((values, rowIndex) => {
-      if (values.length !== EXPORT_CSV_COLUMNS.length) {
+      if (values.length !== columns.length) {
         throw new Error(`CSV row ${rowIndex + 2} has the wrong number of columns`);
       }
       return Object.fromEntries(
-        EXPORT_CSV_COLUMNS.map((column, index) => [column, restoreSpreadsheetValue(values[index])]),
+        columns.map((column, index) => [column, restoreSpreadsheetValue(values[index])]),
       ) as CsvRow;
     });
   if (!records.length) throw new Error("CSV contains no records");
-  if (records.some((row) => row.schemaVersion !== String(EXPORT_SCHEMA_VERSION))) {
+  if (records.some((row) => row.schemaVersion !== String(legacy ? 1 : EXPORT_SCHEMA_VERSION))) {
     throw new Error("CSV schema version is not supported");
   }
 
@@ -206,6 +228,7 @@ export const parsePortableGroupCsv = async (csv: string): Promise<PortableGroup>
     "category",
     "tag",
     "expense",
+    "settlement",
     "attachment",
   ];
   if (records.some((row) => !allowedTypes.includes(row.recordType as ExportRecordType))) {
@@ -221,7 +244,7 @@ export const parsePortableGroupCsv = async (csv: string): Promise<PortableGroup>
   const group = groups[0];
 
   return verifyPortableGroup({
-    schemaVersion: EXPORT_SCHEMA_VERSION,
+    schemaVersion: legacy ? 1 : EXPORT_SCHEMA_VERSION,
     manifest: {
       selection: parseJson(manifest.selection, "selection"),
       sourceCounts: parseJson(manifest.sourceCounts, "sourceCounts"),
@@ -275,6 +298,22 @@ export const parsePortableGroupCsv = async (csv: string): Promise<PortableGroup>
       tagIds: parseJson(row.tagIds, "tagIds"),
       attachmentIds: parseJson(row.attachmentIds, "attachmentIds"),
     })),
+    ...(!legacy
+      ? {
+          settlements: ofType("settlement").map((row) => ({
+            id: row.id,
+            groupId: row.groupId,
+            kind: row.kind,
+            fromMemberId: row.fromMemberId,
+            toMemberId: row.toMemberId,
+            recordedBy: row.recordedBy,
+            amount: parseInteger(row.amount, "payment amount"),
+            when: parseInteger(row.when, "payment when"),
+            createdAt: parseInteger(row.createdAt, "payment createdAt"),
+            tagIds: parseJson(row.tagIds, "payment tags"),
+          })),
+        }
+      : {}),
     attachments: ofType("attachment").map((row) => ({
       id: row.id,
       expenseId: row.expenseId,

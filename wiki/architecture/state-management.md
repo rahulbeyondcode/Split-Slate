@@ -17,15 +17,18 @@ Zustand v5 — single global store, backed by IndexedDB through Dexie.
 
 The public API is `useStore` from `@/shared/configs/store`. Most slices currently live under
 `src/shared/configs/store/`; expense mutations live in `src/features/expenses/store/` and are composed
-into the same store. Expense state defaults and hydration remain in the shared app slice:
+into the same store. Payment mutations live in `src/features/settlements/store/` and are also
+composed into it. Expense and payment defaults and hydration remain in the shared app slice:
 
 - `app-slice.ts` — app bootstrap, hydration, and shared entity/settings loading
 - `people-slice.ts` — `localUser`, people directory, and person mutations
 - `groups-slice.ts` — groups, members, group mutations (including transactional cascade deletion), and member mutations
 - `categories-slice.ts` — group categories plus master/default category settings
-- `tags-slice.ts` — group-scoped tag records and atomic expense-reference cleanup
+- `tags-slice.ts` — group-scoped tag records and atomic expense/payment-reference cleanup
 - `src/features/expenses/store/index.ts` — expense creation/edit/deletion, persisted-reference validation, and
   atomic expense/frequent-payer writes with attachment deletion cascades, composed into the same public store
+- `src/features/settlements/store/index.ts` — payment create/edit/delete, persisted group/member/tag
+  validation and activity snapshots within each mutation transaction
 - `src/features/import-export/store/index.ts` — consistent export reads and atomic fresh-ID group
   imports; these are feature operations rather than a Zustand slice
 - `onboarding-slice.ts` — onboarding flow state and progress actions
@@ -46,6 +49,7 @@ interface AppStore {
   groups: Group[]         // each Group includes frequentPayerIds[]
   members: Member[]       // all members across all groups
   expenses: Expense[]     // all expenses; each includes when, splitType, splitMeta, attachmentIds
+  settlements: Settlement[] // group-only external payment records
   categories: Category[]
   tags: Tag[]
   activityEvents: ActivityEvent[] // immutable action snapshots, hydrated from IndexedDB
@@ -61,6 +65,11 @@ interface AppStore {
   updateExpenseDetails: (expenseId: UUID, groupId: UUID, patch: { categoryId?: UUID; tagIds?: UUID[] }) => Promise<Expense>
   removeExpense: (expenseId: UUID, groupId: UUID) => Promise<void>
 
+  // Actions — Payments
+  addSettlement: (input: SettlementInput) => Promise<Settlement>
+  updateSettlement: (id: UUID, input: SettlementInput) => Promise<Settlement>
+  removeSettlement: (id: UUID, groupId: UUID) => Promise<void>
+
   // Actions — Groups
   createGroup: (name: string, icon: string, currency: string) => Promise<{ group: Group; creatorMember: Member }>
   updateGroup: (groupId: UUID, patch: Partial<Group>) => Promise<Group>
@@ -70,11 +79,11 @@ interface AppStore {
   setLocalUser: (name: string, icon: string) => Promise<LocalUser>  // also upserts the self Person
   addPerson: (name: string, icon: string) => Promise<Person>
   updatePerson: (personId: UUID, patch: Partial<Omit<Person, 'id'>>) => Promise<Person>
-  removePerson: (personId: UUID) => Promise<void>  // blocks persisted self identity and any linked member with expense involvement
+  removePerson: (personId: UUID) => Promise<void>  // blocks persisted self identity and expense/payment involvement
 
   // Actions — Members
   addMember: (groupId: UUID, personId: UUID) => Promise<Member>
-  removeMember: (memberId: UUID) => Promise<void>  // blocked if member has any expense involvement; cleans frequentPayerIds
+  removeMember: (memberId: UUID) => Promise<void>  // blocked if member has expense/payment involvement; cleans frequentPayerIds
 
   // Actions — Categories
   masterCategories: { name: string; icon: string }[]
@@ -86,7 +95,7 @@ interface AppStore {
   // Actions — Tags
   addTag: (groupId: UUID, name: string, color: string) => Promise<Tag>
   updateTag: (tagId: UUID, patch: { name?: string, color?: string }) => Promise<Tag>
-  removeTag: (tagId: UUID) => Promise<void>   // atomically removes tagIds references from expenses
+  removeTag: (tagId: UUID) => Promise<void>   // atomically removes tagIds from expenses and payments
 
   // Onboarding flow
   onboardingStep: SetupStep

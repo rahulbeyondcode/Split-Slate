@@ -9,7 +9,7 @@ metadata:
 
 Purpose: document the implemented responsive shell and distinguish navigation stubs from working routes.
 
-Last updated: 2026-10-05
+Last updated: 2026-10-06
 
 ## Viewport States
 
@@ -42,12 +42,16 @@ Settings destinations have footer links. App-wide Analytics retains `/analytics`
 Back to dashboard link but no footer item. The dashboard's category preview links to it only at
 widths of 640px and above; at narrower mobile widths the preview is hidden, so there is currently
 no dashboard link to app-wide Analytics. Group Overview has a category preview at every width;
-`/groups/:groupId/analytics` retains the group shell and offers a Back button at every width;
-it follows in-app history or falls back to the group Overview for direct visits.
+`/groups/:groupId/analytics` retains the group shell without adding a second page's top padding.
+Its rounded secondary Back button follows in-app history or falls back to the group Overview for
+direct visits. The same Back treatment is used for other text-and-arrow Back controls, including
+Balances and import/restore screens. App-wide Analytics uses the original plain Back to dashboard
+link on mobile instead.
 All five in-group footer destinations resolve to nested group-detail routes. See [[dashboard]].
 The group-context footer is unchanged; it has no New group action. Other route-specific floating
 actions, such as Add expense and Add contact, are unaffected.
-On mobile, non-form group headers include a Back to dashboard link above the group context. It
+On mobile, non-form group headers include the original full-width, plain text-and-arrow Back to
+dashboard link on its own line above the group context. It
 stays visible with the sticky header on Overview, Expenses, Members, Categories & Tags, Balances,
 Settings, and expense detail. Expense forms keep their existing Back to expenses control, which
 returns to a screen with the dashboard link. Desktop retains the sidebar All groups link instead.
@@ -106,20 +110,24 @@ A shared hook reads the window width and updates in real time whenever the viewp
 ## Route Scroll Position
 
 The post-onboarding shell keeps `#main-content` mounted across route changes. Its `.app-main`
-styles intend that element to be the scroll container for ordinary routes. A long Categories &
-Tags fixture still scrolls `window` on mobile; the browser test now expects that scroll, resets it,
-and then asserts the pane's zero-window-scroll contract, so do not assume `window` never scrolls on
-every mobile group route. See [[testing-strategy]].
+styles make that element the scroll container for ordinary routes. On mobile Categories & Tags,
+document and shell overflow are clipped so only `#main-content` scrolls between the two sections;
+the card interiors scroll separately. See [[testing-strategy]].
 Group headers remain sticky within that pane on all group routes, including forms and Settings.
 Their mobile Back to dashboard link therefore stays reachable while scrolling non-form routes.
-On desktop and tablet, Expenses, Members, and Categories & Tags fit the available viewport;
-their lists or cards scroll independently only when needed. On mobile, Expenses instead scrolls
-through the entire main pane to its last row, while the group header, expense title/subtitle, and
-then the search/sort/filter toolbar stick in sequence. The insights banner scrolls away before the
-toolbar sticks. Mobile Categories & Tags also scrolls the main pane: each card is 50vh tall with
-only its content scrolling below a fixed-in-card title/subtitle/Add control, so rows cannot appear
-above or behind the header; the page's own
-Categories & Tags title sticks under the group header. Members remains viewport-bounded. Bounded
+Mobile Add/Edit Expense forms hide the footer and use `#main-content` as their sole intended scroll
+container: document/shell overflow is clipped and the main pane does not reserve footer padding.
+The form's last-row and action-toolbar behavior still needs browser verification; see
+[[main-screen]] and [[testing-strategy]].
+Expenses scrolls the main pane on all viewport sizes: the group header, expense title/subtitle,
+and then the search/sort/filter toolbar stick in sequence, while insights scroll away. On tablet
+and desktop the ledger itself has a second scroll area sized to its first ten rendered entries
+(including payment rows), allowing entries of different heights; shorter lists take only their
+natural height. On mobile the ledger has no internal scroll and the main pane reaches its last row.
+Mobile Categories & Tags also scrolls the main pane: each card is 50vh tall with only its content
+scrolling below its section title/subtitle/Add control, so rows cannot appear above or behind
+the sticky group header. The duplicate visible Categories & Tags page title is omitted. Members remains
+viewport-bounded. Bounded
 routes lock document-level overflow so the browser cannot scroll the entire app offscreen.
 Expense sort/filter overlays remain portaled and scrollable outside the ledger.
 Without an explicit reset, a new ordinary route inherits the previous page's position. A shared

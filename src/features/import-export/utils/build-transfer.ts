@@ -37,6 +37,15 @@ export const buildGroupTransfer = async (
           attachmentIds: selection.attachments ? expense.attachmentIds : [],
         }))
     : [];
+  const settlements = selection.expenses
+    ? source.settlements
+        .slice()
+        .sort(byId)
+        .map((settlement) => ({
+          ...settlement,
+          tagIds: selection.tags ? settlement.tagIds : [],
+        }))
+    : [];
   const expenseIds = new Set(expenses.map((expense) => expense.expenseId));
   const attachmentFiles = selection.attachments
     ? source.attachmentFiles
@@ -59,6 +68,7 @@ export const buildGroupTransfer = async (
     tags: source.tags.length,
     members: source.members.length,
     expenses: source.expenses.length,
+    settlements: source.settlements.length,
     attachments: source.attachmentFiles.length,
   };
   const includedCounts: TransferCounts = {
@@ -66,6 +76,7 @@ export const buildGroupTransfer = async (
     tags: tags.length,
     members: members.length,
     expenses: expenses.length,
+    settlements: settlements.length,
     attachments: attachments.length,
   };
 
@@ -81,6 +92,7 @@ export const buildGroupTransfer = async (
     categories,
     tags,
     expenses,
+    settlements,
     attachments,
   });
 

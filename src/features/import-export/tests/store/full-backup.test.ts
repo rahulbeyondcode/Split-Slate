@@ -20,7 +20,7 @@ import type { SettingsRecord } from "@/shared/types/domain.types";
 import { createExportSource } from "@/features/import-export/tests/fixtures/transfer-fixture";
 
 const seedDevice = async () => {
-  const source = createExportSource({ withAttachments: true });
+  const source = createExportSource({ withAttachments: true, withSettlements: true });
   await db.localUser.add({ ...source.people[0] });
   await db.groups.add(source.group);
   await db.people.bulkAdd(source.people);
@@ -28,6 +28,7 @@ const seedDevice = async () => {
   await db.categories.bulkAdd(source.categories);
   await db.tags.bulkAdd(source.tags);
   await db.expenses.bulkAdd(source.expenses);
+  await db.settlements.bulkAdd(source.settlements);
   await db.attachments.bulkAdd(source.attachmentFiles);
   const settings: SettingsRecord[] = [
     { id: "onboarding", complete: true, lastCompletedStep: "members", groupId: source.group.id },
@@ -53,6 +54,16 @@ const capturedBackup = async (): Promise<FullBackupSnapshot> =>
 
 describe("whole-app backup persistence", () => {
   it("replaces all old data with the snapshot while preserving IDs and receipt bytes", async () => {
+    await useStore.getState().init();
+    const sourceGroup = createExportSource({ withSettlements: true });
+    await useStore.getState().addSettlement({
+      groupId: sourceGroup.group.id,
+      fromMemberId: sourceGroup.members[1].id,
+      toMemberId: sourceGroup.members[0].id,
+      amount: 150,
+      when: 1_700_000_200_000,
+      tagIds: [],
+    });
     await db.groups.add({
       id: "second-trip",
       name: "Second Trip",
@@ -117,6 +128,8 @@ describe("whole-app backup persistence", () => {
     expect(restored.categories).toEqual(original.categories);
     expect(restored.tags).toEqual(original.tags);
     expect(restored.expenses).toEqual(original.expenses);
+    expect(restored.settlements).toEqual(original.settlements);
+    expect(restored.activityEvents).toEqual(original.activityEvents);
     expect(restored.settings).toEqual(original.settings);
     expect(restored.localUser).toEqual(original.localUser);
     expect(restored.groups).toHaveLength(2);

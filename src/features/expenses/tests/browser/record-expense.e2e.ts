@@ -60,6 +60,147 @@ test.beforeEach(async ({ page }) => {
   await minute.fill("00");
 });
 
+test("places date and time beneath tags, side by side when possible and stacked on narrow screens", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 600, height: 800 });
+  const tags = page.getByRole("group", { name: "Tags (optional)" });
+  const when = page.getByRole("group", { name: "Date and time" });
+  const dateField = when.locator(".when-picker-field").first();
+  const timeField = when.locator(".when-picker-field").last();
+
+  const tagsBox = await tags.boundingBox();
+  const whenBox = await when.boundingBox();
+  const dateBox = await dateField.boundingBox();
+  const timeBox = await timeField.boundingBox();
+  expect(whenBox!.y).toBeGreaterThanOrEqual(tagsBox!.y + tagsBox!.height);
+  expect(timeBox!.y).toBe(dateBox!.y);
+
+  await page.setViewportSize({ width: 320, height: 800 });
+  const narrowDateBox = await dateField.boundingBox();
+  const narrowTimeBox = await timeField.boundingBox();
+  expect(narrowTimeBox!.y).toBeGreaterThanOrEqual(narrowDateBox!.y + narrowDateBox!.height);
+});
+
+test("sizes dashed Add actions like the category and tag pills", async ({ page, isMobile }) => {
+  const category = page.getByRole("group", { name: "Category" });
+  const categoryChip = category.locator(".choice-chip").first();
+  const addCategory = category.getByRole("button", { name: "Add new category" });
+  await expect(addCategory).toHaveCSS("border-style", "dashed");
+  const categoryChipBox = (await categoryChip.boundingBox())!;
+  const categoryButtonBox = (await addCategory.boundingBox())!;
+  expect(Math.abs(categoryButtonBox.height - categoryChipBox.height)).toBeLessThan(4);
+  expect(categoryButtonBox.y).toBe(categoryChipBox.y);
+
+  const tags = page.getByRole("group", { name: "Tags (optional)" });
+  const addTag = tags.getByRole("button", { name: "Add new tag", includeHidden: true });
+  if (isMobile) {
+    const tagChipBox = (await tags.locator(".choice-pill").first().boundingBox())!;
+    const tagButtonBox = (await addTag.boundingBox())!;
+    await expect(addTag).toHaveCSS("border-style", "dashed");
+    expect(Math.abs(tagButtonBox.height - tagChipBox.height)).toBeLessThan(4);
+    expect(tagButtonBox.y).toBe(tagChipBox.y);
+  } else {
+    await expect(addTag).toBeHidden();
+  }
+});
+
+test("justifies the member name and values apart for every split method", async ({ page }) => {
+  await page.getByLabel("Amount (INR)", { exact: true }).fill("100");
+  const row = page.locator(".expense-split-row").first();
+  for (const method of ["Equal", "Amount", "Shares", "%", "Adjust"]) {
+    await page
+      .getByRole("group", { name: "Split method" })
+      .getByRole("button", { name: method, exact: true })
+      .click();
+    const nameBox = (await row.locator(":scope > label").boundingBox())!;
+    const valuesBox = (await row.locator(":scope > div").boundingBox())!;
+    const rowBox = (await row.boundingBox())!;
+    const paddingRight = await row.evaluate((element) =>
+      Number.parseFloat(getComputedStyle(element).paddingRight),
+    );
+    expect(valuesBox.x).toBeGreaterThanOrEqual(nameBox.x + nameBox.width);
+    expect(
+      Math.abs(valuesBox.x + valuesBox.width - (rowBox.x + rowBox.width - paddingRight - 1)),
+    ).toBeLessThan(3);
+  }
+});
+
+test("distributes split-method tabs evenly without clipping their labels", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 800 });
+  const tabs = page.getByRole("group", { name: "Split method" });
+  const buttons = tabs.getByRole("button");
+  await expect(buttons).toHaveCount(5);
+  const widths = await buttons.evaluateAll((elements) =>
+    elements.map((element) => ({
+      width: element.getBoundingClientRect().width,
+      fits: element.scrollWidth <= element.clientWidth,
+    })),
+  );
+  expect(
+    Math.max(...widths.map((item) => item.width)) - Math.min(...widths.map((item) => item.width)),
+  ).toBeLessThan(1);
+  expect(widths.every((item) => item.fits)).toBe(true);
+});
+
+test("scrolls the mobile expense content without a second document or form scrollbar", async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(!isMobile, "Mobile expense form scroll only");
+  await page.setViewportSize({ width: 320, height: 700 });
+  await page.evaluate(async () => {
+    const modulePath = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ modulePath)) as typeof DbModule;
+    await db.people.bulkPut(
+      Array.from({ length: 12 }, (_, index) => ({
+        id: `extra-person-${index}`,
+        name: `Extra person ${index}`,
+        icon: "🐱",
+      })),
+    );
+    await db.members.bulkPut(
+      Array.from({ length: 12 }, (_, index) => ({
+        id: `extra-member-${index}`,
+        groupId: "trip",
+        personId: `extra-person-${index}`,
+      })),
+    );
+  });
+  await page.reload();
+  const main = page.locator("#main-content");
+  const rows = page.locator(".expense-split-row");
+  await expect(rows).toHaveCount(15);
+  await expect
+    .poll(() => main.evaluate((element) => element.scrollHeight > element.clientHeight))
+    .toBe(true);
+  await page.evaluate(() => window.scrollTo(0, 10000));
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+  const nestedScrollers = await page
+    .locator(".group-page-form")
+    .evaluate(
+      (root) =>
+        [root, ...root.querySelectorAll("*")].filter(
+          (element) =>
+            element instanceof HTMLElement &&
+            element.scrollHeight > element.clientHeight + 2 &&
+            /auto|scroll/u.test(getComputedStyle(element).overflowY),
+        ).length,
+    );
+  expect(nestedScrollers).toBe(0);
+  await main.evaluate((element) => {
+    element.scrollTop = element.scrollHeight;
+  });
+  await expect.poll(() => main.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+  await expect(rows.last()).toBeInViewport();
+  const toolbar = page.locator(".form-toolbar");
+  await expect(toolbar.getByRole("link", { name: "Cancel" })).toBeInViewport();
+  await expect(toolbar.getByRole("button", { name: "Save expense" })).toBeInViewport();
+  expect(
+    (await rows.last().boundingBox())!.y + (await rows.last().boundingBox())!.height,
+  ).toBeLessThanOrEqual((await toolbar.boundingBox())!.y + 2);
+});
+
 test("fills the current clock time without changing the selected expense date", async ({
   page,
 }) => {
@@ -84,10 +225,9 @@ test("fills the current clock time without changing the selected expense date", 
   await expect(date).toHaveValue("2026-09-18");
 });
 
-test("advances from valid mobile hours but waits for a second digit after 0 or 1", async ({
+test("advances from valid hours on desktop and mobile and returns to the end of Hour from an empty Minute", async ({
   page,
-}, testInfo) => {
-  test.skip(testInfo.project.name !== "mobile", "Mobile-only time entry");
+}) => {
   const hour = page.getByRole("textbox", { name: "Hour" });
   const minute = page.getByRole("textbox", { name: "Minute" });
 
@@ -112,21 +252,53 @@ test("advances from valid mobile hours but waits for a second digit after 0 or 1
   await hour.fill("20");
   await expect(hour).toBeFocused();
   await expect(hour).toHaveValue("20");
+
+  await hour.fill("09");
+  await expect(minute).toBeFocused();
+  await minute.fill("35");
+  await minute.press("Backspace");
+  await expect(minute).toBeFocused();
+  await expect(minute).toHaveValue("3");
+  await minute.press("Backspace");
+  await expect(minute).toBeFocused();
+  await expect(minute).toBeEmpty();
+  await minute.press("Backspace");
+  await expect(hour).toBeFocused();
+  await expect(hour).toHaveValue("09");
+  expect(await hour.evaluate((input: HTMLInputElement) => input.selectionStart)).toBe(2);
+  expect(await hour.evaluate((input: HTMLInputElement) => input.selectionEnd)).toBe(2);
 });
 
-test("does not change desktop hour focus behavior", async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== "desktop", "Desktop-only focus regression");
+test("advances time entry on a tablet-sized viewport", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Tablet viewport covered by desktop project");
+  await page.setViewportSize({ width: 820, height: 900 });
   const hour = page.getByRole("textbox", { name: "Hour" });
-  await hour.fill("2");
+  const minute = page.getByRole("textbox", { name: "Minute" });
+  await minute.fill("");
+  await hour.fill("7");
+  await expect(minute).toBeFocused();
+  await minute.press("Backspace");
   await expect(hour).toBeFocused();
+  expect(await hour.evaluate((input: HTMLInputElement) => input.selectionStart)).toBe(2);
 });
 
 test("selects and unselects all mobile split participants", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "mobile", "Mobile-only split selection");
   const participants = page.locator(".expense-split-row input[type=checkbox]");
-  await page.getByRole("button", { name: "Unselect all" }).click();
+  const all = page.getByRole("checkbox", { name: "Select all", exact: true });
+  await expect(all).toBeChecked();
+  const allLabel = all.locator("..");
+  await expect(all).toHaveCSS("width", "16px");
+  const checkboxBox = (await all.boundingBox())!;
+  const textBox = (await allLabel.getByText("Select all", { exact: true }).boundingBox())!;
+  expect(textBox.x - checkboxBox.x - checkboxBox.width).toBeGreaterThanOrEqual(8);
+  await allLabel.getByText("Select all", { exact: true }).click();
+  await expect(all).not.toBeChecked();
+  await expect(allLabel).toContainText("Select all");
   await expect(page.locator(".expense-split-row input[type=checkbox]:checked")).toHaveCount(0);
-  await page.getByRole("button", { name: "Select all" }).click();
+  await all.check();
+  await expect(all).toBeChecked();
+  await expect(allLabel).toContainText("Select all");
   for (const participant of await participants.all()) await expect(participant).toBeChecked();
 });
 
@@ -592,6 +764,8 @@ test("shows solo balances and rejects missing or foreign expense routes", async 
   for (const route of ["missing", "foreign", "missing/edit", "foreign/edit"]) {
     await page.goto(`/groups/trip/expenses/${route}`);
     await expect(page.getByRole("heading", { name: "Expense not found" })).toBeVisible();
-    await expect(page.getByText("Back to expenses", { exact: true })).toBeVisible();
+    const back = page.getByRole("link", { name: "Back to expenses" });
+    await expect(back).toHaveClass(/btn-secondary/u);
+    await expect(back).toHaveCSS("border-radius", "100px");
   }
 });

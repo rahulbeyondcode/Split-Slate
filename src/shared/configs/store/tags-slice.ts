@@ -103,29 +103,43 @@ export const createTagsSlice: SliceCreator<TagsSlice> = (set, get) => ({
   },
 
   removeTag: async (tagId) => {
-    const result = await db.transaction("rw", db.tags, db.expenses, db.activityEvents, async () => {
-      const tag = await db.tags.get(tagId);
-      if (!tag) {
-        throw new Error("Tag not found");
-      }
-      const expenses = await db.expenses.where("groupId").equals(tag.groupId).toArray();
-      await db.tags.delete(tagId);
-      for (const expense of expenses) {
-        if (!expense.tagIds.includes(tagId)) continue;
-        const tagIds = expense.tagIds.filter((id) => id !== tagId);
-        // Update only references on existing records; never upsert a hydrated snapshot.
-        await db.expenses.update(expense.expenseId, { tagIds });
-        expense.tagIds = tagIds;
-      }
-      const event = await writeActivity({
-        group: get().groups.find((item) => item.id === tag.groupId),
-        kind: "tag",
-        action: "deleted",
-        label: tag.name,
-        subjectId: tagId,
-      });
-      return { groupId: tag.groupId, expenses, event };
-    });
+    const result = await db.transaction(
+      "rw",
+      db.tags,
+      db.expenses,
+      db.settlements,
+      db.activityEvents,
+      async () => {
+        const tag = await db.tags.get(tagId);
+        if (!tag) {
+          throw new Error("Tag not found");
+        }
+        const expenses = await db.expenses.where("groupId").equals(tag.groupId).toArray();
+        const settlements = await db.settlements.where("groupId").equals(tag.groupId).toArray();
+        await db.tags.delete(tagId);
+        for (const expense of expenses) {
+          if (!expense.tagIds.includes(tagId)) continue;
+          const tagIds = expense.tagIds.filter((id) => id !== tagId);
+          // Update only references on existing records; never upsert a hydrated snapshot.
+          await db.expenses.update(expense.expenseId, { tagIds });
+          expense.tagIds = tagIds;
+        }
+        for (const settlement of settlements) {
+          if (!settlement.tagIds.includes(tagId)) continue;
+          const tagIds = settlement.tagIds.filter((id) => id !== tagId);
+          await db.settlements.update(settlement.id, { tagIds });
+          settlement.tagIds = tagIds;
+        }
+        const event = await writeActivity({
+          group: get().groups.find((item) => item.id === tag.groupId),
+          kind: "tag",
+          action: "deleted",
+          label: tag.name,
+          subjectId: tagId,
+        });
+        return { groupId: tag.groupId, expenses, settlements, event };
+      },
+    );
 
     // Refresh this group's snapshot so stale deleted rows also disappear from the UI.
     set((state) => ({
@@ -134,6 +148,10 @@ export const createTagsSlice: SliceCreator<TagsSlice> = (set, get) => ({
       expenses: [
         ...state.expenses.filter((expense) => expense.groupId !== result.groupId),
         ...result.expenses,
+      ],
+      settlements: [
+        ...state.settlements.filter((settlement) => settlement.groupId !== result.groupId),
+        ...result.settlements,
       ],
     }));
   },

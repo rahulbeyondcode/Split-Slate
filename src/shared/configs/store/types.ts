@@ -1,6 +1,7 @@
 import type { StateCreator } from "zustand";
 
 import type { ExpensesSlice } from "@/features/expenses/types/expenses.types";
+import type { SettlementsSlice } from "@/features/settlements/types/settlements.types";
 import type {
   ActivityEvent,
   Category,
@@ -11,6 +12,7 @@ import type {
   Member,
   OnboardingSettings,
   Person,
+  Settlement,
   SetupStep,
   Tag,
 } from "@/shared/types/domain.types";
@@ -18,6 +20,7 @@ import type {
 export interface AppSlice {
   activityEvents: ActivityEvent[];
   expenses: Expense[];
+  settlements: Settlement[];
   initialized: boolean;
   initError: string | null;
 
@@ -90,6 +93,7 @@ export interface GroupDraftSlice {
 
 export type AppStore = AppSlice &
   ExpensesSlice &
+  SettlementsSlice &
   PeopleSlice &
   GroupsSlice &
   CategoriesSlice &

@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import { portableGroupSchema } from "@/features/import-export/utils/portable-group-schema";
 
 import type { PortableGroup } from "@/features/import-export/types/import-export.types";
@@ -47,6 +49,43 @@ export const sealPortableGroup = async (bundle: UnsealedPortableGroup): Promise<
   });
 
 export const verifyPortableGroup = async (value: unknown): Promise<PortableGroup> => {
+  const legacy = z
+    .object({
+      schemaVersion: z.literal(1),
+      manifest: z
+        .object({
+          integrity: z.object({
+            algorithm: z.literal("SHA-256"),
+            digest: z.string().regex(/^[0-9a-f]{64}$/u),
+          }),
+        })
+        .passthrough(),
+    })
+    .passthrough()
+    .safeParse(value);
+  if (legacy.success) {
+    if (
+      (await createTransferDigest(legacy.data as unknown as PortableGroup)) !==
+      legacy.data.manifest.integrity.digest
+    ) {
+      throw new Error("Transfer integrity check failed");
+    }
+    const source = legacy.data as unknown as Record<string, unknown>;
+    const manifest = source.manifest as Record<string, unknown>;
+    const normalized = portableGroupSchema.parse({
+      ...source,
+      schemaVersion: 2,
+      settlements: [],
+      manifest: {
+        ...manifest,
+        sourceCounts: { ...(manifest.sourceCounts as object), settlements: 0 },
+        includedCounts: { ...(manifest.includedCounts as object), settlements: 0 },
+      },
+    });
+    const { integrity, ...unsignedManifest } = normalized.manifest;
+    void integrity;
+    return sealPortableGroup({ ...normalized, manifest: unsignedManifest });
+  }
   const bundle = portableGroupSchema.parse(value);
   const digest = await createTransferDigest(bundle);
   if (digest !== bundle.manifest.integrity.digest) {

@@ -63,14 +63,20 @@ const SplitEditor = ({ members, currency }: PropsType) => {
   return (
     <fieldset className="flex flex-col gap-3">
       <legend className="field-label">Split between</legend>
-      <button
-        type="button"
-        onClick={handleToggleAll}
-        className="btn btn-secondary self-start md:hidden"
+      <label className="chip choice-pill expense-select-all self-start md:hidden">
+        <input
+          type="checkbox"
+          checked={allSelected}
+          onChange={handleToggleAll}
+          className="choice-control"
+        />
+        <span>Select all</span>
+      </label>
+      <div
+        className="segmented expense-split-methods !rounded-2xl"
+        role="group"
+        aria-label="Split method"
       >
-        {allSelected ? "Unselect all" : "Select all"}
-      </button>
-      <div className="segmented flex flex-wrap !rounded-2xl" role="group" aria-label="Split method">
         {(
           [
             ["equal", "Equal"],
@@ -120,17 +126,17 @@ const SplitEditor = ({ members, currency }: PropsType) => {
       {members.map((member, index) => {
         const share = preview.find((row) => row.memberId === member.id);
         return (
-          <div key={member.id} className="ui-row expense-split-row">
-            <label className="flex cursor-pointer items-center gap-2 text-sm">
+          <div key={member.id} className="ui-row expense-split-row justify-between">
+            <label className="flex min-w-0 cursor-pointer items-center gap-2 text-sm">
               <input
                 type="checkbox"
                 {...register(`participants.${index}.selected`)}
                 className="choice-control"
               />
-              {member.name}
+              <span className="min-w-0 break-words">{member.name}</span>
             </label>
             {participants[index]?.selected && (
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-2">
                 {splitType !== "equal" && (
                   <Input
                     name={`participants.${index}.value`}

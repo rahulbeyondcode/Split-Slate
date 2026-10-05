@@ -11,6 +11,7 @@ interface FixtureOptions {
   tagCount?: number;
   expenseCount?: number;
   withAttachments?: boolean;
+  withSettlements?: boolean;
 }
 
 const id = (type: string, index: number): string =>
@@ -38,6 +39,7 @@ export const createExportSource = ({
   tagCount = 2,
   expenseCount = 1,
   withAttachments = false,
+  withSettlements = false,
 }: FixtureOptions = {}): GroupExportSource => {
   const groupId = "group-0001-12345678-90ab-cdef";
   const people = Array.from({ length: memberCount }, (_, index) => ({
@@ -98,6 +100,23 @@ export const createExportSource = ({
         createdAt: 1_700_000_100_000 + index,
       }))
     : [];
+  const settlements =
+    withSettlements && members.length > 1
+      ? [
+          {
+            id: id("settlement", 0),
+            groupId,
+            kind: "payment" as const,
+            fromMemberId: members[1].id,
+            toMemberId: members[0].id,
+            recordedBy: members[0].id,
+            amount: 500,
+            when: 1_700_000_200_000,
+            createdAt: 1_700_000_200_000,
+            tagIds: tags.length ? [tags[0].id] : [],
+          },
+        ]
+      : [];
 
   return {
     group: {
@@ -113,6 +132,7 @@ export const createExportSource = ({
     categories,
     tags,
     expenses,
+    settlements,
     attachmentFiles,
   };
 };

@@ -48,14 +48,15 @@ export const encodeTransferPayload = async (bundle: PortableGroup): Promise<stri
   }
   const decoded = strToU8(JSON.stringify(await compactLinkIds(validated)));
   if (decoded.byteLength > MAX_DECODED_LINK_BYTES) throw new TransferLinkTooLargeError();
-  return `v1.${encodeBase64Url(zlibSync(decoded, { level: 9 }))}`;
+  return `v2.${encodeBase64Url(zlibSync(decoded, { level: 9 }))}`;
 };
 
 export const decodeTransferPayload = async (hash: string): Promise<PortableGroup> => {
   const payload = hash.replace(/^#/u, "");
   if (payload.length > MAX_TRANSFER_URL_LENGTH)
     throw new Error("Transfer link payload is too large");
-  if (!payload.startsWith("v1.")) throw new Error("Unsupported transfer-link version");
+  if (!payload.startsWith("v1.") && !payload.startsWith("v2."))
+    throw new Error("Unsupported transfer-link version");
   let decoded: Uint8Array;
   try {
     decoded = unzlibSync(decodeBase64Url(payload.slice(3)));

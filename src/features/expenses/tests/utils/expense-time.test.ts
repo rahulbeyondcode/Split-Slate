@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { composeExpenseTime, parseExpenseTime } from "@/features/expenses/utils/expense-time";
+import { composeLocalDateTime, parseLocalDateTime } from "@/shared/utils/date-time-input";
 
 describe("expense time", () => {
   it.each([
@@ -9,18 +9,18 @@ describe("expense time", () => {
     ["2026-09-19T18:30", "06", "30", "PM"],
     ["2026-09-19T11:59", "11", "59", "AM"],
   ] as const)("shows %s as %s:%s %s and converts back", (value, hour, minute, period) => {
-    const parts = parseExpenseTime(value);
+    const parts = parseLocalDateTime(value);
     expect(parts).toEqual({ date: "2026-09-19", hour, minute, period });
-    expect(composeExpenseTime(parts)).toBe(value);
+    expect(composeLocalDateTime(parts)).toBe(value);
   });
 
   it("pads single digits and switches between AM and PM", () => {
-    expect(composeExpenseTime({ date: "2026-09-19", hour: "1", minute: "5", period: "PM" })).toBe(
+    expect(composeLocalDateTime({ date: "2026-09-19", hour: "1", minute: "5", period: "PM" })).toBe(
       "2026-09-19T13:05",
     );
-    expect(composeExpenseTime({ date: "2026-09-19", hour: "12", minute: "0", period: "AM" })).toBe(
-      "2026-09-19T00:00",
-    );
+    expect(
+      composeLocalDateTime({ date: "2026-09-19", hour: "12", minute: "0", period: "AM" }),
+    ).toBe("2026-09-19T00:00");
   });
 
   it("rejects incomplete or out-of-range times", () => {
@@ -31,10 +31,10 @@ describe("expense time", () => {
       ["12", "60"],
       ["12", "a"],
     ]) {
-      expect(composeExpenseTime({ date: "2026-09-19", hour, minute, period: "AM" })).toBe(
+      expect(composeLocalDateTime({ date: "2026-09-19", hour, minute, period: "AM" })).toBe(
         "invalid",
       );
     }
-    expect(composeExpenseTime({ date: "", hour: "12", minute: "00", period: "AM" })).toBe("");
+    expect(composeLocalDateTime({ date: "", hour: "12", minute: "00", period: "AM" })).toBe("");
   });
 });

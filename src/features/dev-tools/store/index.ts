@@ -93,6 +93,7 @@ export const onboardUser = async () => {
       db.categories,
       db.tags,
       db.expenses,
+      db.settlements,
       db.attachments,
       db.settings,
       db.activityEvents,

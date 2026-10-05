@@ -39,7 +39,13 @@ const Analytics = () => {
     }
   };
   return (
-    <div className="page page-narrow mobile-sticky-page">
+    <div
+      className={
+        groupId
+          ? "page-narrow mobile-sticky-page mx-auto w-full"
+          : "page page-narrow mobile-sticky-page"
+      }
+    >
       <header className="mb-5">
         {groupId ? (
           <button type="button" onClick={handleBack} className="page-back-link">
@@ -47,13 +53,15 @@ const Analytics = () => {
           </button>
         ) : (
           isMobile && (
-            <Link to="/dashboard" className="page-back-link">
+            <Link to="/dashboard" className="page-back-link dashboard-back-link">
               <Icon icon={ArrowLeft} size={18} /> Back to dashboard
             </Link>
           )
         )}
-        <h1 className="page-title">{isMobile ? "Spending by category" : "Analytics"}</h1>
-        <p className="soft-caption mt-1">
+        {!groupId && (
+          <h1 className="page-title">{isMobile ? "Spending by category" : "Analytics"}</h1>
+        )}
+        <p className={groupId ? "soft-caption mt-4" : "soft-caption mt-1"}>
           {groupId
             ? `Spending by category · ${groupContext?.group.name ?? "this group"} · all time`
             : isMobile

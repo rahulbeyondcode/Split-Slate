@@ -13,6 +13,7 @@ import type {
   Member,
   Person,
   SettingsRecord,
+  Settlement,
   Tag,
 } from "@/shared/types/domain.types";
 
@@ -55,6 +56,18 @@ const expense = z.strictObject({
   tagIds: z.array(id),
   attachmentIds: z.array(id),
 });
+const settlement = z.strictObject({
+  id,
+  groupId: id,
+  kind: z.literal("payment"),
+  fromMemberId: id,
+  toMemberId: id,
+  recordedBy: id,
+  amount: amount.positive(),
+  when: timestamp,
+  createdAt: timestamp,
+  tagIds: z.array(id),
+});
 const attachment = z.strictObject({
   id,
   expenseId: id,
@@ -69,7 +82,7 @@ const activityEvent = z.strictObject({
   groupId: id.nullable(),
   groupName: text,
   subjectId: id.nullable(),
-  kind: z.enum(["expense", "category", "tag", "group", "member", "person"]),
+  kind: z.enum(["expense", "settlement", "category", "tag", "group", "member", "person"]),
   action: z.enum(["created", "updated", "deleted", "imported"]),
   label: text,
   icon: text,
@@ -103,6 +116,7 @@ export const fullBackupDataSchema = z.strictObject({
   categories: z.array(category),
   tags: z.array(tag),
   expenses: z.array(expense),
+  settlements: z.array(settlement).optional(),
   activityEvents: z.array(activityEvent).optional(),
   attachments: z.array(attachment),
   settings: z.array(settings).length(2),
@@ -119,6 +133,7 @@ export interface FullBackupSource {
   categories: Category[];
   tags: Tag[];
   expenses: Expense[];
+  settlements: Settlement[];
   attachments: Attachment[];
   settings: SettingsRecord[];
 }
@@ -163,6 +178,10 @@ export const validateFullBackupData = async (value: unknown): Promise<FullBackup
     "expenses",
   );
   unique(
+    (data.settlements ?? []).map((item) => item.id),
+    "payments",
+  );
+  unique(
     data.attachments.map((item) => item.id),
     "receipts",
   );
@@ -205,7 +224,9 @@ export const validateFullBackupData = async (value: unknown): Promise<FullBackup
     throw new Error("Backup member references are incomplete");
   }
   if (
-    [...data.categories, ...data.tags, ...data.expenses].some((item) => !groupIds.has(item.groupId))
+    [...data.categories, ...data.tags, ...data.expenses, ...(data.settlements ?? [])].some(
+      (item) => !groupIds.has(item.groupId),
+    )
   ) {
     throw new Error("Backup has records outside its groups");
   }
@@ -221,6 +242,7 @@ export const validateFullBackupData = async (value: unknown): Promise<FullBackup
     const categories = data.categories.filter((item) => item.groupId === currentGroup.id);
     const tags = data.tags.filter((item) => item.groupId === currentGroup.id);
     const expenses = data.expenses.filter((item) => item.groupId === currentGroup.id);
+    const settlements = (data.settlements ?? []).filter((item) => item.groupId === currentGroup.id);
     const currentExpenseIds = new Set(expenses.map((item) => item.expenseId));
     const attachments = data.attachments
       .filter((item) => currentExpenseIds.has(item.expenseId))
@@ -235,10 +257,11 @@ export const validateFullBackupData = async (value: unknown): Promise<FullBackup
       tags: tags.length,
       members: members.length,
       expenses: expenses.length,
+      settlements: settlements.length,
       attachments: attachments.length,
     };
     await sealPortableGroup({
-      schemaVersion: 1,
+      schemaVersion: 2,
       manifest: {
         selection: {
           categories: true,
@@ -256,6 +279,7 @@ export const validateFullBackupData = async (value: unknown): Promise<FullBackup
       categories,
       tags,
       expenses,
+      settlements,
       attachments,
     });
   }

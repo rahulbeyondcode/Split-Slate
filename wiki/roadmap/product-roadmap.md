@@ -51,8 +51,8 @@ The durable product principles are:
   online account. See [[global-people-directory]].
 - **The user owns the data:** portable, reconstructable exports and a usable recovery path are
   release requirements, not afterthoughts. See [[import-export]].
-- **No payment processing:** Split Slate records expenses, balances, and eventually repayments that
-  happened elsewhere. It does not hold funds or become a bank or payment processor.
+- **No payment processing:** Split Slate records expenses, balances, and repayments
+  that happened elsewhere. It does not hold funds or become a bank or payment processor.
 - **Complexity stays progressive:** common entry uses safe defaults; multiple payers, advanced
   splits, filtering, attachments, and other controls appear when requested.
 
@@ -78,11 +78,13 @@ The following foundation is implemented now:
   on fresh and existing devices
 - Helpers for member/group totals, all-member balances, and suggested payments
 - Expense detail, editing, and confirmed hard deletion with owned-attachment cleanup
+- Group-only recording, correction, deletion, and portability of external payments with
+  payment-aware balances; spending analytics remain expense-only
 
 Expense creation/correction/removal, minor-unit accounting, split calculation, payer ranking, and
 all-member balance suggestions are implemented. Member reference checks and directory self-deletion
-protection complete the Horizon 1 implementation list. Attachment ingestion and settlement mutations
-remain pending. Current detail lives in [[index]], [[domain-models]], and
+protection complete the Horizon 1 implementation list. Attachment ingestion remains pending;
+external payment recording is implemented. Current detail lives in [[index]], [[domain-models]], and
 [[main-screen]].
 
 ## Next Tasks
@@ -193,24 +195,19 @@ Candidates, ordered roughly by dependency and user value:
 - Add recurring-expense templates with an explicit choice between confirmation and automatic
   creation.
 - Add restrained local reminders for recurring items, unsettled balances, and backups.
-- Add settlement recording after the settlement model decision below is resolved.
+- Offline repayment recording is implemented per group; cross-group allocation and netting remain deferred.
 - Design settlement-specific human sharing (Link/PDF/Excel) separately from reconstructable group
   transfer after the settlement data model is approved.
 - Consider cross-group balances between the same global Person only after per-group balances are
   trustworthy.
 
-### Settlement Decision Gate
+### Offline Repayment Recording — Implemented
 
-The historical V2 proposal recorded in [[main-screen]] describes a binary fully-settled toggle,
-while the older scope proposed explicit repayment records such as “Rahul paid Alex ₹500.” These
-are not equivalent.
-A toggle is simpler but loses amount and audit history; a transfer record supports partial
-repayment and future sync but adds a new entity and workflow.
-
-This roadmap does not silently choose between them. Before settlement work starts, approve a
-separate decision covering the data model, full versus partial repayment, editing/deletion,
-interaction with suggested transfers, and import/export behavior. A dedicated Settlements tab is
-not required merely because settlement records exist.
+The user can record partial, full, or above-suggestion payments made outside Split Slate, scoped to
+one group. Payment records adjust balances without rewriting expenses, have optional tags but no
+category, and can be edited or deleted. Group transfer includes them when Expenses is selected;
+whole-app backups preserve them. Cross-group allocation, netting, conversion, and sync remain
+deferred. See [[settlement-recording]] and [[main-screen]].
 
 Any future Link/PDF/Excel settlement output is a human-readable balance or repayment summary. It
 must not be conflated with [[import-export]], whose purpose is reconstructing an editable group on a

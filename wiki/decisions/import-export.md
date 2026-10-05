@@ -10,7 +10,7 @@ metadata:
 Purpose: define the implemented offline group-transfer contract and distinguish it from future
 settlement sharing.
 
-Last updated: 2026-10-04
+Last updated: 2026-10-06
 
 ## Decision
 
@@ -24,6 +24,10 @@ must not reuse this group-transfer workflow or be described as group import. See
 
 ## Export Questionnaire
 
+Opening **Export group** in Group Settings scrolls the main pane to the revealed questionnaire,
+leaving its heading below the sticky group header at any viewport width. Hiding it does not
+trigger a scroll.
+
 Group Settings first reads a consistent persisted snapshot and rejects missing, duplicate, surplus,
 or cross-expense receipt references even when receipts will be omitted. This keeps source and
 omission counts trustworthy. It starts with only **Group information** selected. That required option includes the
@@ -33,7 +37,7 @@ independently select:
 - categories
 - tags
 - members (with the referenced Person snapshots)
-- expenses
+- expenses and recorded payments (one choice; selecting expenses includes all group payments)
 - receipt attachments, shown only when an expense references at least one receipt
 
 Expenses depend on categories and members. Selecting expenses automatically selects and locks both,
@@ -41,7 +45,7 @@ with an app-styled native modal that distinguishes the chosen content from the c
 added automatically. Deselecting expenses unlocks them without clearing their current selection.
 Locked selections use muted rows and explanatory copy so they look unavailable even when
 the user points at their labels. Tags remain optional, and omitted tag references are removed from
-transferred expenses.
+transferred expenses and payments.
 
 Receipts depend on expenses. Selecting receipts automatically selects and locks expenses, which in
 turn selects and locks categories and members. The same modal shows receipts as the chosen content
@@ -61,13 +65,14 @@ when designing the clone operation rather than inferred from cross-device import
 
 ## Portable Dataset Contract
 
-Schema version `1` carries:
+Schema version `2` carries:
 
 - the required group snapshot and selection manifest
-- source and included counts for categories, tags, members, expenses, and attachments
+- source and included counts for categories, tags, members, expenses, payments, and attachments
 - selected categories and tags
 - selected Member records and snapshots of their referenced global Person records
 - selected expenses with paid/owed rows and exact split metadata
+- all recorded group payments when expenses are selected; optional tag IDs follow the tag selection
 - selected attachment metadata; ZIP additionally carries the receipt blobs
 - a SHA-256 digest of the canonical logical dataset
 
@@ -75,11 +80,11 @@ All formats reconstruct and validate the same logical contract. Validation cover
 selection dependencies, declared counts, unique IDs, group ownership, complete references,
 paid/owed equality, split metadata, and aggregate safe-integer spending. Any digest, schema, count,
 or reference mismatch rejects the complete package before writes. Monetary values remain integer
-hundredths under [[money-representation-and-rounding]]. The transfer version is unchanged because
-no pre-redesign transfer files or links need compatibility handling.
+hundredths under [[money-representation-and-rounding]]. Previously signed version 1 transfers
+remain importable: after verification they become version 2 groups with no recorded payments.
 
 CSV and ZIP retain source IDs. Links replace the group ID and group-owned Member, Category, Tag,
-Expense, and Attachment IDs (including every internal reference) with short, sequential strings
+Expense, Payment, and Attachment IDs (including every internal reference) with short, sequential strings
 before compression, then reseal the logical dataset. Person IDs remain unchanged for directory
 reconciliation. Both old UUID-bearing `v1` links and compact `v1` links validate and import; the
 link is still unencrypted. Import always creates a fresh group UUID and fresh IDs for group-owned
@@ -89,13 +94,18 @@ records, then rewrites every internal reference. The source group is never overw
 
 ### Transfer Link
 
-- Validated JSON is zlib-compressed, base64url-encoded, and placed after `/import#v1.`.
+- Validated JSON is zlib-compressed, base64url-encoded, and placed after `/import#v2.`; signed
+  `v1` links remain importable.
 - Link transfer is available only when receipts are not selected.
 - The complete generated URL is capped at **32,000 characters** and decoded JSON at **256 KiB**.
 - Group Settings checks link availability as the selected content changes. An oversized selection
   presents the link action as unavailable; selecting it opens an in-app explanation to download CSV
   or ZIP, or select less content. The actual creation still checks the current persisted snapshot
   before yielding a link. The UI does not present the character count to users.
+- **Copy transfer link** generates the selected snapshot and copies its URL in one action. A short
+  success message appears below that button only after the clipboard write completes; there is no
+  read-only link field or separate Copy button. Clipboard failures report an error without claiming
+  success, and the user can retry or use CSV/ZIP. Changing the selection clears the success message.
 - A regression fixture proves that 25 members, 25 categories, 25 tags, and 50 realistic expenses
   fit beneath the implemented URL limit.
 - Link-only short group-owned IDs reduce the compressed URL length; tests compare the result with
@@ -113,13 +123,14 @@ records, then rewrites every internal reference. The source group is never overw
 ### CSV
 
 CSV is a reconstructable typed-row transfer without receipt blobs. It has one fixed union header and
-typed rows for the manifest, group, people, members, categories, tags, expenses, and selected
+typed rows for the manifest, group, people, members, categories, tags, expenses, payments, and selected
 attachment metadata. Nested values use JSON cells. Every cell is quoted, embedded quotes/newlines
 follow CSV escaping, UTF-8 output starts with a BOM, and formula-leading text is tab-prefixed and
 restored by the parser.
 
 The export UI disables CSV while receipts are selected. A standalone CSV import also rejects a
-manifest that claims to carry receipts because receipt bytes require ZIP.
+manifest that claims to carry receipts because receipt bytes require ZIP. The older fixed version 1
+header remains readable.
 
 ### ZIP
 
@@ -147,7 +158,7 @@ restore screen directs group ZIP and CSV files to **Import group**; see [[full-b
 The same route is reachable from the welcome carousel and the dashboard.
 
 After complete validation, review shows the group name and included counts for categories, tags,
-members, expenses, and receipts; it does not reveal item details or receipt previews. It also states
+members, expenses, payments, and receipts; it does not reveal item details or receipt previews. It also states
 the destination name, omitted receipt count when applicable, identity choice, and default-category
 behavior before the single **Import group** action.
 
@@ -164,7 +175,7 @@ Identity behavior:
   source member and Person IDs differ between transfers. Each new group gets a distinct member ID.
 
 If no categories were transferred, the device's configured default categories are created. No tags
-or expenses are created when those sections were omitted. If the destination already has the same
+or expenses/payments are created when those sections were omitted. If the destination already has the same
 group name, import uses `Name (2)`, then `Name (3)`, and so on. Existing groups are never replaced.
 
 ## People Reconciliation and Atomicity
@@ -185,7 +196,7 @@ revalidated against persisted data inside the import transaction; unresolved or 
 abort the entire import. A fresh import may still reuse a Person ID with an exact matching snapshot.
 
 The complete import runs in one Dexie transaction across identity, groups, people, members,
-categories, tags, expenses, attachments, and settings. It validates receipt metadata before the
+categories, tags, expenses, payments, attachments, and settings. It validates receipt metadata before the
 transaction, remaps IDs, applies approved contact renames, writes every selected record, verifies persisted collection counts, and
 then commits. Any failure rolls back all import writes. Zustand is rehydrated only after commit.
 
@@ -211,3 +222,4 @@ already-completed device retains its existing onboarding progress record.
 - [[money-representation-and-rounding]] — portable amount invariants
 - [[main-screen]] — Group Settings export workflow
 - [[product-roadmap]] — snapshot transfer and separate future settlement sharing
+- [[settlement-recording]] — why group payments travel with the Expenses choice

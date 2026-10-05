@@ -40,7 +40,9 @@ type CurrencyValues = z.infer<typeof currencySchema>;
 const GroupSettings = () => {
   const navigate = useNavigate();
   const currencyDialogRef = useRef<HTMLDialogElement>(null);
-  const { group, groupExpenses, groupMembers } = useOutletContext<GroupDetailContext>();
+  const exportPanelRef = useRef<HTMLDivElement>(null);
+  const { group, groupExpenses, groupSettlements, groupMembers } =
+    useOutletContext<GroupDetailContext>();
   const updateGroup = useStore((state) => state.updateGroup);
   const removeGroup = useStore((state) => state.removeGroup);
   const [confirmingDeletion, setConfirmingDeletion] = useState(false);
@@ -64,6 +66,19 @@ const GroupSettings = () => {
     if (pendingCurrency && !dialog?.open) dialog?.showModal();
     if (!pendingCurrency && dialog?.open) dialog.close();
   }, [pendingCurrency]);
+  useEffect(() => {
+    if (!showExport) return;
+    const panel = exportPanelRef.current;
+    const main = panel?.closest<HTMLElement>("#main-content");
+    if (!panel || !main) return;
+    const header = main.querySelector<HTMLElement>(".group-page-header");
+    const panelTop =
+      panel.getBoundingClientRect().top - main.getBoundingClientRect().top + main.scrollTop;
+    main.scrollTo({
+      top: Math.max(0, panelTop - (header?.getBoundingClientRect().height ?? 0) - 12),
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+    });
+  }, [showExport]);
   const handleSave = methods.handleSubmit(async (values) => {
     setError("");
     try {
@@ -186,7 +201,8 @@ const GroupSettings = () => {
             <form onSubmit={handleSaveCurrency} className="flex flex-col gap-3 py-4">
               <StepCurrency showHeading={false} />
               <p className="soft-caption">
-                Changing currency relabels existing amounts without converting their numeric values.
+                Changing currency relabels existing expenses and payments without converting their
+                numeric values.
               </p>
               {currencyMethods.formState.errors.currency && (
                 <p role="alert" className="money-negative">
@@ -237,14 +253,16 @@ const GroupSettings = () => {
       </Surface>
       {showExport && (
         <Surface className="surface-pad">
-          <ExportPanel
-            groupId={group.id}
-            groupName={group.name}
-            attachmentCount={groupExpenses.reduce(
-              (count, expense) => count + expense.attachmentIds.length,
-              0,
-            )}
-          />
+          <div ref={exportPanelRef}>
+            <ExportPanel
+              groupId={group.id}
+              groupName={group.name}
+              attachmentCount={groupExpenses.reduce(
+                (count, expense) => count + expense.attachmentIds.length,
+                0,
+              )}
+            />
+          </div>
         </Surface>
       )}
       <Surface className="surface-pad flex flex-wrap items-center justify-between gap-4">
@@ -307,9 +325,9 @@ const GroupSettings = () => {
           >
             <p className="font-semibold">No exchange conversion will happen.</p>
             <p className="mt-2">
-              {groupExpenses.length > 0
-                ? `All ${groupExpenses.length} existing ${groupExpenses.length === 1 ? "expense keeps" : "expenses keep"} the same numeric amounts. Balances and exports will show the new currency label.`
-                : "This group has no expenses yet. Future amounts will use the new currency label."}
+              {groupExpenses.length || groupSettlements.length
+                ? `All ${groupExpenses.length} expenses and ${groupSettlements.length} payments keep the same numeric amounts. Balances and exports will show the new currency label.`
+                : "This group has no expenses or payments yet. Future amounts will use the new currency label."}
             </p>
             {pendingCurrency && (
               <p className="mt-2 font-bold">
