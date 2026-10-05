@@ -38,11 +38,13 @@ Expense forms hide it to give the form focus:
 
 The centered New group footer action replaces the floating dashboard New group CTA on mobile; it
 uses the same purple accent and opens `/groups/new`. The dashboard-level Activity, Unsettled, and
-Settings destinations have footer links. Analytics retains its route, with a mobile Back to
-dashboard link but no footer item. The dashboard's category preview links to it only at widths of
-640px and above; at narrower mobile widths the preview is hidden, so there is currently no
-dashboard link to Analytics. All five in-group footer destinations resolve to nested group-detail
-routes. See [[dashboard]].
+Settings destinations have footer links. App-wide Analytics retains `/analytics`, with a mobile
+Back to dashboard link but no footer item. The dashboard's category preview links to it only at
+widths of 640px and above; at narrower mobile widths the preview is hidden, so there is currently
+no dashboard link to app-wide Analytics. Group Overview has a category preview at every width;
+`/groups/:groupId/analytics` retains the group shell and offers a Back button at every width;
+it follows in-app history or falls back to the group Overview for direct visits.
+All five in-group footer destinations resolve to nested group-detail routes. See [[dashboard]].
 The group-context footer is unchanged; it has no New group action. Other route-specific floating
 actions, such as Add expense and Add contact, are unaffected.
 On mobile, non-form group headers include a Back to dashboard link above the group context. It
@@ -103,10 +105,10 @@ A shared hook reads the window width and updates in real time whenever the viewp
 ## Route Scroll Position
 
 The post-onboarding shell keeps `#main-content` mounted across route changes. Its `.app-main`
-styles intend that element to be the scroll container for ordinary routes. In the 2026-10-04
-mobile browser run, a long Categories & Tags fixture also scrolled `window`, failing the test's
-zero-window-scroll assertion. The actual scroll boundary in that case needs investigation; do not
-assume `window` never scrolls on every mobile group route. See [[testing-strategy]].
+styles intend that element to be the scroll container for ordinary routes. A long Categories &
+Tags fixture still scrolls `window` on mobile; the browser test now expects that scroll, resets it,
+and then asserts the pane's zero-window-scroll contract, so do not assume `window` never scrolls on
+every mobile group route. See [[testing-strategy]].
 Group headers remain sticky within that pane on all group routes, including forms and Settings.
 Their mobile Back to dashboard link therefore stays reachable while scrolling non-form routes.
 On desktop and tablet, Expenses, Members, and Categories & Tags fit the available viewport;
@@ -203,8 +205,8 @@ Route content is shared across viewport states. The navigation chrome differs:
 | Add/Edit Expense | No bottom nav |
 
 All in-group destinations resolve to nested routes. Dashboard footer destinations also have routes,
-though some screens are still lightweight. Analytics is a dashboard preview destination, not a
-footer tab; see [[dashboard]].
+though some screens are still lightweight. App-wide and group-scoped Analytics are preview
+destinations, not footer tabs; see [[dashboard]] and [[main-screen]].
 
 ---
 

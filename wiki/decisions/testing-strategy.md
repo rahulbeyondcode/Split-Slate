@@ -140,14 +140,14 @@ A test slice is complete when:
 
 ## Current Status
 
-On 2026-10-04, `pnpm test` passed 411 Vitest cases and `pnpm check` passed. The full
-`pnpm test:e2e` run passed 118 cases, failed 30, and skipped 18 viewport-specific cases.
-Failures include expense entry/detail/filter assertions, a mobile category/tag/member scroll
-assertion, and group-transfer journeys. The transfer tests try to use a questionnaire that is
-hidden until the Settings **Export group** button opens it; this accounts for 14 failures across
-desktop and mobile. Other failures need separate test-versus-product investigation. This run does
-not verify mobile Add/Edit Expense scroll-to-last-field or Save/Cancel placement. See
-[[product-roadmap]].
+On 2026-10-05, `pnpm check` passed, `pnpm test` passed 422 Vitest cases, the full
+`pnpm test:e2e` run passed 154 cases with no failures and 18 viewport-specific skips, and
+`pnpm test:pwa` passed 18 production-build cases. That clears the 30 failures recorded on
+2026-10-04: transfer journeys now open the collapsed Settings **Export group** panel before
+selecting content, remaining assertions match current dates, balances, and dialog markup, and the
+update-notice PWA test seeds a timestamp dismissal because legacy boolean values intentionally
+re-prompt. This run does not verify mobile Add/Edit Expense scroll-to-last-field or Save/Cancel
+placement. See [[product-roadmap]].
 
 Vitest covers the existing helpers and schemas plus money conversion, currency formatting, all five
 split methods, expense input validation, and payer defaults/ranking. Expense-store integration tests

@@ -26,9 +26,12 @@ The dashboard currently renders:
   shorter subtitle. Below 640px, the `max-sm:hidden` dashboard-lower container hides both the
   category and unsettled previews, leaving no dashboard link to Analytics; Analytics is still
   directly routable but has no mobile footer item. With one shared currency and recorded expenses,
-  the full page shows spending categories and their total; with multiple currencies, it shows a
-  notice instead of combining amounts. Mobile has a Back to dashboard link. The desktop title and
-  subtitle remain unchanged.
+  the app-wide full page shows spending categories and their total; with multiple currencies, it
+  shows a notice instead of combining amounts. Mobile has a Back to dashboard link. A separate
+  group-scoped preview on Overview is visible at every width and links to
+  `/groups/:groupId/analytics`; that route only totals the selected group's expenses, including
+  when other groups use different currencies. Its Back button is available at every width: it
+  follows in-app history or opens the group Overview when the route was loaded directly.
 - Links from each group row to that group's Overview route
 
 The desktop right pane shows saved activity events across all groups in recording order (event
@@ -47,7 +50,8 @@ Rendered dates use `DD-MMM-YYYY` and rendered times use padded 12-hour `hh:mm AM
 detail labels occurred date and time separately and places recording metadata between the banner
 and the Paid by/Split cards.
 Each group link opens the nested group-detail route, whose Overview shows the local user's net
-position, total group spend, category count, up to six featured members, and three recent expenses.
+  position, total group spend, category count, up to six featured members, five recent expenses,
+  and a group-only category-spending preview beneath those expenses.
 
 The empty state offers both **Create your first group** and **Import an existing group**. Settings
 keeps Import group reachable once groups exist. Import validates the package, shows count-only
@@ -105,13 +109,16 @@ balances remain.
 
 ---
 
-#### 4. Category Spending Chart — preview hidden below 640px; full Analytics route implemented
+#### 4. Category Spending Chart — app preview hidden below 640px; app and group Analytics routes implemented
 
 A visual breakdown of total spending by category, aggregated across same-currency groups, all time.
 There is no time filter.
 
 **Empty state:** For an existing single-currency group with no expenses, the visible preview says
 "No spending yet." The section is absent when no groups exist or at widths below 640px.
+The group Overview preview instead remains visible at every width, including for an empty group;
+its View all action opens that group's analytics page, where an empty group has no chart. Group
+and app previews use the same category-name aggregation and sum all payer contributions.
 
 ---
 
@@ -166,3 +173,4 @@ item also links to the Overview and detects the active `groupId`.
 - [[main-screen]] — in-group navigation and tabs
 - [[balance-calculation]] — how net balances are computed
 - [[import-export]] — dashboard import entry and fresh-copy behavior
+- [[main-screen]] — group Overview and group-scoped Analytics navigation

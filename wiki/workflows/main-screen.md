@@ -22,16 +22,18 @@ also lists groups and currently sorts them by `createdAt` descending.
 
 ### Group Detail Routes
 
-`/groups/:groupId` is an implemented parent route with nested routes for Overview, Expenses,
-Add Expense, Expense Detail/Edit, Balances, Members, Categories & Tags, and Settings. The parent resolves the active group's
+`/groups/:groupId` is an implemented parent route with nested routes for Overview, Analytics,
+Expenses, Add Expense, Expense Detail/Edit, Balances, Members, Categories & Tags, and Settings. The parent resolves the active group's
 members, people, categories, tags, and expenses and supplies them to child screens through the
 router outlet context. An unknown group shows a not-found state with a return link to the dashboard.
 
 The current child screens are:
 
 - **Overview** — the group's snapshot: local net position, group total in the header, up to six
-  members ranked by the number of expenses they paid for, suggested-transfer count, and a preview
-  of the three most recent expenses with links to the full members, balances, and expenses views
+  members ranked by the number of expenses they paid for, suggested-transfer count, five most
+  recent expenses, and a group-only category-spending preview after them with links to full views
+- **Analytics** — `/groups/:groupId/analytics` shows all-time category totals for that group, using
+  its own currency even when other groups use different currencies; `/analytics` remains app-wide
 - **Expenses** — the complete searchable, filterable ledger sorted by `when` descending, showing
   name, total paid, payer names, date/time, and category; compact filter-aware insights show
   matched spending without a member breakdown or the large local-balance hero
@@ -46,10 +48,10 @@ On mobile, the group Settings identity card wraps the group name and summary bes
 Edit name & icon sits below the text instead of squeezing that first row. Desktop keeps the
 single-row identity card.
 
-The group's default route opens Overview. Its "View all expenses" and "View all balances" links open
-the full ledger and per-member balances respectively; Expenses is also available through the sidebar
-and mobile navigation. There is no additional group-view tab bar. The large local-balance hero appears
-only on Overview.
+The group's default route opens Overview. Its "View all expenses", "View all balances", and
+category-spending "View all" links open the full ledger, per-member balances, and group-scoped
+Analytics respectively. Expenses is also available through the sidebar and mobile navigation.
+There is no additional group-view tab bar. The large local-balance hero appears only on Overview.
 
 The Balances screen has a Back control that returns to the originating group screen, including its
 filter URL; direct entry without in-app history falls back to the group's Expenses screen. Group
@@ -136,7 +138,7 @@ The compact Expense insights card shows matching count, total, rounded average, 
 it does not show member contributions or settlement balances. The group header retains the
 full-group total, and a separate link opens full-group Balances. Invalid filters suppress the summary.
 Unavailable selected option IDs are pruned when the list remounts. Desktop/mobile browser journeys
-exercise the controls, but the 2026-10-04 full run failed one desktop filter case; see
+exercise the controls and pass in the 2026-10-05 full run; see
 [[filtering]] and [[testing-strategy]].
 
 ### URGENT: Mobile Expense Form Scrolling — Fix Required

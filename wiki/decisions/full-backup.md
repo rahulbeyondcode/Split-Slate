@@ -9,7 +9,7 @@ metadata:
 
 Purpose: distinguish device recovery from selective, fresh-copy group transfers.
 
-Last updated: 2026-10-04
+Last updated: 2026-10-05
 
 ## Scope
 
@@ -46,10 +46,12 @@ even for deleted groups, whose name is retained in each event snapshot.
 
 ## Limits
 
-- Full backup requires a completed local identity and usable group references. After the last group
-  is deleted, completed onboarding may have a `null` group reference and zero groups; that is still
-  a valid backup. An incomplete or inconsistent dataset is rejected rather than silently producing
-  a partial recovery file. See [[group-deletion]].
+- Full backup requires a completed local identity and valid non-null group references. When the
+  onboarding group is deleted, its reference may become `null`; that remains valid after creating
+  or importing a replacement group. Backup and restore accept completed onboarding with a `null`
+  group reference whether or not groups exist, but reject a non-null ID that refers to no group.
+  An incomplete or inconsistent dataset is rejected rather than producing a partial recovery file.
+  See [[group-deletion]] and [[onboarding-persistence]].
 - Archive limits guard compressed and expanded sizes; an oversized dataset requires a future
   streaming format rather than a partial backup.
 - Unsupported archive versions are rejected; future format revisions require an explicit restore

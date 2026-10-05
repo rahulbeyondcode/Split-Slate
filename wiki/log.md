@@ -7,6 +7,28 @@ Last updated: 2026-10-05
 ---
 
 ## 2026-10-05
+- UPDATED decisions/testing-strategy.md — record the green 2026-10-05 check, unit, full browser, and PWA runs
+- UPDATED roadmap/product-roadmap.md — mark browser-suite failure investigation resolved by the green run
+- UPDATED workflows/main-screen.md — replace the stale desktop filter failure with the passing full-run status
+- UPDATED architecture/layout-architecture.md — reconcile the Categories & Tags window-scroll caveat with the current test
+- UPDATED wiki/index.md — refresh Testing Strategy and filtering summaries for the green full run
+- UPDATED wiki/log.md — record approved test-status and stale-claim corrections
+- UPDATED workflows/dashboard.md — clarify group Analytics history-first Back button and direct-visit fallback
+- UPDATED architecture/layout-architecture.md — document Back navigation on both desktop and mobile group Analytics
+- UPDATED wiki/index.md — reflect group Analytics return navigation
+- UPDATED wiki/log.md — record approved group Analytics Back behavior
+- UPDATED workflows/dashboard.md — distinguish app-wide and group-scoped category previews and analytics
+- UPDATED workflows/main-screen.md — document five recent expenses and group Analytics route
+- UPDATED architecture/layout-architecture.md — describe group Analytics within the group shell without a new footer tab
+- UPDATED wiki/index.md — reflect scoped Analytics and five-expense group overview
+- UPDATED wiki/log.md — record approved group-spending documentation changes
+- UPDATED decisions/confirmation-dialogs.md — add expense deletion to shared modal confirmation behavior
+- UPDATED decisions/expense-edit-delete.md — document modal cancellation and retry on failed deletion
+- UPDATED wiki/index.md — surface modal-confirmed expense deletion in wiki navigation
+- UPDATED wiki/log.md — record approved expense deletion confirmation change
+- UPDATED decisions/full-backup.md — accept completed onboarding with a null group reference after deletion and replacement, while rejecting dangling IDs
+- UPDATED wiki/index.md — reflect the corrected whole-app backup validation boundary
+- UPDATED wiki/log.md — record approved backup reference correction
 - UPDATED architecture/layout-architecture.md — replace remaining expense-only panel claim with saved action events
 - UPDATED roadmap/product-roadmap.md — distinguish implemented action snapshots from earlier unrecoverable changes
 - UPDATED workflows/dashboard.md — reconcile saved events and legacy expense fallbacks with prior chart and activity corrections

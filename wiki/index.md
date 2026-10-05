@@ -19,7 +19,7 @@ Last updated: 2026-10-05
 - [Balance Calculation](architecture/balance-calculation.md) — fixed-hundredths member/group totals, all-member balances, and deterministic suggested transfers
 - [State Management](architecture/state-management.md) — Zustand bootstrap recovery, draft subscriptions, activity-inclusive atomic mutations, and fresh-ID group import
 - [Split Types](architecture/split-types.md) — 5 split types with fixed-hundredths monetary allocations and exact ratios; numeric percentage-total display remains pending
-- [Layout Architecture](architecture/layout-architecture.md) — responsive shell, mobile scroll caveat and navigation gaps, and desktop activity event panel
+- [Layout Architecture](architecture/layout-architecture.md) — responsive shell, scoped Analytics navigation, mobile scroll caveat, and desktop activity event panel
 
 ### Decisions
 - [Global People Directory](decisions/global-people-directory.md) — device-local friends list; members link to shared people; supersedes per-group members
@@ -27,15 +27,15 @@ Last updated: 2026-10-05
 - [Solo Group Support](decisions/solo-group-support.md) — single-member groups work; onboarding story names the solo path, while the shared member-step helper remains generic
 - [Onboarding Persistence](decisions/onboarding-persistence.md) — resumable per-step standard setup plus atomic import-specific completion for fresh devices
 - [Import / Export Design](decisions/import-export.md) — selective Link/CSV/ZIP group transfer and atomic import; planned same-device duplication reuses selection without file generation
-- [Whole-App Backup and Restore](decisions/full-backup.md) — versioned ZIP including activity history, confirmed replace-only recovery; Drive deferred
-- [Expense Edit and Delete](decisions/expense-edit-delete.md) — full editor, confirmed deletion, and immediate reference-only category/tag changes without rebuilding splits
+- [Whole-App Backup and Restore](decisions/full-backup.md) — versioned ZIP including activity history, nullable post-deletion onboarding group, and replace-only recovery
+- [Expense Edit and Delete](decisions/expense-edit-delete.md) — full editor, modal-confirmed deletion, and immediate reference-only category/tag changes without rebuilding splits
 - [Group Deletion](decisions/group-deletion.md) — confirmed domain-data cascade preserves shared contacts and non-navigable activity snapshots
 - [Money Representation and Rounding](decisions/money-representation-and-rounding.md) — implemented fixed hundredths for every currency, exact allocation, and confirmed no-conversion relabeling
 - [Iconography](decisions/iconography.md) — shared featured-or-gallery PNG picker, offline caching and repair, Lucide controls, error illustrations, and onboarding artwork
-- [Confirmation Dialogs](decisions/confirmation-dialogs.md) — shared in-app destructive confirmation for groups, contacts, members, categories, and tags
+- [Confirmation Dialogs](decisions/confirmation-dialogs.md) — shared in-app destructive confirmation for groups, expenses, contacts, members, categories, and tags
 - [Selection Controls](decisions/selection-controls.md) — native checkboxes/radios with selected and visibly locked states across forms, filters, and transfer
 - [String Input Normalization](decisions/string-input-normalization.md) — required strings reject trimmed blanks; optional expense inputs have explicit blank-value semantics
-- [Testing Strategy](decisions/testing-strategy.md) — unit/browser coverage, current browser-suite failures, and outstanding mobile expense-form scroll verification
+- [Testing Strategy](decisions/testing-strategy.md) — unit/browser coverage, green desktop/mobile browser suites, and outstanding mobile expense-form scroll verification
 
 ### Systems
 - [IndexedDB Schema](systems/indexeddb-schema.md) — version 2 activity snapshots, PNG icon keys, fixed-hundredths money, and bootstrap recovery
@@ -47,14 +47,14 @@ Last updated: 2026-10-05
 - [Development Tools](workflows/development-tools.md) — typed realistic presets, randomized onboarding contacts, individual creation buttons, and persistence boundaries
 - [Onboarding](workflows/onboarding.md) — implemented resumable setup plus Link/CSV/ZIP first-launch import with a short identity path
 - [Group Creation](workflows/group-creation.md) — standalone 4-step flow; writes begin only on final submission and then run sequentially
-- [Main Screen](workflows/main-screen.md) — group snapshot, expense correction and mobile split/tag controls; **URGENT: mobile expense-form scroll/actions unresolved**
+- [Main Screen](workflows/main-screen.md) — group snapshot with five expenses and category analytics, expense correction and mobile split/tag controls; **URGENT: mobile expense-form scroll/actions unresolved**
 - [Paid-By](workflows/paid-by.md) — implemented frequent-payer selection, atomic ranking updates, recent-payer defaults, and multi-payer entry
 - [People Directory](workflows/people-directory.md) — shared contacts excluding self from the list; mobile route lacks an in-app entry point
 - [Member Management](workflows/member-management.md) — one-click add, mobile add/edit modals and two-row actions, confirmed removal, and persisted guards
 - [Category Management](workflows/category-management.md) — group category CRUD, mobile add/edit modals and sticky 50vh card/actions, in-form creation, and immediate detail changes; deactivation pending
 - [Tag Management](workflows/tag-management.md) — group tags, mobile management add/edit modals and expense-form creation, sticky 50vh card/actions, immediate detail selection/creation, and transactional cleanup
 - [Filtering](workflows/filtering.md) — URL-backed filtering, mobile sticky toolbar and filtered-only count, accessible popover placement, sort modes, and expense insights
-- [Dashboard](workflows/dashboard.md) — group summaries, saved action activity, and mixed-currency and narrow-mobile spending-chart limits
+- [Dashboard](workflows/dashboard.md) — group summaries, saved activity, and app-wide versus group-scoped category analytics with history-first group Back navigation
 
 ### Ideas (captured, not committed)
 - [Rewarded Ads](ideas/rewarded-ads.md) — optional ad-watch → credits → Pro unlock mechanic; fully opt-in
@@ -118,7 +118,7 @@ cannot be recovered automatically; invalid legacy inputs need correction before 
 Expense filtering is implemented across eight logical fields with cross-field AND matching,
 within-field OR selection, URL-backed state (not IndexedDB persistence), active counts, and distinct
 empty states. Utility tests cover the current predicate and validation contract; browser suites
-exercise filters on desktop and mobile, but the latest full run has a failing desktop filter case.
+exercise filters on desktop and mobile in the passing full suite.
 Selected IDs deleted on another group route are removed automatically when the list remounts.
 Eight URL-backed sort modes apply after filtering without increasing the active count, including
 single-category and exact tag-set grouping. See [[filtering]].

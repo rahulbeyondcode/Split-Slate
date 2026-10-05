@@ -9,7 +9,7 @@ metadata:
 
 Purpose: document expense correction, permanent deletion, and their persistence guarantees.
 
-Last updated: 2026-10-01
+Last updated: 2026-10-05
 
 ## Implementation Status
 
@@ -85,8 +85,9 @@ input must be re-entered if that precision matters. Rejected edits leave persist
 
 **Hard delete** — the expense record is permanently removed from IndexedDB.
 
-**Confirmation:** the detail screen names the expense and warns that its receipts will be deleted
-permanently and balances recalculated. Keep expense cancels without writing.
+**Confirmation:** the detail screen opens the shared in-app [[confirmation-dialogs]] modal, names
+the expense, and warns that its receipts will be deleted permanently and balances recalculated.
+Cancel or Escape closes it without writing; a failed deletion keeps it open with an error for retry.
 
 **Cascade:** one transaction deletes attachments by their `expenseId` owner index, deletes the
 expense, and recalculates the group's payer ranking from remaining expenses. Index-based cleanup

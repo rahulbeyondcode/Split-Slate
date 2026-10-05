@@ -95,17 +95,14 @@ scroll boundary, repair it without changing desktop layout, and verify access to
 actions in a mobile browser. The existing scroll-navigation tests do not establish this behavior.
 See [[main-screen]].
 
-### Investigate Current Browser-Suite Failures
+### Browser-Suite Failures — resolved 2026-10-05
 
-The 2026-10-04 full Playwright run on the current source passed 118 tests, failed 30, and skipped
-18 viewport-specific cases. The failures span expense entry/detail/filter assertions, one mobile
-category/tag/member scroll assertion, and Link/CSV/ZIP group-transfer journeys on both viewports.
-At least the 14 group-transfer failures start with tests looking for a questionnaire without opening
-the now-collapsed **Export group** panel in Settings; this is a confirmed test/UI mismatch, not
-evidence that transfer itself is broken. Triage the remaining failures against current UI and
-behavior before attributing them to product regressions, repair code or assertions accordingly,
-then rerun both viewport projects. A prior working-tree run reported 150 passing tests and 18
-intentional skips; it does **not** validate this source snapshot. See [[testing-strategy]].
+The 2026-10-04 full Playwright run passed 118 tests, failed 30, and skipped 18 viewport-specific
+cases. The 14 group-transfer failures looked for a questionnaire without opening the now-collapsed
+**Export group** panel in Settings; the rest were assertion drift against current dates, balances,
+dialogs, and scroll behavior. All were repaired as test/UI mismatches rather than product
+regressions, and the 2026-10-05 full run passed 154 tests with no failures. Reopen this item only
+for a new suite regression. See [[testing-strategy]].
 
 ### Group Duplication
 
