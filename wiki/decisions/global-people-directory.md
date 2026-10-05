@@ -9,7 +9,7 @@ metadata:
 
 Purpose: explain why group memberships refer to one device-local people directory.
 
-Last updated: 2026-10-04
+Last updated: 2026-10-05
 
 ## Decision
 
@@ -19,7 +19,7 @@ This supersedes the earlier group-scoped-members decision, which gave every pers
 
 ## Why
 
-- **People recur — categories do not.** The same friends split bills across trips, flats, and dinners. Re-entering "Alice" for every group is the friction users complain about most.
+- **People recur as identities; category names recur as labels.** The same friends split bills across trips, flats, and dinners, so one person record is reused across groups rather than re-entering "Alice" for every group. Categories with the same name in different groups remain separate group-owned records; cross-group suggestions copy their names and icons, not their IDs. See [[category-management]].
 - **Enables cross-group balances.** A global identity is the prerequisite for "what is my net with Alice across everything" — a feature the old model explicitly forgot.
 - **Single edit surface.** Renaming or re-icon-ing a person updates every group automatically, because groups resolve display through the person link rather than storing their own copy.
 

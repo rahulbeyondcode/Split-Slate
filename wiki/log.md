@@ -7,6 +7,9 @@ Last updated: 2026-10-05
 ---
 
 ## 2026-10-05
+- UPDATED decisions/global-people-directory.md — distinguish shared people identities from recurring group-owned category names
+- UPDATED wiki/index.md — clarify the people-directory decision in navigation
+- UPDATED wiki/log.md — record the approved people-versus-category clarification
 - UPDATED decisions/group-deletion.md — retain only group-created/deleted activity after atomic cascade
 - UPDATED workflows/category-management.md — document cross-group name/icon suggestions and exact-name spending
 - UPDATED workflows/tag-management.md — document cross-group tag name/color suggestions
