@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useRef, useState } from "react";
-import { FormProvider, useForm } from "react-hook-form";
+import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { Link, useOutletContext } from "react-router-dom";
 import { z } from "zod";
 
@@ -10,6 +10,7 @@ import Input from "@/shared/components/form-elements/input";
 
 import { useStore } from "@/shared/configs/store";
 import { useViewport } from "@/shared/hooks/use-viewport";
+import type { EntitySuggestion } from "@/shared/utils/entity-suggestions";
 import { createRequiredStringSchema } from "@/shared/utils/string-validation";
 
 import { CATEGORY_EMOJIS } from "@/shared/constants/emojis";
@@ -18,6 +19,7 @@ import type { Category } from "@/shared/types/domain.types";
 
 import Avatar from "@/shared/ui/avatar";
 import ConfirmationDialog from "@/shared/ui/confirmation-dialog";
+import EntitySuggestions from "@/shared/ui/entity-suggestions";
 import Icon from "@/shared/ui/icon";
 import MobileEditorDialog from "@/shared/ui/mobile-editor-dialog";
 
@@ -38,11 +40,13 @@ const CategoryManagement = () => {
   const [blockedCategoryId, setBlockedCategoryId] = useState<string | null>(null);
   const [confirmCategoryId, setConfirmCategoryId] = useState<string | null>(null);
   const [categoryError, setCategoryError] = useState<string | null>(null);
+  const [suggesting, setSuggesting] = useState(false);
   const blockedDialogRef = useRef<HTMLDialogElement>(null);
   const categoryForm = useForm<CategoryFormValues>({
     resolver: zodResolver(categoryFormSchema),
     defaultValues: { name: "", icon: CATEGORY_EMOJIS[0] },
   });
+  const categoryQuery = useWatch({ control: categoryForm.control, name: "name" });
   const { isSubmitting } = categoryForm.formState;
   const categoryFormTitle = categoryMode === "edit" ? "Edit category" : "Add category";
   const categorySubmitLabel = categoryMode === "edit" ? "Save" : "Add";
@@ -94,6 +98,20 @@ const CategoryManagement = () => {
     }
   });
 
+  const handleSuggestedCategory = async (suggestion: EntitySuggestion) => {
+    if (!suggestion.icon || suggesting) return;
+    setSuggesting(true);
+    setCategoryError(null);
+    try {
+      await addCategory(group.id, suggestion.name, suggestion.icon);
+      handleCancelCategoryForm();
+    } catch (error) {
+      setCategoryError(error instanceof Error ? error.message : "Could not add this category");
+    } finally {
+      setSuggesting(false);
+    }
+  };
+
   const handleDeleteCategory = (category: Category) => {
     setCategoryError(null);
     if (
@@ -141,6 +159,16 @@ const CategoryManagement = () => {
             wrapperClass="w-full"
             autoFocus
           />
+          {categoryMode === "add" && (
+            <EntitySuggestions
+              kind="category"
+              query={categoryQuery}
+              currentGroupId={group.id}
+              unavailableNames={groupCategories.map((item) => item.name)}
+              disabled={isSubmitting || suggesting}
+              onSelect={handleSuggestedCategory}
+            />
+          )}
         </div>
         <div className="min-w-0">
           <span className="field-label">Choose an icon</span>
@@ -150,12 +178,12 @@ const CategoryManagement = () => {
           <button
             type="button"
             onClick={handleCancelCategoryForm}
-            disabled={isSubmitting}
+            disabled={isSubmitting || suggesting}
             className="btn btn-secondary"
           >
             Cancel
           </button>
-          <button type="submit" disabled={isSubmitting} className="btn btn-primary">
+          <button type="submit" disabled={isSubmitting || suggesting} className="btn btn-primary">
             {isSubmitting ? "Saving..." : categorySubmitLabel}
           </button>
         </div>
@@ -189,7 +217,7 @@ const CategoryManagement = () => {
             <MobileEditorDialog
               title={categoryFormTitle}
               onCancel={handleCancelCategoryForm}
-              busy={isSubmitting}
+              busy={isSubmitting || suggesting}
             >
               {categoryError && (
                 <p role="alert" className="note money-negative mb-4">

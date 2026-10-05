@@ -119,6 +119,31 @@ export const createGroupsSlice: SliceCreator<GroupsSlice> = (set, get) => ({
         await db.tags.where("groupId").equals(groupId).delete();
         await db.groups.delete(groupId);
 
+        const previousEvents = await db.activityEvents.where("groupId").equals(groupId).toArray();
+        const creation = previousEvents
+          .filter(
+            (item) =>
+              item.kind === "group" && (item.action === "created" || item.action === "imported"),
+          )
+          .sort((a, b) => a.createdAt - b.createdAt || a.id.localeCompare(b.id))[0];
+        const removedIds = previousEvents
+          .filter((item) => item.id !== creation?.id)
+          .map((item) => item.id);
+        if (removedIds.length) await db.activityEvents.bulkDelete(removedIds);
+        let createdEvent = creation;
+        if (!createdEvent) {
+          createdEvent = await writeActivity({
+            group,
+            kind: "group",
+            action: "created",
+            label: group.name,
+            subjectId: groupId,
+            createdAt: group.createdAt,
+          });
+        } else if (createdEvent.action === "imported") {
+          await db.activityEvents.update(createdEvent.id, { action: "created" });
+          createdEvent = { ...createdEvent, action: "created" };
+        }
         const event = await writeActivity({
           group,
           kind: "group",
@@ -128,14 +153,14 @@ export const createGroupsSlice: SliceCreator<GroupsSlice> = (set, get) => ({
         });
         const onboarding = await db.settings.get("onboarding");
         if (onboarding?.id !== "onboarding" || onboarding.groupId !== groupId)
-          return { event, nextOnboardingGroupId: undefined };
+          return { createdEvent, event, nextOnboardingGroupId: undefined };
         const remaining = await db.groups.toArray();
         const nextGroupId =
           remaining.sort((a, b) => b.createdAt - a.createdAt || a.id.localeCompare(b.id))[0]?.id ??
           null;
         const nextOnboarding: OnboardingSettings = { ...onboarding, groupId: nextGroupId };
         await db.settings.put(nextOnboarding);
-        return { event, nextOnboardingGroupId: nextGroupId };
+        return { createdEvent, event, nextOnboardingGroupId: nextGroupId };
       },
     );
 
@@ -145,7 +170,11 @@ export const createGroupsSlice: SliceCreator<GroupsSlice> = (set, get) => ({
       categories: state.categories.filter((category) => category.groupId !== groupId),
       tags: state.tags.filter((tag) => tag.groupId !== groupId),
       expenses: state.expenses.filter((expense) => expense.groupId !== groupId),
-      activityEvents: [...state.activityEvents, result.event],
+      activityEvents: [
+        ...state.activityEvents.filter((event) => event.groupId !== groupId),
+        result.createdEvent,
+        result.event,
+      ],
       ...(result.nextOnboardingGroupId !== undefined
         ? { onboardingGroupId: result.nextOnboardingGroupId }
         : {}),

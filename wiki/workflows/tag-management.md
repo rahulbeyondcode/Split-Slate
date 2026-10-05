@@ -9,7 +9,7 @@ metadata:
 
 Purpose: describe implemented tag management, expense references, and cascade boundaries.
 
-Last updated: 2026-10-04
+Last updated: 2026-10-05
 
 ## What Tags Are
 
@@ -22,6 +22,14 @@ Tag names are trimmed and case-insensitively unique within a group. Every tag al
 ## Creating and Renaming Tags
 
 Tags can be created from the group's **Categories & Tags** screen by entering a name and choosing a color. The reusable color picker offers 10 named presets (stored as hex values) plus synchronized custom native-picker and manual hex-code controls. Valid output is always a six-digit hex code. Expense entry can select existing group tags. On mobile, Add new tag opens the same name/color modal as expense detail, persists a new group tag, and selects it in the unfinished form; saving the expense commits the reference. Cancelling the expense after creating a tag leaves the new group tag available. Desktop expense entry has no inline creation action; detail can create one in a modal and attach it automatically.
+
+Every existing tag-creation form (group management, mobile expense entry, and expense detail)
+suggests tags from other groups as soon as one letter is typed. Matching works inside the name and
+ignores case and separators. Each suggestion shows its color and the groups using that exact name
+and color; selecting it creates a separate group-scoped tag with the copied name/color. The expense
+entry/detail flows then select or attach the new tag as with manual creation. A name already in the
+current group is not suggested. Group setup has no tag-creation screen. See [[category-management]]
+for the analogous category behavior.
 
 On expense detail, a dashed Add tags control stays visible even when no tags are assigned. Its
 popover lists every group tag with checkbox selections; each toggle saves the expense reference
@@ -48,7 +56,7 @@ it without saving. The page title and group header also stay sticky. Tablet and 
 their existing inline form, card, and action layout.
 
 Deleting a tag requires confirmation. `removeTag` performs one read-write IndexedDB transaction
-on tags and expenses:
+on tags, expenses, and activity events:
 
 1. Read the persisted tag; reject a missing tag, including repeated deletion.
 2. Read the current expenses in the persisted tag's group.

@@ -7,6 +7,17 @@ Last updated: 2026-10-05
 ---
 
 ## 2026-10-05
+- UPDATED decisions/group-deletion.md — retain only group-created/deleted activity after atomic cascade
+- UPDATED workflows/category-management.md — document cross-group name/icon suggestions and exact-name spending
+- UPDATED workflows/tag-management.md — document cross-group tag name/color suggestions
+- UPDATED workflows/group-creation.md — document draft suggestions and correct atomic group/creator event write
+- UPDATED workflows/onboarding.md — document suggestion selection in the shared category step
+- UPDATED workflows/dashboard.md — clarify exact-name totals and group-deletion activity retention
+- UPDATED architecture/state-management.md — record transactional activity pruning and post-commit refresh
+- UPDATED systems/indexeddb-schema.md — clarify activity snapshot lifetime after group deletion
+- UPDATED architecture/layout-architecture.md — qualify deleted-item rows after group deletion
+- UPDATED wiki/index.md — update all affected navigation descriptions
+- UPDATED wiki/log.md — record approved activity retention and cross-group suggestions
 - UPDATED decisions/testing-strategy.md — record the green 2026-10-05 check, unit, full browser, and PWA runs
 - UPDATED roadmap/product-roadmap.md — mark browser-suite failure investigation resolved by the green run
 - UPDATED workflows/main-screen.md — replace the stale desktop filter failure with the passing full-run status

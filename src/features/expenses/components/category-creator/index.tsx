@@ -1,15 +1,18 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { SyntheticEvent } from "react";
 import { useEffect, useId, useRef, useState } from "react";
-import { FormProvider, useForm } from "react-hook-form";
+import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
 import EmojiPicker from "@/shared/components/emoji-picker";
 import Input from "@/shared/components/form-elements/input";
 
+import type { EntitySuggestion } from "@/shared/utils/entity-suggestions";
 import { createRequiredStringSchema } from "@/shared/utils/string-validation";
 
 import { CATEGORY_EMOJIS } from "@/shared/constants/emojis";
+
+import EntitySuggestions from "@/shared/ui/entity-suggestions";
 
 const categorySchema = z.object({
   name: createRequiredStringSchema("Category name is required"),
@@ -19,19 +22,22 @@ const categorySchema = z.object({
 type CategoryValues = z.infer<typeof categorySchema>;
 
 interface PropsType {
+  groupId: string;
   existingNames: string[];
   onAdd: (name: string, icon: string) => Promise<void>;
   onCancel: () => void;
 }
 
-const CategoryCreator = ({ existingNames, onAdd, onCancel }: PropsType) => {
+const CategoryCreator = ({ groupId, existingNames, onAdd, onCancel }: PropsType) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   const [error, setError] = useState<string | null>(null);
+  const [suggesting, setSuggesting] = useState(false);
   const methods = useForm<CategoryValues>({
     resolver: zodResolver(categorySchema),
     defaultValues: { name: "", icon: CATEGORY_EMOJIS[0] },
   });
+  const categoryQuery = useWatch({ control: methods.control, name: "name" });
   const { isSubmitting } = methods.formState;
 
   useEffect(() => {
@@ -39,7 +45,7 @@ const CategoryCreator = ({ existingNames, onAdd, onCancel }: PropsType) => {
   }, []);
 
   const handleCancel = (event: SyntheticEvent<HTMLDialogElement>) => {
-    if (isSubmitting) {
+    if (isSubmitting || suggesting) {
       event.preventDefault();
       return;
     }
@@ -58,6 +64,19 @@ const CategoryCreator = ({ existingNames, onAdd, onCancel }: PropsType) => {
       setError(failure instanceof Error ? failure.message : "Could not add this category");
     }
   });
+
+  const handleSuggestedCategory = async (suggestion: EntitySuggestion) => {
+    if (!suggestion.icon || suggesting) return;
+    setSuggesting(true);
+    setError(null);
+    try {
+      await onAdd(suggestion.name, suggestion.icon);
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : "Could not add this category");
+    } finally {
+      setSuggesting(false);
+    }
+  };
 
   return (
     <dialog
@@ -82,6 +101,14 @@ const CategoryCreator = ({ existingNames, onAdd, onCancel }: PropsType) => {
               wrapperClass="w-full"
               autoFocus
             />
+            <EntitySuggestions
+              kind="category"
+              query={categoryQuery}
+              currentGroupId={groupId}
+              unavailableNames={existingNames}
+              disabled={isSubmitting || suggesting}
+              onSelect={handleSuggestedCategory}
+            />
           </div>
           <div className="min-w-0">
             <span className="field-label">Choose an icon</span>
@@ -95,13 +122,13 @@ const CategoryCreator = ({ existingNames, onAdd, onCancel }: PropsType) => {
           <div className="flex flex-wrap justify-end gap-2">
             <button
               type="button"
-              disabled={isSubmitting}
+              disabled={isSubmitting || suggesting}
               onClick={onCancel}
               className="btn btn-secondary"
             >
               Cancel
             </button>
-            <button type="submit" disabled={isSubmitting} className="btn btn-primary">
+            <button type="submit" disabled={isSubmitting || suggesting} className="btn btn-primary">
               {isSubmitting ? "Adding…" : "Add category"}
             </button>
           </div>

@@ -308,6 +308,7 @@ const ExpenseDetail = () => {
       </div>
       {creatingTag && (
         <TagCreator
+          groupId={group.id}
           existingNames={groupTags.map((tag) => tag.name)}
           onAdd={handleCreateTag}
           onCancel={() => setCreatingTag(false)}

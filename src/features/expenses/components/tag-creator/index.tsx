@@ -1,11 +1,15 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { SyntheticEvent } from "react";
 import { useEffect, useId, useRef, useState } from "react";
-import { FormProvider, useForm } from "react-hook-form";
+import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
 import ColorPicker from "@/shared/components/color-picker";
 import Input from "@/shared/components/form-elements/input";
+
+import type { EntitySuggestion } from "@/shared/utils/entity-suggestions";
+
+import EntitySuggestions from "@/shared/ui/entity-suggestions";
 
 const tagSchema = z.object({
   name: z.string().trim().min(1, "Tag name is required"),
@@ -15,19 +19,22 @@ const tagSchema = z.object({
 type TagValues = z.infer<typeof tagSchema>;
 
 interface PropsType {
+  groupId: string;
   existingNames: string[];
   onAdd: (name: string, color: string) => Promise<void>;
   onCancel: () => void;
 }
 
-const TagCreator = ({ existingNames, onAdd, onCancel }: PropsType) => {
+const TagCreator = ({ groupId, existingNames, onAdd, onCancel }: PropsType) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   const [error, setError] = useState("");
+  const [suggesting, setSuggesting] = useState(false);
   const methods = useForm<TagValues>({
     resolver: zodResolver(tagSchema),
     defaultValues: { name: "", color: "#6366f1" },
   });
+  const tagQuery = useWatch({ control: methods.control, name: "name" });
   const { isSubmitting } = methods.formState;
 
   useEffect(() => {
@@ -35,7 +42,7 @@ const TagCreator = ({ existingNames, onAdd, onCancel }: PropsType) => {
   }, []);
 
   const handleCancel = (event: SyntheticEvent<HTMLDialogElement>) => {
-    if (isSubmitting) event.preventDefault();
+    if (isSubmitting || suggesting) event.preventDefault();
     else onCancel();
   };
 
@@ -51,6 +58,19 @@ const TagCreator = ({ existingNames, onAdd, onCancel }: PropsType) => {
       setError(failure instanceof Error ? failure.message : "Could not add this tag");
     }
   });
+
+  const handleSuggestedTag = async (suggestion: EntitySuggestion) => {
+    if (!suggestion.color || suggesting) return;
+    setSuggesting(true);
+    setError("");
+    try {
+      await onAdd(suggestion.name, suggestion.color);
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : "Could not add this tag");
+    } finally {
+      setSuggesting(false);
+    }
+  };
 
   return (
     <dialog
@@ -68,6 +88,14 @@ const TagCreator = ({ existingNames, onAdd, onCancel }: PropsType) => {
             <span className="field-label">Tag name</span>
             <Input name="name" placeholder="e.g. Weekend" autoFocus />
           </label>
+          <EntitySuggestions
+            kind="tag"
+            query={tagQuery}
+            currentGroupId={groupId}
+            unavailableNames={existingNames}
+            disabled={isSubmitting || suggesting}
+            onSelect={handleSuggestedTag}
+          />
           <ColorPicker name="color" label="Tag color" />
           {error && (
             <p role="alert" className="note money-negative">
@@ -77,13 +105,13 @@ const TagCreator = ({ existingNames, onAdd, onCancel }: PropsType) => {
           <div className="flex justify-end gap-2">
             <button
               type="button"
-              disabled={isSubmitting}
+              disabled={isSubmitting || suggesting}
               onClick={onCancel}
               className="btn btn-secondary"
             >
               Cancel
             </button>
-            <button type="submit" disabled={isSubmitting} className="btn btn-primary">
+            <button type="submit" disabled={isSubmitting || suggesting} className="btn btn-primary">
               {isSubmitting ? "Creating…" : "Create tag"}
             </button>
           </div>

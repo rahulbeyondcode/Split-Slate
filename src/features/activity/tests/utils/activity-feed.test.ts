@@ -94,24 +94,93 @@ describe("activity history", () => {
     expect(useStore.getState().tags).toEqual([]);
   });
 
-  it("keeps group, member, and contact changes after their records are deleted", async () => {
+  it("removes a deleted group's history except creation and deletion, preserving global contacts", async () => {
     const person = await useStore.getState().addPerson("Bea", "🐻");
     const member = await useStore.getState().addMember("g", person.id);
     await useStore.getState().removeMember(member.id);
     await useStore.getState().removePerson(person.id);
+    const tag = await useStore.getState().addTag("g", "Holiday", "#123456");
+    await useStore.getState().removeTag(tag.id);
+    const category = await useStore.getState().addCategory("g", "Taxi", "🚕");
+    await useStore.getState().removeCategory(category.id);
+    await useStore.getState().removeExpense("older", "g");
+    await useStore.getState().updateGroup("g", { name: "Renamed trip" });
+    const other = await useStore.getState().createGroup("Other", "✦", "INR");
     await useStore.getState().removeGroup("g");
     await useStore.getState().init();
 
     const events = activityFeed(useStore.getState());
-    expect(events.filter((item) => item.action === "deleted").map((item) => item.kind)).toEqual(
-      expect.arrayContaining(["member", "person", "group"]),
-    );
-    expect(events.find((item) => item.kind === "group")).toMatchObject({
-      groupName: "Trip",
-      label: "Trip",
-      action: "deleted",
+    expect(activityFeed(useStore.getState(), "g").map((item) => [item.kind, item.action])).toEqual([
+      ["group", "deleted"],
+      ["group", "created"],
+    ]);
+    expect(events.find((item) => item.groupId === "g" && item.action === "created")).toMatchObject({
+      groupName: "Renamed trip",
+      label: "Renamed trip",
+      createdAt: 1,
     });
-    expect(activityFeed(useStore.getState(), "g").some((item) => item.kind === "group")).toBe(true);
+    expect(events.filter((item) => item.kind === "person")).toHaveLength(2);
+    expect(events.some((item) => item.groupId === other.group.id)).toBe(true);
+    expect(await db.activityEvents.where("groupId").equals("g").count()).toBe(2);
+  });
+
+  it("preserves the original group creation record instead of adding a duplicate", async () => {
+    const group = await useStore.getState().createGroup("Another", "✦", "INR");
+    const created = useStore
+      .getState()
+      .activityEvents.find((item) => item.groupId === group.group.id);
+    await useStore.getState().addCategory(group.group.id, "Food", "🍽️");
+    await useStore.getState().removeGroup(group.group.id);
+    const events = activityFeed(useStore.getState(), group.group.id);
+    expect(events.map((item) => item.action)).toEqual(["deleted", "created"]);
+    expect(events[1].id).toBe(created?.id);
+  });
+
+  it("treats an older imported-group entry as creation and ignores stale hydrated events", async () => {
+    const imported = {
+      id: "imported",
+      groupId: "g",
+      groupName: "Trip",
+      subjectId: "g",
+      kind: "group" as const,
+      action: "imported" as const,
+      label: "Trip",
+      icon: "🏕️",
+      amount: null,
+      currency: "INR",
+      createdAt: 20,
+    };
+    await db.activityEvents.add(imported);
+    await db.activityEvents.add({
+      ...imported,
+      id: "tag",
+      kind: "tag",
+      action: "deleted",
+      label: "Old tag",
+    });
+    useStore.setState((state) => ({
+      activityEvents: [...state.activityEvents, { ...imported, id: "stale", action: "updated" }],
+    }));
+    await useStore.getState().removeGroup("g");
+
+    const persisted = await db.activityEvents.where("groupId").equals("g").toArray();
+    expect(persisted).toHaveLength(2);
+    expect(persisted.find((event) => event.id === "imported")?.action).toBe("created");
+    expect(activityFeed(useStore.getState(), "g").map((item) => item.id)).toEqual([
+      expect.any(String),
+      "imported",
+    ]);
+    expect(useStore.getState().activityEvents.some((item) => item.id === "stale")).toBe(false);
+  });
+
+  it("rolls back group deletion if activity cleanup fails", async () => {
+    await useStore.getState().addTag("g", "Holiday", "#123456");
+    vi.spyOn(db.activityEvents, "bulkDelete").mockRejectedValueOnce(new Error("Cleanup failed"));
+    await expect(useStore.getState().removeGroup("g")).rejects.toThrow("Cleanup failed");
+    expect(await db.groups.get("g")).toBeTruthy();
+    expect(await db.tags.count()).toBe(1);
+    expect(await db.expenses.count()).toBe(1);
+    expect(useStore.getState().groups.some((item) => item.id === "g")).toBe(true);
   });
 
   it("upgrades an existing version 1 database without clearing saved entities", async () => {

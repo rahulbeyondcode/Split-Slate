@@ -284,7 +284,7 @@ export const importGroupTransfer = async ({
       await writeActivity({
         group,
         kind: "group",
-        action: "imported",
+        action: "created",
         label: group.name,
         subjectId: group.id,
       });

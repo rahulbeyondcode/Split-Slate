@@ -9,7 +9,7 @@ metadata:
 
 Purpose: specify the irreversible group-owned data cascade without deleting shared identity.
 
-Last updated: 2026-10-04
+Last updated: 2026-10-05
 
 ## Decision
 
@@ -28,11 +28,14 @@ One Dexie transaction removes the group and its associated domain records from I
 - All `attachments` whose `expenseId` belongs to a deleted expense
 - All `categories` with matching `groupId`
 - All `tags` with matching `groupId`
+- All group-scoped activity snapshots except the group-created record
 - The `group` record itself
 
-The transaction also saves a group-deletion activity event. Previously saved activity snapshots
-remain available in the cross-group feed even though the group and its owned domain records are
-gone; these snapshots cannot navigate back to the deleted group. See [[dashboard]].
+The transaction also saves a group-deleted activity event. The cross-group feed retains only the
+group-created and group-deleted entries for that group; expense, member, tag, category, and group-edit
+entries are permanently removed. A group predating activity persistence gets a created entry from
+its saved `createdAt`; an older imported-group event counts as created. Both retained entries are
+non-navigable. Other groups' history and global contacts remain. See [[dashboard]].
 
 The global `people` directory, local identity, and data belonging to other groups remain. A failed
 write rolls back the entire deletion; Zustand changes only after the transaction commits, so the

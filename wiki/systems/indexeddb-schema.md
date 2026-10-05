@@ -36,8 +36,9 @@ than waiting indefinitely for `initialized`.
 Immutable action snapshots with `id` as UUID primary key and indexes on `groupId`,
 `[kind+subjectId]`, and `createdAt`. Rows store `kind`, `action`, `label`, `icon`,
 `groupId` (nullable for global contacts), `groupName`, `subjectId` (nullable),
-`amount` and `currency` (nullable), and recording `createdAt`. Deleted groups or entities are
-not foreign-key prerequisites: their saved snapshot remains visible on the cross-group feed.
+`amount` and `currency` (nullable), and recording `createdAt`. Individual deletions retain their
+snapshots while the group exists. Group deletion atomically removes all its activity except the
+group-created record and the new group-deleted record; neither surviving row needs a live group.
 Successful mutations write events within their entity transaction. Whole-app backups include
 events; selective group transfers do not carry source activity history. See [[dashboard]] and
 [[full-backup]].

@@ -72,7 +72,8 @@ there is no persistent top bar.
 The desktop activity panel shows saved action events from all groups on the dashboard, ordered
 newest-first by recording time (`createdAt`) rather than expense occurrence (`when`). On a group's
 routes it shows only that group's events, in the same order, with compact rows, except on group
-Settings. Deleted-item rows remain visible without a link; older current expenses lacking a saved
+Settings. Individual deleted-item rows remain visible without a link until the whole group is
+deleted, when only its group-created/deleted rows remain. Older current expenses lacking a saved
 creation event appear as derived entries. On the create-group route it is replaced by the live
 group-draft preview. See [[dashboard]] and [[indexeddb-schema]].
 Its compact activity list is not wrapped in the shared `Surface`: the unlayered `.surface` rules

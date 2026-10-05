@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { FormProvider, useForm } from "react-hook-form";
+import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { useOutletContext } from "react-router-dom";
 import { z } from "zod";
 
@@ -10,11 +10,13 @@ import Input from "@/shared/components/form-elements/input";
 
 import { useStore } from "@/shared/configs/store";
 import { useViewport } from "@/shared/hooks/use-viewport";
+import type { EntitySuggestion } from "@/shared/utils/entity-suggestions";
 
 import type { GroupDetailContext } from "@/features/group-detail/types/group-detail.types";
 import type { Tag } from "@/shared/types/domain.types";
 
 import ConfirmationDialog from "@/shared/ui/confirmation-dialog";
+import EntitySuggestions from "@/shared/ui/entity-suggestions";
 import Icon from "@/shared/ui/icon";
 import MobileEditorDialog from "@/shared/ui/mobile-editor-dialog";
 
@@ -39,10 +41,12 @@ const TagManagement = () => {
   const [editingTagId, setEditingTagId] = useState<string | null>(null);
   const [confirmTagId, setConfirmTagId] = useState<string | null>(null);
   const [tagError, setTagError] = useState<string | null>(null);
+  const [suggesting, setSuggesting] = useState(false);
   const tagForm = useForm<TagFormValues>({
     resolver: zodResolver(tagFormSchema),
     defaultValues: { name: "", color: DEFAULT_TAG_COLOR },
   });
+  const tagQuery = useWatch({ control: tagForm.control, name: "name" });
   const { isSubmitting } = tagForm.formState;
   const tagFormTitle = tagMode === "edit" ? "Edit tag" : "Add tag";
   const tagSubmitLabel = tagMode === "edit" ? "Save" : "Add";
@@ -92,6 +96,20 @@ const TagManagement = () => {
     }
   });
 
+  const handleSuggestedTag = async (suggestion: EntitySuggestion) => {
+    if (!suggestion.color || suggesting) return;
+    setSuggesting(true);
+    setTagError(null);
+    try {
+      await addTag(group.id, suggestion.name, suggestion.color);
+      handleCancelTagForm();
+    } catch (error) {
+      setTagError(error instanceof Error ? error.message : "Could not add this tag");
+    } finally {
+      setSuggesting(false);
+    }
+  };
+
   const handleDeleteTag = (tag: Tag) => {
     setTagError(null);
     setConfirmTagId(tag.id);
@@ -128,19 +146,29 @@ const TagManagement = () => {
         ) : (
           <Input name="name" placeholder="Tag name" autoFocus />
         )}
+        {tagMode === "add" && (
+          <EntitySuggestions
+            kind="tag"
+            query={tagQuery}
+            currentGroupId={group.id}
+            unavailableNames={groupTags.map((item) => item.name)}
+            disabled={isSubmitting || suggesting}
+            onSelect={handleSuggestedTag}
+          />
+        )}
         <ColorPicker name="color" label="Tag color" />
         <div className="flex gap-2 justify-end">
           <button
             type="button"
             onClick={handleCancelTagForm}
-            disabled={isSubmitting}
+            disabled={isSubmitting || suggesting}
             className={
               isMobile ? "btn btn-secondary" : "px-4 py-2 text-sm text-gray-500 disabled:opacity-50"
             }
           >
             Cancel
           </button>
-          <button type="submit" disabled={isSubmitting} className="btn btn-primary">
+          <button type="submit" disabled={isSubmitting || suggesting} className="btn btn-primary">
             {isSubmitting ? "Saving..." : tagSubmitLabel}
           </button>
         </div>
@@ -182,7 +210,7 @@ const TagManagement = () => {
             <MobileEditorDialog
               title={tagFormTitle}
               onCancel={handleCancelTagForm}
-              busy={isSubmitting}
+              busy={isSubmitting || suggesting}
             >
               {tagError && (
                 <p role="alert" className="note money-negative mb-4">

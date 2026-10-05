@@ -14,9 +14,10 @@ type Chip = { name: string; icon: string };
 
 interface PropsType {
   showHeading?: boolean;
+  currentGroupId?: string;
 }
 
-const StepCategories = ({ showHeading = true }: PropsType) => {
+const StepCategories = ({ showHeading = true, currentGroupId }: PropsType) => {
   const masterCategories = useStore((s) => s.masterCategories);
   const { field: categoriesField, fieldState } = useController<CreateGroupFormValues, "categories">(
     {
@@ -78,6 +79,7 @@ const StepCategories = ({ showHeading = true }: PropsType) => {
 
       {addingNewCategory ? (
         <CategoryEditor
+          currentGroupId={currentGroupId}
           existingNames={visibleChips.map((chip) => chip.name)}
           onAdd={handleAddCategory}
           onCancel={() => setAddingNewCategory(false)}

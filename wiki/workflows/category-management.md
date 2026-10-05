@@ -9,7 +9,7 @@ metadata:
 
 Purpose: explain group-category selection, editing, guarded deletion, and pending activation UI.
 
-Last updated: 2026-10-04
+Last updated: 2026-10-05
 
 ## Implementation Status
 
@@ -54,6 +54,17 @@ emoji may still resolve to matching images without rewriting their stored values
 
 ### Group-Level Categories
 Each group has its own category list. These are the categories members actually pick from when adding expenses. They are group-scoped records in the `categories` table.
+
+When adding a category in group management, expense entry, onboarding, or standalone group
+creation, typing even one letter offers names used in other groups. Matches may occur anywhere in
+the name and ignore case, spaces, hyphens, and underscores: `fuel` finds `Expense_of_fuel`, and
+`petrol_expense` finds `Petrol Expense`. Each suggestion shows its source icon and all source group
+names; a same-name/different-icon variant is shown separately. Choosing it copies its exact name
+and icon into a **new group-owned category**, not the source category ID. The source category and
+other groups' expenses are unchanged. Names already present in the destination group are excluded.
+The onboarding and new-group forms keep this choice in their draft until their usual save step.
+App-wide category spending combines exact matching names from existing groups in the same currency;
+different spelling or capitalization still forms separate totals. See [[dashboard]].
 
 Group categories come from two sources:
 1. **Selected from the master list** at group creation time

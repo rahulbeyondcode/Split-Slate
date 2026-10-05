@@ -36,8 +36,10 @@ The dashboard currently renders:
 
 The desktop right pane shows saved activity events across all groups in recording order (event
 `createdAt` descending). Create/update/delete actions for expenses, tags, categories, groups,
-members, and contacts, plus imported groups, are recorded separately from current entities. Deleted
-items retain their name, icon, amount (for expenses), and group snapshot; their rows are not links.
+members, and contacts are recorded separately from current entities; imported groups have a group
+creation event. Individual deleted-item entries retain their name, icon, amount (for expenses), and
+group snapshot without a link **while that group still exists**. Permanent group deletion purges all
+of its activity except group-created and group-deleted entries. Global contact entries remain.
 Older expenses recorded before the event table, including transferred expenses, still appear as
 derived entries while they exist. Past deletions cannot be reconstructed. On group routes other than
 Settings, the panel filters by group, including expense forms. The dedicated Activity route shows
@@ -113,6 +115,10 @@ balances remain.
 
 A visual breakdown of total spending by category, aggregated across same-currency groups, all time.
 There is no time filter.
+Each expense refers to its own group's category ID; the chart resolves that category and aggregates
+by its exact name. Two groups with `Petrol Expense` become one total, but a differently spelled or
+capitalized name is a separate total. New-category suggestions help copy the same spelling/icon;
+deleting one group removes only its expenses from the total. See [[category-management]].
 
 **Empty state:** For an existing single-currency group with no expenses, the visible preview says
 "No spending yet." The section is absent when no groups exist or at widths below 640px.

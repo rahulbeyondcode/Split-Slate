@@ -267,6 +267,7 @@ const ExpenseForm = () => {
       </form>
       {isCreatingCategory && (
         <CategoryCreator
+          groupId={group.id}
           existingNames={groupCategories.map((category) => category.name)}
           onAdd={handleAddCategory}
           onCancel={() => setIsCreatingCategory(false)}
@@ -274,6 +275,7 @@ const ExpenseForm = () => {
       )}
       {isCreatingTag && (
         <TagCreator
+          groupId={group.id}
           existingNames={groupTags.map((tag) => tag.name)}
           onAdd={handleAddTag}
           onCancel={() => setIsCreatingTag(false)}

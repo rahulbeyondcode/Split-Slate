@@ -9,7 +9,7 @@ metadata:
 
 Purpose: describe the implemented standard and import-based first-launch flows.
 
-Last updated: 2026-10-04
+Last updated: 2026-10-05
 
 ## Standard First-Launch Flow
 
@@ -22,7 +22,9 @@ For users opening the app for the first time without any imported data.
 4. **Select currency** — Pre-filled with INR (India-first default). User can change it. If left untouched, INR is used. Always results in a currency being set — not skippable but requires zero effort if INR is correct.
 5. **Select categories** — **Mandatory: at least one.** A sensible default set is pre-selected (`defaultGroupCategories`); the creator can toggle these, add custom ones, or change the selection — but cannot proceed with zero, since every expense requires a category.
    - Screen explains: *"Pick the categories that make sense for this group. You can always add more later."*
-   - More categories can be added anytime after creation.
+    - More categories can be added anytime after creation.
+    - The shared editor suggests matching names/icons from other groups while typing. Selecting one
+      adds a group-local draft category; it persists only on Save and Proceed. See [[category-management]].
 6. **Add members** — Optional. The user is already auto-added to the group as a member (see invariant below). They can add others here, or simply continue with only themselves (a valid solo group). There is **no separate "Skip" button** — pressing "Save and Finish" without adding anyone is the solo path.
 7. **Main app** — After the final save succeeds, user lands on `/dashboard`, where the new group is listed.
 

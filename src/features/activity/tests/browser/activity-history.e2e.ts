@@ -79,4 +79,18 @@ test("records additions and deletions, retains them after reload, and filters th
     const panel = page.getByRole("complementary", { name: "Recent activity" });
     await expect(panel).toContainText("Expense deleted: Dinner");
   }
+  await page.goto("/activity");
+  await page.evaluate(async () => {
+    const modulePath = "/src/shared/configs/store/index.ts";
+    const { useStore } = (await import(/* @vite-ignore */ modulePath)) as typeof StoreModule;
+    await useStore.getState().removeGroup("g");
+  });
+  await expect(page.locator("main")).toContainText("Group created: Trip");
+  await expect(page.locator("main")).toContainText("Group deleted: Trip");
+  await expect(page.locator("main")).not.toContainText("Expense deleted: Dinner");
+  await expect(page.locator("main")).not.toContainText("Category deleted: Taxi");
+  await expect(page.locator("main")).not.toContainText("Tag deleted: Holiday");
+  await page.reload();
+  await expect(page.locator("main")).toContainText("Group deleted: Trip");
+  await expect(page.locator("main")).not.toContainText("Expense deleted: Dinner");
 });

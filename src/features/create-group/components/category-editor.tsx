@@ -1,14 +1,17 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FormProvider, useForm } from "react-hook-form";
+import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
 import EmojiPicker from "@/shared/components/emoji-picker";
 import Input from "@/shared/components/form-elements/input";
 
+import type { EntitySuggestion } from "@/shared/utils/entity-suggestions";
 import { createRequiredStringSchema } from "@/shared/utils/string-validation";
 import type { CategoryEditorValues } from "@/features/create-group/helpers/editor-types";
 
 import { CATEGORY_EMOJIS } from "@/shared/constants/emojis";
+
+import EntitySuggestions from "@/shared/ui/entity-suggestions";
 
 const createCategorySchema = (existingNames: string[]) =>
   z.object({
@@ -20,20 +23,26 @@ const createCategorySchema = (existingNames: string[]) =>
   });
 
 interface PropsType {
+  currentGroupId?: string;
   existingNames: string[];
   onAdd: (name: string, icon: string) => void;
   onCancel: () => void;
 }
 
-const CategoryEditor = ({ existingNames, onAdd, onCancel }: PropsType) => {
+const CategoryEditor = ({ currentGroupId, existingNames, onAdd, onCancel }: PropsType) => {
   const editorForm = useForm<CategoryEditorValues>({
     resolver: zodResolver(createCategorySchema(existingNames)),
     defaultValues: { category: "", icon: CATEGORY_EMOJIS[0] },
   });
+  const categoryQuery = useWatch({ control: editorForm.control, name: "category" });
 
   const handleSubmit = editorForm.handleSubmit(({ category, icon }) => {
     onAdd(category.trim(), icon);
   });
+
+  const handleSuggestedCategory = (suggestion: EntitySuggestion) => {
+    if (suggestion.icon) onAdd(suggestion.name, suggestion.icon);
+  };
 
   return (
     <FormProvider {...editorForm}>
@@ -50,6 +59,13 @@ const CategoryEditor = ({ existingNames, onAdd, onCancel }: PropsType) => {
             placeholder="e.g. Coffee runs"
             wrapperClass="w-full"
             autoFocus
+          />
+          <EntitySuggestions
+            kind="category"
+            query={categoryQuery}
+            currentGroupId={currentGroupId}
+            unavailableNames={existingNames}
+            onSelect={handleSuggestedCategory}
           />
         </div>
 

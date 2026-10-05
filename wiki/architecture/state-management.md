@@ -159,7 +159,11 @@ Two deliberate shape decisions:
 - `init()` also hydrates immutable activity-event snapshots. Writes to user-facing entities and
   their events share Dexie transactions; events are appended to Zustand only after commit. Expense
   rows created before the event table are derived at render time while the expense still exists.
-  Removed entities do not erase saved events, including a deleted group's history. See [[dashboard]].
+  Individual record deletion keeps its saved event while the group exists. Group deletion instead
+  removes that group's prior events except its group-created record (reconstructing one from the
+  saved group creation time if needed), and writes the group-deleted record in the same transaction.
+  After commit Zustand replaces that group's events with exactly those two persisted snapshots;
+  other groups' and global events remain. See [[group-deletion]] and [[dashboard]].
 - Tag deletion reads the persisted tag and its group's expenses in one transaction on tags,
   expenses, and activity events, then deletes the tag and updates only existing records' `tagIds`.
   It cannot recreate

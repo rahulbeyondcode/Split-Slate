@@ -298,7 +298,12 @@ const SetupFlow = () => {
               {onboardingStep === "identity" && <StepIdentity />}
               {onboardingStep === "group" && <StepGroup showHeading={false} />}
               {onboardingStep === "currency" && <StepCurrency showHeading={false} />}
-              {onboardingStep === "categories" && <StepCategories showHeading={false} />}
+              {onboardingStep === "categories" && (
+                <StepCategories
+                  showHeading={false}
+                  currentGroupId={onboardingGroupId ?? undefined}
+                />
+              )}
               {onboardingStep === "members" && (
                 <StepMembers showHeading={false} onEditorOpenChange={setMemberEditorOpen} />
               )}
