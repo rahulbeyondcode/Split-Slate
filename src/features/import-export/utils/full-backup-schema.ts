@@ -4,6 +4,7 @@ import { sealPortableGroup } from "@/features/import-export/utils/transfer-integ
 
 import { CURRENCIES } from "@/shared/constants/currencies";
 import type {
+  ActivityEvent,
   Attachment,
   Category,
   Expense,
@@ -63,6 +64,19 @@ const attachment = z.strictObject({
   size: amount,
   sha256: z.string().regex(/^[0-9a-f]{64}$/u),
 });
+const activityEvent = z.strictObject({
+  id,
+  groupId: id.nullable(),
+  groupName: text,
+  subjectId: id.nullable(),
+  kind: z.enum(["expense", "category", "tag", "group", "member", "person"]),
+  action: z.enum(["created", "updated", "deleted", "imported"]),
+  label: text,
+  icon: text,
+  amount: amount.nullable(),
+  currency: text.nullable(),
+  createdAt: timestamp,
+});
 const settings = z.discriminatedUnion("id", [
   z.strictObject({
     id: z.literal("onboarding"),
@@ -89,6 +103,7 @@ export const fullBackupDataSchema = z.strictObject({
   categories: z.array(category),
   tags: z.array(tag),
   expenses: z.array(expense),
+  activityEvents: z.array(activityEvent).optional(),
   attachments: z.array(attachment),
   settings: z.array(settings).length(2),
 });
@@ -96,6 +111,7 @@ export const fullBackupDataSchema = z.strictObject({
 export type FullBackupData = z.infer<typeof fullBackupDataSchema>;
 
 export interface FullBackupSource {
+  activityEvents: ActivityEvent[];
   localUser: LocalUser[];
   groups: Group[];
   people: Person[];
@@ -149,6 +165,10 @@ export const validateFullBackupData = async (value: unknown): Promise<FullBackup
   unique(
     data.attachments.map((item) => item.id),
     "receipts",
+  );
+  unique(
+    (data.activityEvents ?? []).map((item) => item.id),
+    "activity events",
   );
   unique(
     data.attachments.map((item) => item.path),

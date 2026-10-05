@@ -1,6 +1,7 @@
 import Dexie, { type EntityTable } from "dexie";
 
 import type {
+  ActivityEvent,
   Attachment,
   Category,
   Expense,
@@ -13,6 +14,7 @@ import type {
 } from "@/shared/types/domain.types";
 
 class SplitSlateDatabase extends Dexie {
+  activityEvents!: EntityTable<ActivityEvent, "id">;
   localUser!: EntityTable<LocalUser, "id">;
   groups!: EntityTable<Group, "id">;
   people!: EntityTable<Person, "id">;
@@ -36,6 +38,7 @@ class SplitSlateDatabase extends Dexie {
       attachments: "id, expenseId",
       settings: "id",
     });
+    this.version(2).stores({ activityEvents: "id, groupId, [kind+subjectId], createdAt" });
   }
 }
 

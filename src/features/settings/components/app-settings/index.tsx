@@ -20,6 +20,7 @@ import { useStore } from "@/shared/configs/store";
 
 import { DEFAULT_PROFILE_EMOJI } from "@/shared/constants/emoji-catalog";
 
+import { usePwa } from "@/app/providers/pwa-provider";
 import Avatar from "@/shared/ui/avatar";
 import Icon from "@/shared/ui/icon";
 import StatusBanner from "@/shared/ui/status-banner";
@@ -27,6 +28,10 @@ import Surface from "@/shared/ui/surface";
 
 const AppSettings = () => {
   const { localUser, groups, people, setLocalUser } = useStore();
+  const { supported, openInstall } = usePwa();
+  const installed =
+    window.matchMedia("(display-mode: standalone)").matches ||
+    (navigator as Navigator & { standalone?: boolean }).standalone === true;
   const [dark, setDark] = useState(() => localStorage.getItem("split-slate-theme") === "dark");
   const [editing, setEditing] = useState(false);
   const [backingUp, setBackingUp] = useState(false);
@@ -108,6 +113,20 @@ const AppSettings = () => {
           </button>
         </Surface>
       </section>
+      {supported && !installed && (
+        <section>
+          <p className="eyebrow mb-2">App installation</p>
+          <Surface className="surface-pad flex flex-col items-start gap-3">
+            <p className="soft-caption">
+              Install Split Slate for quick access and offline use. If your browser cannot show an
+              install prompt, you’ll see instructions instead.
+            </p>
+            <button type="button" className="btn btn-secondary" onClick={openInstall}>
+              <Icon icon={Download} size={18} /> Install app
+            </button>
+          </Surface>
+        </section>
+      )}
       <OfflineIcons />
       <section>
         <p className="eyebrow mb-2">Group transfer</p>

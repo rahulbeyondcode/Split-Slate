@@ -40,6 +40,20 @@ export interface Tag {
   color: string;
 }
 
+export interface ActivityEvent {
+  id: string;
+  groupId: string | null;
+  groupName: string;
+  subjectId: string | null;
+  kind: "expense" | "category" | "tag" | "group" | "member" | "person";
+  action: "created" | "updated" | "deleted" | "imported";
+  label: string;
+  icon: string;
+  amount: number | null;
+  currency: string | null;
+  createdAt: number;
+}
+
 export interface SplitMeta {
   memberId: string;
   // Ratios retain validated decimal text; numbers are minor-unit adjustments or legacy ratios.

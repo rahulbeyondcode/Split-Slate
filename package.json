@@ -11,7 +11,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "fix": "eslint . --fix && prettier --write .",
-    "check": "eslint . && prettier --check . && tsc --noEmit",
+    "check": "eslint . && prettier --check . && tsc -b",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",

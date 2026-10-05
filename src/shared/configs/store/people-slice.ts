@@ -1,5 +1,6 @@
 import { v4 as uuid } from "uuid";
 
+import { writeActivity } from "@/features/activity/utils/activity-events";
 import { db } from "@/shared/configs/db";
 import { normalizeRequiredString } from "@/shared/utils/string-validation";
 
@@ -20,11 +21,26 @@ export const createPeopleSlice: SliceCreator<PeopleSlice> = (set, get) => ({
       name: normalizedName,
       icon: normalizedIcon,
     };
-    await db.localUser.put(user);
-
     const selfPerson: Person = { id: user.id, name: normalizedName, icon: normalizedIcon };
-    await db.people.put(selfPerson);
+    const event = await db.transaction(
+      "rw",
+      db.localUser,
+      db.people,
+      db.activityEvents,
+      async () => {
+        await db.localUser.put(user);
+        await db.people.put(selfPerson);
+        return writeActivity({
+          kind: "person",
+          action: existing ? "updated" : "created",
+          label: user.name,
+          icon: user.icon,
+          subjectId: user.id,
+        });
+      },
+    );
     set((s) => ({
+      activityEvents: [...s.activityEvents, event],
       localUser: user,
       people: s.people.some((p) => p.id === user.id)
         ? s.people.map((p) => (p.id === user.id ? selfPerson : p))
@@ -39,8 +55,17 @@ export const createPeopleSlice: SliceCreator<PeopleSlice> = (set, get) => ({
       name: normalizeRequiredString(name, "Name is required"),
       icon: normalizeRequiredString(icon, "Icon is required"),
     };
-    await db.people.add(person);
-    set((s) => ({ people: [...s.people, person] }));
+    const event = await db.transaction("rw", db.people, db.activityEvents, async () => {
+      await db.people.add(person);
+      return writeActivity({
+        kind: "person",
+        action: "created",
+        label: person.name,
+        icon: person.icon,
+        subjectId: person.id,
+      });
+    });
+    set((s) => ({ people: [...s.people, person], activityEvents: [...s.activityEvents, event] }));
     return person;
   },
 
@@ -54,13 +79,25 @@ export const createPeopleSlice: SliceCreator<PeopleSlice> = (set, get) => ({
         ? { icon: normalizeRequiredString(patch.icon, "Icon is required") }
         : {}),
     };
-    await db.people.update(personId, normalizedPatch);
     const existing = get().people.find((p) => p.id === personId);
     if (!existing) {
       throw new Error("person not found");
     }
     const updated: Person = { ...existing, ...normalizedPatch };
-    set((s) => ({ people: s.people.map((p) => (p.id === personId ? updated : p)) }));
+    const event = await db.transaction("rw", db.people, db.activityEvents, async () => {
+      if (!(await db.people.update(personId, normalizedPatch))) throw new Error("Person not found");
+      return writeActivity({
+        kind: "person",
+        action: "updated",
+        label: updated.name,
+        icon: updated.icon,
+        subjectId: personId,
+      });
+    });
+    set((s) => ({
+      people: s.people.map((p) => (p.id === personId ? updated : p)),
+      activityEvents: [...s.activityEvents, event],
+    }));
     return updated;
   },
 
@@ -82,17 +119,36 @@ export const createPeopleSlice: SliceCreator<PeopleSlice> = (set, get) => ({
       throw new Error("Cannot delete a person involved in expenses; reassign those expenses first");
     }
 
-    await db.people.delete(personId);
-    await db.members.bulkDelete(memberIds);
     const affectedGroups = get().groups.filter((g) =>
       g.frequentPayerIds.some((id) => memberIds.includes(id)),
     );
-    for (const group of affectedGroups) {
-      const frequentPayerIds = group.frequentPayerIds.filter((id) => !memberIds.includes(id));
-      await db.groups.update(group.id, { frequentPayerIds });
-    }
+    const event = await db.transaction(
+      "rw",
+      db.people,
+      db.members,
+      db.groups,
+      db.activityEvents,
+      async () => {
+        const person = await db.people.get(personId);
+        if (!person) throw new Error("Person not found");
+        await db.people.delete(personId);
+        await db.members.bulkDelete(memberIds);
+        for (const group of affectedGroups) {
+          const frequentPayerIds = group.frequentPayerIds.filter((id) => !memberIds.includes(id));
+          await db.groups.update(group.id, { frequentPayerIds });
+        }
+        return writeActivity({
+          kind: "person",
+          action: "deleted",
+          label: person.name,
+          icon: person.icon,
+          subjectId: personId,
+        });
+      },
+    );
 
     set((s) => ({
+      activityEvents: [...s.activityEvents, event],
       people: s.people.filter((p) => p.id !== personId),
       members: s.members.filter((m) => m.personId !== personId),
       groups: s.groups.map((g) =>

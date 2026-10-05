@@ -164,9 +164,8 @@ test("creates and selects a new tag without losing the unfinished mobile expense
   await expect(page.getByLabel("Amount (INR)", { exact: true })).toHaveValue("42");
   await page.getByRole("button", { name: "Save expense" }).click();
   const saved = await page.evaluate(async () => {
-    const { db } = (await import(
-      /* @vite-ignore */ "/src/shared/configs/db.ts"
-    )) as typeof DbModule;
+    const modulePath = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ modulePath)) as typeof DbModule;
     return { tags: await db.tags.toArray(), expenses: await db.expenses.toArray() };
   });
   expect(saved.expenses[0].tagIds).toContain(saved.tags.find((tag) => tag.name === "Weekend")?.id);
@@ -191,10 +190,12 @@ test("records an equal expense, updates balances, and survives reload", async ({
   await page.getByRole("button", { name: "Save expense" }).click();
   await expect(page).toHaveURL(/\/groups\/trip\/expenses$/);
   await expect(page.getByText("Dinner", { exact: true })).toBeVisible();
-  await expect(page.getByRole("main").getByText("₹100.00", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("list", { name: "Expenses" }).getByRole("link", { name: /^Dinner /u }),
+  ).toContainText("₹100.00");
   await expect(
     page.getByRole("list", { name: "Expenses" }).getByRole("link", { name: /Dinner/ }),
-  ).toContainText(/19 Sept?, 6:30 pm/i);
+  ).toContainText("19-Sep-2026 · 06:30 PM");
   await page.reload();
   await expect(page.getByText("Dinner", { exact: true })).toBeVisible();
   const stored = await page.evaluate(async () => {
@@ -330,7 +331,11 @@ for (const method of ["amount", "shares", "percentage", "adjustment"] as const) 
     await page.getByRole("button", { name: "Save expense" }).click();
     await expect(page).toHaveURL(/\/expenses$/);
     await expect(page.getByText(`Split ${method}`, { exact: true })).toBeVisible();
-    await expect(page.getByText(`Amy, Bea paid · ${method}`, { exact: true })).toBeVisible();
+    await expect(
+      page.getByRole("list", { name: "Expenses" }).getByRole("link", {
+        name: new RegExp(`^Split ${method} `, "u"),
+      }),
+    ).toContainText(`Amy, Bea paid · ${method}`);
     await page
       .getByRole("list", { name: "Expenses" })
       .getByRole("link", { name: new RegExp(`^Split ${method} `, "u") })
@@ -439,11 +444,12 @@ test("inspects, edits, and deletes an expense with live balance updates", async 
   );
   await page.goto("/groups/trip/balances");
   await expect(page.getByRole("list", { name: "Member balances" })).toContainText("+₹200.00");
-  await expect(page.getByRole("region", { name: "Suggested payments" })).toContainText(
-    "Bea → Amy₹100.00",
+  const suggestions = page.getByRole("region", { name: "Suggested payments" });
+  await expect(suggestions.getByRole("listitem").filter({ hasText: "Bea" })).toContainText(
+    "BeaAmy₹100.00",
   );
-  await expect(page.getByRole("region", { name: "Suggested payments" })).toContainText(
-    "Cal → Amy₹100.00",
+  await expect(suggestions.getByRole("listitem").filter({ hasText: "Cal" })).toContainText(
+    "CalAmy₹100.00",
   );
   await page.goto(detailUrl);
   await page.getByRole("link", { name: "Edit expense", exact: true }).click();
@@ -459,8 +465,8 @@ test("inspects, edits, and deletes an expense with live balance updates", async 
   await page.reload();
   await expect(page.getByRole("region", { name: "Paid by", exact: true })).toContainText("Bea");
   await page.goto("/groups/trip/balances");
-  await expect(page.getByRole("region", { name: "Suggested payments" })).toContainText(
-    "Amy → Bea₹200.00",
+  await expect(suggestions.getByRole("listitem").filter({ hasText: /^AmyBea/u })).toContainText(
+    "AmyBea₹200.00",
   );
   await page.goto(detailUrl);
   await page.getByRole("button", { name: "Delete expense", exact: true }).click();

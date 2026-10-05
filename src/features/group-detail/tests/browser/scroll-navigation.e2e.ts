@@ -223,6 +223,10 @@ test("keeps category, tag, and member lists inside their own cards", async ({ pa
   });
   await page.goto("/groups/trip/categories");
   await page.evaluate(() => window.scrollTo(0, 10000));
+  if (isMobile) {
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+    await page.evaluate(() => window.scrollTo(0, 0));
+  }
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
   for (const card of await cards.all()) {
     const scroller = isMobile ? card.locator(".management-card-content") : card;

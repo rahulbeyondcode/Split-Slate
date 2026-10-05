@@ -86,6 +86,7 @@ test.beforeEach(async ({ page }) => {
 test("enforces questionnaire dependencies and receipt-aware format availability", async ({
   page,
 }) => {
+  await page.getByRole("button", { name: "Export group" }).click();
   await expect(page.getByLabel(/Group information/)).toBeChecked();
   await expect(page.getByLabel(/Group information/)).toBeDisabled();
   await expect(page.getByLabel(/Group information/)).toHaveClass(/choice-control/u);
@@ -213,6 +214,7 @@ test("explains when selected content is too large for a link", async ({ page }) 
 });
 
 test("creates a durable import link and downloads a selected typed CSV", async ({ page }) => {
+  await page.getByRole("button", { name: "Export group" }).click();
   await page.getByLabel(/^Expenses/).check();
   await page.getByRole("button", { name: "Got it" }).click();
   await page.getByLabel(/^Tags/).check();
@@ -246,6 +248,7 @@ test("creates a durable import link and downloads a selected typed CSV", async (
 });
 
 test("downloads ZIP with verified selected receipt bytes", async ({ page }) => {
+  await page.getByRole("button", { name: "Export group" }).click();
   await page.getByLabel(/^Receipt attachments/).check();
   await page.getByRole("button", { name: "Got it" }).click();
   const downloadPromise = page.waitForEvent("download");

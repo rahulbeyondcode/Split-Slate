@@ -131,6 +131,47 @@ describe("whole-app backup persistence", () => {
     expect(await db.settings.get("onboarding")).toMatchObject({ complete: true });
   });
 
+  it("preserves activity snapshots in backups and clears newer history on restore", async () => {
+    const event = {
+      id: "event-1",
+      groupId: "deleted-group",
+      groupName: "Old Trip",
+      subjectId: "old-expense",
+      kind: "expense" as const,
+      action: "deleted" as const,
+      label: "Old lunch",
+      icon: "🍽️",
+      amount: 2500,
+      currency: "INR",
+      createdAt: 200,
+    };
+    await db.activityEvents.add(event);
+    const snapshot = await capturedBackup();
+    await db.activityEvents.add({ ...event, id: "event-2", label: "Newer lunch" });
+    await restoreFullBackup(snapshot);
+    expect(await db.activityEvents.toArray()).toEqual([event]);
+  });
+
+  it("restores an older backup without history by clearing current activity", async () => {
+    const snapshot = await capturedBackup();
+    delete snapshot.data.activityEvents;
+    await db.activityEvents.add({
+      id: "recent",
+      groupId: null,
+      groupName: "Your contacts",
+      subjectId: null,
+      kind: "person",
+      action: "created",
+      label: "Bea",
+      icon: "🐻",
+      amount: null,
+      currency: null,
+      createdAt: 300,
+    });
+    await restoreFullBackup(snapshot);
+    expect(await db.activityEvents.count()).toBe(0);
+  });
+
   it("leaves existing data untouched when validation fails", async () => {
     const snapshot = await capturedBackup();
     snapshot.data.groups[0].frequentPayerIds = ["missing-member"];

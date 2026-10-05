@@ -15,6 +15,7 @@ const getSetting = <T extends SettingsRecord["id"]>(id: T) =>
   db.settings.get(id) as Promise<Extract<SettingsRecord, { id: T }> | undefined>;
 
 export const createAppSlice: SliceCreator<AppSlice> = (set) => ({
+  activityEvents: [],
   expenses: [],
   initialized: false,
   initError: null,
@@ -29,6 +30,7 @@ export const createAppSlice: SliceCreator<AppSlice> = (set) => ({
         categories,
         tags,
         expenses,
+        activityEvents,
         onboarding,
         categorySettings,
       ] = await Promise.all([
@@ -39,6 +41,7 @@ export const createAppSlice: SliceCreator<AppSlice> = (set) => ({
         db.categories.toArray(),
         db.tags.toArray(),
         db.expenses.toArray(),
+        db.activityEvents.toArray(),
         getSetting("onboarding"),
         getSetting("categories"),
       ]);
@@ -72,6 +75,7 @@ export const createAppSlice: SliceCreator<AppSlice> = (set) => ({
         categories,
         tags,
         expenses,
+        activityEvents,
         initialized: true,
         initError: null,
         masterCategories: categoryRow.master,

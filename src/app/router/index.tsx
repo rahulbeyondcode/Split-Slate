@@ -1,6 +1,6 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 
-import Activity from "@/features/dashboard/components/activity";
+import Activity from "@/features/activity/components/activity-feed";
 import Analytics from "@/features/dashboard/components/analytics";
 import Unsettled from "@/features/dashboard/components/unsettled";
 import ExpenseDetail from "@/features/expenses/components/expense-detail";

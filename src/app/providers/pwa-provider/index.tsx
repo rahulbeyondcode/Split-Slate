@@ -14,12 +14,14 @@ interface PwaState {
   progress: IconProgress | null;
   supported: boolean;
   repairIcons: () => void;
+  openInstall: () => void;
 }
 
 const PwaContext = createContext<PwaState>({
   progress: null,
   supported: false,
   repairIcons: () => undefined,
+  openInstall: () => undefined,
 });
 
 // The hook shares the provider's private context; it cannot live in a separate module.
@@ -30,6 +32,7 @@ const PwaProvider = ({ children }: PropsType) => {
   const [registration, setRegistration] = useState<ServiceWorkerRegistration | null>(null);
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [progress, setProgress] = useState<IconProgress | null>(null);
+  const [installRequest, setInstallRequest] = useState(0);
   const applying = useRef(false);
   const supported = import.meta.env.PROD && "serviceWorker" in navigator;
 
@@ -118,10 +121,11 @@ const PwaProvider = ({ children }: PropsType) => {
     setProgress({ type: "ICON_PROGRESS", state: "downloading", completed: 0, total: 0 });
     registration.active.postMessage({ type: "SYNC_ICONS" });
   };
+  const openInstall = () => setInstallRequest((request) => request + 1);
 
   return (
-    <PwaContext.Provider value={{ progress, supported, repairIcons }}>
-      <InstallDialog supported={supported} />
+    <PwaContext.Provider value={{ progress, supported, repairIcons, openInstall }}>
+      <InstallDialog supported={supported} installRequest={installRequest} />
       <UpdateNotice
         available={updateAvailable}
         onUpdate={handleUpdate}

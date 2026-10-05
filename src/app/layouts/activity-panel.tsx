@@ -1,7 +1,7 @@
 import { useLocation } from "react-router-dom";
 
+import Activity from "@/features/activity/components/activity-feed";
 import LivePreview from "@/features/create-group/components/live-preview";
-import Activity from "@/features/dashboard/components/activity";
 
 const ActivityPanel = () => {
   const { pathname } = useLocation();

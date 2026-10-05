@@ -2,6 +2,7 @@ import type { StateCreator } from "zustand";
 
 import type { ExpensesSlice } from "@/features/expenses/types/expenses.types";
 import type {
+  ActivityEvent,
   Category,
   Expense,
   Group,
@@ -15,6 +16,7 @@ import type {
 } from "@/shared/types/domain.types";
 
 export interface AppSlice {
+  activityEvents: ActivityEvent[];
   expenses: Expense[];
   initialized: boolean;
   initError: string | null;

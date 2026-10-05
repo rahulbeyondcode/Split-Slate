@@ -112,7 +112,7 @@ test("downloads the selected icon library and repairs a missing file without cle
 
 test("announces a waiting update and does not apply it without consent", async ({ page }) => {
   await page.addInitScript(() => {
-    localStorage.setItem("split-slate-install-dismissed", "true");
+    localStorage.setItem("split-slate-install-dismissed", String(Date.now()));
     const events = new EventTarget();
     const registration = new EventTarget();
     const worker = {
@@ -166,6 +166,14 @@ test("offers installation on desktop and mobile and opens the browser prompt", a
   await expect(dialog).toHaveCount(0);
   await page.reload();
   await expect(dialog).toHaveCount(0);
+  await page.evaluate(() =>
+    localStorage.setItem(
+      "split-slate-install-dismissed",
+      String(Date.now() - 6 * 24 * 60 * 60 * 1000),
+    ),
+  );
+  await page.reload();
+  await expect(dialog).toHaveCount(0);
 });
 
 test("shows browser instructions when no install prompt is available", async ({ page }) => {
@@ -194,6 +202,87 @@ test("prevents accidental dismissal for two seconds and never closes on overlay 
   await page.mouse.click(1, 1);
   await expect(dialog).toBeVisible();
   await close.click();
+  await expect(dialog).toHaveCount(0);
+  await page.reload();
+  await expect(dialog).toHaveCount(0);
+});
+
+test("reminds again after five days, including earlier permanent dismissals", async ({ page }) => {
+  await page.goto("/onboarding/setup");
+  const dialog = page.getByRole("dialog", { name: "Take Split Slate with you" });
+  await dialog.getByRole("button", { name: "Cancel" }).click();
+  expect(
+    Number(await page.evaluate(() => localStorage.getItem("split-slate-install-dismissed"))),
+  ).toBeGreaterThan(0);
+  await page.reload();
+  await expect(dialog).toHaveCount(0);
+
+  await page.evaluate(() => localStorage.setItem("split-slate-install-dismissed", "true"));
+  await page.reload();
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole("button", { name: "Cancel" }).click();
+
+  await page.evaluate(() =>
+    localStorage.setItem(
+      "split-slate-install-dismissed",
+      String(Date.now() - 4 * 24 * 60 * 60 * 1000),
+    ),
+  );
+  await page.reload();
+  await expect(dialog).toHaveCount(0);
+
+  await page.evaluate(() =>
+    localStorage.setItem(
+      "split-slate-install-dismissed",
+      String(Date.now() - 5 * 24 * 60 * 60 * 1000),
+    ),
+  );
+  await page.reload();
+  await expect(dialog).toBeVisible();
+});
+
+test("reopens installation from Settings after dismissal and captures a later browser prompt", async ({
+  page,
+}) => {
+  await page.goto("/onboarding/setup");
+  const dialog = page.getByRole("dialog", { name: "Take Split Slate with you" });
+  await dialog.getByRole("button", { name: "Cancel" }).click();
+  await page.evaluate(async () => {
+    const database = await new Promise<IDBDatabase>((resolve, reject) => {
+      const opening = indexedDB.open("split-slate");
+      opening.onsuccess = () => resolve(opening.result);
+      opening.onerror = () => reject(opening.error);
+    });
+    await new Promise<void>((resolve, reject) => {
+      const transaction = database.transaction(["settings", "localUser"], "readwrite");
+      transaction.objectStore("settings").put({
+        id: "onboarding",
+        complete: true,
+        lastCompletedStep: "members",
+        groupId: null,
+      });
+      transaction.objectStore("localUser").put({ id: "self", name: "Amy", icon: "🦊" });
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error);
+    });
+    database.close();
+  });
+  await page.goto("/settings");
+  await expect(dialog).toHaveCount(0);
+  await page.evaluate(() => {
+    const event = Object.assign(new Event("beforeinstallprompt", { cancelable: true }), {
+      prompt: async () => sessionStorage.setItem("manual-install-prompt", "shown"),
+      userChoice: Promise.resolve({ outcome: "accepted" }),
+    });
+    window.dispatchEvent(event);
+    if (!event.defaultPrevented) throw new Error("Install event was not captured while hidden");
+  });
+  await page.getByRole("button", { name: "Install app" }).click();
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole("button", { name: "Install", exact: true }).click();
+  await expect
+    .poll(() => page.evaluate(() => sessionStorage.getItem("manual-install-prompt")))
+    .toBe("shown");
   await expect(dialog).toHaveCount(0);
   await page.reload();
   await expect(dialog).toHaveCount(0);

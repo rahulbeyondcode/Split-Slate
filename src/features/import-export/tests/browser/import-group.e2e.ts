@@ -85,6 +85,7 @@ test.beforeEach(async ({ page }) => {
 test("imports a Link on a fresh device and maps the chosen member to local identity", async ({
   page,
 }) => {
+  await page.getByRole("button", { name: "Export group" }).click();
   await page.getByLabel(/^Expenses/).check();
   await page.getByRole("button", { name: "Got it" }).click();
   await page.getByLabel(/^Tags/).check();
@@ -101,7 +102,7 @@ test("imports a Link on a fresh device and maps the chosen member to local ident
   await expect(page.getByText("Verified transfer contents")).toBeVisible();
   await expect(page.getByText("Expenses").locator("..")).toContainText("1");
   await page.getByRole("button", { name: "Import group" }).click();
-  await expect(page.getByText("Choose who you are", { exact: true })).toBeVisible();
+  await expect(page.getByRole("group", { name: "Which member are you?" })).toBeVisible();
   await page.getByLabel("Amy").check();
   await page.getByRole("button", { name: "Import group" }).click();
   await expect(page).toHaveURL(/\/groups\/[^/]+$/u);
@@ -124,6 +125,7 @@ test("imports a Link on a fresh device and maps the chosen member to local ident
 });
 
 test("requires a choice for same-name contacts and cancels without writing", async ({ page }) => {
+  await page.getByRole("button", { name: "Export group" }).click();
   await page.getByLabel(/^Members/).check();
   await page.getByRole("button", { name: "Create transfer link" }).click();
   const link = await page.getByLabel("Transfer link", { exact: true }).inputValue();
@@ -164,6 +166,7 @@ test("requires a choice for same-name contacts and cancels without writing", asy
 });
 
 test("imports a group-only CSV through the fresh-device identity step", async ({ page }) => {
+  await page.getByRole("button", { name: "Export group" }).click();
   const downloadPromise = page.waitForEvent("download");
   await page.getByRole("button", { name: "Download CSV" }).click();
   const download = await downloadPromise;
@@ -205,8 +208,9 @@ test("imports a group-only CSV through the fresh-device identity step", async ({
 test("imports a receipt ZIP beside an existing same-name group without overwriting it", async ({
   page,
 }) => {
+  await page.getByRole("button", { name: "Export group" }).click();
   await expect(
-    page.getByText("Keep downloaded ZIP and CSV files unchanged.", { exact: false }).locator(".."),
+    page.getByText(/Keep downloaded ZIP and CSV files unchanged/u).locator(".."),
   ).toHaveClass(/status-banner--warning/u);
   await page.getByLabel(/^Receipt attachments/).check();
   await page.getByRole("button", { name: "Got it" }).click();

@@ -1,5 +1,6 @@
 import { v4 as uuid } from "uuid";
 
+import { writeActivity } from "@/features/activity/utils/activity-events";
 import { validateFullBackupSnapshot } from "@/features/import-export/utils/full-backup";
 import type {
   FullBackupSnapshot,
@@ -135,6 +136,7 @@ export const importGroupTransfer = async ({
       db.expenses,
       db.attachments,
       db.settings,
+      db.activityEvents,
     ],
     async () => {
       const existingLocalUser = await db.localUser.toCollection().first();
@@ -279,6 +281,13 @@ export const importGroupTransfer = async ({
       };
 
       await db.groups.add(group);
+      await writeActivity({
+        group,
+        kind: "group",
+        action: "imported",
+        label: group.name,
+        subjectId: group.id,
+      });
       await db.members.bulkAdd(importedMembers);
       await db.categories.bulkAdd(importedCategories);
       if (importedTags.length) await db.tags.bulkAdd(importedTags);
@@ -323,6 +332,7 @@ export const importGroupTransfer = async ({
 };
 
 const backupTables = [
+  db.activityEvents,
   db.localUser,
   db.groups,
   db.people,
@@ -336,19 +346,31 @@ const backupTables = [
 
 export const readFullBackupSource = async (): Promise<FullBackupSource> =>
   db.transaction("r", backupTables, async () => {
-    const [localUser, groups, people, members, categories, tags, expenses, attachments, settings] =
-      await Promise.all([
-        db.localUser.toArray(),
-        db.groups.toArray(),
-        db.people.toArray(),
-        db.members.toArray(),
-        db.categories.toArray(),
-        db.tags.toArray(),
-        db.expenses.toArray(),
-        db.attachments.toArray(),
-        db.settings.toArray(),
-      ]);
+    const [
+      activityEvents,
+      localUser,
+      groups,
+      people,
+      members,
+      categories,
+      tags,
+      expenses,
+      attachments,
+      settings,
+    ] = await Promise.all([
+      db.activityEvents.toArray(),
+      db.localUser.toArray(),
+      db.groups.toArray(),
+      db.people.toArray(),
+      db.members.toArray(),
+      db.categories.toArray(),
+      db.tags.toArray(),
+      db.expenses.toArray(),
+      db.attachments.toArray(),
+      db.settings.toArray(),
+    ]);
     return {
+      activityEvents,
       localUser,
       groups,
       people,
@@ -365,6 +387,7 @@ export const restoreFullBackup = async (snapshot: FullBackupSnapshot): Promise<v
   const { data, attachments } = await validateFullBackupSnapshot(snapshot);
   await db.transaction("rw", backupTables, async () => {
     for (const table of backupTables) await table.clear();
+    if (data.activityEvents?.length) await db.activityEvents.bulkAdd(data.activityEvents);
     await db.localUser.bulkAdd(data.localUser);
     if (data.groups.length) await db.groups.bulkAdd(data.groups);
     if (data.people.length) await db.people.bulkAdd(data.people);
@@ -377,6 +400,7 @@ export const restoreFullBackup = async (snapshot: FullBackupSnapshot): Promise<v
 
     const counts = await Promise.all(backupTables.map((table) => table.count()));
     const expected = [
+      data.activityEvents?.length ?? 0,
       data.localUser.length,
       data.groups.length,
       data.people.length,

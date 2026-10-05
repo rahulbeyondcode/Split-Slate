@@ -109,7 +109,7 @@ test("warns, allows cancellation, then deletes the group and navigates home", as
   await page.getByRole("button", { name: "Delete group", exact: true }).click();
   await dialog.getByRole("button", { name: "Delete group permanently" }).click();
   await expect(page).toHaveURL(/\/dashboard$/u);
-  await expect(page.getByText("Trip", { exact: true })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: /^Trip\b/u })).toHaveCount(0);
   const remaining = await page.evaluate(async () => {
     const modulePath = "/src/shared/configs/db.ts";
     const { db } = (await import(/* @vite-ignore */ modulePath)) as typeof DbModule;
@@ -128,4 +128,8 @@ test("warns, allows cancellation, then deletes the group and navigates home", as
     people: 2,
     onboarding: { groupId: "home" },
   });
+  await page.goto("/activity");
+  await expect(
+    page.locator("main").getByText("Group deleted: Trip", { exact: true }),
+  ).toBeVisible();
 });

@@ -262,6 +262,15 @@ const ExpenseFilters = () => {
                 label="Split types"
                 options={SPLIT_FILTER_OPTIONS}
               />
+              {count > 0 && (
+                <button
+                  type="button"
+                  onClick={handleClear}
+                  className="hidden self-end text-[var(--brand-ink)] md:block"
+                >
+                  Clear all filters
+                </button>
+              )}
             </div>,
             document.body,
           )}
@@ -272,7 +281,11 @@ const ExpenseFilters = () => {
           {count} active {count === 1 ? "filter" : "filters"}
         </span>
         {count > 0 && (
-          <button type="button" onClick={handleClear} className="text-[var(--brand-ink)]">
+          <button
+            type="button"
+            onClick={handleClear}
+            className={`text-[var(--brand-ink)] ${filtersOpen ? "md:hidden" : ""}`}
+          >
             Clear all filters
           </button>
         )}

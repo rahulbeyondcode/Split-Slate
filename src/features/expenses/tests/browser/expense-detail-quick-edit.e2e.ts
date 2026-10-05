@@ -89,7 +89,8 @@ test("quick-saves category and tags, including a newly created tag", async ({ pa
 
   await page.getByRole("button", { name: "Add tags" }).click();
   const chooser = page.locator('[popover][aria-label="Choose tags"]');
-  await chooser.getByRole("checkbox", { name: "Holiday" }).check();
+  await chooser.getByRole("checkbox", { name: "Holiday" }).click();
+  await expect(chooser.getByRole("checkbox", { name: "Holiday" })).toBeChecked();
   await expect(hero.getByRole("list", { name: "Tags" })).toContainText("Holiday");
   await chooser.getByRole("button", { name: "Create new tag" }).click();
   await page.getByRole("textbox", { name: "Tag name" }).fill("Weekend");
@@ -101,10 +102,8 @@ test("quick-saves category and tags, including a newly created tag", async ({ pa
   await expect(page.getByRole("list", { name: "Tags" })).toContainText("Holiday");
   await expect(page.getByRole("list", { name: "Tags" })).toContainText("Weekend");
   await page.getByRole("button", { name: "Add tags" }).click();
-  await page
-    .locator('[popover][aria-label="Choose tags"]')
-    .getByRole("checkbox", { name: "Holiday" })
-    .uncheck();
+  await chooser.getByRole("checkbox", { name: "Holiday" }).click();
+  await expect(chooser.getByRole("checkbox", { name: "Holiday" })).not.toBeChecked();
   await expect(page.getByRole("list", { name: "Tags" })).not.toContainText("Holiday");
 });
 

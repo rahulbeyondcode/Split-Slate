@@ -1,5 +1,6 @@
 import { v4 as uuid } from "uuid";
 
+import { writeActivity } from "@/features/activity/utils/activity-events";
 import { db } from "@/shared/configs/db";
 import { normalizeRequiredString } from "@/shared/utils/string-validation";
 
@@ -31,8 +32,21 @@ export const createCategoriesSlice: SliceCreator<CategoriesSlice> = (set, get) =
       icon: normalizedIcon,
       isActive: true,
     };
-    await db.categories.add(category);
-    set((s) => ({ categories: [...s.categories, category] }));
+    const event = await db.transaction("rw", db.categories, db.activityEvents, async () => {
+      await db.categories.add(category);
+      return writeActivity({
+        group: get().groups.find((item) => item.id === groupId),
+        kind: "category",
+        action: "created",
+        label: category.name,
+        icon: category.icon,
+        subjectId: category.id,
+      });
+    });
+    set((s) => ({
+      categories: [...s.categories, category],
+      activityEvents: [...s.activityEvents, event],
+    }));
     return category;
   },
 
@@ -63,10 +77,22 @@ export const createCategoriesSlice: SliceCreator<CategoriesSlice> = (set, get) =
       }
     }
 
-    await db.categories.update(categoryId, normalizedPatch);
     const updated: Category = { ...existing, ...normalizedPatch };
+    const event = await db.transaction("rw", db.categories, db.activityEvents, async () => {
+      if (!(await db.categories.update(categoryId, normalizedPatch)))
+        throw new Error("Category not found");
+      return writeActivity({
+        group: get().groups.find((item) => item.id === existing.groupId),
+        kind: "category",
+        action: "updated",
+        label: updated.name,
+        icon: updated.icon,
+        subjectId: categoryId,
+      });
+    });
     set((s) => ({
       categories: s.categories.map((category) => (category.id === categoryId ? updated : category)),
+      activityEvents: [...s.activityEvents, event],
     }));
     return updated;
   },
@@ -86,7 +112,21 @@ export const createCategoriesSlice: SliceCreator<CategoriesSlice> = (set, get) =
     if (inUse) {
       throw new Error("Cannot delete a category used by expenses; reassign those expenses first");
     }
-    await db.categories.delete(categoryId);
-    set((s) => ({ categories: s.categories.filter((c) => c.id !== categoryId) }));
+    const event = await db.transaction("rw", db.categories, db.activityEvents, async () => {
+      if (!(await db.categories.get(categoryId))) throw new Error("Category not found");
+      await db.categories.delete(categoryId);
+      return writeActivity({
+        group: get().groups.find((item) => item.id === category.groupId),
+        kind: "category",
+        action: "deleted",
+        label: category.name,
+        icon: category.icon,
+        subjectId: categoryId,
+      });
+    });
+    set((s) => ({
+      categories: s.categories.filter((c) => c.id !== categoryId),
+      activityEvents: [...s.activityEvents, event],
+    }));
   },
 });

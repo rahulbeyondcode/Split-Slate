@@ -85,6 +85,7 @@ export const createFullBackupZip = async (
     categories: source.categories,
     tags: source.tags,
     expenses: source.expenses,
+    activityEvents: source.activityEvents,
     attachments,
     settings: source.settings,
   });

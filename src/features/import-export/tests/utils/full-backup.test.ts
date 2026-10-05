@@ -24,6 +24,7 @@ import {
 const backupSource = (): FullBackupSource => {
   const group = createExportSource({ withAttachments: true, expenseCount: 2 });
   return {
+    activityEvents: [],
     localUser: [{ ...group.people[0] }],
     groups: [group.group],
     people: group.people,

@@ -11,18 +11,30 @@ interface InstallPromptEvent extends Event {
 
 interface PropsType {
   supported: boolean;
+  installRequest: number;
 }
 
 const DISMISSED_KEY = "split-slate-install-dismissed";
+const ACCEPTED_KEY = "split-slate-install-accepted";
+const REMINDER_INTERVAL = 5 * 24 * 60 * 60 * 1000;
 
 const isInstalled = () =>
   window.matchMedia("(display-mode: standalone)").matches ||
   (navigator as Navigator & { standalone?: boolean }).standalone === true;
 
-const InstallDialog = ({ supported }: PropsType) => {
-  const [visible, setVisible] = useState(
-    () => supported && !isInstalled() && localStorage.getItem(DISMISSED_KEY) !== "true",
-  );
+const InstallDialog = ({ supported, installRequest }: PropsType) => {
+  const [autoVisible, setAutoVisible] = useState(() => {
+    const dismissedAt = Number(localStorage.getItem(DISMISSED_KEY));
+    const now = Date.now();
+    return (
+      supported &&
+      !isInstalled() &&
+      localStorage.getItem(ACCEPTED_KEY) !== "true" &&
+      !(dismissedAt > 0 && dismissedAt <= now && now - dismissedAt < REMINDER_INTERVAL)
+    );
+  });
+  const [dismissedRequest, setDismissedRequest] = useState(0);
+  const visible = supported && !isInstalled() && (autoVisible || installRequest > dismissedRequest);
   const [canDismiss, setCanDismiss] = useState(false);
   const [instructions, setInstructions] = useState(false);
   const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
@@ -44,14 +56,17 @@ const InstallDialog = ({ supported }: PropsType) => {
   }, [visible]);
 
   useEffect(() => {
-    if (!supported || !visible) return;
+    if (!supported) return;
     const handleBeforeInstall = (event: Event) => {
       event.preventDefault();
       setInstallPrompt(event as InstallPromptEvent);
     };
     const handleInstalled = () => {
-      localStorage.setItem(DISMISSED_KEY, "true");
-      setVisible(false);
+      localStorage.setItem(ACCEPTED_KEY, "true");
+      setAutoVisible(false);
+      setDismissedRequest(installRequest);
+      setCanDismiss(false);
+      setInstructions(false);
       dialogRef.current?.close();
     };
     window.addEventListener("beforeinstallprompt", handleBeforeInstall);
@@ -60,12 +75,15 @@ const InstallDialog = ({ supported }: PropsType) => {
       window.removeEventListener("beforeinstallprompt", handleBeforeInstall);
       window.removeEventListener("appinstalled", handleInstalled);
     };
-  }, [supported, visible]);
+  }, [supported, installRequest]);
 
   const handleDismiss = () => {
     if (!canDismiss) return;
-    localStorage.setItem(DISMISSED_KEY, "true");
-    setVisible(false);
+    localStorage.setItem(DISMISSED_KEY, String(Date.now()));
+    setAutoVisible(false);
+    setDismissedRequest(installRequest);
+    setCanDismiss(false);
+    setInstructions(false);
     dialogRef.current?.close();
   };
   const handleCancel = (event: SyntheticEvent<HTMLDialogElement>) => {
@@ -82,8 +100,11 @@ const InstallDialog = ({ supported }: PropsType) => {
       await installPrompt.prompt();
       const choice = await installPrompt.userChoice;
       if (choice.outcome === "accepted") {
-        localStorage.setItem(DISMISSED_KEY, "true");
-        setVisible(false);
+        localStorage.setItem(ACCEPTED_KEY, "true");
+        setAutoVisible(false);
+        setDismissedRequest(installRequest);
+        setCanDismiss(false);
+        setInstructions(false);
         dialogRef.current?.close();
       } else {
         setInstructions(true);

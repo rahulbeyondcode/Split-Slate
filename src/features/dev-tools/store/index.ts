@@ -95,6 +95,7 @@ export const onboardUser = async () => {
       db.expenses,
       db.attachments,
       db.settings,
+      db.activityEvents,
     ],
     async () => {
       await Promise.all(db.tables.map((table) => table.clear()));

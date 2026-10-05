@@ -1,5 +1,6 @@
 import { v4 as uuid } from "uuid";
 
+import { writeActivity } from "@/features/activity/utils/activity-events";
 import { db } from "@/shared/configs/db";
 
 import type { Tag } from "@/shared/types/domain.types";
@@ -35,8 +36,20 @@ export const createTagsSlice: SliceCreator<TagsSlice> = (set, get) => ({
       name: normalizedName,
       color: normalizedColor,
     };
-    await db.tags.add(tag);
-    set((state) => ({ tags: [...state.tags, tag] }));
+    const event = await db.transaction("rw", db.tags, db.activityEvents, async () => {
+      await db.tags.add(tag);
+      return writeActivity({
+        group: get().groups.find((item) => item.id === groupId),
+        kind: "tag",
+        action: "created",
+        label: tag.name,
+        subjectId: tag.id,
+      });
+    });
+    set((state) => ({
+      tags: [...state.tags, tag],
+      activityEvents: [...state.activityEvents, event],
+    }));
     return tag;
   },
 
@@ -71,16 +84,26 @@ export const createTagsSlice: SliceCreator<TagsSlice> = (set, get) => ({
       ...(normalizedName !== undefined ? { name: normalizedName } : {}),
       ...(normalizedColor !== undefined ? { color: normalizedColor } : {}),
     };
-    await db.tags.update(tagId, normalizedPatch);
     const updated: Tag = { ...existing, ...normalizedPatch };
+    const event = await db.transaction("rw", db.tags, db.activityEvents, async () => {
+      if (!(await db.tags.update(tagId, normalizedPatch))) throw new Error("Tag not found");
+      return writeActivity({
+        group: get().groups.find((item) => item.id === existing.groupId),
+        kind: "tag",
+        action: "updated",
+        label: updated.name,
+        subjectId: tagId,
+      });
+    });
     set((state) => ({
       tags: state.tags.map((tag) => (tag.id === tagId ? updated : tag)),
+      activityEvents: [...state.activityEvents, event],
     }));
     return updated;
   },
 
   removeTag: async (tagId) => {
-    const result = await db.transaction("rw", db.tags, db.expenses, async () => {
+    const result = await db.transaction("rw", db.tags, db.expenses, db.activityEvents, async () => {
       const tag = await db.tags.get(tagId);
       if (!tag) {
         throw new Error("Tag not found");
@@ -94,12 +117,20 @@ export const createTagsSlice: SliceCreator<TagsSlice> = (set, get) => ({
         await db.expenses.update(expense.expenseId, { tagIds });
         expense.tagIds = tagIds;
       }
-      return { groupId: tag.groupId, expenses };
+      const event = await writeActivity({
+        group: get().groups.find((item) => item.id === tag.groupId),
+        kind: "tag",
+        action: "deleted",
+        label: tag.name,
+        subjectId: tagId,
+      });
+      return { groupId: tag.groupId, expenses, event };
     });
 
     // Refresh this group's snapshot so stale deleted rows also disappear from the UI.
     set((state) => ({
       tags: state.tags.filter((item) => item.id !== tagId),
+      activityEvents: [...state.activityEvents, result.event],
       expenses: [
         ...state.expenses.filter((expense) => expense.groupId !== result.groupId),
         ...result.expenses,
