@@ -6,11 +6,13 @@ import ExpenseTags from "@/features/group-detail/components/expense-tags";
 import { overviewMembers } from "@/features/group-detail/utils/overview-members";
 import { useViewport } from "@/shared/hooks/use-viewport";
 import { calculateBalances, suggestTransfers } from "@/shared/utils/balances";
+import { categorySpending } from "@/shared/utils/category-spending";
 import { formatCurrency } from "@/shared/utils/currency";
 
 import type { GroupDetailContext } from "@/features/group-detail/types/group-detail.types";
 
 import Avatar from "@/shared/ui/avatar";
+import EmojiImage from "@/shared/ui/emoji-image";
 import EmptyState from "@/shared/ui/empty-state";
 import Icon from "@/shared/ui/icon";
 import Surface from "@/shared/ui/surface";
@@ -22,7 +24,9 @@ const GroupOverview = () => {
   const recent = groupExpenses
     .slice()
     .sort((a, b) => b.when - a.when)
-    .slice(0, 3);
+    .slice(0, 5);
+  const categories = categorySpending(groupExpenses, groupCategories).slice(0, 6);
+  const maxCategory = categories[0]?.amount || 1;
   const featuredMembers = overviewMembers(groupMembers, groupExpenses);
   const showMemberDetails = !isMobile || featuredMembers.length < groupMembers.length;
   const transfers = suggestTransfers(
@@ -144,6 +148,44 @@ const GroupOverview = () => {
           }
         />
       )}
+      <section aria-label="Group spending by category">
+        <Surface className="surface-pad">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h2 className="section-title">
+                <Link to={`/groups/${group.id}/analytics`}>Spending by category</Link>
+              </h2>
+              <p className="soft-caption">This group · all time</p>
+            </div>
+            <Link to={`/groups/${group.id}/analytics`} className="btn btn-secondary !px-3 shrink-0">
+              View all <Icon icon={ArrowRight} size={16} />
+            </Link>
+          </div>
+          {categories.length ? (
+            categories.map((category) => (
+              <Link
+                key={category.name}
+                to={`/groups/${group.id}/analytics`}
+                className="flex items-center gap-3 my-4"
+              >
+                <EmojiImage icon={category.icon} />
+                <span className="w-24 truncate text-xs font-semibold">{category.name}</span>
+                <div className="h-2 flex-1 rounded-full bg-[var(--surface-soft)]">
+                  <div
+                    className="h-2 rounded-full bg-[var(--brand)]"
+                    style={{ width: `${(category.amount / maxCategory) * 100}%` }}
+                  />
+                </div>
+                <span className="money text-xs">
+                  {formatCurrency(category.amount, group.currency)}
+                </span>
+              </Link>
+            ))
+          ) : (
+            <p className="muted mt-6">No spending yet.</p>
+          )}
+        </Surface>
+      </section>
     </div>
   );
 };

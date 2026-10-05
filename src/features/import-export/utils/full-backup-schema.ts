@@ -187,9 +187,7 @@ export const validateFullBackupData = async (value: unknown): Promise<FullBackup
   const onboarding = data.settings.find((item) => item.id === "onboarding");
   if (
     !onboarding ||
-    (data.groups.length === 0
-      ? onboarding.groupId !== null
-      : !data.groups.some((item) => item.id === onboarding.groupId))
+    (onboarding.groupId !== null && !data.groups.some((item) => item.id === onboarding.groupId))
   ) {
     throw new Error("Backup onboarding group is missing");
   }

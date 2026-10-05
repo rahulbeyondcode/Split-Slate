@@ -470,15 +470,18 @@ test("inspects, edits, and deletes an expense with live balance updates", async 
   );
   await page.goto(detailUrl);
   await page.getByRole("button", { name: "Delete expense", exact: true }).click();
-  await expect(page.getByRole("region", { name: "Confirm expense deletion" })).toContainText(
-    "cannot be undone",
-  );
-  await page.getByRole("button", { name: "Keep expense", exact: true }).click();
-  await expect(page.getByRole("button", { name: "Delete permanently", exact: true })).toHaveCount(
-    0,
-  );
+  const deletionDialog = page.getByRole("dialog", { name: "Delete Dinner and dessert?" });
+  await expect(deletionDialog).toContainText("cannot be undone");
+  await expect(deletionDialog).toContainText("receipts will be permanently deleted");
+  await deletionDialog.getByRole("button", { name: "Cancel" }).click();
+  await expect(deletionDialog).not.toBeVisible();
+  await expect(page.getByRole("heading", { name: "Dinner and dessert" })).toBeVisible();
   await page.getByRole("button", { name: "Delete expense", exact: true }).click();
-  await page.getByRole("button", { name: "Delete permanently", exact: true }).click();
+  await expect(deletionDialog).toBeVisible();
+  await deletionDialog.press("Escape");
+  await expect(deletionDialog).not.toBeVisible();
+  await page.getByRole("button", { name: "Delete expense", exact: true }).click();
+  await deletionDialog.getByRole("button", { name: "Delete permanently" }).click();
   await expect(page).toHaveURL(/\/groups\/trip\/expenses$/);
   await expect(page.getByRole("heading", { name: "No expenses yet" })).toBeVisible();
   await page.reload();
@@ -526,14 +529,16 @@ test("cancels an edit and retries failed update and delete operations", async ({
     return group!;
   });
   await page.getByRole("button", { name: "Delete expense", exact: true }).click();
-  await page.getByRole("button", { name: "Delete permanently", exact: true }).click();
-  await expect(page.getByRole("alert")).toContainText("Group not found");
+  const deletionDialog = page.getByRole("dialog", { name: "Delete Updated taxi?" });
+  await deletionDialog.getByRole("button", { name: "Delete permanently" }).click();
+  await expect(deletionDialog.getByRole("alert")).toContainText("Group not found");
+  await expect(deletionDialog).toBeVisible();
   await page.evaluate(async (group) => {
     const path = "/src/shared/configs/db.ts";
     const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;
     await db.groups.put(group);
   }, savedGroup);
-  await page.getByRole("button", { name: "Delete permanently", exact: true }).click();
+  await deletionDialog.getByRole("button", { name: "Delete permanently" }).click();
   await expect(page.getByRole("heading", { name: "No expenses yet" })).toBeVisible();
 });
 

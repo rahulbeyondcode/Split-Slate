@@ -140,4 +140,27 @@ describe("whole-app backup ZIP", () => {
     expect(restored.data.people).toEqual(source.people);
     expect(restored.data.settings).toEqual(empty.settings);
   });
+
+  it("round-trips a replacement group without rewriting completed onboarding", async () => {
+    const source = backupSource();
+    source.settings = source.settings.map((row) =>
+      row.id === "onboarding" ? { ...row, groupId: null } : row,
+    );
+
+    const restored = await parseFullBackupZip(await createFullBackupZip(source, "light"));
+    expect(restored.data.groups).toEqual(source.groups);
+    expect(restored.data.settings).toEqual(source.settings);
+    expect(restored.data.expenses).toEqual(source.expenses);
+  });
+
+  it("rejects a non-null onboarding reference to a missing group", async () => {
+    const source = backupSource();
+    source.settings = source.settings.map((row) =>
+      row.id === "onboarding" ? { ...row, groupId: "missing-group" } : row,
+    );
+
+    await expect(createFullBackupZip(source, "light")).rejects.toThrow(
+      "Backup onboarding group is missing",
+    );
+  });
 });

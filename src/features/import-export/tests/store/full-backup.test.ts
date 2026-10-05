@@ -9,6 +9,7 @@ import {
 } from "@/features/import-export/utils/full-backup";
 import type { FullBackupSnapshot } from "@/features/import-export/utils/full-backup-schema";
 import { db } from "@/shared/configs/db";
+import { useStore } from "@/shared/configs/store";
 
 import {
   SEED_DEFAULT_GROUP_CATEGORIES,
@@ -38,6 +39,7 @@ const seedDevice = async () => {
 beforeEach(async () => {
   await db.delete();
   await db.open();
+  useStore.setState(useStore.getInitialState(), true);
   await seedDevice();
 });
 
@@ -129,6 +131,29 @@ describe("whole-app backup persistence", () => {
     expect(await db.groups.count()).toBe(snapshot.data.groups.length);
     expect(await db.localUser.toCollection().first()).toMatchObject(snapshot.data.localUser[0]);
     expect(await db.settings.get("onboarding")).toMatchObject({ complete: true });
+  });
+
+  it("backs up a new group after deleting the only onboarding group", async () => {
+    await useStore.getState().init();
+    const originalGroup = (await db.groups.toCollection().first())!;
+    await useStore.getState().removeGroup(originalGroup.id);
+    expect(await db.settings.get("onboarding")).toMatchObject({ complete: true, groupId: null });
+
+    const { group } = await useStore.getState().createGroup("Replacement", "🧳", "INR");
+    await useStore.getState().addCategory(group.id, "Food", "🍽️");
+    const snapshot = await capturedBackup();
+    expect(snapshot.data.groups).toEqual([group]);
+    expect(snapshot.data.settings).toContainEqual({
+      id: "onboarding",
+      complete: true,
+      lastCompletedStep: "members",
+      groupId: null,
+    });
+    expect(await db.settings.get("onboarding")).toMatchObject({ groupId: null });
+
+    await restoreFullBackup(snapshot);
+    expect(await db.groups.toArray()).toEqual([group]);
+    expect(await db.settings.get("onboarding")).toMatchObject({ complete: true, groupId: null });
   });
 
   it("preserves activity snapshots in backups and clears newer history on restore", async () => {

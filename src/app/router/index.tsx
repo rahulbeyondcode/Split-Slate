@@ -54,6 +54,7 @@ export const router = createBrowserRouter([
                 element: <GroupDetail />,
                 children: [
                   { index: true, element: <GroupOverview /> },
+                  { path: "analytics", element: <Analytics /> },
                   { path: "expenses", element: <ExpenseList /> },
                   { path: "expenses/new", element: <ExpenseForm /> },
                   { path: "expenses/:expenseId", element: <ExpenseDetail /> },

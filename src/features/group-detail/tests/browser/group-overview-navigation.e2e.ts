@@ -81,6 +81,7 @@ test("offers a mobile return to dashboard from every group screen without changi
     "/groups/trip/members",
     "/groups/trip/categories",
     "/groups/trip/balances",
+    "/groups/trip/analytics",
     "/groups/trip/settings",
     "/groups/trip/expenses/expense-1",
   ]) {
@@ -134,8 +135,16 @@ test("distinguishes the snapshot from the complete expense history", async ({ pa
     page.getByRole("heading", { name: isMobile ? "Members" : "Members (1)", exact: true }),
   ).toBeVisible();
   await expect(page.getByRole("heading", { name: "Recent expenses (5)" })).toBeVisible();
-  await expect(page.getByText("Expense 5", { exact: true })).toBeVisible();
-  await expect(page.getByText("Expense 2", { exact: true })).toHaveCount(0);
+  await expect(page.locator(".expense-entry-title")).toHaveText([
+    "Expense 5",
+    "Expense 4",
+    "Expense 3",
+    "Expense 2",
+    "Expense 1",
+  ]);
+  await expect(page.getByRole("region", { name: "Group spending by category" })).toContainText(
+    "₹150.00",
+  );
   await expect(page.getByRole("searchbox", { name: "Search expenses" })).toHaveCount(0);
 
   if (isMobile) {
@@ -191,6 +200,121 @@ test("distinguishes the snapshot from the complete expense history", async ({ pa
 
   await navigation.getByRole("link", { name: "Overview" }).click();
   await expect(page.getByText("Your position in this group")).toBeVisible();
+});
+
+test("scopes category previews and analytics to the group without changing app analytics", async ({
+  page,
+}) => {
+  await page.evaluate(async () => {
+    const modulePath = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ modulePath)) as typeof DbModule;
+    await db.categories.bulkPut([
+      { id: "travel", groupId: "trip", name: "Travel", icon: "🚕", isActive: true },
+      { id: "other-food", groupId: "other", name: "Food", icon: "🍔", isActive: true },
+    ]);
+    await db.expenses.update("expense-5", { categoryId: "travel" });
+    await db.groups.put({
+      id: "other",
+      name: "Other Group",
+      icon: "🏖️",
+      currency: "INR",
+      createdAt: 2,
+      frequentPayerIds: [],
+    });
+    await db.members.put({ id: "other-member", groupId: "other", personId: "self" });
+    await db.expenses.put({
+      expenseId: "other-expense",
+      groupId: "other",
+      expenseName: "Other dinner",
+      categoryId: "other-food",
+      createdBy: "other-member",
+      createdAt: 6,
+      when: 6,
+      splitType: "equal",
+      splitMeta: [],
+      tagIds: [],
+      attachmentIds: [],
+      transactions: {
+        paid: [{ memberId: "other-member", amount: 9_000 }],
+        owes: [{ memberId: "other-member", amount: 9_000 }],
+      },
+    });
+  });
+  await page.reload();
+
+  const preview = page.getByRole("region", { name: "Group spending by category" });
+  await expect(preview).toContainText("This group · all time");
+  await expect(preview.getByRole("link", { name: /Food/u })).toContainText("₹100.00");
+  await expect(preview.getByRole("link", { name: /Travel/u })).toContainText("₹50.00");
+  await expect(preview).not.toContainText("₹190.00");
+  await preview.getByRole("link", { name: "View all" }).click();
+  await expect(page).toHaveURL(/\/groups\/trip\/analytics$/u);
+  const analytics = page.locator("#main-content .page-narrow");
+  const total = analytics.locator("p.money");
+  await expect(analytics.getByText("Spending by category · Weekend Trip · all time")).toBeVisible();
+  await expect(total).toHaveText("₹150.00");
+  await expect(analytics.getByText("₹100.00", { exact: true })).toBeVisible();
+  await expect(analytics.getByText("₹50.00", { exact: true })).toBeVisible();
+  await expect(analytics.getByText("₹90.00", { exact: true })).toHaveCount(0);
+  await analytics.getByRole("button", { name: "Back" }).click();
+  await expect(page).toHaveURL(/\/groups\/trip$/u);
+  await preview.getByRole("link", { name: "Spending by category" }).click();
+  await expect(page).toHaveURL(/\/groups\/trip\/analytics$/u);
+  await page.reload();
+  await expect(total).toHaveText("₹150.00");
+
+  await page.goto("/analytics");
+  await expect(total).toHaveText("₹240.00");
+  await expect(analytics.getByText("₹190.00", { exact: true })).toBeVisible();
+  await page.goto("/groups/other/analytics");
+  await expect(total).toHaveText("₹90.00");
+  await expect(analytics.getByText("₹150.00", { exact: true })).toHaveCount(0);
+
+  await page.evaluate(async () => {
+    const modulePath = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ modulePath)) as typeof DbModule;
+    await db.groups.update("other", { currency: "USD" });
+  });
+  await page.goto("/analytics");
+  await expect(page.getByRole("heading", { name: "Multiple currencies in use" })).toBeVisible();
+  await page.goto("/groups/trip/analytics");
+  await expect(total).toHaveText("₹150.00");
+});
+
+test("links to group analytics even when the group has no expenses", async ({ page }) => {
+  await page.evaluate(async () => {
+    const modulePath = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ modulePath)) as typeof DbModule;
+    await db.groups.put({
+      id: "empty",
+      name: "Empty Group",
+      icon: "🏖️",
+      currency: "USD",
+      createdAt: 2,
+      frequentPayerIds: [],
+    });
+    await db.members.put({ id: "empty-member", groupId: "empty", personId: "self" });
+    await db.categories.put({
+      id: "empty-food",
+      groupId: "empty",
+      name: "Food",
+      icon: "🍔",
+      isActive: true,
+    });
+  });
+  await page.goto("/groups/empty");
+  const preview = page.getByRole("region", { name: "Group spending by category" });
+  await expect(preview).toContainText("No spending yet.");
+  await preview.getByRole("link", { name: "View all" }).click();
+  await expect(page).toHaveURL(/\/groups\/empty\/analytics$/u);
+  await expect(page.getByRole("heading", { name: "Nothing to chart yet" })).toBeVisible();
+  await page.getByRole("button", { name: "Back", exact: true }).click();
+  await expect(page).toHaveURL(/\/groups\/empty$/u);
+  await page.goto("/groups/empty/analytics");
+  await page.getByRole("button", { name: "Back", exact: true }).click();
+  await expect(page).toHaveURL(/\/groups\/empty$/u);
+  await page.goto("/groups/missing/analytics");
+  await expect(page.getByRole("heading", { name: "Group not found" })).toBeVisible();
 });
 
 test("shows the mobile member count and View all only beyond six members", async ({

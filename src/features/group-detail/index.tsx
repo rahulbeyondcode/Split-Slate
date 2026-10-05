@@ -59,6 +59,7 @@ const GroupDetail = () => {
     ].includes(pathname);
   const showGroupNavigation = [
     `/groups/${groupId}`,
+    `/groups/${groupId}/analytics`,
     `/groups/${groupId}/expenses`,
     `/groups/${groupId}/balances`,
   ].includes(pathname);

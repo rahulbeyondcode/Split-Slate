@@ -1,10 +1,13 @@
 import { ArrowLeft, ChartColumn, Globe2 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useOutletContext, useParams } from "react-router-dom";
 
 import { dashboardCategories, dashboardPositions } from "@/features/dashboard/utils/dashboard-data";
 import { useStore } from "@/shared/configs/store";
 import { useViewport } from "@/shared/hooks/use-viewport";
+import { categorySpending } from "@/shared/utils/category-spending";
 import { formatCurrency } from "@/shared/utils/currency";
+
+import type { GroupDetailContext } from "@/features/group-detail/types/group-detail.types";
 
 import EmojiImage from "@/shared/ui/emoji-image";
 import EmptyState from "@/shared/ui/empty-state";
@@ -13,23 +16,49 @@ import Surface from "@/shared/ui/surface";
 
 const Analytics = () => {
   const state = useStore();
+  const navigate = useNavigate();
   const { isMobile } = useViewport();
-  const { currency } = dashboardPositions(state);
-  const categories = currency ? dashboardCategories(state, currency) : [];
+  const { groupId } = useParams();
+  const groupContext = useOutletContext<GroupDetailContext | undefined>();
+  const currency = groupId
+    ? (groupContext?.group.currency ?? null)
+    : dashboardPositions(state).currency;
+  const categories = groupId
+    ? groupContext
+      ? categorySpending(groupContext.groupExpenses, groupContext.groupCategories)
+      : []
+    : currency
+      ? dashboardCategories(state, currency)
+      : [];
   const max = categories[0]?.amount || 1;
+  const handleBack = () => {
+    if (window.history.state?.idx > 0) {
+      navigate(-1);
+    } else {
+      navigate(`/groups/${groupId}`);
+    }
+  };
   return (
     <div className="page page-narrow mobile-sticky-page">
       <header className="mb-5">
-        {isMobile && (
-          <Link to="/dashboard" className="page-back-link">
-            <Icon icon={ArrowLeft} size={18} /> Back to dashboard
-          </Link>
+        {groupId ? (
+          <button type="button" onClick={handleBack} className="page-back-link">
+            <Icon icon={ArrowLeft} size={18} /> Back
+          </button>
+        ) : (
+          isMobile && (
+            <Link to="/dashboard" className="page-back-link">
+              <Icon icon={ArrowLeft} size={18} /> Back to dashboard
+            </Link>
+          )
         )}
         <h1 className="page-title">{isMobile ? "Spending by category" : "Analytics"}</h1>
         <p className="soft-caption mt-1">
-          {isMobile
-            ? "Every category across your groups, all time"
-            : "Spending by category · all groups · all time"}
+          {groupId
+            ? `Spending by category · ${groupContext?.group.name ?? "this group"} · all time`
+            : isMobile
+              ? "Every category across your groups, all time"
+              : "Spending by category · all groups · all time"}
         </p>
       </header>
       {!currency ? (

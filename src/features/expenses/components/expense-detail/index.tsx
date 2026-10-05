@@ -12,6 +12,7 @@ import { formatDisplayDate, formatDisplayTime } from "@/shared/utils/date-time";
 import type { GroupDetailContext } from "@/features/group-detail/types/group-detail.types";
 import type { Tag } from "@/shared/types/domain.types";
 
+import ConfirmationDialog from "@/shared/ui/confirmation-dialog";
 import EmojiImage from "@/shared/ui/emoji-image";
 import Icon from "@/shared/ui/icon";
 
@@ -25,10 +26,7 @@ const ExpenseDetail = () => {
   const addTag = useStore((state) => state.addTag);
   const navigate = useNavigate();
   const { search } = useLocation();
-  const [confirmingId, setConfirmingId] = useState<string | null>(null);
-  const [deleting, setDeleting] = useState(false);
-  const deletingRef = useRef(false);
-  const [error, setError] = useState("");
+  const [confirmingDeletion, setConfirmingDeletion] = useState(false);
   const [detailError, setDetailError] = useState("");
   const [savingDetails, setSavingDetails] = useState(false);
   const [creatingTag, setCreatingTag] = useState(false);
@@ -39,25 +37,12 @@ const ExpenseDetail = () => {
   const memberName = (id: string) =>
     groupMembers.find((member) => member.id === id)?.person?.name ?? "Unknown person";
   const handleDelete = async () => {
-    if (!expense || deletingRef.current) return;
-    deletingRef.current = true;
-    setDeleting(true);
-    setError("");
-    try {
-      await removeExpense(expense.expenseId, group.id);
-      navigate(`/groups/${group.id}/expenses${search}`, { replace: true });
-    } catch (failure) {
-      setError(
-        failure instanceof Error ? failure.message : "Could not delete expense. Please try again.",
-      );
-    } finally {
-      deletingRef.current = false;
-      setDeleting(false);
-    }
+    if (!expense) return;
+    await removeExpense(expense.expenseId, group.id);
+    navigate(`/groups/${group.id}/expenses${search}`, { replace: true });
   };
   const handleConfirm = () => {
-    setError("");
-    setConfirmingId(expenseId ?? null);
+    setConfirmingDeletion(true);
   };
   const handleSaveDetails = async (patch: { categoryId?: string; tagIds?: string[] }) => {
     if (!expense || savingDetailsRef.current) return;
@@ -146,61 +131,37 @@ const ExpenseDetail = () => {
         <Link to={`/groups/${group.id}/expenses${search}`} className="btn btn-secondary min-w-0">
           <Icon icon={ArrowLeft} size={18} /> Back to expenses
         </Link>
-        {confirmingId !== expense.expenseId && (
-          <div className="flex shrink-0 gap-2">
-            <Link
-              to={`/groups/${group.id}/expenses/${expense.expenseId}/edit${search}`}
-              className="btn btn-primary max-sm:!px-3"
-              aria-label="Edit expense"
-            >
-              <Icon icon={Pencil} size={18} /> <span className="max-sm:hidden">Edit expense</span>
-            </Link>
-            <button
-              type="button"
-              onClick={handleConfirm}
-              className="btn btn-danger max-sm:!px-3"
-              aria-label="Delete expense"
-            >
-              <Icon icon={Trash2} size={18} /> <span className="max-sm:hidden">Delete expense</span>
-            </button>
-          </div>
-        )}
+        <div className="flex shrink-0 gap-2">
+          <Link
+            to={`/groups/${group.id}/expenses/${expense.expenseId}/edit${search}`}
+            className="btn btn-primary max-sm:!px-3"
+            aria-label="Edit expense"
+          >
+            <Icon icon={Pencil} size={18} /> <span className="max-sm:hidden">Edit expense</span>
+          </Link>
+          <button
+            type="button"
+            onClick={handleConfirm}
+            className="btn btn-danger max-sm:!px-3"
+            aria-label="Delete expense"
+          >
+            <Icon icon={Trash2} size={18} /> <span className="max-sm:hidden">Delete expense</span>
+          </button>
+        </div>
       </div>
-      {confirmingId === expense.expenseId && (
-        <section
-          aria-label="Confirm expense deletion"
-          className="surface surface-pad flex flex-col gap-3 !border-[var(--negative)]"
-        >
-          <h3 className="font-semibold">Delete this expense permanently?</h3>
-          <p className="text-sm">
+      <ConfirmationDialog
+        open={confirmingDeletion}
+        title={`Delete ${expense.expenseName}?`}
+        description={
+          <>
             “{expense.expenseName}” and its receipts will be permanently deleted. Group balances
             will be recalculated. This cannot be undone.
-          </p>
-          {error && (
-            <p role="alert" className="text-sm text-red-700">
-              {error}
-            </p>
-          )}
-          <div className="flex flex-wrap gap-3">
-            <button
-              type="button"
-              disabled={deleting}
-              onClick={() => setConfirmingId(null)}
-              className="btn btn-secondary"
-            >
-              Keep expense
-            </button>
-            <button
-              type="button"
-              disabled={deleting}
-              onClick={handleDelete}
-              className="btn btn-danger"
-            >
-              {deleting ? "Deleting…" : "Delete permanently"}
-            </button>
-          </div>
-        </section>
-      )}
+          </>
+        }
+        confirmLabel="Delete permanently"
+        onCancel={() => setConfirmingDeletion(false)}
+        onConfirm={handleDelete}
+      />
       <div className="hero">
         <div className="grid gap-5 sm:grid-cols-2 sm:items-center sm:gap-6">
           <div className="min-w-0">

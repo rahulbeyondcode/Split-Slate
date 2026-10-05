@@ -4,9 +4,10 @@ import {
   calculateMemberNet,
   suggestTransfers,
 } from "@/shared/utils/balances";
+import { categorySpending } from "@/shared/utils/category-spending";
 
 import type { AppStore } from "@/shared/configs/store/types";
-import type { Expense, Group } from "@/shared/types/domain.types";
+import type { Group } from "@/shared/types/domain.types";
 
 export const groupPosition = (state: AppStore, group: Group) => {
   const member = state.members.find(
@@ -55,43 +56,14 @@ export const dashboardTransfers = (state: AppStore) =>
       });
   });
 
-export const dashboardActivity = (state: AppStore, groupId?: string) =>
-  state.expenses
-    .filter((expense) => !groupId || expense.groupId === groupId)
-    .slice()
-    .sort((a, b) => b.createdAt - a.createdAt || a.expenseId.localeCompare(b.expenseId))
-    .map((expense: Expense) => {
-      const group = state.groups.find((item) => item.id === expense.groupId);
-      const category = state.categories.find((item) => item.id === expense.categoryId);
-      const payer = expense.transactions.paid[0];
-      const member = state.members.find((item) => item.id === payer?.memberId);
-      const person = state.people.find((item) => item.id === member?.personId);
-      return {
-        expense,
-        group,
-        icon: category?.icon ?? group?.icon ?? "✦",
-        title: `${person?.id === state.localUser?.id ? "You" : (person?.name ?? "Someone")} paid ${expense.expenseName}`,
-        amount: expense.transactions.paid.reduce((total, row) => total + row.amount, 0),
-      };
-    });
-
-export const dashboardCategories = (state: AppStore, currency: string) => {
-  const totals = new Map<string, { name: string; icon: string; amount: number }>();
-  for (const expense of state.expenses) {
-    if (state.groups.find((group) => group.id === expense.groupId)?.currency !== currency) continue;
-    const category = state.categories.find((item) => item.id === expense.categoryId);
-    const key = category?.name ?? "Other";
-    const previous = totals.get(key);
-    totals.set(key, {
-      name: key,
-      icon: category?.icon ?? "✦",
-      amount:
-        (previous?.amount ?? 0) +
-        expense.transactions.paid.reduce((sum, row) => sum + row.amount, 0),
-    });
-  }
-  return [...totals.values()].sort((a, b) => b.amount - a.amount);
-};
+export const dashboardCategories = (state: AppStore, currency: string) =>
+  categorySpending(
+    state.expenses.filter(
+      (expense) =>
+        state.groups.find((group) => group.id === expense.groupId)?.currency === currency,
+    ),
+    state.categories,
+  );
 
 export const groupSpending = (state: AppStore, group: Group) =>
   calculateGroupTotal(state.expenses.filter((expense) => expense.groupId === group.id));
