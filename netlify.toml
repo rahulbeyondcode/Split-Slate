@@ -1,0 +1,8 @@
+[context.production.environment]
+  VITE_ENABLE_DEVTOOLS = "false"
+
+[context.deploy-preview.environment]
+  VITE_ENABLE_DEVTOOLS = "true"
+
+[context.development.environment]
+  VITE_ENABLE_DEVTOOLS = "true"
