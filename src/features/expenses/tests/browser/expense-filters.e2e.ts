@@ -233,7 +233,7 @@ test("filters expenses through every field, validates ranges, and clears all con
   if (isMobile) {
     await expect(page.getByRole("status")).toHaveCount(0);
   } else {
-    await expect(page.getByRole("status")).toHaveText("3 of 3 expenses");
+    await expect(page.getByRole("status")).toHaveText("3 of 3 expenses · 0 payments");
   }
   await page.getByLabel("Search expenses", { exact: true }).fill(" dinner ");
   await page.locator("summary").filter({ hasText: "Filters" }).click();
@@ -283,7 +283,7 @@ test("filters expenses through every field, validates ranges, and clears all con
   if (isMobile) {
     await expect(page.getByRole("status")).toHaveCount(0);
   } else {
-    await expect(page.getByRole("status")).toHaveText("3 of 3 expenses");
+    await expect(page.getByRole("status")).toHaveText("3 of 3 expenses · 0 payments");
   }
   await expect(page.getByLabel("Search expenses", { exact: true })).toHaveValue("");
 });
@@ -319,7 +319,7 @@ test("preserves the query through expense detail and removes a deleted selected 
   if (isMobile) {
     await expect(page.getByRole("status")).toHaveCount(0);
   } else {
-    await expect(page.getByRole("status")).toHaveText("3 of 3 expenses");
+    await expect(page.getByRole("status")).toHaveText("3 of 3 expenses · 0 payments");
   }
   await page.locator("summary").filter({ hasText: "Filters" }).click();
   await expect(page.getByRole("group", { name: "Tags" }).getByLabel("Holiday")).toHaveCount(0);
@@ -328,7 +328,7 @@ test("preserves the query through expense detail and removes a deleted selected 
 test("sorts by total paid and date, preserving sort through filters and detail navigation", async ({
   page,
 }) => {
-  const names = page.getByRole("list", { name: "Expenses" }).locator("li");
+  const names = page.getByRole("list", { name: "Expenses" }).locator(":scope > li");
   const sortSummary = page.locator("summary").filter({ hasText: "Sort" });
   const sort = page.getByRole("group", { name: "Sort expenses" });
   await sortSummary.click();

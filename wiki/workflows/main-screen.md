@@ -9,7 +9,7 @@ metadata:
 
 Purpose: describe implemented group navigation, expense workflows, balances, and group transfer.
 
-Last updated: 2026-10-06
+Last updated: 2026-10-08
 
 ## Current Implementation
 
@@ -167,15 +167,18 @@ Unavailable selected option IDs are pruned when the list remounts. Desktop/mobil
 exercise the controls and pass in the 2026-10-05 full run; see
 [[filtering]] and [[testing-strategy]].
 
-### URGENT: Mobile Expense Form Scrolling — Browser Verification Required
+### Mobile Expense Form Scrolling and Root Scaling
 
 The mobile Add/Edit Expense page previously left document scrolling unlocked while the main pane
-was scrollable. The form now scopes overflow to `#main-content`, clips the document and shell, and
+was scrollable. The form now scopes overflow to `#main-content`, fixes the body, clips the document and shell, and
 removes the main pane's reserved bottom-footer padding (the footer is hidden on expense forms).
 The form and split editor do not add inner scroll areas. The Save/Cancel toolbar remains after the
-fields and sticky at the bottom of the main scroll pane. Earlier scroll fixes introduced excess
-blank space or clipped the last rows: this replacement and scroll-to-last-row behavior must still
-be verified in a permitted browser before the issue can be marked resolved. Desktop is unchanged.
+fields and sticky at the bottom of the main scroll pane. The 2026-10-08 pre-scaling browser suite
+verified the last split row and Save/Cancel access at 320px by 700px without a second document or
+form scroller. The later root-scaling refactor keeps the 16px reference root at widths of 400px and
+above and reduces it gradually to 14px below that range. Fonts, rem component dimensions, and
+spacing follow the root; structural navigation breakpoints do not change. Post-scaling browser and
+physical-device validation remain pending. See [[layout-architecture]] and [[testing-strategy]].
 
 ### Expense Recording
 

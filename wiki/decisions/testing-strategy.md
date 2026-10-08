@@ -10,16 +10,16 @@ metadata:
 Purpose: keep accounting tests fast, make every implemented area verifiable, and reserve real
 browser coverage for behavior that depends on browser storage, navigation, or offline capability.
 
-Last updated: 2026-10-06
+Last updated: 2026-10-08
 
 ## Outstanding Browser Coverage
 
-The mobile Add/Edit Expense form now has a scoped single-main-pane scroll implementation, but its
-scroll-to-last-field and Save/Cancel positioning remain **unverified in a browser**. A mobile case
-in `record-expense.e2e.ts` checks the scroll boundary, last split row, and toolbar; it must run in a
-working browser before this issue can be closed. Existing `scroll-navigation.e2e.ts` cases exercise
-the expense ledger, group views, and route resets, not the form's bottom scroll boundary. Passing
-unit tests do not establish that this mobile layout works. See [[main-screen]] and [[product-roadmap]].
+The 2026-10-08 pre-scaling full browser suite verified the mobile expense form's scroll boundary,
+last split row, Save/Cancel toolbar, and absence of a second document/form scroller at 320px by
+700px. The bounded form and Categories & Tags routes fix the body as well as clipping overflow.
+Root-based mobile scaling was added afterward: its production build passes, but post-scaling
+browser journeys and physical-device validation remain unverified. See [[layout-architecture]],
+[[main-screen]] and [[product-roadmap]].
 
 ## Decision
 
@@ -141,6 +141,19 @@ A test slice is complete when:
 - any durable behavior or strategy change is reconciled with the wiki
 
 ## Current Status
+
+On 2026-10-08, before root scaling, `pnpm lint` and `pnpm build` passed, `pnpm test` passed
+443 cases across 37 files, and the full `pnpm test:e2e` run passed 207 cases with 19
+viewport-specific skips and no failures. This cleared current assertion drift, host-versus-browser
+timezone assumptions, the expense/payment timeline's non-date sorting regression, desktop
+Add-tag visibility, and mobile document-scroll leaks. Export copied feedback now resets from
+selection change events, and its selection ref is synchronized outside render. Browser time
+assertions run in the configured browser timezone rather than assuming the Node host timezone.
+The 18 PWA production-build cases also passed before the scaling refactor.
+
+After root scaling, the production build passed. The complete unit/browser/PWA suite has not been
+rerun against that final typography/layout refactor; the earlier passing results are a baseline,
+not proof of the new narrow-mobile UI. See [[layout-architecture]].
 
 On 2026-10-05, `pnpm check` passed, `pnpm test` passed 422 Vitest cases, the full
 `pnpm test:e2e` run passed 154 cases with no failures and 18 viewport-specific skips, and

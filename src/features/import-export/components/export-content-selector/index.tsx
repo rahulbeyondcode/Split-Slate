@@ -166,7 +166,7 @@ const ExportContentSelector = ({ attachmentCount }: PropsType) => {
         className="m-auto w-[calc(100%-32px)] max-w-md overflow-hidden rounded-[28px] border border-[var(--line)] bg-[var(--surface)] p-0 text-[var(--ink)] shadow-2xl backdrop:bg-black/60"
       >
         <div className="bg-[var(--brand-soft)] px-6 pb-6 pt-5">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--surface)] px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-[var(--brand-ink)]">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--surface)] px-3 py-1 text-[0.625rem] font-extrabold uppercase tracking-wider text-[var(--brand-ink)]">
             <Icon icon={Check} size={14} /> Export selection
           </span>
           <div className="mt-4 flex items-start justify-between gap-3">

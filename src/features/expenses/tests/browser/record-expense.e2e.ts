@@ -378,8 +378,11 @@ test("records an equal expense, updates balances, and survives reload", async ({
   expect(stored).toHaveLength(1);
   expect(stored[0].transactions.owes.map((row) => row.amount)).toEqual([3334, 3333, 3333]);
   expect(stored[0].tagIds).toEqual(["holiday"]);
-  expect(new Date(stored[0].when).getHours()).toBe(18);
-  expect(new Date(stored[0].when).getMinutes()).toBe(30);
+  const storedTime = await page.evaluate((when) => {
+    const date = new Date(when);
+    return { hours: date.getHours(), minutes: date.getMinutes() };
+  }, stored[0].when);
+  expect(storedTime).toEqual({ hours: 18, minutes: 30 });
   await page.goto("/groups/trip");
   await expect(page.getByRole("main").getByText("+₹66.66", { exact: true })).toBeVisible();
 });
@@ -465,10 +468,10 @@ test("edits the time across noon and midnight with 12-hour controls", async ({ p
   const when = await page.evaluate(async () => {
     const path = "/src/shared/configs/db.ts";
     const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;
-    return (await db.expenses.toArray())[0].when;
+    const date = new Date((await db.expenses.toArray())[0].when);
+    return { hours: date.getHours(), minutes: date.getMinutes() };
   });
-  expect(new Date(when).getHours()).toBe(12);
-  expect(new Date(when).getMinutes()).toBe(5);
+  expect(when).toEqual({ hours: 12, minutes: 5 });
 });
 
 test("requires a complete time before saving", async ({ page }) => {
@@ -618,10 +621,10 @@ test("inspects, edits, and deletes an expense with live balance updates", async 
   await expect(page.getByRole("list", { name: "Member balances" })).toContainText("+₹200.00");
   const suggestions = page.getByRole("region", { name: "Suggested payments" });
   await expect(suggestions.getByRole("listitem").filter({ hasText: "Bea" })).toContainText(
-    "BeaAmy₹100.00",
+    "FromBeaToAmyAmount₹100.00",
   );
   await expect(suggestions.getByRole("listitem").filter({ hasText: "Cal" })).toContainText(
-    "CalAmy₹100.00",
+    "FromCalToAmyAmount₹100.00",
   );
   await page.goto(detailUrl);
   await page.getByRole("link", { name: "Edit expense", exact: true }).click();
@@ -637,9 +640,9 @@ test("inspects, edits, and deletes an expense with live balance updates", async 
   await page.reload();
   await expect(page.getByRole("region", { name: "Paid by", exact: true })).toContainText("Bea");
   await page.goto("/groups/trip/balances");
-  await expect(suggestions.getByRole("listitem").filter({ hasText: /^AmyBea/u })).toContainText(
-    "AmyBea₹200.00",
-  );
+  await expect(
+    suggestions.getByRole("listitem").filter({ hasText: /^FromAmyToBea/u }),
+  ).toContainText("FromAmyToBeaAmount₹200.00");
   await page.goto(detailUrl);
   await page.getByRole("button", { name: "Delete expense", exact: true }).click();
   const deletionDialog = page.getByRole("dialog", { name: "Delete Dinner and dessert?" });
@@ -765,7 +768,10 @@ test("shows solo balances and rejects missing or foreign expense routes", async 
     await page.goto(`/groups/trip/expenses/${route}`);
     await expect(page.getByRole("heading", { name: "Expense not found" })).toBeVisible();
     const back = page.getByRole("link", { name: "Back to expenses" });
-    await expect(back).toHaveClass(/btn-secondary/u);
-    await expect(back).toHaveCSS("border-radius", "100px");
+    await expect(back).toHaveCount(route.endsWith("/edit") ? 2 : 1);
+    for (const link of await back.all()) {
+      await expect(link).toHaveClass(/btn-secondary/u);
+      await expect(link).toHaveCSS("border-radius", "100px");
+    }
   }
 });

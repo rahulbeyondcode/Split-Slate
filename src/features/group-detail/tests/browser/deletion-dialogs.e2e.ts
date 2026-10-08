@@ -63,7 +63,7 @@ test("guards referenced categories and confirms deletion of unused categories", 
   page,
 }) => {
   const categories = page
-    .locator(".surface")
+    .locator(".management-section")
     .filter({ has: page.getByRole("heading", { name: "Categories" }) });
   const foodDelete = categories
     .getByRole("listitem")
@@ -110,7 +110,7 @@ test("explains why the last unused category cannot be deleted", async ({ page })
   await page.reload();
 
   const categories = page
-    .locator(".surface")
+    .locator(".management-section")
     .filter({ has: page.getByRole("heading", { name: "Categories" }) });
   const foodDelete = categories.getByRole("listitem").getByRole("button", { name: "Delete" });
   await expect(foodDelete).toHaveClass(/btn-blocked/u);
@@ -124,7 +124,7 @@ test("explains why the last unused category cannot be deleted", async ({ page })
 
 test("confirms removing a tag from expenses without deleting them", async ({ page }) => {
   const tags = page
-    .locator(".surface")
+    .locator(".management-section")
     .filter({ has: page.getByRole("heading", { name: "Tags" }) });
   const summer = tags.getByRole("listitem").filter({ hasText: "Summer" });
   await expect(summer.getByRole("button", { name: "Delete" })).toHaveClass(/btn-danger/u);

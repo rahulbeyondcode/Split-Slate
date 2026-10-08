@@ -46,7 +46,10 @@ test.beforeEach(async ({ page }) => {
 
 test("places both section headings and dark Add actions above their cards", async ({ page }) => {
   await expect(page.locator(".group-management > h2")).toHaveCount(0);
-  await expect(page.locator(".group-page-header h1")).toHaveClass(/sr-only/u);
+  await expect(page.locator(".group-page-header h1")).toHaveText("Weekend Trip");
+  await expect(page.getByRole("heading", { name: "Categories & Tags", exact: true })).toHaveCount(
+    0,
+  );
   const sections = page.locator(".management-section");
   await expect(sections).toHaveCount(2);
   for (const [index, name] of ["Categories", "Tags"].entries()) {

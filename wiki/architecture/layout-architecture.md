@@ -9,7 +9,7 @@ metadata:
 
 Purpose: document the implemented responsive shell and distinguish navigation stubs from working routes.
 
-Last updated: 2026-10-06
+Last updated: 2026-10-08
 
 ## Viewport States
 
@@ -105,20 +105,51 @@ confirmation gives the remaining countdown seconds bold emphasis. See [[full-bac
 
 A shared hook reads the window width and updates in real time whenever the viewport is resized. Components use it to make structural decisions — for example, whether to render the footer or the sidebar. Fine-grained stylistic differences within the desktop layout are handled with CSS responsive utilities.
 
+## Narrow-Mobile Root Scaling
+
+`App` initializes `useRootFontSize` before paint. The hook reads the CSS layout viewport width
+(`window.innerWidth`), updates on resize, and publishes `--app-font-scale` on the HTML element.
+The HTML font size is the 16px reference root multiplied by this scale:
+
+| Viewport width | HTML root size |
+|----------------|----------------|
+| 400px and above | 16px; no scaling |
+| Between 360px and 400px | Linear interpolation from 14px to 16px |
+| 360px and below | 14px minimum |
+
+Widths are not physical display pixels or phone-model identifiers. Existing mobile/tablet/desktop
+navigation breakpoints remain unchanged; a 425px phone is within the unscaled mobile range.
+
+Explicit app font sizes and custom component sizing/spacing use rem equivalents of their previous
+pixel values, with 16px as the conversion reference. For example, body text remains 14px at the
+baseline (`0.875rem`) and becomes 13.5625px at a 390px viewport whose root is 15.5px. Tailwind's
+existing rem typography, spacing, radii, and dimensions follow the same root. In fluid font clamps,
+the preferred viewport-width term is multiplied by the same scale so it cannot bypass the root.
+
+Viewport/percentage sizing, responsive breakpoints, safe-area insets, border thickness, outlines,
+shadows, animation offsets, and explicit SVG pixel sizes are not converted into proportional rem
+dimensions. Text wrapping and intrinsic container heights can still change with available space.
+
+A source-level comparison confirmed baseline CSS equivalence at a 16px root, excluding separately
+approved prerequisite layout fixes. The post-scaling production build passes, but visual behavior
+on physical devices and post-scaling browser-suite coverage remain unverified. See
+[[testing-strategy]] and [[main-screen]].
+
 ---
 
 ## Route Scroll Position
 
 The post-onboarding shell keeps `#main-content` mounted across route changes. Its `.app-main`
 styles make that element the scroll container for ordinary routes. On mobile Categories & Tags,
-document and shell overflow are clipped so only `#main-content` scrolls between the two sections;
+document and shell overflow are clipped and the body is fixed so only `#main-content` scrolls between the two sections;
 the card interiors scroll separately. See [[testing-strategy]].
 Group headers remain sticky within that pane on all group routes, including forms and Settings.
 Their mobile Back to dashboard link therefore stays reachable while scrolling non-form routes.
 Mobile Add/Edit Expense forms hide the footer and use `#main-content` as their sole intended scroll
-container: document/shell overflow is clipped and the main pane does not reserve footer padding.
-The form's last-row and action-toolbar behavior still needs browser verification; see
-[[main-screen]] and [[testing-strategy]].
+container: the body is fixed, document/shell overflow is clipped, and the main pane does not reserve
+footer padding. Before root scaling, the 2026-10-08 browser suite verified the last split row,
+Save/Cancel toolbar, and absence of a second document/form scroll area at 320px by 700px.
+Post-scaling device validation remains pending; see [[main-screen]] and [[testing-strategy]].
 Expenses scrolls the main pane on all viewport sizes: the group header, expense title/subtitle,
 and then the search/sort/filter toolbar stick in sequence, while insights scroll away. On tablet
 and desktop the ledger itself has a second scroll area sized to its first ten rendered entries

@@ -68,13 +68,12 @@ const ExportPanel = ({ groupId, groupName, attachmentCount }: PropsType) => {
     attachmentsSelected,
   ]);
   const selectionKeyRef = useRef(currentSelectionKey);
-  selectionKeyRef.current = currentSelectionKey;
   const linkStatus =
     linkAvailability?.selectionKey === currentSelectionKey ? linkAvailability.status : "unknown";
   const linkUnavailable = attachmentsSelected || linkStatus === "too-large";
 
   useEffect(() => {
-    setLinkCopied(false);
+    selectionKeyRef.current = currentSelectionKey;
   }, [currentSelectionKey]);
 
   useEffect(() => {
@@ -114,6 +113,10 @@ const ExportPanel = ({ groupId, groupName, attachmentCount }: PropsType) => {
   const handleCloseLinkDialog = () => {
     linkDialogRef.current?.close();
     setLinkDialogReason(null);
+  };
+
+  const handleSelectionChange = () => {
+    setLinkCopied(false);
   };
 
   const startOperation = (next: ExportOperation) => {
@@ -216,7 +219,11 @@ const ExportPanel = ({ groupId, groupName, attachmentCount }: PropsType) => {
 
   return (
     <FormProvider {...methods}>
-      <section aria-labelledby="export-heading" className="flex flex-col gap-4">
+      <section
+        aria-labelledby="export-heading"
+        className="flex flex-col gap-4"
+        onChange={handleSelectionChange}
+      >
         <div>
           <h3 id="export-heading" className="section-title">
             Export group

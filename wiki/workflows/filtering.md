@@ -9,7 +9,7 @@ metadata:
 
 Purpose: document the implemented expense-list filters, their matching rules, and test coverage.
 
-Last updated: 2026-10-02
+Last updated: 2026-10-08
 
 ## Overview
 
@@ -101,6 +101,13 @@ order. Sorting runs after filtering and does not contribute to the active-filter
 nondefault selection uses the `sort` query parameter; unknown values fall back to newest. It
 survives reloads and expense-detail navigation. Clear all filters retains the selected sort;
 returning to newest removes `sort` from the URL.
+
+External payments join the timeline only for unfiltered newest/oldest date sorts. The merged
+timeline is date-sorted only in that mode; otherwise expense entries retain the selected expense
+sort instead of being re-sorted by date. The 2026-10-08 pre-scaling full browser suite verified all
+eight sort modes on desktop/mobile after correcting that timeline merge. Unfiltered desktop status
+includes the payment count, including zero; filtered results remain expense-only. See
+[[settlement-recording]] and [[testing-strategy]].
 
 ## Tests
 

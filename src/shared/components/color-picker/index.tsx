@@ -101,7 +101,7 @@ const ColorPicker = ({ name, label = "Color" }: PropsType) => {
               aria-label={`${color.name} ${color.value}`}
               aria-pressed={isSelected}
               title={`${color.name} (${color.value})`}
-              className={`flex min-w-0 flex-col items-center gap-1 rounded-xl border p-1.5 text-[10px] font-semibold leading-tight transition-colors ${
+              className={`flex min-w-0 flex-col items-center gap-1 rounded-xl border p-1.5 text-[0.625rem] font-semibold leading-tight transition-colors ${
                 isSelected
                   ? "border-[var(--brand)] bg-[var(--brand-soft)] text-[var(--brand-ink)]"
                   : "border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] hover:bg-[var(--brand-soft)]"

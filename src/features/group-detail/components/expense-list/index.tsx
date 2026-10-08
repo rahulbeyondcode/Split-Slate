@@ -56,9 +56,10 @@ const ExpenseList = () => {
           settlement,
         }))
       : []),
-  ].sort((a, b) =>
-    parsed.success && parsed.data.sort === "oldest" ? a.when - b.when : b.when - a.when,
-  );
+  ];
+  if (showPayments) {
+    entries.sort((a, b) => (parsed.data.sort === "oldest" ? a.when - b.when : b.when - a.when));
+  }
   const entryIds = entries
     .map((entry) => (entry.type === "payment" ? entry.settlement.id : entry.expense.expenseId))
     .join("|");

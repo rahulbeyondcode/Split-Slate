@@ -9,7 +9,7 @@ metadata:
 
 Purpose: provide a current planning compass without turning exploratory ideas into commitments.
 
-Last updated: 2026-10-05
+Last updated: 2026-10-08
 
 ## How to Read This Page
 
@@ -89,15 +89,16 @@ external payment recording is implemented. Current detail lives in [[index]], [[
 
 ## Next Tasks
 
-### Repair Mobile Expense-Form Scrolling
+### Validate Narrow-Mobile Root Scaling
 
-The mobile Add/Edit Expense scroll and Save/Cancel position issue remains urgent and unresolved.
-Earlier attempts caused blank scrolling or clipped content and were rolled back. Reproduce the
-scroll boundary, repair it without changing desktop layout, and verify access to the last field and
-actions in a mobile browser. The existing scroll-navigation tests do not establish this behavior.
-See [[main-screen]].
+The 2026-10-08 pre-scaling browser suite verified mobile expense-form scrolling, the final split
+row, and Save/Cancel access. A subsequent rem refactor now scales the root from 16px at widths of
+400px and above to a bounded 14px minimum on narrower viewports. Physical-device appearance,
+post-scaling form/keyboard behavior, and regression coverage remain validation work; passing the
+earlier baseline does not close these checks. See [[layout-architecture]], [[main-screen]] and
+[[testing-strategy]].
 
-### Browser-Suite Failures — resolved 2026-10-05
+### Browser-Suite Failures — pre-scaling baseline cleared 2026-10-08
 
 The 2026-10-04 full Playwright run passed 118 tests, failed 30, and skipped 18 viewport-specific
 cases. The 14 group-transfer failures looked for a questionnaire without opening the now-collapsed
@@ -105,6 +106,11 @@ cases. The 14 group-transfer failures looked for a questionnaire without opening
 dialogs, and scroll behavior. All were repaired as test/UI mismatches rather than product
 regressions, and the 2026-10-05 full run passed 154 tests with no failures. Reopen this item only
 for a new suite regression. See [[testing-strategy]].
+
+The subsequent 2026-10-08 pre-scaling run passed 207 cases with no failures and 19 viewport-specific
+skips after current assertion drift, timezone assumptions, timeline sorting, desktop Add-tag
+visibility, and document-scroll leaks were repaired. The later root-scaling changes have a passing
+build but have not yet been through the full browser suite or physical-device validation.
 
 ### Group Duplication
 
@@ -152,7 +158,8 @@ app is installed.
 Approved or required work:
 
 - The eight expense filters, stale-option cleanup, direct desktop/mobile filter coverage, and
-  detail display are implemented. Mobile Add/Edit Expense scrolling still requires repair.
+  detail display are implemented. Mobile expense-form scrolling passed the pre-scaling browser
+  suite; the subsequent narrow-mobile root scaling remains to be validated on devices.
 - Finish category activation/deactivation controls; active-category expense-picker behavior is implemented.
 - Implement receipt attachment ingestion, compression, and lazy loading; expense-deletion cascades are implemented.
 - Continue hardening the implemented Link/CSV/ZIP editable snapshot transfer in [[import-export]].

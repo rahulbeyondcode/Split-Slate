@@ -69,7 +69,7 @@ const StepMembers = ({ showHeading = true, onEditorOpenChange }: PropsType) => {
           </p>
           <p className="soft-caption">Group creator</p>
         </div>
-        <span className="shrink-0 rounded-full bg-[var(--surface-soft)] px-2 py-1 text-[10px] font-semibold text-[var(--muted)]">
+        <span className="shrink-0 rounded-full bg-[var(--surface-soft)] px-2 py-1 text-[0.625rem] font-semibold text-[var(--muted)]">
           Auto-added
         </span>
       </li>

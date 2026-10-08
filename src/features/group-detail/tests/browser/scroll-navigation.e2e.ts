@@ -79,9 +79,7 @@ test("scrolls the expense page and limits the desktop ledger to ten rows, then r
     await expect(sticky).toHaveCSS("background-color", pageBackground);
     await expect(sticky).toHaveCSS("opacity", "1");
   }
-  expect(await toolbar.evaluate((element) => getComputedStyle(element).boxShadow)).not.toBe(
-    "none",
-  );
+  expect(await toolbar.evaluate((element) => getComputedStyle(element).boxShadow)).not.toBe("none");
   const navigation = page
     .getByRole("navigation", { name: "Group navigation" })
     .or(page.getByRole("navigation", { name: "Bottom navigation" }));
@@ -310,7 +308,14 @@ test("keeps category, tag, and member lists inside their own cards", async ({ pa
     });
     await expect.poll(() => scroller.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
   }
-  await expect.poll(() => main.evaluate((element) => element.scrollTop)).toBe(0);
+  if (isMobile) {
+    await main.evaluate((element) => {
+      element.scrollTop = element.scrollHeight;
+    });
+    await expect.poll(() => main.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+  } else {
+    await expect.poll(() => main.evaluate((element) => element.scrollTop)).toBe(0);
+  }
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
   await expect(header).toBeInViewport();
 

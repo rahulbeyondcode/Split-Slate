@@ -67,11 +67,11 @@ const Dashboard = () => {
             entries.length ? (
               <>
                 <div className="hero-box">
-                  <p className="text-[11px] text-white/80">Total to get</p>
+                  <p className="text-[0.6875rem] text-white/80">Total to get</p>
                   <strong className="money">{formatCurrency(get, currency)}</strong>
                 </div>
                 <div className="hero-box">
-                  <p className="text-[11px] text-white/80">Total to give</p>
+                  <p className="text-[0.6875rem] text-white/80">Total to give</p>
                   <strong className="money">{formatCurrency(give, currency)}</strong>
                 </div>
               </>
@@ -141,7 +141,7 @@ const Dashboard = () => {
                         {amount > 0 ? "you are owed" : amount < 0 ? "you owe" : "settled"}
                       </p>
                       <strong
-                        className={`dashboard-group-amount money text-[22px] max-sm:text-[15px] ${amount > 0 ? "money-positive" : amount < 0 ? "money-negative" : "muted"}`}
+                        className={`dashboard-group-amount money text-[1.375rem] max-sm:text-[0.9375rem] ${amount > 0 ? "money-positive" : amount < 0 ? "money-negative" : "muted"}`}
                       >
                         {amount > 0 ? "+" : amount < 0 ? "−" : ""}
                         {formatCurrency(Math.abs(amount), group.currency)}

@@ -2,9 +2,17 @@
 
 Reverse-chronological record of all wiki changes.
 
-Last updated: 2026-10-06
+Last updated: 2026-10-08
 
 ---
+
+## 2026-10-08
+- UPDATED architecture/layout-architecture.md — document bounded narrow-mobile root scaling, rem conversion invariants, preserved sizing exceptions, and baseline-only scroll verification
+- UPDATED workflows/filtering.md — record conditional payment-timeline merging that preserves selected non-date expense sorts
+- UPDATED decisions/testing-strategy.md — distinguish the repaired passing baseline from unverified post-scaling browser/device behavior
+- UPDATED workflows/main-screen.md — replace the unverified baseline form-scroll claim with passing pre-scaling coverage and pending root-scaling validation
+- UPDATED roadmap/product-roadmap.md — make post-scaling device validation the current mobile layout gate
+- UPDATED wiki/index.md — clear the unrun-baseline notice and synchronize layout, filtering, and verification summaries
 
 ## 2026-10-06
 - UPDATED wiki/index.md — flag unrun lint/build/tests for the latest commit as the highest-priority next task

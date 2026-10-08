@@ -5,28 +5,29 @@ This wiki is the sole persistent compiled knowledge layer. The implementation in
 authoritative; `app-featureset-context/spec-sheet.md` is a historical baseline where later source
 and approved decisions have superseded it. Changes: [log.md](log.md)
 
-Last updated: 2026-10-06
+Last updated: 2026-10-08
 
 ---
 
-> **🔴 HIGHEST PRIORITY NEXT TASK — before any other task:** Lint, build, and tests were
-> **NOT run** for the latest commit (`feat: add group payments and responsive UI polish`).
-> Run `pnpm lint`, `pnpm build`, and the full test suite first, and fix any failures.
-> Do not begin any other work until this is done. See [log.md](log.md).
+> **Baseline checks completed:** The 2026-10-08 pre-scaling baseline passed lint, build, 443 unit
+> cases, and 207 browser cases with 19 viewport-specific skips after prerequisite repairs.
+> The 18 PWA cases also passed before scaling. Root-based mobile scaling was added afterward;
+> its build passes, but post-scaling browser and physical-device validation remain pending.
+> See [[testing-strategy]] and [[layout-architecture]].
 
 ---
 
 ## Navigation
 
 ### Roadmap
-- [Product Direction and Roadmap](roadmap/product-roadmap.md) — urgent mobile expense-form repair, group duplication, PWA release gates, and implemented group-only repayment recording
+- [Product Direction and Roadmap](roadmap/product-roadmap.md) — narrow-mobile scaling validation, group duplication, PWA release gates, and implemented group-only repayment recording
 
 ### Architecture
 - [Domain Models](architecture/domain-models.md) — expense and payment shapes, PNG icon keys, fixed-hundredths money, and optional group tags
 - [Balance Calculation](architecture/balance-calculation.md) — safe payment-aware balances, expense-only spending, and deterministic suggested transfers
 - [State Management](architecture/state-management.md) — Zustand hydration and transactional expense, payment, and group mutations
 - [Split Types](architecture/split-types.md) — 5 split types with fixed-hundredths monetary allocations and exact ratios; numeric percentage-total display remains pending
-- [Layout Architecture](architecture/layout-architecture.md) — responsive shell, bounded mobile Categories & Tags scrolling, mobile form scroll caveat, and ten-row desktop/tablet ledger
+- [Layout Architecture](architecture/layout-architecture.md) — bounded 14–16px narrow-mobile root scaling, baseline-verified form scrolling, and ten-row desktop/tablet ledger
 
 ### Decisions
 - [Global People Directory](decisions/global-people-directory.md) — shared device-local people identities versus group-owned category labels; supersedes per-group members
@@ -43,7 +44,7 @@ Last updated: 2026-10-06
 - [Selection Controls](decisions/selection-controls.md) — native checkboxes/radios with selected and visibly locked states across forms, filters, and transfer
 - [Offline Payment Recording](decisions/settlement-recording.md) — group-only repayment records, modal member/date entry, correction, and portability
 - [String Input Normalization](decisions/string-input-normalization.md) — required strings reject trimmed blanks; optional expense inputs have explicit blank-value semantics
-- [Testing Strategy](decisions/testing-strategy.md) — unit/browser coverage and pending browser verification of mobile expense-form scrolling
+- [Testing Strategy](decisions/testing-strategy.md) — passing repaired pre-scaling baseline; post-scaling browser and device validation pending
 
 ### Systems
 - [IndexedDB Schema](systems/indexeddb-schema.md) — version 3 payments, safe expense/balance writes, and bootstrap recovery
@@ -55,13 +56,13 @@ Last updated: 2026-10-06
 - [Development Tools](workflows/development-tools.md) — typed realistic presets, randomized onboarding contacts, individual creation buttons, and persistence boundaries
 - [Onboarding](workflows/onboarding.md) — resumable setup with category suggestions plus Link/CSV/ZIP first-launch import
 - [Group Creation](workflows/group-creation.md) — standalone 4-step flow, cross-group category suggestions, and sequential save after final submission
-- [Main Screen](workflows/main-screen.md) — tablet-stacked preview cards, counted Recent transactions, and Categories & Tags scroll/modal layout; **URGENT: mobile form scroll/actions unverified in browser**
+- [Main Screen](workflows/main-screen.md) — tablet-stacked previews, counted Recent transactions, and baseline-verified mobile form scrolling; root-scaling validation pending
 - [Paid-By](workflows/paid-by.md) — implemented frequent-payer selection, atomic ranking updates, recent-payer defaults, and multi-payer entry
 - [People Directory](workflows/people-directory.md) — shared contacts with expense/payment-aware deletion guards; mobile route lacks an in-app entry point
 - [Member Management](workflows/member-management.md) — one-click add, mobile modals, and expense/payment-aware removal guards
 - [Category Management](workflows/category-management.md) — category CRUD via all-width modal, tablet-stacked cards, and blocked-delete usage counts; deactivation pending
 - [Tag Management](workflows/tag-management.md) — group-scoped tags, all-width Add/Edit modal, tablet-stacked cards, and transactional cleanup
-- [Filtering](workflows/filtering.md) — URL-backed filtering, opaque sticky expense toolbar, ten-row desktop/tablet ledger, sort modes, and expense insights
+- [Filtering](workflows/filtering.md) — URL-backed filtering, sticky toolbar, ten-row ledger, and payment-timeline merge that preserves non-date expense sorts
 - [Dashboard](workflows/dashboard.md) — group summaries, pruned deletion activity, and exact-name app-wide versus group-scoped category analytics
 
 ### Ideas (captured, not committed)
@@ -98,7 +99,7 @@ Last updated: 2026-10-06
 | Split types (5 types)              | DONE        |
 | Paid-by (frequent payers UI)       | DONE        |
 | Expense list + filtering           | DONE        |
-| Mobile expense-form scroll/actions | URGENT FIX REQUIRED |
+| Mobile expense-form scroll/actions | BASELINE VERIFIED; SCALING VALIDATION PENDING |
 | Balances / who-owes-whom view      | DONE        |
 | Offline repayment recording        | DONE        |
 | Receipt attachments                | PENDING     |
@@ -140,8 +141,9 @@ Group transfer is implemented as selective snapshot export and fresh editable im
 bounded to 32,000 characters without receipts; CSV carries typed data without blobs; ZIP optionally
 carries verified receipts. Fresh group-owned IDs, count/reference/integrity validation, recipient
 identity mapping, default categories, same-name numbering, and the complete IndexedDB transaction
-have desktop/mobile browser journeys, but the current full suite's transfer cases fail before
-the export questionnaire opens. Settlement Link/PDF/Excel sharing remains separate and pending.
+have passing desktop/mobile browser journeys in the 2026-10-08 pre-scaling baseline, including
+opening the export questionnaire. Post-scaling validation remains pending. Settlement Link/PDF/Excel
+sharing remains separate and pending.
 See [[import-export]] and [[testing-strategy]].
 
 The production build now has install metadata, a five-day install reminder with a Settings retry, an offline app
