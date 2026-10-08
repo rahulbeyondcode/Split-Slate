@@ -1,5 +1,5 @@
 import { Plus, X } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 
 import PersonEditor from "@/features/people/components/person-editor";
@@ -13,6 +13,7 @@ import type { Person } from "@/shared/types/domain.types";
 import Avatar from "@/shared/ui/avatar";
 import EmojiImage from "@/shared/ui/emoji-image";
 import Icon from "@/shared/ui/icon";
+import MobileEditorDialog from "@/shared/ui/mobile-editor-dialog";
 
 interface PropsType {
   showHeading?: boolean;
@@ -25,6 +26,7 @@ const StepMembers = ({ showHeading = true, onEditorOpenChange }: PropsType) => {
   const { control } = useFormContext<CreateGroupFormValues>();
   const { fields, append, remove } = useFieldArray({ control, name: "members", keyName: "_key" });
   const [addingNew, setAddingNew] = useState(false);
+  const addPersonButtonRef = useRef<HTMLButtonElement>(null);
 
   const selectedPersonIds = new Set(
     fields.map((f) => f.personId).filter((id): id is string => Boolean(id)),
@@ -44,8 +46,7 @@ const StepMembers = ({ showHeading = true, onEditorOpenChange }: PropsType) => {
 
   const handleAddNew = (values: PersonEditorValues) => {
     append({ name: values.name, icon: values.icon });
-    setAddingNew(false);
-    onEditorOpenChange?.(false);
+    handleCancelEditor();
   };
 
   const handleOpenEditor = () => {
@@ -56,6 +57,7 @@ const StepMembers = ({ showHeading = true, onEditorOpenChange }: PropsType) => {
   const handleCancelEditor = () => {
     setAddingNew(false);
     onEditorOpenChange?.(false);
+    requestAnimationFrame(() => addPersonButtonRef.current?.focus());
   };
 
   const memberList = (
@@ -111,17 +113,12 @@ const StepMembers = ({ showHeading = true, onEditorOpenChange }: PropsType) => {
     </div>
   );
 
-  const editor = addingNew ? (
-    <PersonEditor
-      existingNames={existingNames}
-      onSave={handleAddNew}
-      onCancel={handleCancelEditor}
-      submitLabel="Add person"
-    />
-  ) : (
+  const addPersonButton = (
     <button
+      ref={addPersonButtonRef}
       type="button"
       onClick={handleOpenEditor}
+      aria-haspopup="dialog"
       className="flex w-full items-center gap-3 rounded-2xl border border-dashed border-[var(--brand)] bg-[var(--brand-soft)] px-4 py-2.5 text-left text-[var(--brand-ink)] transition-colors hover:border-[var(--brand-ink)] hover:bg-[var(--surface)]"
     >
       <span
@@ -146,14 +143,25 @@ const StepMembers = ({ showHeading = true, onEditorOpenChange }: PropsType) => {
         <>
           {memberList}
           {friendPicker}
-          {editor}
+          {addPersonButton}
         </>
       ) : (
         <>
-          {editor}
+          {addPersonButton}
           {friendPicker}
           {memberList}
         </>
+      )}
+      {addingNew && (
+        <MobileEditorDialog title="Add a person" onCancel={handleCancelEditor}>
+          <PersonEditor
+            existingNames={existingNames}
+            onSave={handleAddNew}
+            onCancel={handleCancelEditor}
+            submitLabel="Add person"
+            inDialog
+          />
+        </MobileEditorDialog>
       )}
     </div>
   );

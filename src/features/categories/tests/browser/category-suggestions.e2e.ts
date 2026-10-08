@@ -115,11 +115,14 @@ test("selecting a suggestion in a new group writes nothing until the final submi
   await page.getByRole("button", { name: "Save and Proceed" }).click();
   await page.getByRole("button", { name: "Save and Proceed" }).click();
   await page.getByRole("button", { name: "Add new category" }).click();
-  await page.getByLabel("Category name").fill("fuel");
-  await page
+  const dialog = page.getByRole("dialog", { name: "Add category" });
+  await expect(dialog).toBeVisible();
+  await dialog.getByLabel("Category name").fill("fuel");
+  await dialog
     .getByLabel("category suggestions from other groups")
     .getByRole("button", { name: /Expense_of_fuel/u })
     .click();
+  await expect(dialog).toHaveCount(0);
   await expect(page.getByRole("button", { name: /Expense_of_fuel/u })).toHaveAttribute(
     "aria-pressed",
     "true",
@@ -158,11 +161,14 @@ test("onboarding keeps a suggested category in the draft until Save and Proceed"
   });
   await page.goto("/onboarding/setup");
   await page.getByRole("button", { name: "Add new category" }).click();
-  await page.getByLabel("Category name").fill("fuel");
-  await page
+  const dialog = page.getByRole("dialog", { name: "Add category" });
+  await expect(dialog).toBeVisible();
+  await dialog.getByLabel("Category name").fill("fuel");
+  await dialog
     .getByLabel("category suggestions from other groups")
     .getByRole("button", { name: /Expense_of_fuel/u })
     .click();
+  await expect(dialog).toHaveCount(0);
   await expect(page.getByRole("button", { name: /Expense_of_fuel/u })).toHaveAttribute(
     "aria-pressed",
     "true",
@@ -180,4 +186,85 @@ test("onboarding keeps a suggested category in the draft until Save and Proceed"
     return db.categories.where("groupId").equals("current").toArray();
   });
   expect(after).toContainEqual(expect.objectContaining({ name: "Expense_of_fuel", icon: "⛽" }));
+});
+
+test("onboarding category modal validates additions and dismisses without losing the selection", async ({
+  page,
+}) => {
+  await page.evaluate(async () => {
+    const path = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;
+    const onboarding: OnboardingSettings = {
+      id: "onboarding",
+      complete: false,
+      lastCompletedStep: "currency",
+      groupId: "current",
+    };
+    await db.settings.put(onboarding);
+  });
+  await page.goto("/onboarding/setup");
+  const addCategory = page.getByRole("button", { name: "Add new category" });
+  const dialog = page.getByRole("dialog", { name: "Add category" });
+  await addCategory.click();
+  const name = dialog.getByLabel("Category name");
+  await expect(name).toBeFocused();
+  await name.fill("   ");
+  await dialog.getByRole("button", { name: "Add category", exact: true }).click();
+  await expect(dialog.getByText("Category name is required")).toBeVisible();
+  await name.fill(" food ");
+  await dialog.getByRole("button", { name: "Add category", exact: true }).click();
+  await expect(dialog.getByText("Category already exists")).toBeVisible();
+  await name.fill("Coffee runs");
+  await dialog.getByRole("button", { name: "Add category", exact: true }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Coffee runs", exact: true })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await expect(addCategory).toBeFocused();
+  await addCategory.click();
+  await name.fill("Not saved");
+  await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(addCategory).toBeFocused();
+  await expect(page.getByRole("button", { name: "Not saved", exact: true })).toHaveCount(0);
+  await addCategory.click();
+  await expect(name).toBeEmpty();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+  await expect(addCategory).toBeFocused();
+  await expect(page.getByRole("button", { name: "Coffee runs", exact: true })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  const savedNames = await page.evaluate(async () => {
+    const path = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;
+    return (await db.categories.toArray()).map((category) => category.name);
+  });
+  expect(savedNames).not.toContain("Coffee runs");
+  expect(savedNames).not.toContain("Not saved");
+});
+
+test("new-group category modal cancels without changing the draft or writing a group", async ({
+  page,
+}) => {
+  await page.goto("/groups/new");
+  await page.getByPlaceholder("e.g. Goa Trip, Flatmates, Family").fill("New Group");
+  await page.getByRole("button", { name: "Save and Proceed" }).click();
+  await page.getByRole("button", { name: "Save and Proceed" }).click();
+  const addCategory = page.getByRole("button", { name: "Add new category" });
+  await addCategory.click();
+  const dialog = page.getByRole("dialog", { name: "Add category" });
+  await dialog.getByLabel("Category name").fill("Not saved");
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+  await expect(addCategory).toBeFocused();
+  await expect(page.getByRole("button", { name: "Not saved", exact: true })).toHaveCount(0);
+  const persisted = await page.evaluate(async () => {
+    const path = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;
+    return { groups: await db.groups.count(), categories: await db.categories.count() };
+  });
+  expect(persisted).toEqual({ groups: 3, categories: 4 });
 });

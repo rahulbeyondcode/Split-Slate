@@ -1,4 +1,5 @@
-import { ArrowLeft, ArrowRight, RotateCcw, Upload } from "lucide-react";
+import { ArrowLeft, ArrowRight, LockKeyhole, RotateCcw, Upload } from "lucide-react";
+import type { SyntheticEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -79,7 +80,13 @@ const RestoreBackup = () => {
     setSnapshot(null);
     setError("");
   };
-  const handleBack = () => navigate(-1);
+  const handleDialogCancel = (event: SyntheticEvent<HTMLDialogElement>) => {
+    if (restoring) event.preventDefault();
+    else handleCancel();
+  };
+  const handleDialogClose = () => {
+    if (!restoring) setSnapshot(null);
+  };
   const handleRestore = async () => {
     if (!snapshot || remaining > 0 || restoring) return;
     setRestoring(true);
@@ -97,113 +104,136 @@ const RestoreBackup = () => {
   };
 
   return (
-    <main className="page page-narrow flex flex-col gap-6">
-      <button type="button" onClick={handleBack} className="page-back-link">
-        <Icon icon={ArrowLeft} size={18} /> Back
-      </button>
-      <header>
-        <p className="eyebrow mb-2">WHOLE-APP BACKUP</p>
-        <h1 className="page-title">Restore SplitSlate</h1>
-        <p className="soft-caption mt-2">
-          Bring back your groups, contacts, expenses, receipts, and settings from one saved file.
-        </p>
-      </header>
-      <label className="import-file-picker surface">
-        <span className="import-file-icon" aria-hidden="true">
-          <Icon icon={Upload} size={28} />
-        </span>
-        <span className="import-file-title">Choose your app backup</span>
-        <span className="soft-caption">
-          Look for split-slate-backup-YYYY-MM-DD.zip (unless you renamed it).
-        </span>
-        <input
-          type="file"
-          accept=".zip,application/zip"
-          onChange={handleFile}
-          disabled={loading || restoring}
-          className="sr-only"
-        />
-      </label>
-      {loading && <p role="status">Validating backup…</p>}
-      {error && !snapshot && (
-        <StatusBanner variant="error">
-          <p className="status-banner-title font-bold">We couldn't use this file</p>
-          <p className="mt-1">{error}</p>
-          {groupFile && (
-            <Link to="/import" className="btn btn-secondary status-banner-action mt-3">
-              Go to Import group <Icon icon={ArrowRight} size={16} />
-            </Link>
-          )}
-        </StatusBanner>
-      )}
-      <StatusBanner variant="warning">
-        This backup ZIP is not encrypted. Keep it private and don't edit its contents.
-      </StatusBanner>
-      <dialog
-        ref={dialogRef}
-        aria-labelledby="restore-title"
-        aria-describedby="restore-description"
-        onCancel={(event) => {
-          if (restoring) event.preventDefault();
-          else handleCancel();
-        }}
-        onClose={() => {
-          if (!restoring) setSnapshot(null);
-        }}
-        className="m-auto w-[calc(100%-32px)] max-w-lg rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-6 text-[var(--ink)] shadow-2xl backdrop:bg-black/60"
-      >
-        <div className="flex flex-col gap-4">
-          <span className="text-[var(--negative)]">
-            <Icon icon={RotateCcw} size={28} />
-          </span>
-          <h2 id="restore-title" className="section-title">
-            Replace all SplitSlate data?
-          </h2>
-          <p id="restore-description" className="text-sm leading-relaxed">
-            This will permanently remove your current SplitSlate data on this browser and replace it
-            with the validated backup. It cannot be undone. Save a backup of the current data first
-            if you might need it.
-          </p>
-          {snapshot && (
-            <div className="rounded-2xl bg-[var(--surface-soft)] p-4 text-sm">
-              <p className="font-semibold">Backup for {snapshot.data.localUser[0].name}</p>
-              <p className="mt-1">
-                {snapshot.data.groups.length} groups · {snapshot.data.people.length} contacts ·{" "}
-                {snapshot.data.expenses.length} expenses · {snapshot.data.attachments.length}{" "}
-                receipts
-              </p>
-            </div>
-          )}
-          {remaining > 0 && (
-            <p role="status" className="soft-caption">
-              Review this warning. Restore available in{" "}
-              <strong className="tabular font-extrabold text-[var(--ink)]">
-                {remaining} {remaining === 1 ? "second" : "seconds"}
-              </strong>
-              .
-            </p>
-          )}
-          {error && <StatusBanner variant="error">{error}</StatusBanner>}
-          <div className="flex flex-wrap justify-end gap-2">
-            <button
-              type="button"
-              className="btn btn-secondary"
-              disabled={restoring}
-              onClick={handleCancel}
-            >
-              Keep current data
-            </button>
-            <button
-              type="button"
-              className="btn btn-danger"
-              disabled={remaining > 0 || restoring}
-              onClick={handleRestore}
-            >
-              {restoring ? "Restoring…" : "Replace and restore"}
-            </button>
-          </div>
+    <main className="import-layout import-layout--restore">
+      <aside className="import-panel" aria-label="About app restore">
+        <div className="intro-brand">
+          <span className="intro-brand-mark" aria-hidden="true" />
+          <span>SplitSlate</span>
         </div>
-      </dialog>
+        <div className="import-panel-story">
+          <div className="import-panel-icon" aria-hidden="true">
+            <Icon icon={RotateCcw} size={54} />
+          </div>
+          <p className="import-panel-eyebrow">YOUR SAVED SNAPSHOT</p>
+          <h2>Just as you saved it.</h2>
+          <p>Bring everything back from your app backup and pick up where you left off.</p>
+        </div>
+        <p className="import-panel-footnote flex items-center gap-2">
+          <Icon icon={LockKeyhole} size={17} /> Your backup stays on this device
+        </p>
+      </aside>
+      <section className="import-main" aria-label="Restore your app">
+        <div className="import-content flex flex-col gap-6">
+          <Link to="/" className="page-back-link">
+            <Icon icon={ArrowLeft} size={18} /> Back to SplitSlate
+          </Link>
+          <header>
+            <p className="eyebrow mb-2">WHOLE-APP BACKUP</p>
+            <h1 className="page-title">Restore SplitSlate</h1>
+            <p className="soft-caption mt-2">
+              Bring back your groups, contacts, expenses, receipts, and settings from one saved
+              file.
+            </p>
+          </header>
+          <label className="import-file-picker surface">
+            <span className="import-file-icon" aria-hidden="true">
+              <Icon icon={Upload} size={28} />
+            </span>
+            <span className="import-file-title">Choose your app backup</span>
+            <span className="soft-caption">
+              Look for split-slate-backup-YYYY-MM-DD.zip (unless you renamed it).
+            </span>
+            <input
+              type="file"
+              accept=".zip,application/zip"
+              onChange={handleFile}
+              disabled={loading || restoring}
+              className="sr-only"
+            />
+          </label>
+          {loading && <p role="status">Validating backup…</p>}
+          {error && !snapshot && (
+            <StatusBanner variant="error">
+              <p className="status-banner-title font-bold">We couldn't use this file</p>
+              <p className="mt-1">{error}</p>
+              {groupFile && (
+                <Link to="/import" className="btn btn-secondary status-banner-action mt-3">
+                  Go to Import group <Icon icon={ArrowRight} size={16} />
+                </Link>
+              )}
+            </StatusBanner>
+          )}
+          <StatusBanner variant="warning">
+            This backup ZIP is not encrypted. Keep it private and don't edit its contents.
+          </StatusBanner>
+          <div className="flex flex-col items-center gap-2 text-center">
+            <p className="soft-caption">Have a file or link for just one group?</p>
+            <Link to="/import" className="import-restore-link">
+              Import a group instead. <Icon icon={ArrowRight} size={16} />
+            </Link>
+          </div>
+          <dialog
+            ref={dialogRef}
+            aria-labelledby="restore-title"
+            aria-describedby="restore-description"
+            onCancel={handleDialogCancel}
+            onClose={handleDialogClose}
+            className="m-auto w-[calc(100%-32px)] max-w-lg rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-6 text-[var(--ink)] shadow-2xl backdrop:bg-black/60"
+          >
+            <div className="flex flex-col gap-4">
+              <span className="text-[var(--negative)]">
+                <Icon icon={RotateCcw} size={28} />
+              </span>
+              <h2 id="restore-title" className="section-title">
+                Replace all SplitSlate data?
+              </h2>
+              <p id="restore-description" className="text-sm leading-relaxed">
+                This will permanently remove your current SplitSlate data on this browser and
+                replace it with the validated backup. It cannot be undone. Save a backup of the
+                current data first if you might need it.
+              </p>
+              {snapshot && (
+                <div className="rounded-2xl bg-[var(--surface-soft)] p-4 text-sm">
+                  <p className="font-semibold">Backup for {snapshot.data.localUser[0].name}</p>
+                  <p className="mt-1">
+                    {snapshot.data.groups.length} groups · {snapshot.data.people.length} contacts ·{" "}
+                    {snapshot.data.expenses.length} expenses · {snapshot.data.attachments.length}{" "}
+                    receipts
+                  </p>
+                </div>
+              )}
+              {remaining > 0 && (
+                <p role="status" className="soft-caption">
+                  Review this warning. Restore available in{" "}
+                  <strong className="tabular font-extrabold text-[var(--ink)]">
+                    {remaining} {remaining === 1 ? "second" : "seconds"}
+                  </strong>
+                  .
+                </p>
+              )}
+              {error && <StatusBanner variant="error">{error}</StatusBanner>}
+              <div className="flex flex-wrap justify-end gap-2">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  disabled={restoring}
+                  onClick={handleCancel}
+                >
+                  Keep current data
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  disabled={remaining > 0 || restoring}
+                  onClick={handleRestore}
+                >
+                  {restoring ? "Restoring…" : "Replace and restore"}
+                </button>
+              </div>
+            </div>
+          </dialog>
+        </div>
+      </section>
     </main>
   );
 };

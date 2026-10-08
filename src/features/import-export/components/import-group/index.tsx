@@ -162,12 +162,12 @@ const ImportGroup = () => {
               <StatusBanner variant="warning">
                 Keep downloaded ZIP or CSV files unchanged so they can be imported.
               </StatusBanner>
-              <p className="soft-caption">
-                Have a ZIP containing all your groups?{" "}
-                <Link to="/restore" className="font-semibold text-[var(--brand-ink)]">
-                  Restore the whole app instead.
+              <div className="flex flex-col items-center gap-2 text-center">
+                <p className="soft-caption">Have a ZIP containing all your groups?</p>
+                <Link to="/restore" className="import-restore-link">
+                  Restore the whole app instead. <Icon icon={ArrowRight} size={16} />
                 </Link>
-              </p>
+              </div>
             </div>
           )}
         </div>

@@ -46,7 +46,7 @@ const CategoryEditor = ({ currentGroupId, existingNames, onAdd, onCancel }: Prop
 
   return (
     <FormProvider {...editorForm}>
-      <form onSubmit={handleSubmit} className="surface flex min-w-0 flex-col gap-5 p-4 sm:p-5">
+      <form onSubmit={handleSubmit} className="flex min-w-0 flex-col gap-5">
         <h3 className="section-title">Add a category</h3>
 
         <div className="min-w-0">

@@ -9,7 +9,7 @@ metadata:
 
 Purpose: document member management, persisted membership guards, and remaining recovery limits.
 
-Last updated: 2026-10-05
+Last updated: 2026-10-09
 
 A member is a link from a group to a person in the global directory. See [[global-people-directory]] and [[people-directory]].
 
@@ -45,6 +45,21 @@ references in one transaction; `removePerson` deletes the person and member link
 affected groups in one transaction. Failed transactions leave those records unchanged.
 
 ## Adding Members
+
+### During Onboarding and Group Creation
+
+Both setup flows share **Add another member**, which opens the themed **Add a person** modal at
+every viewport width. The existing name/icon editor renders without a second card frame inside
+the dialog; other uses of that editor keep their existing styling. The modal title and Cancel/Add
+person footer stay outside its bounded, independently scrolling name/icon body, so the actions
+remain visible on short screens. Validation stays in the modal,
+and a successful Add person appends an in-memory selection rather than writing to IndexedDB.
+Cancel/Escape leaves existing selections intact and returns focus to the opener. Onboarding's
+Save and Finish remains disabled while this editor is open. People and membership writes still
+wait for Save and Finish or the standalone final Create group submission. See [[onboarding]] and
+[[group-creation]].
+
+### After Group Creation
 
 Members can be added to a group at any time after group creation — not just during onboarding. Either pick an existing person from the directory or add a new person inline from the group-details Members screen. People already linked to the group are excluded from the picker, and the store rejects duplicate memberships defensively.
 
@@ -110,3 +125,5 @@ When a member is successfully removed, their `memberId` is also removed from the
 - [[indexeddb-schema]] — members table; expenses reference memberIds not names
 - [[expense-edit-delete]] — editing expenses to remove a member from their involvement
 - [[solo-group-support]] — a group with only the creator as a member is valid
+- [[onboarding]] — modal draft-member entry before setup completion
+- [[group-creation]] — shared modal and final-submit persistence

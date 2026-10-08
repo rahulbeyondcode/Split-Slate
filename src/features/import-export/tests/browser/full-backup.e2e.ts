@@ -232,21 +232,36 @@ test("explains the expected backup and gives guidance for the wrong ZIP", async 
   ).toBeVisible();
 });
 
-test("Back returns to the screen that opened Restore", async ({ page }) => {
+test("Back to SplitSlate returns home from every restore entry point", async ({ page }) => {
   await page.getByRole("link", { name: "Restore app backup" }).click();
   await expect(page).toHaveURL(/\/restore$/u);
-  const back = page.getByRole("button", { name: "Back", exact: true });
+  const back = page.getByRole("link", { name: "Back to SplitSlate", exact: true });
   await expect(back).toHaveClass(/page-back-link/u);
+  await expect(back).toHaveAttribute("href", "/");
   const backBox = await back.boundingBox();
   const titleBox = await page.getByRole("heading", { name: "Restore SplitSlate" }).boundingBox();
   expect(backBox!.y).toBeLessThan(titleBox!.y);
   await back.click();
-  await expect(page).toHaveURL(/\/settings$/u);
+  await expect(page).toHaveURL(/\/dashboard$/u);
 
   await page.goto("/import");
-  await page.getByRole("link", { name: "Restore the whole app instead." }).click();
-  await page.getByRole("button", { name: "Back", exact: true }).click();
-  await expect(page).toHaveURL(/\/import$/u);
+  const prompt = page.getByText("Have a ZIP containing all your groups?", { exact: true });
+  const restoreLink = page.getByRole("link", { name: "Restore the whole app instead." });
+  await expect(restoreLink).toHaveCSS("text-decoration-line", "underline");
+  const promptColor = await prompt.evaluate((element) => getComputedStyle(element).color);
+  expect(await restoreLink.evaluate((element) => getComputedStyle(element).color)).not.toBe(
+    promptColor,
+  );
+  const promptBox = (await prompt.boundingBox())!;
+  const linkBox = (await restoreLink.boundingBox())!;
+  expect(linkBox.y).toBeGreaterThanOrEqual(promptBox.y + promptBox.height);
+  expect(linkBox.x + linkBox.width / 2).toBeCloseTo(promptBox.x + promptBox.width / 2, 0);
+  await restoreLink.click();
+  await page.getByRole("link", { name: "Back to SplitSlate", exact: true }).click();
+  await expect(page).toHaveURL(/\/dashboard$/u);
+  await page.goto("/restore");
+  await page.getByRole("link", { name: "Back to SplitSlate", exact: true }).click();
+  await expect(page).toHaveURL(/\/dashboard$/u);
 
   await page.evaluate(async () => {
     const modulePath = "/src/shared/configs/db.ts";
@@ -254,7 +269,181 @@ test("Back returns to the screen that opened Restore", async ({ page }) => {
     await db.delete();
   });
   await page.goto("/onboarding");
-  await page.getByRole("link", { name: /Restore everything/u }).click();
-  await page.getByRole("button", { name: "Back", exact: true }).click();
+  await page.getByRole("button", { name: "Restore", exact: true }).click();
+  await page
+    .getByRole("dialog", { name: "Start with your saved data" })
+    .getByRole("link", { name: /^Restore your app/u })
+    .click();
+  await page.getByRole("link", { name: "Back to SplitSlate", exact: true }).click();
   await expect(page).toHaveURL(/\/onboarding$/u);
+  await page.goto("/import");
+  await expect(page.getByRole("link", { name: "Back to SplitSlate", exact: true })).toHaveAttribute(
+    "href",
+    "/",
+  );
+  await page.getByRole("link", { name: "Back to SplitSlate", exact: true }).click();
+  await expect(page).toHaveURL(/\/onboarding$/u);
+});
+
+test("keeps import branding without a stacked decorative icon on mobile", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 568 });
+  await page.goto("/import");
+  const panel = page.getByRole("complementary", { name: "About group import" });
+  await expect(panel.getByText("SplitSlate", { exact: true })).toBeVisible();
+  await expect(panel.locator(".import-panel-icon")).toBeHidden();
+  await expect(page.getByLabel("Choose your group transfer")).toHaveAttribute("type", "file");
+  await expect(page.locator(".import-file-icon")).toBeVisible();
+  await expect(page.getByText("Choose your group transfer", { exact: true })).toBeVisible();
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await expect(panel.locator(".import-panel-icon")).toBeVisible();
+});
+
+test("offers a clear group-import link from the restore page", async ({ page }) => {
+  await page.goto("/restore");
+  const prompt = page.getByText("Have a file or link for just one group?", { exact: true });
+  const importLink = page.getByRole("link", { name: "Import a group instead.", exact: true });
+  await expect(prompt).toBeVisible();
+  await expect(importLink).toHaveAttribute("href", "/import");
+  await expect(importLink).toHaveCSS("text-decoration-line", "underline");
+  const promptColor = await prompt.evaluate((element) => getComputedStyle(element).color);
+  expect(await importLink.evaluate((element) => getComputedStyle(element).color)).not.toBe(
+    promptColor,
+  );
+  const promptBox = (await prompt.boundingBox())!;
+  const linkBox = (await importLink.boundingBox())!;
+  expect(linkBox.y).toBeGreaterThanOrEqual(promptBox.y + promptBox.height);
+  expect(linkBox.x + linkBox.width / 2).toBeCloseTo(promptBox.x + promptBox.width / 2, 0);
+  await importLink.click();
+  await expect(page).toHaveURL(/\/import$/u);
+  await expect(page.getByRole("heading", { name: "Import a group", exact: true })).toBeVisible();
+});
+
+test("matches import and restore entry layouts with distinct panel colors at every width", async ({
+  page,
+}) => {
+  for (const viewport of [
+    { width: 320, height: 568 },
+    { width: 390, height: 844 },
+    { width: 900, height: 900 },
+    { width: 1280, height: 800 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.goto("/import");
+    const importPanel = page.getByRole("complementary", { name: "About group import" });
+    await expect(importPanel).toBeVisible();
+    await page.evaluate(() => document.fonts.ready);
+    const importPanelBox = (await importPanel.boundingBox())!;
+    const importColor = await importPanel.evaluate(
+      (element) => getComputedStyle(element).backgroundImage,
+    );
+    const importColumns = await page
+      .locator(".import-layout")
+      .evaluate((element) => getComputedStyle(element).gridTemplateColumns);
+    await expect(
+      page.getByRole("link", { name: "Restore the whole app instead." }),
+    ).toHaveAttribute("href", "/restore");
+    await page.goto("/restore");
+    const restorePanel = page.getByRole("complementary", { name: "About app restore" });
+    const restoreMain = page.getByRole("region", { name: "Restore your app", exact: true });
+    await expect(restorePanel.getByText("SplitSlate", { exact: true })).toBeVisible();
+    await expect(
+      restorePanel.getByRole("heading", { name: "Just as you saved it." }),
+    ).toBeVisible();
+    const restorePanelBox = (await restorePanel.boundingBox())!;
+    const restoreMainBox = (await restoreMain.boundingBox())!;
+    const restoreColor = await restorePanel.evaluate(
+      (element) => getComputedStyle(element).backgroundImage,
+    );
+    const restoreColumns = await page
+      .locator(".import-layout")
+      .evaluate((element) => getComputedStyle(element).gridTemplateColumns);
+    expect(restoreColor).not.toBe(importColor);
+    expect(restoreColor).toContain("linear-gradient");
+    expect(importColor).toContain("linear-gradient");
+    expect(restoreColumns).toBe(importColumns);
+    expect(restorePanelBox.width).toBeCloseTo(importPanelBox.width, 0);
+    if (viewport.width < 768) {
+      await expect(restorePanel.locator(".import-panel-icon")).toBeHidden();
+      expect(restoreMainBox.y).toBeGreaterThanOrEqual(restorePanelBox.y + restorePanelBox.height);
+    } else {
+      await expect(restorePanel.locator(".import-panel-icon")).toBeVisible();
+      expect(restoreMainBox.x).toBeGreaterThanOrEqual(restorePanelBox.x + restorePanelBox.width);
+      expect(restoreMainBox.y).toBeCloseTo(restorePanelBox.y, 0);
+    }
+    await expect(page.locator(".import-file-icon")).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+      viewport.width,
+    );
+  }
+});
+
+test("settings backup actions stay readable and use the app theme at every width", async ({
+  page,
+}) => {
+  for (const viewport of [
+    { width: 320, height: 568 },
+    { width: 390, height: 844 },
+    { width: 900, height: 900 },
+    { width: 1280, height: 800 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.goto("/settings");
+    const theme = page.getByRole("switch", { name: "Dark theme" });
+    if ((await theme.getAttribute("aria-checked")) === "true") await theme.click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    const actions = page.getByRole("group", { name: "App backup actions" });
+    await actions.scrollIntoViewIfNeeded();
+    const download = actions.getByRole("button", { name: "Download app backup", exact: true });
+    const restore = actions.getByRole("link", { name: "Restore app backup", exact: true });
+    const importGroup = page.getByRole("link", { name: "Import group", exact: true });
+    await expect(download).toBeVisible();
+    await expect(restore).toBeVisible();
+    await expect(download).toBeEnabled();
+    await expect(download).toHaveAttribute("aria-busy", "false");
+    await expect(download).toHaveAccessibleDescription("Save a snapshot of everything.");
+    await expect(restore).toHaveAccessibleDescription("Bring back a saved snapshot.");
+    await expect(restore).toHaveAttribute("href", "/restore");
+    await expect(importGroup).toHaveAttribute("href", "/import");
+    await expect(importGroup).toHaveAccessibleDescription("Bring a shared or saved group.");
+    const actionsBox = (await actions.boundingBox())!;
+    const downloadBox = (await download.boundingBox())!;
+    const restoreBox = (await restore.boundingBox())!;
+    for (const action of [download, restore, importGroup]) {
+      const box = (await action.boundingBox())!;
+      expect(box.x).toBeGreaterThanOrEqual(actionsBox.x);
+      expect(box.x + box.width).toBeLessThanOrEqual(actionsBox.x + actionsBox.width + 1);
+      expect(await action.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(
+        true,
+      );
+      await expect(action.locator(".settings-data-action-icon svg")).toHaveCount(1);
+    }
+    if (viewport.width < 768) {
+      expect(restoreBox.y).toBeGreaterThanOrEqual(downloadBox.y + downloadBox.height);
+      expect(downloadBox.width).toBeCloseTo(actionsBox.width, 0);
+      expect(restoreBox.width).toBeCloseTo(actionsBox.width, 0);
+    }
+    const downloadColor = await download.evaluate(
+      (element) => getComputedStyle(element).backgroundColor,
+    );
+    const restoreColor = await restore.evaluate(
+      (element) => getComputedStyle(element).backgroundColor,
+    );
+    expect(downloadColor).toBe(restoreColor);
+    const titleColor = await restore
+      .locator(".settings-data-action-title")
+      .evaluate((element) => getComputedStyle(element).color);
+    for (const action of [download, restore, importGroup]) {
+      await expect(action.locator(".settings-data-action-title")).toHaveCSS("color", titleColor);
+      await expect(action.locator(".settings-data-action-title")).toHaveCSS("font-weight", "400");
+    }
+    await page.getByRole("switch", { name: "Dark theme" }).click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    await expect(download).not.toHaveCSS("background-color", downloadColor);
+    await expect(restore).not.toHaveCSS("background-color", restoreColor);
+    await page.getByRole("switch", { name: "Dark theme" }).click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+      viewport.width,
+    );
+  }
 });

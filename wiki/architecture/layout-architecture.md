@@ -9,7 +9,7 @@ metadata:
 
 Purpose: document the implemented responsive shell and distinguish navigation stubs from working routes.
 
-Last updated: 2026-10-08
+Last updated: 2026-10-09
 
 ## Viewport States
 
@@ -92,10 +92,11 @@ Import, restore, and export surfaces use the shared `StatusBanner` component and
 styles. Errors use a red background, border, and alert icon with `role="alert"`; warnings use a
 yellow background, border, and warning icon, distinct from neutral purple informational notes.
 The tokens provide readable light- and dark-theme colors. A file opened in the wrong flow gets a
-distinct button within the error banner that opens the correct flow. The general Back control on
-the public restore route instead returns to the previous page. Standalone Import group and Restore
-screens place quiet text-and-arrow Back controls above the page title, separate from file actions.
-The import control returns to the app root; restore returns through browser history. The restore
+distinct button within the error banner that opens the correct flow. Standalone Import group and
+Restore screens both place a quiet text-and-arrow **Back to SplitSlate** link above the page title,
+separate from file actions. Both link to `/`, not browser history. The existing onboarding guard
+sends completed users to the dashboard and new/incomplete users to onboarding or resumable setup.
+The restore
 confirmation gives the remaining countdown seconds bold emphasis. See [[full-backup]],
 [[import-export]], and [[iconography]].
 

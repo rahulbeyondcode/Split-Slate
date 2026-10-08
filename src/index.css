@@ -1028,10 +1028,58 @@ input:focus-visible + .choice-chip {
   border-color: var(--warning-border);
   color: var(--warning-ink);
 }
+.settings-backup-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: 0.75rem;
+}
+.settings-data-action {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: var(--surface);
+  color: var(--ink);
+  text-align: left;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+.settings-data-action:hover:not(:disabled) {
+  border-color: var(--brand);
+  box-shadow: var(--shadow);
+}
+.settings-data-action-icon {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  border-radius: 0.875rem;
+  background: var(--surface-soft);
+  color: var(--brand-ink);
+}
+.settings-data-action-title {
+  display: block;
+  font-size: 0.9375rem;
+  font-weight: 400;
+  line-height: 1.4;
+}
+.settings-data-action .soft-caption {
+  display: block;
+  margin-top: 0.25rem;
+}
 .import-layout {
+  --transfer-panel-gradient: linear-gradient(155deg, #28696a 0%, #1e5a60 60%, #17494f 100%);
   display: grid;
   grid-template-columns: 44% minmax(0, 1fr);
   min-height: 100svh;
+}
+.import-layout--restore {
+  --transfer-panel-gradient: linear-gradient(155deg, #3b5b84 0%, #304d77 60%, #243c60 100%);
 }
 .import-panel {
   position: sticky;
@@ -1043,7 +1091,7 @@ input:focus-visible + .choice-chip {
   height: 100svh;
   overflow: hidden;
   padding: 1.875rem clamp(1.75rem, 3.8vw, 3.375rem) 1.75rem;
-  background: linear-gradient(155deg, #a188d7 0%, #8065c6 54%, #7256be 100%);
+  background: var(--transfer-panel-gradient);
   color: #fff;
 }
 .import-panel::before,
@@ -1176,6 +1224,20 @@ input:focus-visible + .choice-chip {
   font-size: 1.25rem;
   font-weight: 800;
 }
+.import-restore-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: var(--brand-ink);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.55;
+  text-decoration: underline;
+  text-underline-offset: 0.1875rem;
+}
+.import-restore-link:hover {
+  text-decoration-thickness: 2px;
+}
 .import-loading {
   text-align: center;
 }
@@ -1226,11 +1288,7 @@ input:focus-visible + .choice-chip {
     align-self: end;
   }
   .import-panel-icon {
-    width: 2.875rem;
-    height: 2.875rem;
-    margin-bottom: 0.625rem;
-    border-radius: 0.9375rem;
-    font-size: 1.5625rem;
+    display: none;
   }
   .import-panel-eyebrow,
   .import-panel-footnote {
@@ -1336,6 +1394,9 @@ input:focus-visible + .choice-chip {
 }
 .intro-skip:hover {
   color: #fff;
+}
+.intro-skip[aria-hidden="true"] {
+  visibility: hidden;
 }
 .intro-skip span {
   margin-left: 0.25rem;
@@ -1454,13 +1515,23 @@ input:focus-visible + .choice-chip {
   padding: 3rem clamp(2rem, 6vw, 5rem) 2.5rem;
   background: var(--page);
 }
-.intro-slide {
-  display: flex;
+.intro-slides {
+  display: grid;
   flex: 1;
-  flex-direction: column;
-  justify-content: center;
-  min-height: 0;
+  grid-template-rows: repeat(3, max-content);
+  min-width: 0;
+  align-content: center;
+}
+.intro-slide {
+  display: grid;
+  grid-area: 1 / 1 / 4 / 2;
+  grid-template-rows: subgrid;
+  min-width: 0;
   padding: 1.5rem 0;
+  visibility: hidden;
+}
+.intro-slide.is-active {
+  visibility: visible;
 }
 .intro-slide .eyebrow {
   margin: 0 0 0.875rem;
@@ -1483,6 +1554,7 @@ input:focus-visible + .choice-chip {
 }
 .intro-footer {
   display: flex;
+  flex-shrink: 0;
   flex-direction: column;
   gap: 1.375rem;
 }
@@ -1517,25 +1589,54 @@ input:focus-visible + .choice-chip {
 .intro-next {
   flex: 1;
 }
-.intro-import {
-  align-self: center;
-  padding: 0.125rem;
-  border: 0;
-  background: transparent;
+.intro-restore {
+  margin: 0;
   color: var(--muted);
   font-size: 0.9375rem;
+  text-align: center;
 }
-.intro-import span {
+.intro-restore-trigger {
+  padding: 0.125rem 0.25rem;
+  border: 0;
+  background: transparent;
   color: var(--brand-ink);
   font-weight: 800;
 }
-.intro-import:hover span {
+.intro-restore-trigger:hover {
   text-decoration: underline;
+}
+.intro-restore-icon {
+  display: flex;
+  flex: none;
+  width: 2.75rem;
+  height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.875rem;
+  background: var(--brand-soft);
+  color: var(--brand-ink);
+}
+.intro-restore-option {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: var(--surface-soft);
+  transition:
+    background 150ms ease,
+    border-color 150ms ease;
+}
+.intro-restore-option:hover {
+  border-color: var(--brand);
+  background: var(--brand-soft);
 }
 @media (max-width: 767px) {
   .intro-layout {
     grid-template-columns: 1fr;
-    grid-template-rows: minmax(15rem, 42svh) minmax(0, 1fr);
+    grid-template-rows: minmax(15rem, 42svh) auto;
     min-height: 100svh;
   }
   .intro-visual {
@@ -1778,6 +1879,9 @@ input:focus-visible + .choice-chip {
   height: 100%;
   min-height: 0;
 }
+.onboarding-form-scroll {
+  display: contents;
+}
 .onboarding-header {
   padding-bottom: 1rem;
 }
@@ -1896,16 +2000,19 @@ input:focus-visible + .choice-chip {
 }
 .onboarding-actions {
   display: flex;
-  flex-wrap: wrap;
   gap: 0.625rem;
   padding-top: 1rem;
+}
+.onboarding-actions .btn-secondary {
+  flex: none;
 }
 .onboarding-actions .btn {
   min-height: 3rem;
   font-size: 1rem;
 }
 .onboarding-continue {
-  width: min(100%, 15.3125rem);
+  flex: 1;
+  min-width: 0;
 }
 .app-shell {
   display: flex;
@@ -2201,6 +2308,32 @@ body:has(.group-page-contained),
 .form-input[type="date"][data-empty="true"],
 .form-input[type="date"][data-empty="true"]::-webkit-datetime-edit {
   color: var(--muted);
+}
+.person-editor--dialog {
+  max-height: calc(90svh - 2rem - 2px);
+  overflow: hidden;
+}
+.person-editor--dialog > h3,
+.person-editor--dialog > .person-editor-actions {
+  flex: none;
+}
+.person-editor-dialog-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  gap: 1.25rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin-inline: -0.5rem;
+  padding-inline: 0.5rem;
+}
+.person-editor-dialog-body > * {
+  flex: none;
+}
+.person-editor--dialog .person-editor-actions {
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--line);
 }
 .when-picker {
   display: flex;
@@ -2619,6 +2752,39 @@ body:has(.group-page-contained),
     height: auto;
     min-height: 0;
     padding: 1.5rem;
+  }
+  .onboarding-main:has(.onboarding-step-content--currency) {
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+  }
+  .onboarding-content:has(.onboarding-step-content--currency) {
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+  .onboarding-content:has(.onboarding-step-content--currency) .onboarding-form-scroll {
+    display: block;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    margin-inline: -0.5rem;
+    padding-inline: 0.5rem;
+  }
+  .onboarding-step-content--currency {
+    overflow: visible;
+    margin-inline: 0;
+    padding-inline: 0;
+  }
+  .onboarding-step-content--currency > .currency-step,
+  .onboarding-step-content--currency .currency-list-section,
+  .onboarding-step-content--currency .currency-list {
+    flex: none;
+    min-height: auto;
+  }
+  .onboarding-step-content--currency .currency-list {
+    overflow: visible;
+  }
+  .onboarding-content:has(.onboarding-step-content--currency) .onboarding-actions {
+    border-top: 1px solid var(--line);
+    background: var(--page);
   }
   .app-main {
     height: 100svh;
@@ -3065,6 +3231,20 @@ body:has(.group-page-contained),
   .expense-split-row > div {
     position: relative;
     z-index: 1;
+  }
+}
+@media (max-width: 767px) and (max-height: 749px) {
+  .onboarding-layout:has(.onboarding-step-content--currency) .onboarding-panel {
+    gap: 0.75rem;
+    padding-block: 1rem;
+  }
+  .onboarding-layout:has(.onboarding-step-content--currency) .onboarding-story-icon,
+  .onboarding-layout:has(.onboarding-step-content--currency) .onboarding-story p {
+    display: none;
+  }
+  .onboarding-layout:has(.onboarding-step-content--currency) .onboarding-story h2 {
+    margin: 0;
+    font-size: 1.125rem;
   }
 }
 @keyframes blob-drift-one {

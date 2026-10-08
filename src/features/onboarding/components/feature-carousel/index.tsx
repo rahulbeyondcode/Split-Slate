@@ -1,8 +1,9 @@
-import { ArrowRight, ArrowUpRight, Check, LockKeyhole, Sparkles } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { ArrowUpRight, Check, LockKeyhole, Sparkles } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { slides } from "@/features/onboarding/components/feature-carousel/slide-data";
+import RestoreOptionsDialog from "@/features/onboarding/components/restore-options-dialog";
 
 import { useOrbitNotes } from "@/features/onboarding/hooks/use-orbit-notes";
 
@@ -12,6 +13,8 @@ import Icon from "@/shared/ui/icon";
 const FeatureCarousel = () => {
   const [current, setCurrent] = useState(0);
   const [loadedAnimation, setLoadedAnimation] = useState<string | null>(null);
+  const [restoreOpen, setRestoreOpen] = useState(false);
+  const restoreButtonRef = useRef<HTMLButtonElement>(null);
   const notes = useOrbitNotes();
   const navigate = useNavigate();
 
@@ -35,7 +38,11 @@ const FeatureCarousel = () => {
   };
   const handlePrevious = () => setCurrent((index) => index - 1);
   const handleSkip = () => navigate("/onboarding/setup");
-  const handleImport = () => navigate("/import");
+  const handleOpenRestore = () => setRestoreOpen(true);
+  const handleCloseRestore = () => {
+    setRestoreOpen(false);
+    requestAnimationFrame(() => restoreButtonRef.current?.focus());
+  };
 
   return (
     <main className="intro-layout">
@@ -45,11 +52,16 @@ const FeatureCarousel = () => {
             <span className="intro-brand-mark" aria-hidden="true" />
             <span>SplitSlate</span>
           </div>
-          {!isLast && (
-            <button type="button" onClick={handleSkip} className="intro-skip">
-              Skip intro <Icon icon={ArrowUpRight} size={17} />
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={handleSkip}
+            className="intro-skip"
+            disabled={isLast}
+            aria-hidden={isLast}
+            inert={isLast}
+          >
+            Skip intro <Icon icon={ArrowUpRight} size={17} />
+          </button>
         </div>
 
         <div className="intro-visual-content">
@@ -88,10 +100,19 @@ const FeatureCarousel = () => {
       </section>
 
       <section className="intro-panel" aria-label="Introduction">
-        <div className="intro-slide" key={current}>
-          <p className="eyebrow">Discover SplitSlate · {String(current + 1).padStart(2, "0")}</p>
-          <h1>{slide.title}</h1>
-          <p className="intro-description">{slide.description}</p>
+        <div className="intro-slides" aria-live="polite" aria-atomic="true">
+          {slides.map((item, index) => (
+            <div
+              key={item.title}
+              className={index === current ? "intro-slide is-active" : "intro-slide"}
+              aria-hidden={index !== current}
+              inert={index !== current}
+            >
+              <p className="eyebrow">Discover SplitSlate · {String(index + 1).padStart(2, "0")}</p>
+              <h1>{item.title}</h1>
+              <p className="intro-description">{item.description}</p>
+            </div>
+          ))}
         </div>
 
         <div className="intro-footer">
@@ -117,17 +138,21 @@ const FeatureCarousel = () => {
               {isLast ? "Get started" : "Next"}
             </button>
           </div>
-          <button type="button" onClick={handleImport} className="intro-import">
-            Already have a group?{" "}
-            <span>
-              Import it instead <Icon icon={ArrowRight} size={16} />
-            </span>
-          </button>
-          <Link to="/restore" className="intro-import">
-            Have a whole-app backup? <span>Restore everything</span>
-          </Link>
+          <p className="intro-restore">
+            Have a backup?{" "}
+            <button
+              ref={restoreButtonRef}
+              type="button"
+              onClick={handleOpenRestore}
+              className="intro-restore-trigger"
+              aria-haspopup="dialog"
+            >
+              Restore
+            </button>
+          </p>
         </div>
       </section>
+      {restoreOpen && <RestoreOptionsDialog onCancel={handleCloseRestore} />}
     </main>
   );
 };

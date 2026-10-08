@@ -2,11 +2,33 @@
 
 Reverse-chronological record of all wiki changes.
 
-Last updated: 2026-10-08
+Last updated: 2026-10-09
 
 ---
 
+## 2026-10-09
+- UPDATED decisions/full-backup.md — document matching neutral Settings transfer/backup cards with regular labels and no selected-state emphasis
+- UPDATED wiki/index.md — reflect neutral Settings action styling
+- UPDATED decisions/full-backup.md — document responsive themed Settings backup/restore action cards and preserved download progress behavior
+- UPDATED wiki/index.md — reflect Settings backup action presentation
+- UPDATED workflows/member-management.md — document bounded setup person-editor scrolling with a visible title and action footer
+- UPDATED wiki/index.md — reflect visible actions in setup person modals
+- UPDATED workflows/onboarding.md — document modal person drafts, preserved selections, and the existing Save and Finish guard
+- UPDATED workflows/member-management.md — distinguish all-width setup person modals from post-creation member management
+- UPDATED wiki/index.md — reflect modal draft-person entry in onboarding and member navigation
+- UPDATED architecture/layout-architecture.md — make Import and Restore Back to SplitSlate links share guarded-home navigation instead of browser history
+- UPDATED wiki/index.md — reflect consistent import/restore home navigation
+- UPDATED decisions/full-backup.md — document shared responsive entry-page layouts and distinct teal/slate-blue panels without changing app colors or restore behavior
+- UPDATED wiki/index.md — reflect the shared import/restore entry-page presentation
+- UPDATED workflows/onboarding.md — document one mobile currency-form scroller, visible actions, and a compact decorative header below 750px
+- UPDATED wiki/index.md — reflect mobile currency-form layout in onboarding navigation
+
 ## 2026-10-08
+- UPDATED workflows/onboarding.md — document modal category drafts with Cancel/Escape and focus return
+- UPDATED workflows/category-management.md — document shared onboarding/new-group category modals and correct the stale desktop inline-editor claim
+- UPDATED wiki/index.md — reflect modal category entry in onboarding and category-management navigation
+- UPDATED workflows/onboarding.md — document the themed restore chooser, shared text space, and full-width first Next action
+- UPDATED wiki/index.md — reflect the onboarding restore entry point and stable carousel layout
 - UPDATED architecture/layout-architecture.md — document bounded narrow-mobile root scaling, rem conversion invariants, preserved sizing exceptions, and baseline-only scroll verification
 - UPDATED workflows/filtering.md — record conditional payment-timeline merging that preserves selected non-date expense sorts
 - UPDATED decisions/testing-strategy.md — distinguish the repaired passing baseline from unverified post-scaling browser/device behavior

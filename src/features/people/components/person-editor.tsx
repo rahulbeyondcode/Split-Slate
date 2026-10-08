@@ -14,6 +14,7 @@ interface PropsType {
   onCancel: () => void;
   initial?: PersonEditorValues;
   submitLabel?: string;
+  inDialog?: boolean;
 }
 
 const PersonEditor = ({
@@ -22,6 +23,7 @@ const PersonEditor = ({
   onCancel,
   initial,
   submitLabel = "Save",
+  inDialog = false,
 }: PropsType) => {
   const methods = useForm<PersonEditorValues>({
     resolver: zodResolver(createPersonSchema(existingNames)),
@@ -35,28 +37,33 @@ const PersonEditor = ({
 
   return (
     <FormProvider {...methods}>
-      <form onSubmit={handleSave} className="surface flex min-w-0 flex-col gap-5 p-4 sm:p-5">
+      <form
+        onSubmit={handleSave}
+        className={`flex min-w-0 flex-col gap-5 ${inDialog ? "person-editor--dialog" : "surface p-4 sm:p-5"}`}
+      >
         <h3 className="section-title">{initial ? "Edit person" : "Add a person"}</h3>
 
-        <div className="min-w-0">
-          <label className="field-label" htmlFor="person-name">
-            Name
-          </label>
-          <Input
-            id="person-name"
-            name="name"
-            placeholder="e.g. Karan"
-            wrapperClass="w-full"
-            autoFocus
-          />
+        <div className={inDialog ? "person-editor-dialog-body" : "flex min-w-0 flex-col gap-5"}>
+          <div className="min-w-0">
+            <label className="field-label" htmlFor="person-name">
+              Name
+            </label>
+            <Input
+              id="person-name"
+              name="name"
+              placeholder="e.g. Karan"
+              wrapperClass="w-full"
+              autoFocus
+            />
+          </div>
+
+          <div className="min-w-0">
+            <span className="field-label">Choose an icon</span>
+            <EmojiPicker name="icon" kind="profile" emojis={PERSON_EMOJIS} />
+          </div>
         </div>
 
-        <div className="min-w-0">
-          <span className="field-label">Choose an icon</span>
-          <EmojiPicker name="icon" kind="profile" emojis={PERSON_EMOJIS} />
-        </div>
-
-        <div className="flex flex-wrap gap-2 justify-end">
+        <div className="person-editor-actions flex flex-wrap gap-2 justify-end">
           <button type="button" onClick={onCancel} className="btn btn-secondary">
             Cancel
           </button>

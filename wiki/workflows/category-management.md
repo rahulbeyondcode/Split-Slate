@@ -9,7 +9,7 @@ metadata:
 
 Purpose: explain group-category selection, editing, guarded deletion, and pending activation UI.
 
-Last updated: 2026-10-06
+Last updated: 2026-10-08
 
 ## Implementation Status
 
@@ -89,15 +89,19 @@ After the group name/icon and currency are set, the creator is shown the master 
 - During onboarding, selected categories are instantiated when **Save and Proceed** is pressed. In
   the standalone create-group flow, all selected categories are written sequentially after the
   final **Create group** submission.
+- Both flows open **Add new category** in the shared name/icon modal at every width. Validation
+  and cross-group suggestions stay inside the dialog. Add or a suggestion adds a selected draft
+  category and closes the dialog; Cancel/Escape changes neither the draft nor IndexedDB. Closing
+  returns focus to Add new category.
 
 ---
 
 ## Adding Categories After Group Creation
 
 The group **Categories & Tags** screen can currently add a custom category through a name field
-followed by a wrapping image picker, matching the stacked onboarding category editor. The same
-fields support editing the name and icon; on mobile these forms open in a modal, while tablet and
-desktop retain inline editing. Deletion remains subject to the rules below. The former
+followed by a wrapping image picker, matching the onboarding category modal. The same fields
+support editing the name and icon; these forms open in a modal at every width, not inline.
+Deletion remains subject to the rules below. The former
 side-by-side layout squeezed the name input beside the full emoji grid in narrow columns. Choosing
 an unselected entry from the master list after group creation is not currently exposed as a
 separate UI.

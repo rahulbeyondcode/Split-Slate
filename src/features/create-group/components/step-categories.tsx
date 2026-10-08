@@ -1,5 +1,5 @@
 import { Plus } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useController } from "react-hook-form";
 
 import CategoryEditor from "@/features/create-group/components/category-editor";
@@ -9,6 +9,7 @@ import type { CreateGroupFormValues } from "@/features/create-group/helpers/sche
 
 import EmojiImage from "@/shared/ui/emoji-image";
 import Icon from "@/shared/ui/icon";
+import MobileEditorDialog from "@/shared/ui/mobile-editor-dialog";
 
 type Chip = { name: string; icon: string };
 
@@ -26,6 +27,7 @@ const StepCategories = ({ showHeading = true, currentGroupId }: PropsType) => {
   );
   const selectedCategories = categoriesField.value;
   const [addingNewCategory, setAddingNewCategory] = useState(false);
+  const addCategoryButtonRef = useRef<HTMLButtonElement>(null);
 
   const selectedNames = selectedCategories.map((category) => category.name);
   const isMaster = (name: string) => masterCategories.some((master) => master.name === name);
@@ -42,9 +44,14 @@ const StepCategories = ({ showHeading = true, currentGroupId }: PropsType) => {
     }
   };
 
+  const handleOpenCategory = () => setAddingNewCategory(true);
+  const handleCloseCategory = () => {
+    setAddingNewCategory(false);
+    requestAnimationFrame(() => addCategoryButtonRef.current?.focus());
+  };
   const handleAddCategory = (name: string, icon: string) => {
     categoriesField.onChange([...selectedCategories, { name, icon }]);
-    setAddingNewCategory(false);
+    handleCloseCategory();
   };
 
   return (
@@ -77,21 +84,24 @@ const StepCategories = ({ showHeading = true, currentGroupId }: PropsType) => {
         })}
       </div>
 
-      {addingNewCategory ? (
-        <CategoryEditor
-          currentGroupId={currentGroupId}
-          existingNames={visibleChips.map((chip) => chip.name)}
-          onAdd={handleAddCategory}
-          onCancel={() => setAddingNewCategory(false)}
-        />
-      ) : (
-        <button
-          type="button"
-          onClick={() => setAddingNewCategory(true)}
-          className="btn btn-quiet self-start"
-        >
-          <Icon icon={Plus} size={18} /> Add new category
-        </button>
+      <button
+        ref={addCategoryButtonRef}
+        type="button"
+        onClick={handleOpenCategory}
+        className="btn btn-quiet self-start"
+        aria-haspopup="dialog"
+      >
+        <Icon icon={Plus} size={18} /> Add new category
+      </button>
+      {addingNewCategory && (
+        <MobileEditorDialog title="Add category" onCancel={handleCloseCategory}>
+          <CategoryEditor
+            currentGroupId={currentGroupId}
+            existingNames={visibleChips.map((chip) => chip.name)}
+            onAdd={handleAddCategory}
+            onCancel={handleCloseCategory}
+          />
+        </MobileEditorDialog>
       )}
 
       <p className="text-xs">

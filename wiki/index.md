@@ -5,7 +5,7 @@ This wiki is the sole persistent compiled knowledge layer. The implementation in
 authoritative; `app-featureset-context/spec-sheet.md` is a historical baseline where later source
 and approved decisions have superseded it. Changes: [log.md](log.md)
 
-Last updated: 2026-10-08
+Last updated: 2026-10-09
 
 ---
 
@@ -27,7 +27,7 @@ Last updated: 2026-10-08
 - [Balance Calculation](architecture/balance-calculation.md) — safe payment-aware balances, expense-only spending, and deterministic suggested transfers
 - [State Management](architecture/state-management.md) — Zustand hydration and transactional expense, payment, and group mutations
 - [Split Types](architecture/split-types.md) — 5 split types with fixed-hundredths monetary allocations and exact ratios; numeric percentage-total display remains pending
-- [Layout Architecture](architecture/layout-architecture.md) — bounded 14–16px narrow-mobile root scaling, baseline-verified form scrolling, and ten-row desktop/tablet ledger
+- [Layout Architecture](architecture/layout-architecture.md) — bounded narrow-mobile scaling, app scroll boundaries, and guarded-home import/restore navigation
 
 ### Decisions
 - [Global People Directory](decisions/global-people-directory.md) — shared device-local people identities versus group-owned category labels; supersedes per-group members
@@ -35,7 +35,7 @@ Last updated: 2026-10-08
 - [Solo Group Support](decisions/solo-group-support.md) — single-member groups work; onboarding story names the solo path, while the shared member-step helper remains generic
 - [Onboarding Persistence](decisions/onboarding-persistence.md) — resumable per-step standard setup plus atomic import-specific completion for fresh devices
 - [Import / Export Design](decisions/import-export.md) — version 2 Link/CSV/ZIP includes payments; auto-scrolled questionnaire and one-click link copy, with version 1 imports supported
-- [Whole-App Backup and Restore](decisions/full-backup.md) — ZIP includes payments and activity history, nullable post-deletion onboarding group, and replace-only recovery
+- [Whole-App Backup and Restore](decisions/full-backup.md) — matching neutral Settings action cards, distinct public entry panels, full ZIP snapshots, and replace-only recovery
 - [Expense Edit and Delete](decisions/expense-edit-delete.md) — full editor, modal-confirmed deletion, and immediate reference-only category/tag changes without rebuilding splits
 - [Group Deletion](decisions/group-deletion.md) — atomic owned-data and activity cascade retains only group-created/deleted entries and shared contacts
 - [Money Representation and Rounding](decisions/money-representation-and-rounding.md) — implemented fixed hundredths for every currency, exact allocation, and confirmed no-conversion relabeling
@@ -54,13 +54,13 @@ Last updated: 2026-10-08
 
 ### Workflows
 - [Development Tools](workflows/development-tools.md) — typed realistic presets, randomized onboarding contacts, individual creation buttons, and persistence boundaries
-- [Onboarding](workflows/onboarding.md) — resumable setup with category suggestions plus Link/CSV/ZIP first-launch import
+- [Onboarding](workflows/onboarding.md) — stable intro rows, themed restore chooser, modal category/person drafts, and mobile currency-form scrolling
 - [Group Creation](workflows/group-creation.md) — standalone 4-step flow, cross-group category suggestions, and sequential save after final submission
 - [Main Screen](workflows/main-screen.md) — tablet-stacked previews, counted Recent transactions, and baseline-verified mobile form scrolling; root-scaling validation pending
 - [Paid-By](workflows/paid-by.md) — implemented frequent-payer selection, atomic ranking updates, recent-payer defaults, and multi-payer entry
 - [People Directory](workflows/people-directory.md) — shared contacts with expense/payment-aware deletion guards; mobile route lacks an in-app entry point
-- [Member Management](workflows/member-management.md) — one-click add, mobile modals, and expense/payment-aware removal guards
-- [Category Management](workflows/category-management.md) — category CRUD via all-width modal, tablet-stacked cards, and blocked-delete usage counts; deactivation pending
+- [Member Management](workflows/member-management.md) — setup person-draft modals with visible actions, directory linking, and expense/payment-aware removal guards
+- [Category Management](workflows/category-management.md) — all-width management and setup modals, draft-only category entry, and guarded deletion; deactivation pending
 - [Tag Management](workflows/tag-management.md) — group-scoped tags, all-width Add/Edit modal, tablet-stacked cards, and transactional cleanup
 - [Filtering](workflows/filtering.md) — URL-backed filtering, sticky toolbar, ten-row ledger, and payment-timeline merge that preserves non-date expense sorts
 - [Dashboard](workflows/dashboard.md) — group summaries, pruned deletion activity, and exact-name app-wide versus group-scoped category analytics

@@ -1,6 +1,7 @@
 import {
   ChevronRight,
   Download,
+  LoaderCircle,
   LockKeyhole,
   MoonStar,
   Pencil,
@@ -130,13 +131,26 @@ const AppSettings = () => {
       <OfflineIcons />
       <section>
         <p className="eyebrow mb-2">Group transfer</p>
-        <Surface className="surface-pad flex flex-col items-start gap-3">
+        <Surface className="surface-pad flex flex-col gap-3">
           <p className="soft-caption">
             Import a group from a Split Slate Link, CSV, or ZIP without replacing your existing
             groups.
           </p>
-          <Link to="/import" className="btn btn-secondary">
-            <Icon icon={Upload} size={18} /> Import group
+          <Link
+            to="/import"
+            className="settings-data-action"
+            aria-label="Import group"
+            aria-describedby="import-group-description"
+          >
+            <span className="settings-data-action-icon" aria-hidden="true">
+              <Icon icon={Upload} size={24} />
+            </span>
+            <span className="min-w-0">
+              <span className="settings-data-action-title">Import group</span>
+              <span id="import-group-description" className="soft-caption">
+                Bring a shared or saved group.
+              </span>
+            </span>
           </Link>
         </Surface>
       </section>
@@ -150,17 +164,47 @@ const AppSettings = () => {
             The ZIP is not encrypted, so keep it private. Keep the downloaded file unchanged;
             editing it may prevent restore.
           </StatusBanner>
-          <div className="flex flex-wrap gap-2">
+          <div className="settings-backup-actions" role="group" aria-label="App backup actions">
             <button
               type="button"
-              className="btn btn-primary"
+              className="settings-data-action"
               disabled={backingUp}
               onClick={handleBackup}
+              aria-label={backingUp ? "Preparing app backup" : "Download app backup"}
+              aria-describedby="download-backup-description"
+              aria-busy={backingUp}
             >
-              <Icon icon={Download} size={18} /> {backingUp ? "Preparing…" : "Download app backup"}
+              <span className="settings-data-action-icon" aria-hidden="true">
+                <Icon
+                  icon={backingUp ? LoaderCircle : Download}
+                  size={24}
+                  className={backingUp ? "animate-spin" : ""}
+                />
+              </span>
+              <span className="min-w-0">
+                <span className="settings-data-action-title">
+                  {backingUp ? "Preparing…" : "Download app backup"}
+                </span>
+                <span id="download-backup-description" className="soft-caption">
+                  Save a snapshot of everything.
+                </span>
+              </span>
             </button>
-            <Link to="/restore" className="btn btn-secondary">
-              <Icon icon={RotateCcw} size={18} /> Restore app backup
+            <Link
+              to="/restore"
+              className="settings-data-action"
+              aria-label="Restore app backup"
+              aria-describedby="restore-backup-description"
+            >
+              <span className="settings-data-action-icon" aria-hidden="true">
+                <Icon icon={RotateCcw} size={24} />
+              </span>
+              <span className="min-w-0">
+                <span className="settings-data-action-title">Restore app backup</span>
+                <span id="restore-backup-description" className="soft-caption">
+                  Bring back a saved snapshot.
+                </span>
+              </span>
             </Link>
           </div>
           {backupError && <StatusBanner variant="error">{backupError}</StatusBanner>}

@@ -9,7 +9,7 @@ metadata:
 
 Purpose: distinguish device recovery from selective, fresh-copy group transfers.
 
-Last updated: 2026-10-05
+Last updated: 2026-10-09
 
 ## Scope
 
@@ -26,6 +26,24 @@ filename to look for and keeps the replacement warning in the confirmation modal
 ZIP or CSV shows an **Import group** link, while an unrelated or damaged file shows a clear error
 and the expected backup filename. Full-app backup is ZIP-only, not CSV. The download, picker, and
 import guidance tell users not to modify the generated file: integrity checks reject changed data.
+
+## Entry-Page Presentation
+
+Group import and whole-app restore share the same two-column entry layout: a branded story panel
+on the left at tablet/desktop widths and a compact panel above the file chooser on mobile. The
+decorative story icon is hidden on mobile so it does not stack below the SplitSlate brand; the
+file chooser keeps its upload icon. Group import uses a muted teal gradient and app restore uses
+slate blue at every viewport width. These public entry pages intentionally differ from the app's
+purple branding; in-app and onboarding colors are unchanged. See [[import-export]] and [[onboarding]].
+
+This is presentation only: restore retains its existing validation, replacement confirmation,
+countdown, and transactional recovery behavior.
+
+In Settings, Import group, Download app backup, and Restore app backup use matching neutral
+action cards with regular-weight labels and short descriptions; no card has selected-state fill
+or an accented label. Download retains its disabled, spinning Preparing state; Restore remains
+a link to the public recovery page. The backup cards stack when available space is narrow and
+use the app's existing light/dark theme tokens, not the entry-panel gradients.
 
 ## Restore Boundary
 

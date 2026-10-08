@@ -284,29 +284,36 @@ const SetupFlow = () => {
 
         <section className="onboarding-main" aria-label={`${presentation.label} setup`}>
           <div className="onboarding-content">
-            <header className="onboarding-header">
-              <p className="eyebrow onboarding-step-count">
-                Step {currentIndex + 1} of {SETUP_STEPS.length}
-              </p>
-              <h1>{presentation.formTitle}</h1>
-              <p className="onboarding-form-description">{presentation.formDescription}</p>
-            </header>
             <div
-              className={`onboarding-step-content ${onboardingStep === "currency" ? "onboarding-step-content--currency" : ""} ${onboardingStep === "members" ? "onboarding-step-content--members" : ""}`}
+              className="onboarding-form-scroll"
               key={onboardingStep}
+              role={onboardingStep === "currency" ? "region" : undefined}
+              aria-label={onboardingStep === "currency" ? "Currency options" : undefined}
+              tabIndex={onboardingStep === "currency" ? 0 : undefined}
             >
-              {onboardingStep === "identity" && <StepIdentity />}
-              {onboardingStep === "group" && <StepGroup showHeading={false} />}
-              {onboardingStep === "currency" && <StepCurrency showHeading={false} />}
-              {onboardingStep === "categories" && (
-                <StepCategories
-                  showHeading={false}
-                  currentGroupId={onboardingGroupId ?? undefined}
-                />
-              )}
-              {onboardingStep === "members" && (
-                <StepMembers showHeading={false} onEditorOpenChange={setMemberEditorOpen} />
-              )}
+              <header className="onboarding-header">
+                <p className="eyebrow onboarding-step-count">
+                  Step {currentIndex + 1} of {SETUP_STEPS.length}
+                </p>
+                <h1>{presentation.formTitle}</h1>
+                <p className="onboarding-form-description">{presentation.formDescription}</p>
+              </header>
+              <div
+                className={`onboarding-step-content ${onboardingStep === "currency" ? "onboarding-step-content--currency" : ""} ${onboardingStep === "members" ? "onboarding-step-content--members" : ""}`}
+              >
+                {onboardingStep === "identity" && <StepIdentity />}
+                {onboardingStep === "group" && <StepGroup showHeading={false} />}
+                {onboardingStep === "currency" && <StepCurrency showHeading={false} />}
+                {onboardingStep === "categories" && (
+                  <StepCategories
+                    showHeading={false}
+                    currentGroupId={onboardingGroupId ?? undefined}
+                  />
+                )}
+                {onboardingStep === "members" && (
+                  <StepMembers showHeading={false} onEditorOpenChange={setMemberEditorOpen} />
+                )}
+              </div>
             </div>
 
             <div className="onboarding-actions">
