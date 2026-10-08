@@ -44,9 +44,10 @@ widths of 640px and above; at narrower mobile widths the preview is hidden, so t
 no dashboard link to app-wide Analytics. Group Overview has a category preview at every width;
 `/groups/:groupId/analytics` retains the group shell without adding a second page's top padding.
 Its rounded secondary Back button follows in-app history or falls back to the group Overview for
-direct visits. The same Back treatment is used for other text-and-arrow Back controls, including
-Balances and import/restore screens. App-wide Analytics uses the original plain Back to dashboard
-link on mobile instead.
+direct visits. Balances uses the same rounded secondary styling with its own navigation behavior.
+Import/Restore also have rounded text-and-arrow controls, but link to guarded home (`/`) rather
+than browser history. App-wide Analytics uses the original plain Back to dashboard link on mobile
+instead.
 All five in-group footer destinations resolve to nested group-detail routes. See [[dashboard]].
 The group-context footer is unchanged; it has no New group action. Other route-specific floating
 actions, such as Add expense and Add contact, are unaffected.
@@ -93,7 +94,7 @@ styles. Errors use a red background, border, and alert icon with `role="alert"`;
 yellow background, border, and warning icon, distinct from neutral purple informational notes.
 The tokens provide readable light- and dark-theme colors. A file opened in the wrong flow gets a
 distinct button within the error banner that opens the correct flow. Standalone Import group and
-Restore screens both place a quiet text-and-arrow **Back to SplitSlate** link above the page title,
+Restore screens both place a rounded text-and-arrow **Back to SplitSlate** link above the page title,
 separate from file actions. Both link to `/`, not browser history. The existing onboarding guard
 sends completed users to the dashboard and new/incomplete users to onboarding or resumable setup.
 The restore
@@ -101,6 +102,15 @@ confirmation gives the remaining countdown seconds bold emphasis. See [[full-bac
 [[import-export]], and [[iconography]].
 
 ---
+
+## Saved Theme Initialization
+
+`App` reads `split-slate-theme` and sets the HTML `data-theme` attribute in a layout effect before
+paint, outside the protected app shell. Direct visits and reloads of onboarding, setup, Import,
+Restore, and protected routes therefore apply the saved preference. Only `dark` selects dark
+mode; missing or other values select light mode. Settings and a successful full-backup restore
+still update both storage and the HTML attribute when the preference changes. The route-error
+screen retains its independent saved-theme initialization. See [[testing-strategy]] and [[full-backup]].
 
 ## Layout Mode Detection
 
@@ -132,8 +142,10 @@ shadows, animation offsets, and explicit SVG pixel sizes are not converted into 
 dimensions. Text wrapping and intrinsic container heights can still change with available space.
 
 A source-level comparison confirmed baseline CSS equivalence at a 16px root, excluding separately
-approved prerequisite layout fixes. The post-scaling production build passes, but visual behavior
-on physical devices and post-scaling browser-suite coverage remain unverified. See
+approved prerequisite layout fixes. The post-scaling full browser run completed with seven failures;
+all seven passed focused checks after the theme, modal-focus, and resize-assertion corrections.
+Final responsive captures confirm saved themes and no horizontal overflow. Physical-device
+behavior and a single full-suite run after those corrections remain unverified. See
 [[testing-strategy]] and [[main-screen]].
 
 ---

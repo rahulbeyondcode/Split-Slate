@@ -54,6 +54,9 @@ the dialog; other uses of that editor keep their existing styling. The modal tit
 person footer stay outside its bounded, independently scrolling name/icon body, so the actions
 remain visible on short screens. Validation stays in the modal,
 and a successful Add person appends an in-memory selection rather than writing to IndexedDB.
+The shared editor dialog explicitly focuses its first enabled form field after `showModal()`,
+without scrolling. React's mount-time autofocus runs while the dialog is closed; native dialog
+opening can otherwise focus the overflowing name/icon body instead of the Name input.
 Cancel/Escape leaves existing selections intact and returns focus to the opener. Onboarding's
 Save and Finish remains disabled while this editor is open. People and membership writes still
 wait for Save and Finish or the standalone final Create group submission. See [[onboarding]] and

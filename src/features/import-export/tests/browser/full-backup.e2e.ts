@@ -377,6 +377,36 @@ test("matches import and restore entry layouts with distinct panel colors at eve
   }
 });
 
+for (const complete of [false, true]) {
+  for (const theme of ["dark", "light"]) {
+    test(`applies the saved theme on direct import and restore visits with ${complete ? "completed" : "incomplete"} onboarding in ${theme} mode`, async ({
+      page,
+    }) => {
+      await page.evaluate(
+        async ({ complete, theme }) => {
+          const modulePath = "/src/shared/configs/db.ts";
+          const { db } = (await import(/* @vite-ignore */ modulePath)) as typeof DbModule;
+          const onboarding: OnboardingSettings = {
+            id: "onboarding",
+            complete,
+            lastCompletedStep: "members",
+            groupId: "trip",
+          };
+          await db.settings.put(onboarding);
+          localStorage.setItem("split-slate-theme", theme);
+        },
+        { complete, theme },
+      );
+      for (const path of ["/import", "/restore"]) {
+        await page.goto(path);
+        await expect(page).toHaveURL(new RegExp(`${path}$`, "u"));
+        await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+        await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+      }
+    });
+  }
+}
+
 test("settings backup actions stay readable and use the app theme at every width", async ({
   page,
 }) => {

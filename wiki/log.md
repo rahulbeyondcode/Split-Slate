@@ -2,11 +2,33 @@
 
 Reverse-chronological record of all wiki changes.
 
+Entries record historical changes, not current execution instructions. The explicit-user-approval
+policy in [[testing-strategy]], `AGENTS.md`, and `CLAUDE.md` supersedes older automatic-run or
+"highest-priority next task" directives. Historical results do not authorize new runs.
+
 Last updated: 2026-10-09
 
 ---
 
 ## 2026-10-09
+- UPDATED decisions/testing-strategy.md — reconcile earlier pending-verification statements with completed focused checks while retaining historical result boundaries
+- UPDATED wiki/index.md — surface passing targeted fixes without implying a new full-suite run
+- UPDATED decisions/testing-strategy.md — record passing targeted fixes and split theme matrix, final responsive evidence, and the verified Netlify fixture correction without claiming a post-fix full-suite run
+- UPDATED architecture/layout-architecture.md — distinguish passing focused browser/visual checks from unverified physical-device and post-fix full-suite behavior
+- UPDATED wiki/index.md — synchronize final verification results and remaining deployment/device boundaries
+- UPDATED workflows/member-management.md — explain first-field focus after native dialog opening and the overflowing-body autofocus pitfall
+- UPDATED decisions/testing-strategy.md — record six passing theme regressions and focused verification of modal focus and resize-synchronized measurements
+- UPDATED wiki/index.md — distinguish verified theme checks from pending focus/resize scenarios
+- UPDATED architecture/layout-architecture.md — document pre-paint saved-theme initialization outside the app shell and reconcile entry-page Back styling with guarded-home navigation
+- UPDATED decisions/testing-strategy.md — record the completed browser run and responsive evidence, with post-fix verification pending
+- UPDATED wiki/index.md — reflect saved-theme initialization and the remaining browser verification failures
+- UPDATED decisions/testing-strategy.md — document browser-side loading of asset-dependent modules and verified UI/policy checks, with full browser and visual verification pending
+- UPDATED wiki/index.md — distinguish current passing checks from pending browser and visual validation
+- UPDATED AGENTS.md — replace the stale automatic-first verification directive with explicit user approval as the highest project priority; reconcile formatting, source-correction, and hierarchy wording
+- UPDATED CLAUDE.md — mirror the execution-approval gate and resolve the same conflicting instructions
+- UPDATED decisions/testing-strategy.md — require scoped current-session permission for verification, routine execution, installations, and watch tasks; keep deferred checks unverified
+- UPDATED wiki/index.md — prominently surface the approval gate and distinguish pending validation from permission
+- UPDATED wiki/log.md — mark historical automatic-run directives as superseded, preserving the change history
 - UPDATED decisions/full-backup.md — document matching neutral Settings transfer/backup cards with regular labels and no selected-state emphasis
 - UPDATED wiki/index.md — reflect neutral Settings action styling
 - UPDATED decisions/full-backup.md — document responsive themed Settings backup/restore action cards and preserved download progress behavior
@@ -29,6 +51,8 @@ Last updated: 2026-10-09
 - UPDATED wiki/index.md — reflect modal category entry in onboarding and category-management navigation
 - UPDATED workflows/onboarding.md — document the themed restore chooser, shared text space, and full-width first Next action
 - UPDATED wiki/index.md — reflect the onboarding restore entry point and stable carousel layout
+- UPDATED decisions/testing-strategy.md — record post-scaling lint/build/unit/PWA results and corrected root-scale-aware browser assumptions pending verification
+- UPDATED wiki/index.md — reflect verified post-scaling checks and remaining browser/device gates
 - UPDATED architecture/layout-architecture.md — document bounded narrow-mobile root scaling, rem conversion invariants, preserved sizing exceptions, and baseline-only scroll verification
 - UPDATED workflows/filtering.md — record conditional payment-timeline merging that preserves selected non-date expense sorts
 - UPDATED decisions/testing-strategy.md — distinguish the repaired passing baseline from unverified post-scaling browser/device behavior

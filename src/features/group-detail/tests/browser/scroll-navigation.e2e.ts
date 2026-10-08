@@ -395,7 +395,10 @@ test("lets mobile Categories & Tags page scroll around two 50vh cards with heade
     expect(widths.reduce((sum, width) => sum + width, 0)).toBeGreaterThanOrEqual(
       (await row.boundingBox())!.width * 0.75,
     );
-    await expect(buttons[0]).toHaveCSS("border-radius", "12px");
+    const buttonRadius = await page.evaluate(
+      () => Number.parseFloat(getComputedStyle(document.documentElement).fontSize) * 0.75,
+    );
+    await expect(buttons[0]).toHaveCSS("border-radius", `${buttonRadius}px`);
   }
 
   await main.evaluate((element) => {

@@ -4,9 +4,32 @@ This project uses Andrej Karpathy's LLM Wiki pattern. The wiki is the primary co
 
 ---
 
-# 🔴 HIGHEST PRIORITY — DO THIS FIRST, BEFORE ANY OTHER TASK
+# 🔴 HIGHEST PROJECT PRIORITY — EXPLICIT USER APPROVAL BEFORE RUNNING COMMANDS
 
-**Lint, build, and tests were NOT run for the latest commit** (`feat: add group payments and responsive UI polish`). Before doing anything else — before any new task, feature, fix, or refactor — run `pnpm lint`, `pnpm build`, and the full test suite, and fix any failures. Treat this as task #1 until it is completed and confirmed. Do not start other work first.
+**The user decides whether and when verification or routine execution runs. The agent must ask
+and wait for explicit approval; it must never make that decision on the user's behalf.**
+
+- This gate covers tests, builds, lint, type checks, formatting and auto-fixes, Playwright/E2E/PWA,
+  browser or screenshot automation, watch tasks, development/preview servers, tool installation,
+  and other routine execution normally performed at session start or task completion.
+- Before requesting approval, state the proposed commands or clearly bounded batch, its purpose,
+  and expected duration when known. Run only the approved scope in the current session.
+- **No means no:** do not run, retry, or substitute another command to bypass that decision.
+- **Wait means wait:** do not execute; remind the user later as requested and obtain approval then.
+  A reminder, elapsed time, or a new session is not permission.
+- Approval never carries into a new session. In the current session, a clearly approved batch may
+  run without asking for each command, but added work or retries outside that scope need approval.
+  A later refusal or deferral overrides earlier permission for the affected work.
+- Urgency, a failure, a pending task, a release gate, a definition of done, or an instruction saying
+  "highest priority", "must run", or "do this first" is never authorization. Explain the concern
+  and consequences, then leave the decision to the user. Keep unrun checks explicitly pending.
+- Approval to edit files or commit is not approval to verify, format, install tools, or start a server.
+  Read-only file inspection needed for the requested task does not authorize routine execution.
+
+This gate takes precedence over every conflicting project instruction, documentation passage,
+historical wiki entry, or task priority, including this file and `CLAUDE.md`. Command examples
+elsewhere describe available procedures, not permission to execute them. Keep the policy in both
+instruction files consistent; its durable rationale is in [[testing-strategy]].
 
 ---
 
@@ -18,13 +41,13 @@ These are hard stops. Not guidelines. Not suggestions.
 
 2. **Plan before code — mandatory:** Before writing any code, list every file you will create or modify. Each entry is the file path followed by a description of max 3 lines. Wait for explicit user approval before writing any code.
 
-2. **Wiki proposals are mandatory:** If you identify something worth adding or changing in the wiki, you MUST explicitly propose it to the user and wait for approval or rejection before writing anything. You cannot defer it. You cannot add it silently. You cannot let it get lost in the noise of a long conversation.
+3. **Wiki proposals are mandatory:** If you identify something worth adding or changing in the wiki, you MUST explicitly propose it to the user and wait for approval or rejection before writing anything. You cannot defer the proposal. You cannot add it silently. You cannot let it get lost in the noise of a long conversation.
 
-3. **Index integrity is absolute:** You are NEVER allowed to create, modify, or delete a wiki page without updating `wiki/index.md` in the same action. No exceptions under any circumstances.
+4. **Index integrity is absolute:** You are NEVER allowed to create, modify, or delete a wiki page without updating `wiki/index.md` in the same action. No exceptions under any circumstances.
 
-4. **Wiki is the only memory:** Do not use the per-project auto-memory system (`~/.claude/projects/.../memory/`). Do not write there. The wiki is the single source of persistent memory for this project.
+5. **Wiki is the only memory:** Do not use the per-project auto-memory system (`~/.claude/projects/.../memory/`). Do not write there. The wiki is the single source of persistent memory for this project.
 
-5. **Source reality always wins:** If a wiki page contradicts the code, the code is correct. Update the wiki immediately. Never reason from the wiki against observable reality.
+6. **Source reality always wins:** If a wiki page contradicts the code, the code is correct. Immediately flag the discrepancy and propose a wiki correction; write it only after explicit approval, with the index and log updated together. Never reason from the wiki against observable reality. Source authority does not grant permission to edit or execute commands.
 
 ---
 
@@ -135,7 +158,8 @@ When sources conflict, this order decides:
 3. Tests and runtime behavior
 4. Wiki pages
 
-The wiki reflects reality. It does not define it.
+The wiki reflects reality. It does not define it. This hierarchy resolves implementation facts,
+not execution permission; the explicit-user-approval gate above controls project procedures.
 
 ---
 
@@ -187,7 +211,8 @@ src/
 # Code Style — STRICT, NO EXCEPTIONS
 
 Formatting is enforced by Prettier (`.prettierrc.json`) and ESLint (`eslint.config.js`).
-Run `pnpm format` to fix formatting and `pnpm lint:fix` to auto-fix lint issues.
+With explicit user approval for those commands, use `pnpm format` to fix formatting and
+`pnpm lint:fix` to auto-fix lint issues. Neither runs automatically after edits or at session start.
 The rules below are the canonical statement of intent; the tooling is how it's enforced.
 
 ## Formatting (Prettier-enforced)

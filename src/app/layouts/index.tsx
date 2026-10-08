@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 
 import { useViewport } from "@/shared/hooks/use-viewport";
@@ -21,11 +20,6 @@ const AppLayout = () => {
       pathname !== groupSettingsPath &&
       !pathname.startsWith(`${groupSettingsPath}/`),
     );
-
-  useEffect(() => {
-    document.documentElement.dataset.theme =
-      localStorage.getItem("split-slate-theme") === "dark" ? "dark" : "light";
-  }, []);
 
   return (
     <div className="app-shell">

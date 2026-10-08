@@ -110,7 +110,10 @@ test("keeps long mobile member names accessible above their edit and delete acti
   expect(widths.reduce((total, width) => total + width, 0)).toBeGreaterThanOrEqual(
     (await row.boundingBox())!.width * 0.75,
   );
-  await expect(buttons[0]).toHaveCSS("border-radius", "12px");
+  const buttonRadius = await page.evaluate(
+    () => Number.parseFloat(getComputedStyle(document.documentElement).fontSize) * 0.75,
+  );
+  await expect(buttons[0]).toHaveCSS("border-radius", `${buttonRadius}px`);
   await expect(nameButton).toHaveAttribute("data-tooltip", name);
   await nameButton.focus();
   await expect

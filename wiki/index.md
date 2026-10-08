@@ -9,10 +9,25 @@ Last updated: 2026-10-09
 
 ---
 
-> **Baseline checks completed:** The 2026-10-08 pre-scaling baseline passed lint, build, 443 unit
-> cases, and 207 browser cases with 19 viewport-specific skips after prerequisite repairs.
-> The 18 PWA cases also passed before scaling. Root-based mobile scaling was added afterward;
-> its build passes, but post-scaling browser and physical-device validation remain pending.
+> **HIGHEST PROJECT PRIORITY — ASK BEFORE RUNNING:** Tests, builds, lint, type checks,
+> formatting/auto-fixes, Playwright/E2E/PWA, browser automation, watch tasks, servers, tool
+> installation, and routine session-start/task-completion execution require explicit user approval.
+> **No means no. Wait means wait and remind as requested, not execute.** Approval is limited to
+> the agreed scope in the current session and never carries into a new one. Urgency, pending tasks,
+> release gates, and conflicting project notes are not permission. Editing/commit approval is not
+> verification approval. See [[testing-strategy]]; `AGENTS.md` and `CLAUDE.md` state the same gate.
+
+---
+
+> **Verification status (2026-10-09):** Lint, formatting, TypeScript, and the production build
+> pass, including a build with Devtools enabled. Earlier checks passed all 443 unit cases and
+> 18 PWA cases, before the final theme/focus fixes.
+> The full browser run completed with 258 passes, 19 expected viewport skips, and 7 failures.
+> All seven failing cases now pass in focused verification. The final targeted coverage totals
+> 22 passing current cases across two runs, including the new direct-entry theme matrix.
+> All 28 final responsive captures have the correct saved theme, no horizontal overflow, and
+> visible modal/currency actions. No post-fix full-browser/unit/PWA rerun or physical-device
+> verification is claimed. Pending checks do not authorize execution.
 > See [[testing-strategy]] and [[layout-architecture]].
 
 ---
@@ -27,7 +42,7 @@ Last updated: 2026-10-09
 - [Balance Calculation](architecture/balance-calculation.md) — safe payment-aware balances, expense-only spending, and deterministic suggested transfers
 - [State Management](architecture/state-management.md) — Zustand hydration and transactional expense, payment, and group mutations
 - [Split Types](architecture/split-types.md) — 5 split types with fixed-hundredths monetary allocations and exact ratios; numeric percentage-total display remains pending
-- [Layout Architecture](architecture/layout-architecture.md) — bounded narrow-mobile scaling, app scroll boundaries, and guarded-home import/restore navigation
+- [Layout Architecture](architecture/layout-architecture.md) — app-wide saved-theme initialization, narrow-mobile scaling, scroll boundaries, and guarded-home entry navigation
 
 ### Decisions
 - [Global People Directory](decisions/global-people-directory.md) — shared device-local people identities versus group-owned category labels; supersedes per-group members
@@ -44,7 +59,7 @@ Last updated: 2026-10-09
 - [Selection Controls](decisions/selection-controls.md) — native checkboxes/radios with selected and visibly locked states across forms, filters, and transfer
 - [Offline Payment Recording](decisions/settlement-recording.md) — group-only repayment records, modal member/date entry, correction, and portability
 - [String Input Normalization](decisions/string-input-normalization.md) — required strings reject trimmed blanks; optional expense inputs have explicit blank-value semantics
-- [Testing Strategy](decisions/testing-strategy.md) — passing repaired pre-scaling baseline; post-scaling browser and device validation pending
+- [Testing Strategy](decisions/testing-strategy.md) — approval-gated execution, passing targeted fixes, verified baselines, and unverified post-fix full-suite/device checks
 
 ### Systems
 - [IndexedDB Schema](systems/indexeddb-schema.md) — version 3 payments, safe expense/balance writes, and bootstrap recovery
@@ -59,7 +74,7 @@ Last updated: 2026-10-09
 - [Main Screen](workflows/main-screen.md) — tablet-stacked previews, counted Recent transactions, and baseline-verified mobile form scrolling; root-scaling validation pending
 - [Paid-By](workflows/paid-by.md) — implemented frequent-payer selection, atomic ranking updates, recent-payer defaults, and multi-payer entry
 - [People Directory](workflows/people-directory.md) — shared contacts with expense/payment-aware deletion guards; mobile route lacks an in-app entry point
-- [Member Management](workflows/member-management.md) — setup person-draft modals with visible actions, directory linking, and expense/payment-aware removal guards
+- [Member Management](workflows/member-management.md) — setup person-draft modals with initial field focus and visible actions, directory linking, and guarded removal
 - [Category Management](workflows/category-management.md) — all-width management and setup modals, draft-only category entry, and guarded deletion; deactivation pending
 - [Tag Management](workflows/tag-management.md) — group-scoped tags, all-width Add/Edit modal, tablet-stacked cards, and transactional cleanup
 - [Filtering](workflows/filtering.md) — URL-backed filtering, sticky toolbar, ten-row ledger, and payment-timeline merge that preserves non-date expense sorts

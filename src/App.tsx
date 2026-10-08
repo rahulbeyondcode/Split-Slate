@@ -1,3 +1,4 @@
+import { useLayoutEffect } from "react";
 import { RouterProvider } from "react-router-dom";
 
 import { useRootFontSize } from "@/shared/hooks/use-root-font-size";
@@ -8,6 +9,11 @@ import DevTools from "@/features/dev-tools";
 
 const App = () => {
   useRootFontSize();
+
+  useLayoutEffect(() => {
+    document.documentElement.dataset.theme =
+      localStorage.getItem("split-slate-theme") === "dark" ? "dark" : "light";
+  }, []);
 
   return (
     <>

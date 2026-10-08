@@ -66,6 +66,7 @@ test("places date and time beneath tags, side by side when possible and stacked 
   await page.setViewportSize({ width: 600, height: 800 });
   const tags = page.getByRole("group", { name: "Tags (optional)" });
   const when = page.getByRole("group", { name: "Date and time" });
+  const fields = when.locator(".when-picker");
   const dateField = when.locator(".when-picker-field").first();
   const timeField = when.locator(".when-picker-field").last();
 
@@ -76,10 +77,28 @@ test("places date and time beneath tags, side by side when possible and stacked 
   expect(whenBox!.y).toBeGreaterThanOrEqual(tagsBox!.y + tagsBox!.height);
   expect(timeBox!.y).toBe(dateBox!.y);
 
-  await page.setViewportSize({ width: 320, height: 800 });
-  const narrowDateBox = await dateField.boundingBox();
-  const narrowTimeBox = await timeField.boundingBox();
-  expect(narrowTimeBox!.y).toBeGreaterThanOrEqual(narrowDateBox!.y + narrowDateBox!.height);
+  for (const width of [320, 280]) {
+    await page.setViewportSize({ width, height: 800 });
+    await expect
+      .poll(() =>
+        page.evaluate(() => Number.parseFloat(getComputedStyle(document.documentElement).fontSize)),
+      )
+      .toBe(14);
+    const narrowDateBox = (await dateField.boundingBox())!;
+    const narrowTimeBox = (await timeField.boundingBox())!;
+    const availableWidth = await fields.evaluate((element) => element.clientWidth);
+    const fieldBasis = await dateField.evaluate((element) =>
+      Number.parseFloat(getComputedStyle(element).flexBasis),
+    );
+    const gap = await fields.evaluate((element) =>
+      Number.parseFloat(getComputedStyle(element).columnGap),
+    );
+    if (availableWidth >= fieldBasis * 2 + gap) {
+      expect(narrowTimeBox.y).toBe(narrowDateBox.y);
+    } else {
+      expect(narrowTimeBox.y).toBeGreaterThanOrEqual(narrowDateBox.y + narrowDateBox.height);
+    }
+  }
 });
 
 test("sizes dashed Add actions like the category and tag pills", async ({ page, isMobile }) => {

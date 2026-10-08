@@ -151,7 +151,13 @@ test("new-group creation uses the same modal without saving on cancellation", as
   await page.evaluate(async () => {
     const path = "/src/shared/configs/db.ts";
     const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;
-    await db.settings.update("onboarding", { complete: true, lastCompletedStep: "members" });
+    const onboarding: OnboardingSettings = {
+      id: "onboarding",
+      complete: true,
+      lastCompletedStep: "members",
+      groupId: "trip",
+    };
+    await db.settings.put(onboarding);
   });
   await page.goto("/groups/new");
   await page.getByPlaceholder("e.g. Goa Trip, Flatmates, Family").fill("New Group");

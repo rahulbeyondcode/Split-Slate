@@ -10,16 +10,43 @@ metadata:
 Purpose: keep accounting tests fast, make every implemented area verifiable, and reserve real
 browser coverage for behavior that depends on browser storage, navigation, or offline capability.
 
-Last updated: 2026-10-08
+Last updated: 2026-10-09
+
+## Execution Permission — Highest Project Priority
+
+The user controls whether and when verification and routine execution run. Agents must request
+explicit approval before tests, builds, lint, type checks, formatting/auto-fixes, Playwright/E2E/PWA,
+browser or screenshot automation, watch tasks, development/preview servers, tool installation,
+or other routine session-start/task-completion execution. State the commands or bounded batch,
+purpose, and expected duration when known; run only the approved scope in the current session.
+
+- **No:** do not execute, retry, or substitute a command to bypass the refusal.
+- **Wait:** do not execute; remind the user as requested and ask for approval later. Neither time
+  passing nor a reminder grants permission.
+- **Yes:** run only the approved scope. A bounded batch does not need approval for each included
+  command; additions or retries outside its scope do. A later refusal or deferral overrides earlier
+  approval for the affected work. Approval never carries into a new session.
+
+Urgency, failures, pending work, release gates, definitions of done, and "must run first" notes
+are reasons to explain a concern, not permission. Approval to edit or commit does not authorize
+verification, formatting, installation, or server startup. Read-only inspection for the requested
+task is distinct from executing those procedures.
+
+This policy overrides conflicting project instructions and historical notes in `AGENTS.md`,
+`CLAUDE.md`, and the wiki. Every command below is conditional on this gate. A denied or deferred
+check stays explicitly unverified; do not claim it passed or block unrelated approved work merely
+because it is pending. This preserves the user's control over time and the shared workspace.
 
 ## Outstanding Browser Coverage
 
 The 2026-10-08 pre-scaling full browser suite verified the mobile expense form's scroll boundary,
 last split row, Save/Cancel toolbar, and absence of a second document/form scroller at 320px by
 700px. The bounded form and Categories & Tags routes fix the body as well as clipping overflow.
-Root-based mobile scaling was added afterward: its production build passes, but post-scaling
-browser journeys and physical-device validation remain unverified. See [[layout-architecture]],
-[[main-screen]] and [[product-roadmap]].
+Root-based mobile scaling was added afterward. Its scale-aware assertions and the later UI fixes
+have now been exercised in the completed browser run and focused follow-ups documented below.
+A single full-browser run after the final fixes and physical-device validation remain unverified.
+Neither runs without explicit user approval. See [[layout-architecture]], [[main-screen]], and
+[[product-roadmap]].
 
 ## Decision
 
@@ -69,6 +96,11 @@ locations, with shared desktop/mobile Chromium projects. PWA production-build te
 `playwright.pwa.config.ts` configuration and `.pwa.ts` files. Cross-directory imports continue to
 use the `@/` alias.
 
+Playwright's Node-side test loader does not apply Vite's asset transformations. Modules that
+import images must be loaded inside `page.evaluate` through the running Vite server, not as
+runtime imports in the test file. Type-only imports remain safe; return only serializable values
+needed for assertions. The carousel layout tests load slide titles and descriptions this way.
+
 ## Test Boundaries
 
 Vitest's assigned scope includes:
@@ -96,7 +128,8 @@ Before writing a suite:
 2. Inspect the authoritative production source and its direct consumers.
 3. Enumerate the observable contract, invariants, boundaries, and failure paths.
 4. Test public behavior instead of private implementation details.
-5. Run the focused suite, then `pnpm test` and `pnpm check`.
+5. Propose the focused suite, `pnpm test`, and `pnpm check`; run only what the user explicitly
+   approves under the execution-permission gate. If declined or deferred, report verification pending.
 
 Test writing follows these rules:
 
@@ -134,6 +167,9 @@ rationale.
 
 A test slice is complete when:
 
+These are completion criteria, not authorization to run checks. Ask first; if verification is
+declined or deferred, mark the slice unverified and continue only separately approved work.
+
 - its applicable success, boundary, invalid-input, and failure cases are covered
 - tests are deterministic and isolated
 - the focused suite and complete Vitest suite pass
@@ -141,6 +177,35 @@ A test slice is complete when:
 - any durable behavior or strategy change is reconciled with the wiki
 
 ## Current Status
+
+On 2026-10-09, after the onboarding and data-transfer UI changes and execution-approval policy
+updates, `pnpm check` and `pnpm build` passed, all 443 Vitest cases passed across 37 files, and
+all 18 production-build PWA cases passed. Full browser and responsive visual verification were
+pending at that point. These results predate the carousel browser-test import correction.
+
+The subsequent full browser run completed with 258 passing cases, 19 viewport-specific skips,
+and 7 failures: missing saved-theme initialization on entry pages, mobile person-editor focus
+expectations, and a settlement-height assertion during viewport resizing. Theme initialization
+has moved to `App`, with direct-entry regression checks.
+The 28 initial responsive captures showed no horizontal overflow and confirmed the theme defect.
+
+All six focused saved-theme/direct-entry browser cases then passed on desktop and mobile.
+The shared editor dialog now focuses its first enabled form field after opening, and the
+settlement layout test waits for the expected root font size at each viewport before measuring.
+The four-worker targeted run passed all seven formerly failing cases. Its long public-entry
+matrix exceeded the default test timeout under concurrent cold-start load, so that matrix now
+uses separate cases per theme/onboarding state instead of increasing the timeout. All eight
+split matrix cases passed the focused follow-up. Together these runs verify 22 current cases:
+14 unchanged targeted cases plus the eight split theme cases. The full suite is not automatically
+repeated after each fix, and no single post-fix full-suite pass is claimed.
+
+The final 28 responsive captures at 320x568, 390x700 (dark), 900x900, and 1280x800 applied the
+correct saved themes, showed no horizontal overflow, and kept modal/currency actions visible.
+`VITE_ENABLE_DEVTOOLS=true pnpm build` passed after the final source/test corrections. The typed
+onboarding fixture also resolves the TS2353 build failure reported from Netlify; deployment still
+requires committing and pushing the local fix. Unit/PWA results above predate the final theme and
+focus changes; those suites have not been rerun afterward. Physical-device verification remains
+pending. See [[layout-architecture]] and [[member-management]].
 
 On 2026-10-08, before root scaling, `pnpm lint` and `pnpm build` passed, `pnpm test` passed
 443 cases across 37 files, and the full `pnpm test:e2e` run passed 207 cases with 19
@@ -151,9 +216,13 @@ selection change events, and its selection ref is synchronized outside render. B
 assertions run in the configured browser timezone rather than assuming the Node host timezone.
 The 18 PWA production-build cases also passed before the scaling refactor.
 
-After root scaling, the production build passed. The complete unit/browser/PWA suite has not been
-rerun against that final typography/layout refactor; the earlier passing results are a baseline,
-not proof of the new narrow-mobile UI. See [[layout-architecture]].
+After root scaling, lint, build, all 443 unit cases, and all 18 PWA cases passed. The browser run
+exposed assertions that assumed unscaled 320px layout: date/time fields now fit side by side at
+that width, and the 38px-reference Settle up action measures 33.25px at the 14px root. Date/time
+coverage now checks available width against both flex bases and the gap at 320px and 280px;
+settlement-button height bounds use the actual root scale. Those corrections were subsequently
+verified in the completed browser run and focused follow-ups above; physical-device validation
+remains pending. See [[layout-architecture]].
 
 On 2026-10-05, `pnpm check` passed, `pnpm test` passed 422 Vitest cases, the full
 `pnpm test:e2e` run passed 154 cases with no failures and 18 viewport-specific skips, and
@@ -179,9 +248,11 @@ confirmed deletion, list/balance updates, reload persistence, cancellation, retr
 inactive historical categories, solo balances, and missing/cross-group expense routes. Tests also
 cover app-route recovery, dashboard navigation/activity, group deletion, category/member/contact
 flows, group transfer, and whole-app backup. PWA tests exercise the production service worker and
-offline/cache paths separately. Test data lives in isolated browser contexts. Run `pnpm test:e2e`
-(and `pnpm test:pwa` for production-build PWA checks) after installing Chromium with
-`pnpm exec playwright install chromium`. Traces/results are written under their configured `/tmp`
+offline/cache paths separately. Test data lives in isolated browser contexts. With explicit user
+approval for the relevant commands, `pnpm test:e2e` runs browser journeys and `pnpm test:pwa` runs
+production-build PWA checks. If Chromium is missing, separately request approval to install it with
+`pnpm exec playwright install chromium`; test approval does not implicitly authorize installation.
+Traces/results are written under their configured `/tmp`
 Playwright output directories. Component tests with React Testing Library remain planned.
 
 Additional Vitest suites cover form-value round-trips and fixed two-decimal precision across currency labels; all-member balances,
@@ -233,7 +304,8 @@ This is an inventory of existing suites, not a substitute for running them. Dire
 for the member-management repeated-add UI guard remains pending; store-level concurrent membership
 and aggregate group-spending boundary cases are covered.
 
-Use `pnpm test` for a single complete run and `pnpm test:watch` while developing.
+With explicit user approval, `pnpm test` performs a single complete run; `pnpm test:watch` is an
+optional watch task requiring approval for that persistent process. Neither runs automatically.
 
 ## Related
 

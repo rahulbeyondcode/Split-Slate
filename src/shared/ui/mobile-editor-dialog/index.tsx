@@ -12,7 +12,13 @@ const MobileEditorDialog = ({ title, children, onCancel, busy = false }: PropsTy
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
-    dialogRef.current?.showModal();
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    dialog.showModal();
+    const initialField = dialog.querySelector<HTMLElement>(
+      "input:not([type='hidden']):not(:disabled), select:not(:disabled), textarea:not(:disabled)",
+    );
+    initialField?.focus({ preventScroll: true });
   }, []);
 
   const handleCancel = (event: SyntheticEvent<HTMLDialogElement>) => {

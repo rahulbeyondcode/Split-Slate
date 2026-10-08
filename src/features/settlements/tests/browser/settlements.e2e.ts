@@ -172,7 +172,13 @@ test("shows readable transfer cards with a prominent amount and right-aligned Se
     page.getByText("Suggestions do not record money until you save a payment."),
   ).toHaveCount(0);
   await expect(button).toHaveCSS("background-color", "rgb(121, 94, 203)");
-  const checkLayout = async () => {
+  const viewports = [
+    { width: 320, rootFontSize: 14 },
+    { width: 1280, rootFontSize: 16 },
+  ];
+  const checkLayout = async (rootFontSize: number) => {
+    await expect(page.locator("html")).toHaveCSS("font-size", `${rootFontSize}px`);
+    const fontScale = rootFontSize / 16;
     const suggestionBox = (await suggestion.boundingBox())!;
     const peopleBox = (await people.boundingBox())!;
     const actionsBox = (await actions.boundingBox())!;
@@ -185,8 +191,8 @@ test("shows readable transfer cards with a prominent amount and right-aligned Se
     expect(arrowBox.x + arrowBox.width).toBeLessThanOrEqual(toBox.x);
     expect(actionsBox.y).toBeGreaterThan(peopleBox.y + peopleBox.height);
     expect(suggestionBox.height).toBeGreaterThan(120);
-    expect(buttonBox.height).toBeGreaterThanOrEqual(36);
-    expect(buttonBox.height).toBeLessThanOrEqual(42);
+    expect(buttonBox.height).toBeGreaterThanOrEqual(36 * fontScale);
+    expect(buttonBox.height).toBeLessThanOrEqual(42 * fontScale);
     expect(buttonBox.x).toBeGreaterThanOrEqual(amountBox.x + amountBox.width);
     expect(buttonBox.width).toBeLessThan(actionsBox.width / 2);
     expect(Math.abs(buttonBox.x + buttonBox.width - actionsBox.x - actionsBox.width)).toBeLessThan(
@@ -217,9 +223,9 @@ test("shows readable transfer cards with a prominent amount and right-aligned Se
   await expect(parties.first()).toContainText("Alexandria Montgomery");
   await expect(parties.first().locator(".avatar")).toHaveCount(1);
   await expect(parties.last().locator(".avatar")).toHaveCount(1);
-  for (const width of [320, 1280]) {
+  for (const { width, rootFontSize } of viewports) {
     await page.setViewportSize({ width, height: 800 });
-    await checkLayout();
+    await checkLayout(rootFontSize);
   }
   await expect(amount).toHaveText("₹50.00");
   await page.evaluate(async () => {
@@ -237,9 +243,9 @@ test("shows readable transfer cards with a prominent amount and right-aligned Se
   });
   await page.reload();
   await expect(amount).toHaveText("₹99,999.99");
-  for (const width of [320, 1280]) {
+  for (const { width, rootFontSize } of viewports) {
     await page.setViewportSize({ width, height: 800 });
-    await checkLayout();
+    await checkLayout(rootFontSize);
   }
 });
 

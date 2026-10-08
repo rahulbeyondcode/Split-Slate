@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { slides } from "@/features/onboarding/components/feature-carousel/slide-data";
+import type * as SlideModule from "@/features/onboarding/components/feature-carousel/slide-data";
 
 const VIEWPORTS = [
   { width: 320, height: 568 },
@@ -16,6 +16,11 @@ for (const viewport of VIEWPORTS) {
   }) => {
     await page.setViewportSize(viewport);
     await page.goto("/onboarding");
+    const slides = await page.evaluate(async () => {
+      const modulePath = "/src/features/onboarding/components/feature-carousel/slide-data.ts";
+      const { slides } = (await import(/* @vite-ignore */ modulePath)) as typeof SlideModule;
+      return slides.map(({ title, description }) => ({ title, description }));
+    });
     await expect(page.getByRole("heading", { name: slides[0].title, exact: true })).toBeVisible();
     await page.evaluate(() => document.fonts.ready);
     const next = page.getByRole("button", { name: /^(Next|Get started)$/u });
@@ -133,6 +138,18 @@ test("opens full-app restore from the restore chooser", async ({ page }) => {
   ).toBeVisible();
   await page.getByRole("link", { name: "Back to SplitSlate", exact: true }).click();
   await expect(page).toHaveURL(/\/onboarding$/u);
+});
+
+test("applies the saved theme on direct onboarding and setup visits", async ({ page }) => {
+  await page.goto("/onboarding");
+  for (const theme of ["dark", "light"]) {
+    await page.evaluate((value) => localStorage.setItem("split-slate-theme", value), theme);
+    for (const path of ["/onboarding", "/onboarding/setup"]) {
+      await page.goto(path);
+      await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+      await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    }
+  }
 });
 
 test("keeps the restore chooser within a narrow dark-theme viewport", async ({ page }) => {
