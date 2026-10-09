@@ -15,6 +15,7 @@ import type { GroupDetailContext } from "@/features/group-detail/types/group-det
 import type { Tag } from "@/shared/types/domain.types";
 
 import ConfirmationDialog from "@/shared/ui/confirmation-dialog";
+import DialogLayout from "@/shared/ui/dialog-layout";
 import EntitySuggestions from "@/shared/ui/entity-suggestions";
 import Icon from "@/shared/ui/icon";
 import MobileEditorDialog from "@/shared/ui/mobile-editor-dialog";
@@ -125,38 +126,51 @@ const TagManagement = () => {
   ).length;
   const editor = tagMode && (
     <FormProvider {...tagForm}>
-      <form onSubmit={handleSaveTag} className="flex min-w-0 flex-col gap-5">
-        <h3 className="section-title">{tagFormTitle}</h3>
-        <div className="min-w-0">
-          <label className="field-label" htmlFor="group-tag-name">
-            Tag name
-          </label>
-          <Input id="group-tag-name" name="name" placeholder="Tag name" autoFocus />
-        </div>
-        {tagMode === "add" && (
-          <EntitySuggestions
-            kind="tag"
-            query={tagQuery}
-            currentGroupId={group.id}
-            unavailableNames={groupTags.map((item) => item.name)}
-            disabled={isSubmitting || suggesting}
-            onSelect={handleSuggestedTag}
-          />
-        )}
-        <ColorPicker name="color" label="Tag color" />
-        <div className="flex gap-2 justify-end">
-          <button
-            type="button"
-            onClick={handleCancelTagForm}
-            disabled={isSubmitting || suggesting}
-            className="btn btn-secondary"
-          >
-            Cancel
-          </button>
-          <button type="submit" disabled={isSubmitting || suggesting} className="btn btn-primary">
-            {isSubmitting ? "Saving..." : tagSubmitLabel}
-          </button>
-        </div>
+      <form onSubmit={handleSaveTag} className="dialog-form">
+        <DialogLayout
+          title={tagFormTitle}
+          onClose={handleCancelTagForm}
+          closeDisabled={isSubmitting || suggesting}
+          bodyClassName="flex flex-col gap-5"
+          footer={
+            <>
+              <button
+                type="button"
+                onClick={handleCancelTagForm}
+                disabled={isSubmitting || suggesting}
+                className="btn btn-secondary"
+              >
+                Cancel
+              </button>
+              <button type="submit" disabled={isSubmitting || suggesting} className="btn btn-primary">
+                {isSubmitting ? "Saving..." : tagSubmitLabel}
+              </button>
+            </>
+          }
+        >
+          {tagError && (
+            <p role="alert" className="note money-negative">
+              {tagError}
+            </p>
+          )}
+          <div className="min-w-0">
+            <label className="field-label" htmlFor="group-tag-name">
+              Tag name
+            </label>
+            <Input id="group-tag-name" name="name" placeholder="Tag name" autoFocus />
+          </div>
+          {tagMode === "add" && (
+            <EntitySuggestions
+              kind="tag"
+              query={tagQuery}
+              currentGroupId={group.id}
+              unavailableNames={groupTags.map((item) => item.name)}
+              disabled={isSubmitting || suggesting}
+              onSelect={handleSuggestedTag}
+            />
+          )}
+          <ColorPicker name="color" label="Tag color" />
+        </DialogLayout>
       </form>
     </FormProvider>
   );
@@ -218,11 +232,6 @@ const TagManagement = () => {
             onCancel={handleCancelTagForm}
             busy={isSubmitting || suggesting}
           >
-            {tagError && (
-              <p role="alert" className="note money-negative mb-4">
-                {tagError}
-              </p>
-            )}
             {editor}
           </MobileEditorDialog>
         )}

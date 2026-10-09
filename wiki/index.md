@@ -28,6 +28,12 @@ Last updated: 2026-10-10
 > and dark modes. Deployment-specific release checks remain outside this automated verification.
 > Future runs still require approval. The 18 skips are inapplicable project combinations; each
 > corresponding test passes in its appropriate mobile, desktop, or tablet-sized project.
+> These results predate the subsequent compact horizontal filter-pill row, mobile Filters modal,
+> app-wide modal-margin/fixed-controls edits, group name/icon/currency editor modals, and outer-only
+> Expenses scrolling, compact colour-labelled payment tag options, and divided sidebar group rows
+> with bottom balances, plus five-member group-card avatar previews and external dashboard summary
+> headings with extra top spacing and aligned side-by-side boxes, which have not been verified;
+> execution is paused.
 > See [[testing-strategy]] and [[layout-architecture]].
 
 ---
@@ -42,7 +48,7 @@ Last updated: 2026-10-10
 - [Balance Calculation](architecture/balance-calculation.md) — safe payment-aware balances, expense-only spending, and deterministic suggested transfers
 - [State Management](architecture/state-management.md) — Zustand hydration and transactional expense, payment, and group mutations
 - [Split Types](architecture/split-types.md) — 5 split types with exact allocations and at-most-three-decimal display of percentages
-- [Layout Architecture](architecture/layout-architecture.md) — tablet app/group Activity links, pending mobile group entry, sidebar Balances, and desktop panel placement
+- [Layout Architecture](architecture/layout-architecture.md) — responsive shell, transparent divided sidebar groups with bottom balances, inset modals with fixed controls, and viewport handling
 
 ### Decisions
 - [Global People Directory](decisions/global-people-directory.md) — shared device-local people identities versus group-owned category labels; supersedes per-group members
@@ -57,7 +63,7 @@ Last updated: 2026-10-10
 - [Iconography](decisions/iconography.md) — shared featured-or-gallery PNG picker, offline caching and repair, Lucide controls, error illustrations, and onboarding artwork
 - [Confirmation Dialogs](decisions/confirmation-dialogs.md) — shared in-app destructive confirmation for groups, expenses, contacts, members, categories, and tags
 - [Selection Controls](decisions/selection-controls.md) — native checkboxes/radios with selected and visibly locked states across forms, filters, and transfer
-- [Offline Payment Recording](decisions/settlement-recording.md) — group-only repayment records, modal member/date entry, correction, and portability
+- [Offline Payment Recording](decisions/settlement-recording.md) — group-only repayment records, modal entry with compact colour-labelled tags, correction, and portability
 - [String Input Normalization](decisions/string-input-normalization.md) — required strings reject trimmed blanks; optional expense inputs have explicit blank-value semantics
 - [Testing Strategy](decisions/testing-strategy.md) — approval-gated execution, 467 unit/314 browser/18 PWA passes, responsive/offline Analytics checks, and explained project-specific skips
 
@@ -77,8 +83,8 @@ Last updated: 2026-10-10
 - [Member Management](workflows/member-management.md) — setup person-draft modals with initial field focus and visible actions, directory linking, and guarded removal
 - [Category Management](workflows/category-management.md) — all-width management and setup modals, draft-only category entry, and guarded deletion; deactivation pending
 - [Tag Management](workflows/tag-management.md) — group-scoped tags, all-width Add/Edit modal, tablet-stacked cards, and transactional cleanup
-- [Filtering](workflows/filtering.md) — URL-backed filters, all-width group Analytics category drill-down, sticky ledger, and sort-preserving payment merge
-- [Dashboard](workflows/dashboard.md) — group summaries, tablet Activity navigation, group-only Analytics category links, and scoped totals
+- [Filtering](workflows/filtering.md) — outer-only Expenses scrolling, horizontal filter pills, mobile Filters modal/wider popover, and URL-backed Analytics drill-down
+- [Dashboard](workflows/dashboard.md) — five-member avatar previews, external summary headings with aligned side-by-side boxes, tablet Activity navigation, group-only Analytics links, and scoped totals
 
 ### Ideas (captured, not committed)
 - [Rewarded Ads](ideas/rewarded-ads.md) — optional ad-watch → credits → Pro unlock mechanic; fully opt-in

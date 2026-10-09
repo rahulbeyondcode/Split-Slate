@@ -4,6 +4,7 @@ import { useFormContext, useWatch } from "react-hook-form";
 
 import type { TransferSelection } from "@/features/import-export/types/import-export.types";
 
+import DialogLayout from "@/shared/ui/dialog-layout";
 import Icon from "@/shared/ui/icon";
 
 interface PropsType {
@@ -163,77 +164,77 @@ const ExportContentSelector = ({ attachmentCount }: PropsType) => {
         aria-labelledby="dependency-heading"
         aria-describedby="dependency-description"
         onClose={() => setNotice(null)}
-        className="m-auto w-[calc(100%-32px)] max-w-md overflow-hidden rounded-[28px] border border-[var(--line)] bg-[var(--surface)] p-0 text-[var(--ink)] shadow-2xl backdrop:bg-black/60"
+        className="app-dialog max-w-md rounded-[28px] border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] shadow-2xl backdrop:bg-black/60"
       >
-        <div className="bg-[var(--brand-soft)] px-6 pb-6 pt-5">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--surface)] px-3 py-1 text-[0.625rem] font-extrabold uppercase tracking-wider text-[var(--brand-ink)]">
-            <Icon icon={Check} size={14} /> Export selection
-          </span>
-          <div className="mt-4 flex items-start justify-between gap-3">
-            <div>
-              <h4 id="dependency-heading" className="text-xl font-extrabold tracking-tight">
-                Included automatically
-              </h4>
-              <p className="mt-1.5 text-sm leading-relaxed text-[var(--ink)]">
-                {notice === "receipts"
-                  ? "Receipts need their expenses and the people and categories connected to them."
-                  : "Expenses need their categories and members to make sense on the new device."}
-              </p>
-            </div>
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--surface)] text-[var(--brand-ink)] shadow-sm">
-              <Icon icon={notice === "receipts" ? Paperclip : ReceiptText} size={23} />
+        <DialogLayout
+          title="Included automatically"
+          titleId="dependency-heading"
+          onClose={handleCloseNotice}
+          icon={<Icon icon={notice === "receipts" ? Paperclip : ReceiptText} size={23} />}
+          bodyClassName="flex flex-col gap-4"
+          footer={
+            <button
+              type="button"
+              autoFocus
+              onClick={handleCloseNotice}
+              className="btn btn-primary w-full"
+            >
+              Got it
+            </button>
+          }
+        >
+          <div className="rounded-2xl bg-[var(--brand-soft)] p-4">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--surface)] px-3 py-1 text-[0.625rem] font-extrabold uppercase tracking-wider text-[var(--brand-ink)]">
+              <Icon icon={Check} size={14} /> Export selection
             </span>
+            <p className="mt-1.5 text-sm leading-relaxed text-[var(--ink)]">
+              {notice === "receipts"
+                ? "Receipts need their expenses and the people and categories connected to them."
+                : "Expenses need their categories and members to make sense on the new device."}
+            </p>
           </div>
-        </div>
-        <div className="px-6 pb-6 pt-5">
-          <p id="dependency-description" className="text-xs font-bold text-[var(--muted)]">
-            Here’s what changed
-          </p>
-          <div
-            role="group"
-            aria-label="Included content"
-            className="mt-3 rounded-2xl border border-[var(--line)] bg-[var(--surface-soft)] p-3"
-          >
-            <div>
-              <p className="text-xs font-bold text-[var(--muted)]">You selected</p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                <span className="chip !bg-[var(--surface)]">
-                  <Icon icon={notice === "receipts" ? Paperclip : ReceiptText} size={15} />
-                  {notice === "receipts" ? "Receipts" : "Expenses"}
-                </span>
-              </div>
-            </div>
-            <div className="mt-3 border-t border-[var(--line)] pt-3">
-              <p className="text-xs font-bold text-[var(--brand-ink)]">Added automatically</p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {notice === "receipts" && (
-                  <span className="chip !border-[var(--brand)] !bg-[var(--brand-soft)] !text-[var(--brand-ink)]">
-                    <Icon icon={ReceiptText} size={15} /> Expenses
+          <div>
+            <p id="dependency-description" className="text-xs font-bold text-[var(--muted)]">
+              Here’s what changed
+            </p>
+            <div
+              role="group"
+              aria-label="Included content"
+              className="mt-3 rounded-2xl border border-[var(--line)] bg-[var(--surface-soft)] p-3"
+            >
+              <div>
+                <p className="text-xs font-bold text-[var(--muted)]">You selected</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <span className="chip !bg-[var(--surface)]">
+                    <Icon icon={notice === "receipts" ? Paperclip : ReceiptText} size={15} />
+                    {notice === "receipts" ? "Receipts" : "Expenses"}
                   </span>
-                )}
-                <span className="chip !border-[var(--brand)] !bg-[var(--brand-soft)] !text-[var(--brand-ink)]">
-                  <Icon icon={Shapes} size={15} /> Categories
-                </span>
-                <span className="chip !border-[var(--brand)] !bg-[var(--brand-soft)] !text-[var(--brand-ink)]">
-                  <Icon icon={UsersRound} size={15} /> Members
-                </span>
+                </div>
+              </div>
+              <div className="mt-3 border-t border-[var(--line)] pt-3">
+                <p className="text-xs font-bold text-[var(--brand-ink)]">Added automatically</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {notice === "receipts" && (
+                    <span className="chip !border-[var(--brand)] !bg-[var(--brand-soft)] !text-[var(--brand-ink)]">
+                      <Icon icon={ReceiptText} size={15} /> Expenses
+                    </span>
+                  )}
+                  <span className="chip !border-[var(--brand)] !bg-[var(--brand-soft)] !text-[var(--brand-ink)]">
+                    <Icon icon={Shapes} size={15} /> Categories
+                  </span>
+                  <span className="chip !border-[var(--brand)] !bg-[var(--brand-soft)] !text-[var(--brand-ink)]">
+                    <Icon icon={UsersRound} size={15} /> Members
+                  </span>
+                </div>
               </div>
             </div>
+            <p className="mt-3 text-xs leading-relaxed text-[var(--muted)]">
+              {notice === "receipts"
+                ? "Expenses, categories and members stay selected while receipts are included."
+                : "Categories and members stay selected while expenses are included."}
+            </p>
           </div>
-          <p className="mt-3 text-xs leading-relaxed text-[var(--muted)]">
-            {notice === "receipts"
-              ? "Expenses, categories and members stay selected while receipts are included."
-              : "Categories and members stay selected while expenses are included."}
-          </p>
-          <button
-            type="button"
-            autoFocus
-            onClick={handleCloseNotice}
-            className="btn btn-primary mt-5 w-full"
-          >
-            Got it
-          </button>
-        </div>
+        </DialogLayout>
       </dialog>
     </fieldset>
   );

@@ -105,6 +105,50 @@ card border/shadow around otherwise unpadded rows. The full Activity page still 
 Compact rows give the group name a separate wrapping line and keep the recording date/time visible
 below it. Titles may use three lines and group names two. There is no activity-row tooltip.
 
+## App-Wide Modal Layout
+
+Every current native modal uses the shared `.app-dialog` container and `DialogLayout` from
+`src/shared/ui/dialog-layout/index.tsx`. This applies to setup/person/category/tag editors,
+mobile Filters, destructive confirmations, blocked-removal explanations, group name/icon editing,
+currency selection and confirmation, payment forms, import identity resolution, export notices,
+backup restore, restore choices, and the PWA install prompt. Remaining inline forms and
+desktop/tablet filter popovers are not modals and retain
+their own layouts. See [[confirmation-dialogs]], [[filtering]], and [[full-backup]].
+
+- The modal border stays at least 16 CSS pixels from every visible viewport edge. Safe-area insets
+  can increase this clearance; it is a viewport constraint, independent of root-font scaling.
+- The shared header contains the title and an explicit close control. The action footer is outside
+  the scrolling body; neither header nor footer shrinks or scrolls with the content.
+- Only `.dialog-body` scrolls. Errors, suggestions, form fields, and lengthy explanations belong
+  there. Forms use `.dialog-form` so submission buttons remain inside their original form while
+  the body alone can shrink. Short modals use natural height rather than filling the viewport.
+- Footer actions wrap when necessary; long labels may wrap instead of widening the modal beyond
+  its viewport clearance. Restore-choice navigation actions live in the non-scrolling footer.
+- `DialogLayout` observes VisualViewport resize/scroll events when available and publishes its
+  dimensions and offsets to the dialog. CSS uses these values for centering and height bounds;
+  the fallback uses the dynamic viewport height. This accommodates visible-viewport changes such
+  as on-screen keyboards without changing navigation breakpoints.
+- Existing save, validation, confirmation/countdown, cancellation, and pending-state handling stays
+  feature-owned. The shared close control follows each caller's cancellation and disabled state.
+
+Group Settings keeps its identity and currency summary cards in place. **Edit name & icon** opens
+the shared modal at every width, prefilled from the saved group; Save writes the update, while
+Cancel/Close/Escape discards edits and clears errors. Failed saves remain in the modal. **Change**
+opens the currency picker in the same bounded layout with fixed Cancel/Save currency actions.
+Saving a different choice closes the picker before opening the existing no-conversion confirmation,
+so only one currency dialog is open at a time. Cancelling confirmation returns to the picker with
+the choice retained; cancelling the picker discards that choice, and reopening starts from the
+saved currency. Only confirming the change writes it. See [[money-representation-and-rounding]].
+
+`src/shared/tests/browser/modal-layout.e2e.ts` adds margin and fixed-control assertions for real
+management, expense-creation, payment, group identity, currency, and export-notice dialogs at
+280–1440px widths,
+including induced long bodies and naturally short confirmations. Existing onboarding person-editor
+and mobile Filters coverage adds explicit header/footer and 16px-clearance assertions. These
+app-wide layout changes and revised tests have not been executed; verification remains paused.
+Group-settings cases also cover cancellation/reset, validation, saved-name reloads, picker-to-
+confirmation transitions, and unchanged expense amounts after a currency relabel.
+
 ## Feedback Banners
 
 Import, restore, and export surfaces use the shared `StatusBanner` component and `status-banner`
@@ -184,10 +228,11 @@ Save/Cancel toolbar, and absence of a second document/form scroll area at 320px 
 The 2026-10-10 full-browser run also passes after scaling; see [[main-screen]] and
 [[testing-strategy]].
 Expenses scrolls the main pane on all viewport sizes: the group header, expense title/subtitle,
-and then the search/sort/filter toolbar stick in sequence, while insights scroll away. On tablet
-and desktop the ledger itself has a second scroll area sized to its first ten rendered entries
-(including payment rows), allowing entries of different heights; shorter lists take only their
-natural height. On mobile the ledger has no internal scroll and the main pane reaches its last row.
+and then the search/sort/filter toolbar stick in sequence, while insights scroll away. The ledger
+uses natural height with no inner vertical scroll or ten-entry height cap at any width; all expense
+and payment rows are reached through the outer `#main-content` pane. Short filtered lists also
+take only their natural height. Updated browser coverage for outer-only scrolling, last-row access,
+mixed expense/payment history, and navigation resets is unrun under the current execution pause.
 Mobile Categories & Tags also scrolls the main pane: each card is 50vh tall with only its content
 scrolling below its section title/subtitle/Add control, so rows cannot appear above or behind
 the sticky group header. The duplicate visible Categories & Tags page title is omitted. Members remains
@@ -199,7 +244,8 @@ Without an explicit reset, a new ordinary route inherits the previous page's pos
 onboarding, import, and restore. It resets both `#main-content` and the window to the top when the
 pathname changes, including browser Back/Forward; browser-native scroll restoration is disabled
 while this layout is mounted. Query-string edits on the same page do not trigger a reset, preserving
-the list's internal scroll position while filtering. See [[filtering]] and [[main-screen]].
+the outer pane's scroll position while filtering, subject to native clamping when results shrink.
+See [[filtering]] and [[main-screen]].
 
 ---
 
@@ -255,9 +301,15 @@ Each group in the sidebar list is a self-contained component with:
 
 - **Group icon** — saved PNG image key rendered as an avatar, with a local image fallback
 - **Group name**
-- **Member avatars** — up to three, followed by an overflow count
+- **Member count**
 - **Expense count** — e.g. "21 expenses"
-- **Net balance** — calculated from the local member's paid and owed transactions in the group
+- **Net balance** — payment-aware local-member net, placed below the name and member/expense counts
+
+Names and counts wrap instead of truncating; the balance occupies its own bottom line aligned with
+the text, leaving the group icon beside the details. Adjacent rows have a thin theme-token divider
+and vertical spacing. Rows remain transparent, including hover and active states; no background
+fill is added. Tablet/desktop light/dark browser coverage for long names, large positive/negative
+balances, separators, and navigation is added but unrun under the current execution pause.
 
 ---
 

@@ -11,6 +11,7 @@ import type { CategoryEditorValues } from "@/features/create-group/helpers/edito
 
 import { CATEGORY_EMOJIS } from "@/shared/constants/emojis";
 
+import DialogLayout from "@/shared/ui/dialog-layout";
 import EntitySuggestions from "@/shared/ui/entity-suggestions";
 
 const createCategorySchema = (existingNames: string[]) =>
@@ -46,42 +47,46 @@ const CategoryEditor = ({ currentGroupId, existingNames, onAdd, onCancel }: Prop
 
   return (
     <FormProvider {...editorForm}>
-      <form onSubmit={handleSubmit} className="flex min-w-0 flex-col gap-5">
-        <h3 className="section-title">Add a category</h3>
-
-        <div className="min-w-0">
-          <label className="field-label" htmlFor="category-name">
-            Category name
-          </label>
-          <Input
-            id="category-name"
-            name="category"
-            placeholder="e.g. Coffee runs"
-            wrapperClass="w-full"
-            autoFocus
-          />
-          <EntitySuggestions
-            kind="category"
-            query={categoryQuery}
-            currentGroupId={currentGroupId}
-            unavailableNames={existingNames}
-            onSelect={handleSuggestedCategory}
-          />
-        </div>
-
-        <div className="min-w-0">
-          <span className="field-label">Choose an icon</span>
-          <EmojiPicker name="icon" kind="other" emojis={CATEGORY_EMOJIS} />
-        </div>
-
-        <div className="flex flex-wrap gap-2 justify-end">
-          <button type="button" onClick={onCancel} className="btn btn-secondary">
-            Cancel
-          </button>
-          <button type="submit" className="btn btn-primary">
-            Add category
-          </button>
-        </div>
+      <form onSubmit={handleSubmit} className="dialog-form">
+        <DialogLayout
+          title="Add a category"
+          onClose={onCancel}
+          bodyClassName="flex flex-col gap-5"
+          footer={
+            <>
+              <button type="button" onClick={onCancel} className="btn btn-secondary">
+                Cancel
+              </button>
+              <button type="submit" className="btn btn-primary">
+                Add category
+              </button>
+            </>
+          }
+        >
+          <div className="min-w-0">
+            <label className="field-label" htmlFor="category-name">
+              Category name
+            </label>
+            <Input
+              id="category-name"
+              name="category"
+              placeholder="e.g. Coffee runs"
+              wrapperClass="w-full"
+              autoFocus
+            />
+            <EntitySuggestions
+              kind="category"
+              query={categoryQuery}
+              currentGroupId={currentGroupId}
+              unavailableNames={existingNames}
+              onSelect={handleSuggestedCategory}
+            />
+          </div>
+          <div className="min-w-0">
+            <span className="field-label">Choose an icon</span>
+            <EmojiPicker name="icon" kind="other" emojis={CATEGORY_EMOJIS} />
+          </div>
+        </DialogLayout>
       </form>
     </FormProvider>
   );

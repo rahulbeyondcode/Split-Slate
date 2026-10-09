@@ -1,9 +1,26 @@
 import { expect, test } from "@playwright/test";
+import type { Page } from "@playwright/test";
 
 import type * as DbModule from "@/shared/configs/db";
 import type * as StoreModule from "@/shared/configs/store";
 
 import type { Expense, OnboardingSettings } from "@/shared/types/domain.types";
+
+const getFiltersTrigger = (page: Page) =>
+  (page.viewportSize()?.width ?? 0) < 768
+    ? page.getByRole("button", { name: /^Filters(?: \(\d+\))?$/u })
+    : page.locator("summary").filter({ hasText: "Filters" });
+
+const closeFilters = async (page: Page) => {
+  if ((page.viewportSize()?.width ?? 0) < 768) {
+    await page
+      .getByRole("dialog", { name: "Filters", exact: true })
+      .getByRole("button", { name: "Done", exact: true })
+      .click();
+  } else {
+    await getFiltersTrigger(page).click();
+  }
+};
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/onboarding");
@@ -149,7 +166,7 @@ test("stacks mobile search above usable sort and filter controls after scrolling
   const form = page.getByRole("form", { name: "Expense filters" });
   const search = form.getByRole("searchbox", { name: "Search expenses" });
   const sort = form.locator("summary").filter({ hasText: "Sort" });
-  const filters = form.locator("summary").filter({ hasText: "Filters" });
+  const filters = getFiltersTrigger(page);
   const searchBox = (await search.boundingBox())!;
   const sortBox = (await sort.boundingBox())!;
   const filtersBox = (await filters.boundingBox())!;
@@ -167,6 +184,7 @@ test("stacks mobile search above usable sort and filter controls after scrolling
   await expect(page.getByRole("group", { name: "Sort expenses" })).toBeVisible();
   await filters.click();
   await expect(page.getByRole("group", { name: "Categories" })).toBeVisible();
+  await closeFilters(page);
   await search.fill("Airport taxi");
   await expect(page.getByRole("status")).toHaveText("1 of 23 expenses");
   await form.getByRole("button", { name: "Clear all filters" }).click();
@@ -236,7 +254,7 @@ test("filters expenses through every field, validates ranges, and clears all con
     await expect(page.getByRole("status")).toHaveText("3 of 3 expenses · 0 payments");
   }
   await page.getByLabel("Search expenses", { exact: true }).fill(" dinner ");
-  await page.locator("summary").filter({ hasText: "Filters" }).click();
+  await getFiltersTrigger(page).click();
   const fromDate = page.getByLabel("From date", { exact: true });
   await expect(fromDate).toHaveAttribute("data-empty", "true");
   await expect(fromDate).toHaveCSS("font-weight", "400");
@@ -253,18 +271,17 @@ test("filters expenses through every field, validates ranges, and clears all con
   await page.getByRole("group", { name: "Paid by" }).getByLabel("Amy").check();
   await page.getByRole("group", { name: "Member involved" }).getByLabel("Cal").check();
   await page.getByRole("group", { name: "Split types" }).getByLabel("Equal").check();
+  await closeFilters(page);
 
   await expect(page.getByText("8 active filters", { exact: true })).toBeVisible();
   await expect(page.getByRole("status")).toHaveText("1 of 3 expenses");
   await expect(page.getByRole("list", { name: "Expenses" }).getByText("Dinner")).toBeVisible();
-  await expect(page.getByRole("list", { name: "Expenses" }).getByText("Airport taxi")).toHaveCount(
-    0,
-  );
+  await expect(page.getByRole("list", { name: "Expenses" }).getByText("Airport taxi")).toHaveCount(0);
   await expect(page).toHaveURL(/name=.*&dateFrom=2026-09-20.*memberIds=c/u);
 
   await page.reload();
   await expect(page.getByRole("status")).toHaveText("1 of 3 expenses");
-  await page.locator("summary").filter({ hasText: "Filters" }).click();
+  await getFiltersTrigger(page).click();
   await expect(
     page.getByRole("group", { name: "Member involved" }).getByLabel("Cal"),
   ).toBeChecked();
@@ -273,6 +290,7 @@ test("filters expenses through every field, validates ranges, and clears all con
   await expect(
     page.getByText("End date must be on or after start date", { exact: true }),
   ).toBeVisible();
+  await closeFilters(page);
   await expect(page.getByRole("status")).toHaveText(
     "Correct the highlighted filters to see results.",
   );
@@ -292,8 +310,9 @@ test("preserves the query through expense detail and removes a deleted selected 
   page,
   isMobile,
 }) => {
-  await page.locator("summary").filter({ hasText: "Filters" }).click();
+  await getFiltersTrigger(page).click();
   await page.getByRole("group", { name: "Tags" }).getByLabel("Holiday").check();
+  await closeFilters(page);
   await expect(page).toHaveURL(/tagIds=holiday/u);
   await expect(page.getByText("1 active filter", { exact: true })).toBeVisible();
   await expect(page.getByRole("status")).toHaveText("1 of 3 expenses");
@@ -303,8 +322,9 @@ test("preserves the query through expense detail and removes a deleted selected 
   await page.getByRole("link", { name: "Back to expenses", exact: true }).click();
   await expect(page).toHaveURL(/\/expenses\?tagIds=holiday$/u);
   await expect(page.getByText("1 active filter", { exact: true })).toBeVisible();
-  await page.locator("summary").filter({ hasText: "Filters" }).click();
+  await getFiltersTrigger(page).click();
   await expect(page.getByRole("group", { name: "Tags" }).getByLabel("Holiday")).toBeChecked();
+  await closeFilters(page);
 
   await page.getByRole("list", { name: "Expenses" }).getByText("Dinner").click();
   await page.evaluate(async () => {
@@ -315,14 +335,281 @@ test("preserves the query through expense detail and removes a deleted selected 
   await page.getByRole("link", { name: "Back to expenses", exact: true }).click();
 
   await expect(page.getByText("0 active filters", { exact: true })).toBeVisible();
+  await expect(page.getByRole("list", { name: "Selected expense filters" })).toHaveCount(0);
   await expect(page).toHaveURL(/\/groups\/trip\/expenses$/u);
   if (isMobile) {
     await expect(page.getByRole("status")).toHaveCount(0);
   } else {
     await expect(page.getByRole("status")).toHaveText("3 of 3 expenses · 0 payments");
   }
-  await page.locator("summary").filter({ hasText: "Filters" }).click();
+  await getFiltersTrigger(page).click();
   await expect(page.getByRole("group", { name: "Tags" }).getByLabel("Holiday")).toHaveCount(0);
+});
+
+test("shows and removes every selected filter without opening the popover", async ({ page }) => {
+  const expected = new URLSearchParams({
+    name: "dinner",
+    sort: "highest",
+    dateFrom: "2026-09-20",
+    dateTo: "2026-09-22",
+    minAmount: "50",
+    maxAmount: "200",
+  });
+  for (const [field, values] of [
+    ["categoryIds", ["food", "travel"]],
+    ["tagIds", ["holiday", "work"]],
+    ["payerIds", ["a", "b"]],
+    ["memberIds", ["c"]],
+    ["splitTypes", ["equal", "amount"]],
+  ] as const) {
+    for (const value of values) expected.append(field, value);
+  }
+  await page.goto(`/groups/trip/expenses?${expected.toString()}`);
+  const chips = page.getByRole("list", { name: "Selected expense filters" });
+  await expect(chips.getByRole("button")).toHaveCount(11);
+  await expect(page.getByText("8 active filters", { exact: true })).toBeVisible();
+  await expect(page.getByRole("group", { name: "Categories", exact: true })).toBeHidden();
+  await expect(page.getByRole("status")).toHaveText("1 of 3 expenses");
+  await expect(chips).not.toContainText("dinner");
+  await page.reload();
+  await expect(chips.getByRole("button")).toHaveCount(11);
+
+  for (const { label, fields, value } of [
+    { label: "Category: Food", fields: ["categoryIds"], value: "food" },
+    { label: "Tag: Holiday", fields: ["tagIds"], value: "holiday" },
+    { label: "Paid by: Amy", fields: ["payerIds"], value: "a" },
+    { label: "Member: Cal", fields: ["memberIds"], value: "c" },
+    { label: "Split: Equal", fields: ["splitTypes"], value: "equal" },
+    { label: "Date: 20-Sep-2026 – 22-Sep-2026", fields: ["dateFrom", "dateTo"] },
+    { label: "Amount: ₹50.00 – ₹200.00", fields: ["minAmount", "maxAmount"] },
+    { label: "Category: Travel", fields: ["categoryIds"], value: "travel" },
+    { label: "Tag: Work", fields: ["tagIds"], value: "work" },
+    { label: "Paid by: Bea", fields: ["payerIds"], value: "b" },
+    { label: "Split: Amount", fields: ["splitTypes"], value: "amount" },
+  ]) {
+    await chips.getByRole("button", { name: `Remove ${label} filter`, exact: true }).click();
+    for (const field of fields) {
+      const remaining = value ? expected.getAll(field).filter((item) => item !== value) : [];
+      expected.delete(field);
+      for (const item of remaining) expected.append(field, item);
+    }
+    expect([...new URL(page.url()).searchParams.entries()].sort()).toEqual(
+      [...expected.entries()].sort(),
+    );
+    await expect(page.getByRole("group", { name: "Categories", exact: true })).toBeHidden();
+  }
+  await expect(chips).toHaveCount(0);
+  await expect(page.getByText("1 active filter", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Search expenses", { exact: true })).toHaveValue("dinner");
+  await expect(page.getByRole("status")).toHaveText("1 of 3 expenses");
+  await page.getByRole("button", { name: "Clear all filters", exact: true }).click();
+  await expect(page).toHaveURL(/\/groups\/trip\/expenses\?sort=highest$/u);
+});
+
+test("shows open-ended and invalid range chips that can be cleared without the popover", async ({
+  page,
+}) => {
+  for (const { field, value, label } of [
+    { field: "dateFrom", value: "2026-09-20", label: "Date: From 20-Sep-2026" },
+    { field: "dateTo", value: "2026-09-22", label: "Date: Until 22-Sep-2026" },
+    { field: "minAmount", value: "50", label: "Amount: At least ₹50.00" },
+    { field: "maxAmount", value: "200", label: "Amount: At most ₹200.00" },
+    { field: "minAmount", value: "invalid", label: "Amount: At least invalid INR" },
+    { field: "dateFrom", value: "2026-02-30", label: "Date: From 2026-02-30" },
+  ]) {
+    await page.goto(`/groups/trip/expenses?sort=highest&${field}=${value}`);
+    const chips = page.getByRole("list", { name: "Selected expense filters" });
+    await expect(chips.getByRole("button")).toHaveCount(1);
+    if (value === "invalid" || value === "2026-02-30") {
+      await expect(page.getByRole("status")).toHaveText(
+        "Correct the highlighted filters to see results.",
+      );
+    }
+    await chips.getByRole("button", { name: `Remove ${label} filter`, exact: true }).click();
+    await expect(page).toHaveURL(/\/groups\/trip\/expenses\?sort=highest$/u);
+    await expect(chips).toHaveCount(0);
+    await expect(
+      page.getByRole("list", { name: "Expenses", exact: true }).locator(":scope > li"),
+    ).toHaveCount(3);
+  }
+});
+
+test("immediately shows the inactive category selected from group Analytics", async ({ page }) => {
+  await page.evaluate(async () => {
+    const modulePath = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ modulePath)) as typeof DbModule;
+    await db.categories.update("food", { isActive: false });
+  });
+  await page.goto("/groups/trip/analytics");
+  await page.locator("#main-content .page-narrow").getByRole("link", { name: /Food/u }).click();
+  const chips = page.getByRole("list", { name: "Selected expense filters" });
+  await expect(
+    chips.getByRole("button", { name: "Remove Category: Food (inactive) filter", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole("status")).toHaveText("1 of 3 expenses");
+  await expect(page.getByRole("group", { name: "Categories", exact: true })).toBeHidden();
+  await page.getByRole("list", { name: "Expenses", exact: true }).getByText("Dinner").click();
+  await page.getByRole("link", { name: "Back to expenses", exact: true }).click();
+  await expect(chips).toContainText("Category: Food (inactive)");
+});
+
+for (const viewport of [
+  { name: "mobile", width: 320, height: 800 },
+  { name: "tablet", width: 820, height: 1180 },
+  { name: "desktop", width: 1440, height: 900 },
+]) {
+  test(`keeps filter chips on one horizontally scrollable row on ${viewport.name}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+    await page.evaluate(async () => {
+      const modulePath = "/src/shared/configs/db.ts";
+      const { db } = (await import(/* @vite-ignore */ modulePath)) as typeof DbModule;
+      await db.categories.update("food", {
+        name: "FoodGroceriesRestaurantMealsAndWeekendTreats",
+      });
+    });
+    await page.goto(
+      "/groups/trip/expenses?categoryIds=food&categoryIds=travel&tagIds=holiday&tagIds=work&payerIds=a&payerIds=b&payerIds=c&memberIds=a&memberIds=b&memberIds=c&splitTypes=equal&splitTypes=amount&splitTypes=shares&splitTypes=percentage&splitTypes=adjustment&dateFrom=2026-09-20&dateTo=2026-09-22&minAmount=0&maxAmount=200&sort=oldest",
+    );
+    const form = page.getByRole("form", { name: "Expense filters" });
+    const chips = page.getByRole("list", { name: "Selected expense filters" });
+    await expect(chips.getByRole("button")).toHaveCount(17);
+    await expect(chips.getByRole("button").first()).toContainText(
+      "Category: FoodGroceriesRestaurantMealsAndWeekendTreats",
+    );
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+      viewport.width,
+    );
+    const dimensions = await chips.evaluate((element) => ({
+      width: element.clientWidth,
+      scrollWidth: element.scrollWidth,
+      height: element.clientHeight,
+      scrollHeight: element.scrollHeight,
+      paddingBottom: parseFloat(getComputedStyle(element).paddingBottom),
+      buttonTops: [...element.querySelectorAll("button")].map(
+        (button) => button.getBoundingClientRect().top,
+      ),
+      bottomGap:
+        element.getBoundingClientRect().top +
+        element.clientTop +
+        element.clientHeight -
+        Math.max(
+          ...[...element.querySelectorAll("button")].map(
+            (button) => button.getBoundingClientRect().bottom,
+          ),
+        ),
+      buttonHeights: [...element.querySelectorAll("button")].map(
+        (button) => button.getBoundingClientRect().height,
+      ),
+      compactChip: (() => {
+        const button = [...element.querySelectorAll("button")].find(
+          (item) => item.textContent === "Category: Travel",
+        );
+        if (!button) throw new Error("Missing Travel chip");
+        const style = getComputedStyle(button);
+        return {
+          height: button.getBoundingClientRect().height,
+          fontSize: parseFloat(style.fontSize),
+          paddingX: parseFloat(style.paddingLeft),
+          paddingY: parseFloat(style.paddingTop),
+        };
+      })(),
+    }));
+    expect(dimensions.scrollWidth).toBeGreaterThan(dimensions.width);
+    expect(dimensions.scrollHeight).toBeLessThanOrEqual(dimensions.height + 1);
+    expect(dimensions.height).toBeLessThanOrEqual(48);
+    expect(Math.max(...dimensions.buttonTops) - Math.min(...dimensions.buttonTops)).toBeLessThan(1);
+    expect(dimensions.paddingBottom).toBeGreaterThanOrEqual(16);
+    expect(dimensions.bottomGap).toBeGreaterThanOrEqual(dimensions.paddingBottom - 1);
+    for (const height of dimensions.buttonHeights) expect(height).toBeGreaterThanOrEqual(24);
+    expect(dimensions.compactChip.height).toBeLessThanOrEqual(26);
+    expect(dimensions.compactChip.fontSize).toBeLessThanOrEqual(10);
+    expect(dimensions.compactChip.paddingX).toBeLessThanOrEqual(8);
+    expect(dimensions.compactChip.paddingY).toBeLessThanOrEqual(2);
+
+    await getFiltersTrigger(page).click();
+    await expect(page.getByRole("group", { name: "Categories", exact: true })).toBeVisible();
+    await closeFilters(page);
+    const amount = chips.getByRole("button", {
+      name: "Remove Amount: ₹0.00 – ₹200.00 filter",
+      exact: true,
+    });
+    await amount.focus();
+    await expect.poll(() => chips.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
+    await expect(amount).toBeInViewport();
+    await page.keyboard.press("Enter");
+    await expect(amount).toHaveCount(0);
+    expect(new URL(page.url()).searchParams.has("minAmount")).toBe(false);
+    expect(new URL(page.url()).searchParams.has("maxAmount")).toBe(false);
+    expect(new URL(page.url()).searchParams.get("sort")).toBe("oldest");
+    await page.reload();
+    await expect(chips.getByRole("button")).toHaveCount(16);
+    await form.getByRole("button", { name: "Clear all filters", exact: true }).click();
+    await expect(chips).toHaveCount(0);
+    await expect(page).toHaveURL(/\/groups\/trip\/expenses\?sort=oldest$/u);
+  });
+}
+
+test("uses a scrollable mobile filter modal with live selections, clearing, and focus return", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 568 });
+  await page.goto("/groups/trip/expenses?sort=highest");
+  const trigger = getFiltersTrigger(page);
+  const dialog = page.getByRole("dialog", { name: "Filters", exact: true });
+  await trigger.click();
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole("heading", { name: "Filters", exact: true })).toBeVisible();
+  const controls = dialog.getByRole("group", { name: "Filter controls", exact: true });
+  const done = dialog.getByRole("button", { name: "Done", exact: true });
+  await expect(done).toBeInViewport();
+  await expect
+    .poll(() => controls.evaluate((element) => element.scrollHeight > element.clientHeight))
+    .toBe(true);
+  const bounds = (await dialog.boundingBox())!;
+  expect(bounds.x).toBeGreaterThanOrEqual(15.5);
+  expect(bounds.y).toBeGreaterThanOrEqual(15.5);
+  expect(bounds.x + bounds.width).toBeLessThanOrEqual(304.5);
+  expect(bounds.y + bounds.height).toBeLessThanOrEqual(552.5);
+  const header = dialog.locator(".dialog-header");
+  const footer = dialog.locator(".dialog-footer");
+  const headerY = (await header.boundingBox())!.y;
+  const footerY = (await footer.boundingBox())!.y;
+  await controls.evaluate((element) => {
+    element.scrollTop = element.scrollHeight;
+  });
+  expect((await header.boundingBox())!.y).toBeCloseTo(headerY, 0);
+  expect((await footer.boundingBox())!.y).toBeCloseTo(footerY, 0);
+  await expect(dialog.getByRole("button", { name: "Close filters", exact: true })).toBeInViewport();
+  await expect(done).toBeInViewport();
+  await dialog.getByRole("group", { name: "Categories", exact: true }).getByLabel("Food").check();
+  await expect(page).toHaveURL(/sort=highest&categoryIds=food$/u);
+  await done.click();
+  await expect(dialog).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+  await expect(page.getByRole("list", { name: "Selected expense filters" })).toContainText(
+    "Category: Food",
+  );
+  await trigger.click();
+  await page.setViewportSize({ width: 320, height: 480 });
+  await expect(dialog).toBeVisible();
+  await expect(done).toBeInViewport();
+  await dialog.getByRole("button", { name: "Clear all filters", exact: true }).click();
+  await expect(page).toHaveURL(/\/groups\/trip\/expenses\?sort=highest$/u);
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+  await expect(page.getByRole("list", { name: "Selected expense filters" })).toHaveCount(0);
+  await trigger.click();
+  await dialog.getByRole("button", { name: "Close filters", exact: true }).click();
+  await expect(dialog).toHaveCount(0);
+  await trigger.click();
+  await page.setViewportSize({ width: 820, height: 900 });
+  await expect(dialog).toHaveCount(0);
+  await getFiltersTrigger(page).click();
+  await expect(page.getByRole("group", { name: "Categories", exact: true })).toBeVisible();
+  await expect(dialog).toHaveCount(0);
 });
 
 test("sorts by total paid and date, preserving sort through filters and detail navigation", async ({

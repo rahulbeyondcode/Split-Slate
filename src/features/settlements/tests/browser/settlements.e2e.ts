@@ -144,6 +144,45 @@ test("records, displays, edits, and deletes a tagged group payment without incre
   await expect(page.getByRole("region", { name: "Suggested payments" })).toContainText("₹50.00");
 });
 
+for (const width of [320, 820, 1440]) {
+  test(`shows compact colour-labelled payment tag options at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 800 });
+    await page.getByRole("button", { name: "Add payment", exact: true }).click();
+    const dialog = page.getByRole("dialog", { name: "Record payment", exact: true });
+    const checkbox = dialog.getByRole("checkbox", { name: "Cash", exact: true });
+    const option = checkbox.locator("..");
+    const swatch = option.locator('span[aria-hidden="true"]');
+    await expect(option).toHaveClass(/choice-option-compact/u);
+    await expect(option).toContainText("Cash");
+    for (const theme of ["light", "dark"]) {
+      await page.evaluate((value) => document.documentElement.setAttribute("data-theme", value), theme);
+      await expect(swatch).toBeVisible();
+      await expect(swatch).toHaveCSS("background-color", "rgb(33, 143, 104)");
+      const dimensions = await option.evaluate((element) => {
+        const style = getComputedStyle(element);
+        return {
+          fontSize: parseFloat(style.fontSize),
+          height: element.getBoundingClientRect().height,
+          paddingY: parseFloat(style.paddingTop),
+        };
+      });
+      expect(dimensions.fontSize).toBeLessThanOrEqual(12);
+      expect(dimensions.height).toBeLessThanOrEqual(40);
+      expect(dimensions.paddingY).toBeLessThanOrEqual(8);
+      await checkbox.check();
+      await expect(checkbox).toBeChecked();
+      await expect(swatch).toHaveCSS("background-color", "rgb(33, 143, 104)");
+      await checkbox.uncheck();
+      await expect(checkbox).not.toBeChecked();
+    }
+    await checkbox.focus();
+    await page.keyboard.press("Space");
+    await expect(checkbox).toBeChecked();
+    await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
+    await expect(dialog).toHaveCount(0);
+  });
+}
+
 test("prefills settle up from a suggested transfer", async ({ page }) => {
   await page.getByRole("button", { name: "Settle up" }).click();
   const dialog = page.getByRole("dialog", { name: "Record payment" });

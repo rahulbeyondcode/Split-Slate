@@ -13,6 +13,7 @@ import { moneyToDecimal, parseMoney } from "@/shared/utils/money";
 import type { SettlementInput } from "@/features/settlements/types/settlements.types";
 import type { Expense, Group, Member, Person, Settlement, Tag } from "@/shared/types/domain.types";
 
+import DialogLayout from "@/shared/ui/dialog-layout";
 import WhenPicker from "@/shared/ui/when-picker";
 
 interface PropsType {
@@ -110,66 +111,86 @@ const SettlementForm = ({
       ref={dialogRef}
       aria-labelledby={titleId}
       onCancel={handleCancel}
-      className="m-auto max-h-[90svh] w-[calc(100%-32px)] max-w-xl overflow-y-auto rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-5 text-[var(--ink)] shadow-2xl backdrop:bg-black/60 sm:p-7"
+      className="app-dialog max-w-xl rounded-3xl border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] shadow-2xl backdrop:bg-black/60"
     >
       <FormProvider {...methods}>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
-          <h2 id={titleId} className="section-title text-xl">
-            {initial ? "Edit payment" : "Record payment"}
-          </h2>
-          <p className="soft-caption">Record money sent outside Split Slate in this group only.</p>
-          <fieldset disabled={methods.formState.isSubmitting} className="flex flex-col gap-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <MemberPicker name="fromMemberId" label="Paid by" members={members} />
-              <MemberPicker name="toMemberId" label="Received by" members={members} />
-            </div>
-            <label className="block">
-              <span className="field-label">Amount ({group.currency})</span>
-              <Input name="amount" inputMode="decimal" placeholder="0.00" />
-            </label>
-            <WhenPicker defaultDate={localDateTime(openedAt).slice(0, 10)} />
-            {tags.length > 0 && (
-              <fieldset>
-                <legend className="field-label">Tags (optional)</legend>
-                <div className="flex flex-wrap gap-2">
-                  {tags.map((tag) => (
-                    <label key={tag.id} className="choice-option">
-                      <input
-                        type="checkbox"
-                        value={tag.id}
-                        {...methods.register("tagIds")}
-                        className="choice-control"
-                      />
-                      <span>{tag.name}</span>
-                    </label>
-                  ))}
-                </div>
-              </fieldset>
+        <form onSubmit={handleSubmit} className="dialog-form" noValidate>
+          <DialogLayout
+            title={initial ? "Edit payment" : "Record payment"}
+            titleId={titleId}
+            onClose={onCancel}
+            closeDisabled={methods.formState.isSubmitting}
+            bodyClassName="flex flex-col gap-4"
+            footer={
+              <>
+                <button
+                  type="button"
+                  onClick={onCancel}
+                  disabled={methods.formState.isSubmitting}
+                  className="btn btn-secondary"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={methods.formState.isSubmitting}
+                  className="btn btn-primary"
+                >
+                  {initial ? "Save payment" : "Record payment"}
+                </button>
+              </>
+            }
+          >
+            <p className="soft-caption">Record money sent outside Split Slate in this group only.</p>
+            <fieldset disabled={methods.formState.isSubmitting} className="flex flex-col gap-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <MemberPicker name="fromMemberId" label="Paid by" members={members} />
+                <MemberPicker name="toMemberId" label="Received by" members={members} />
+              </div>
+              <label className="block">
+                <span className="field-label">Amount ({group.currency})</span>
+                <Input name="amount" inputMode="decimal" placeholder="0.00" />
+              </label>
+              <WhenPicker defaultDate={localDateTime(openedAt).slice(0, 10)} />
+              {tags.length > 0 && (
+                <fieldset>
+                  <legend className="field-label">Tags (optional)</legend>
+                  <div className="flex flex-wrap gap-2">
+                    {tags.map((tag) => (
+                      <label
+                        key={tag.id}
+                        className="choice-option choice-option-compact min-w-0 max-w-full !gap-2 !text-xs"
+                      >
+                        <input
+                          type="checkbox"
+                          value={tag.id}
+                          {...methods.register("tagIds")}
+                          className="choice-control"
+                        />
+                        <span
+                          aria-hidden="true"
+                          className="h-2.5 w-2.5 shrink-0 rounded-full border border-black/10"
+                          style={{ backgroundColor: tag.color }}
+                        />
+                        <span className="min-w-0 break-words">{tag.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+              )}
+            </fieldset>
+            {overpayment && (
+              <p role="status" className="note">
+                This exceeds the current suggested payment and may reverse who owes whom. You can
+                still record what actually happened.
+              </p>
             )}
-          </fieldset>
-          {overpayment && (
-            <p role="status" className="note">
-              This exceeds the current suggested payment and may reverse who owes whom. You can
-              still record what actually happened.
-            </p>
-          )}
-          {methods.formState.errors.root && (
-            <p role="alert" className="money-negative text-sm">
-              {methods.formState.errors.root.message}
-            </p>
-          )}
-          <div className="flex justify-end gap-2">
-            <button type="button" onClick={onCancel} className="btn btn-secondary">
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={methods.formState.isSubmitting}
-              className="btn btn-primary"
-            >
-              {initial ? "Save payment" : "Record payment"}
-            </button>
-          </div>
+            {methods.formState.errors.root && (
+              <p role="alert" className="money-negative text-sm">
+                {methods.formState.errors.root.message}
+              </p>
+            )}
+          </DialogLayout>
         </form>
       </FormProvider>
     </dialog>

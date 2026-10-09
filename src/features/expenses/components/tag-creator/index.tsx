@@ -9,6 +9,7 @@ import Input from "@/shared/components/form-elements/input";
 
 import type { EntitySuggestion } from "@/shared/utils/entity-suggestions";
 
+import DialogLayout from "@/shared/ui/dialog-layout";
 import EntitySuggestions from "@/shared/ui/entity-suggestions";
 
 const tagSchema = z.object({
@@ -77,44 +78,55 @@ const TagCreator = ({ groupId, existingNames, onAdd, onCancel }: PropsType) => {
       ref={dialogRef}
       aria-labelledby={titleId}
       onCancel={handleCancel}
-      className="m-auto max-h-[90svh] w-full max-w-lg overflow-y-auto rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-5 text-[var(--ink)] shadow-2xl backdrop:bg-black/60 sm:p-6"
+      className="app-dialog max-w-lg rounded-3xl border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] shadow-2xl backdrop:bg-black/60"
     >
       <FormProvider {...methods}>
-        <form onSubmit={handleSave} className="flex min-w-0 flex-col gap-5">
-          <h2 id={titleId} className="section-title">
-            Create new tag
-          </h2>
-          <label className="block">
-            <span className="field-label">Tag name</span>
-            <Input name="name" placeholder="e.g. Weekend" autoFocus />
-          </label>
-          <EntitySuggestions
-            kind="tag"
-            query={tagQuery}
-            currentGroupId={groupId}
-            unavailableNames={existingNames}
-            disabled={isSubmitting || suggesting}
-            onSelect={handleSuggestedTag}
-          />
-          <ColorPicker name="color" label="Tag color" />
-          {error && (
-            <p role="alert" className="note money-negative">
-              {error}
-            </p>
-          )}
-          <div className="flex justify-end gap-2">
-            <button
-              type="button"
+        <form onSubmit={handleSave} className="dialog-form">
+          <DialogLayout
+            title="Create new tag"
+            titleId={titleId}
+            onClose={onCancel}
+            closeDisabled={isSubmitting || suggesting}
+            bodyClassName="flex flex-col gap-5"
+            footer={
+              <>
+                <button
+                  type="button"
+                  disabled={isSubmitting || suggesting}
+                  onClick={onCancel}
+                  className="btn btn-secondary"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting || suggesting}
+                  className="btn btn-primary"
+                >
+                  {isSubmitting ? "Creating…" : "Create tag"}
+                </button>
+              </>
+            }
+          >
+            <label className="block">
+              <span className="field-label">Tag name</span>
+              <Input name="name" placeholder="e.g. Weekend" autoFocus />
+            </label>
+            <EntitySuggestions
+              kind="tag"
+              query={tagQuery}
+              currentGroupId={groupId}
+              unavailableNames={existingNames}
               disabled={isSubmitting || suggesting}
-              onClick={onCancel}
-              className="btn btn-secondary"
-            >
-              Cancel
-            </button>
-            <button type="submit" disabled={isSubmitting || suggesting} className="btn btn-primary">
-              {isSubmitting ? "Creating…" : "Create tag"}
-            </button>
-          </div>
+              onSelect={handleSuggestedTag}
+            />
+            <ColorPicker name="color" label="Tag color" />
+            {error && (
+              <p role="alert" className="note money-negative">
+                {error}
+              </p>
+            )}
+          </DialogLayout>
         </form>
       </FormProvider>
     </dialog>

@@ -2185,12 +2185,6 @@ body:has(.group-page-contained),
     0 -16px 0 var(--page),
     0 16px 0 var(--page);
 }
-@media (min-width: 768px) {
-  .expense-ledger-list {
-    max-height: var(--expense-ten-rows-height, none);
-    overflow-y: auto;
-  }
-}
 .group-page-contained .member-editor {
   max-height: min(40svh, 23.75rem);
   overflow-y: auto;
@@ -2274,15 +2268,17 @@ body:has(.group-page-contained),
 }
 .side-group {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.625rem;
   width: 100%;
-  padding: 0.5625rem 0.625rem;
-  border-radius: 1rem;
+  padding: 0.75rem 0.625rem;
+  background: transparent;
 }
-.side-group:hover,
-.side-group.active {
-  background: var(--brand-soft);
+.side-group + .side-group {
+  border-top: 1px solid var(--line);
+}
+.side-group-details {
+  overflow-wrap: anywhere;
 }
 .activity-panel {
   width: 17.5rem;
@@ -2392,31 +2388,83 @@ body:has(.group-page-contained),
 .form-input[type="date"][data-empty="true"]::-webkit-datetime-edit {
   color: var(--muted);
 }
-.person-editor--dialog {
-  max-height: calc(90svh - 2rem - 2px);
+.app-dialog {
+  --dialog-margin-top: max(16px, env(safe-area-inset-top, 0px));
+  --dialog-margin-right: max(16px, env(safe-area-inset-right, 0px));
+  --dialog-margin-bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  --dialog-margin-left: max(16px, env(safe-area-inset-left, 0px));
+  position: fixed;
+  inset: auto;
+  top: calc(
+    var(--dialog-viewport-top, 0px) +
+      (var(--dialog-viewport-height, 100dvh) + var(--dialog-margin-top) - var(--dialog-margin-bottom)) / 2
+  );
+  left: calc(
+    var(--dialog-viewport-left, 0px) +
+      (var(--dialog-viewport-width, 100vw) + var(--dialog-margin-left) - var(--dialog-margin-right)) / 2
+  );
+  width: calc(
+    var(--dialog-viewport-width, 100vw) - var(--dialog-margin-left) - var(--dialog-margin-right)
+  );
+  max-height: calc(
+    var(--dialog-viewport-height, 100dvh) - var(--dialog-margin-top) - var(--dialog-margin-bottom)
+  );
+  margin: 0;
+  padding: 0;
+  transform: translate(-50%, -50%);
   overflow: hidden;
 }
-.person-editor--dialog > h3,
-.person-editor--dialog > .person-editor-actions {
-  flex: none;
-}
-.person-editor-dialog-body {
+.app-dialog[open],
+.dialog-form,
+.dialog-layout {
   display: flex;
-  flex: 1;
   flex-direction: column;
+  min-width: 0;
   min-height: 0;
-  gap: 1.25rem;
+}
+.dialog-form,
+.dialog-layout {
+  flex: 0 1 auto;
+  width: 100%;
+  overflow: hidden;
+}
+.dialog-header {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-bottom: 1px solid var(--line);
+}
+.dialog-body {
+  flex: 0 1 auto;
+  min-height: 0;
+  min-width: 0;
+  padding: 1rem;
   overflow-y: auto;
   overscroll-behavior: contain;
-  margin-inline: -0.5rem;
-  padding-inline: 0.5rem;
+  scrollbar-gutter: stable;
+  overflow-wrap: anywhere;
 }
-.person-editor-dialog-body > * {
+.dialog-body > * {
   flex: none;
 }
-.person-editor--dialog .person-editor-actions {
-  padding-top: 0.75rem;
+.dialog-footer {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 1rem;
   border-top: 1px solid var(--line);
+}
+.dialog-footer > .btn {
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  text-align: center;
 }
 .when-picker {
   display: flex;
@@ -2582,6 +2630,16 @@ body:has(.group-page-contained),
 @container (min-width: 728px) {
   .dashboard-lower {
     grid-template-columns: 1fr 1.1fr;
+    grid-template-rows: auto 1fr;
+    row-gap: 0.75rem;
+  }
+  .dashboard-preview {
+    display: grid;
+    grid-row: span 2;
+    grid-template-rows: subgrid;
+  }
+  .dashboard-preview > header {
+    align-items: center;
   }
 }
 .responsive-grid {

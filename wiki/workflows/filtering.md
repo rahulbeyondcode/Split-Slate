@@ -60,6 +60,21 @@ than adding a history entry per keystroke.
   clearing removes filter parameters but retains a selected nondefault sort. Unknown query fields
   and invalid split types are ignored.
 - Filter state is not written to IndexedDB or Zustand.
+- Selected non-search filters appear as removable chips below the search/sort/filter toolbar at
+  every screen width, without opening the filter popover. Each selected category, tag, payer,
+  involved member, and split type has its own chip; date bounds and amount bounds each share one
+  range chip. Search text stays in the input rather than appearing twice. Inactive categories
+  retain their historical label, and invalid range values remain visible and removable.
+- Removing a chip updates the form and URL immediately, preserves all other filters and the sort,
+  and clears both bounds when removing a range chip. Clear all filters remains available. Chips
+  use compact 10px-reference text, reduced padding, 10px remove icons, and a 24px minimum height.
+  Pills and their labels stay on one non-wrapping row, scrolling horizontally at every screen
+  width instead of growing the sticky toolbar. The scroll container reserves 16px of bottom padding
+  beneath the pills so overlay scrollbars do not cover them; native non-overlay scrollbars sit
+  below the content. Group Analytics category selections show their chips immediately.
+  The shared unlayered `button { font: inherit; }` reset overrides ordinary Tailwind font utilities;
+  chip font size and line height use explicit important utilities to retain their compact sizing
+  without changing the global reset.
 - On group Analytics, clicking a category row opens that group's Expenses route with only that
   category filter active and the default newest-first sort, at every screen width. The link uses
   category IDs rather than names; a chart row combining same-name categories selects all matching
@@ -84,13 +99,15 @@ and [[main-screen]].
 On desktop/tablet, the main pane scrolls like mobile so insights scroll away while the group header,
 ledger title/subtitle, and search/sort/filter toolbar remain sticky. Those sticky surfaces and the
 spacing around the filter toolbar are painted with the solid page background so scrolling rows do
-not show through. The ledger independently scrolls after ten rendered expense/payment entries,
-using their measured heights; shorter filtered lists do
-not get a fixed-height empty area. On mobile, the entire expense page scrolls through the final row
-in the main pane with no inner ledger scroll. Search fills its own row, with equal-width Sort and
-Filters buttons below. Sort and Filters popovers remain portaled outside the ledger, anchor below the
-entire mobile toolbar (leaving Clear all filters accessible), track their anchors while the pane
-scrolls, and scroll independently within the viewport. Desktop popover anchors remain unchanged.
+not show through. At every width the ledger uses natural height with no inner vertical scrolling
+or ten-entry cap; the main pane reaches the final expense/payment row. Short filtered lists do not
+get a fixed-height empty area. On mobile, search fills its own row, with equal-width Sort and
+Filters buttons below. Below 768px, Filters opens the shared native modal dialog with a title/close
+control, independently scrolling fields, and a fixed Done/Clear all footer. Selections update the
+URL and results immediately; Done, Close, and Escape dismiss without reverting them. Height-only
+viewport changes keep the modal open; crossing the mobile/tablet boundary closes it. Tablet/desktop
+Filters retains its anchored popover. Sort remains a portaled popover at every width, tracks its
+anchor while scrolling, and uses the entire toolbar as its mobile anchor.
 
 ## Sorting
 
@@ -130,6 +147,15 @@ deletes a selected tag while the list is unmounted. When the list remounts, sele
 payer, and involved-member IDs that are no longer available are removed automatically.
 It also checks the sectioned single-choice sort popover, all eight sort orders, retention
 through clearing, reload, and detail navigation, plus filter-aware insights.
+New chip cases cover every selected option, independent removal, range clearing, invalid/open-ended
+values, inactive Analytics selections, stale-option pruning, reloads, long labels, single-row
+horizontal scrolling, scrollbar clearance, compact typography/padding, 24px minimum controls, and
+keyboard removal at mobile/tablet/desktop
+widths. Mobile modal cases cover scrolling, live selections, Done/Close/Escape, clearing with sort
+retention, focus return, height-only resizing, and switching to tablet. Original-size chips passed
+focused verification; compact-size assertions exposed the font-reset override, which is now fixed
+in source. The latest compact/modal/horizontal-scroll edits and revised tests have not been verified;
+execution is paused under the user's current instruction.
 
 `src/features/group-detail/tests/browser/group-overview-navigation.e2e.ts` adds group Analytics
 drill-down cases at narrow-mobile, tablet, and desktop widths, covering active category selections,

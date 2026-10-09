@@ -70,6 +70,230 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/dashboard");
 });
 
+for (const width of [768, 820, 1440]) {
+  test(`stacks sidebar group balances below wrapping names and separates unfilled rows at ${width}px`, async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, "Sidebar is only shown on tablet and desktop");
+    await page.setViewportSize({ width, height: 800 });
+    await page.evaluate(async () => {
+      const modulePath = "/src/shared/configs/db.ts";
+      const { db } = (await import(/* @vite-ignore */ modulePath)) as typeof DbModule;
+      await db.groups.update("trip", {
+        name: "Weekend trip with a very long group name and SuperLongUnbrokenGroupNameForWrapping",
+      });
+      await db.expenses.update("dinner", {
+        transactions: {
+          paid: [{ memberId: "a", amount: 246913578 }],
+          owes: [
+            { memberId: "a", amount: 123456789 },
+            { memberId: "b", amount: 123456789 },
+          ],
+        },
+      });
+      await db.groups.put({
+        id: "lunch",
+        name: "Lunch group with another long name",
+        icon: "food-and-drinks/hamburger-3d.png",
+        currency: "INR",
+        createdAt: 2,
+        frequentPayerIds: [],
+      });
+      await db.members.bulkPut([
+        { id: "c", groupId: "lunch", personId: "self" },
+        { id: "d", groupId: "lunch", personId: "friend" },
+      ]);
+      await db.categories.put({
+        id: "lunch-food",
+        groupId: "lunch",
+        name: "Food",
+        icon: "food-and-drinks/hamburger-3d.png",
+        isActive: true,
+      });
+      const dinner = (await db.expenses.get("dinner"))!;
+      await db.expenses.put({
+        ...dinner,
+        expenseId: "meal",
+        groupId: "lunch",
+        expenseName: "Meal",
+        categoryId: "lunch-food",
+        createdBy: "d",
+        transactions: {
+          paid: [{ memberId: "d", amount: 246913578 }],
+          owes: [
+            { memberId: "c", amount: 123456789 },
+            { memberId: "d", amount: 123456789 },
+          ],
+        },
+      });
+    });
+    await page.reload();
+    const sidebar = page.getByRole("complementary", { name: "Sidebar" });
+    const rows = sidebar.locator(".side-group");
+    await expect(rows).toHaveCount(2);
+    await expect(rows.first()).toHaveCSS("border-top-width", "0px");
+    await expect(rows.last()).toHaveCSS("border-top-width", "1px");
+    await expect(rows.locator(".money-positive")).toContainText("+₹");
+    await expect(rows.locator(".money-negative")).toContainText("−₹");
+
+    for (const theme of ["light", "dark"]) {
+      await page.evaluate((value) => document.documentElement.setAttribute("data-theme", value), theme);
+      for (const row of await rows.all()) {
+        await expect(row).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+        await row.hover();
+        await expect(row).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+        await row.focus();
+        await expect(row).toBeFocused();
+        await expect(row).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+        // Exercise the existing active class without navigating away from the groups list.
+        await row.evaluate((element) => element.classList.add("active"));
+        await expect(row).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+        await row.evaluate((element) => element.classList.remove("active"));
+        await expect(row.locator(".soft-caption")).toHaveText("2 members · 1 expenses");
+        const layout = await row.evaluate((element) => {
+          const details = element.querySelector(".side-group-details")!;
+          const name = details.firstElementChild!;
+          const counts = details.querySelector(".soft-caption")!;
+          const balance = details.querySelector(".money")!;
+          const rowBox = element.getBoundingClientRect();
+          return {
+            nameTop: name.getBoundingClientRect().top,
+            nameBottom: name.getBoundingClientRect().bottom,
+            nameLineHeight: parseFloat(getComputedStyle(name).lineHeight),
+            countsTop: counts.getBoundingClientRect().top,
+            countsBottom: counts.getBoundingClientRect().bottom,
+            balanceTop: balance.getBoundingClientRect().top,
+            balanceLeft: balance.getBoundingClientRect().left,
+            detailsLeft: details.getBoundingClientRect().left,
+            contentFits: [name, counts, balance].every((child) => {
+              const box = child.getBoundingClientRect();
+              return (
+                child.scrollWidth <= child.clientWidth + 1 &&
+                box.right <= rowBox.right &&
+                box.bottom <= rowBox.bottom
+              );
+            }),
+          };
+        });
+        expect(layout.nameBottom - layout.nameTop).toBeGreaterThan(layout.nameLineHeight);
+        expect(layout.countsTop).toBeGreaterThanOrEqual(layout.nameBottom);
+        expect(layout.balanceTop).toBeGreaterThan(layout.countsBottom);
+        expect(Math.abs(layout.balanceLeft - layout.detailsLeft)).toBeLessThan(1);
+        expect(layout.contentFits).toBe(true);
+      }
+    }
+    await sidebar.locator('.side-group[href="/groups/trip"]').click();
+    await expect(page).toHaveURL(/\/groups\/trip$/u);
+  });
+}
+
+for (const width of [320, 820, 1440]) {
+  test(`shows group-card member avatars and overflow counts at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 800 });
+    await page.evaluate(async () => {
+      const modulePath = "/src/shared/configs/db.ts";
+      const { db } = (await import(/* @vite-ignore */ modulePath)) as typeof DbModule;
+      await db.groups.put({
+        id: "avatar-preview",
+        name: "Member avatar preview",
+        icon: "travel-and-places/camping-3d.png",
+        currency: "INR",
+        createdAt: 2,
+        frequentPayerIds: [],
+      });
+      await db.people.bulkPut(
+        Array.from({ length: 8 }, (_, index) => ({
+          id: `avatar-person-${index}`,
+          name: `Extra member ${index + 1}`,
+          icon: "profile-pic/fox-3d.png",
+        })),
+      );
+    });
+    const card = page.locator('.dashboard-page .group-card[href="/groups/avatar-preview"]');
+
+    for (const count of [0, 1, 2, 3, 5, 6, 10]) {
+      await page.evaluate(async (memberCount) => {
+        const modulePath = "/src/shared/configs/db.ts";
+        const { db } = (await import(/* @vite-ignore */ modulePath)) as typeof DbModule;
+        await db.members.where("groupId").equals("avatar-preview").delete();
+        const personIds = [
+          "self",
+          "friend",
+          ...Array.from({ length: 8 }, (_, index) => `avatar-person-${index}`),
+        ];
+        await db.members.bulkPut(
+          personIds.slice(0, memberCount).map((personId, index) => ({
+            id: `avatar-member-${index}`,
+            groupId: "avatar-preview",
+            personId,
+          })),
+        );
+      }, count);
+      await page.reload();
+      await expect(card.locator(".soft-caption")).toHaveText(`${count} members · 0 expenses`);
+      const members = card.getByRole("group", { name: "Group members", exact: true });
+      if (count === 0) {
+        await expect(members).toHaveCount(0);
+        continue;
+      }
+
+      await expect(members.getByRole("img")).toHaveCount(Math.min(count, 5));
+      await expect(members.getByRole("img", { name: "Rahul", exact: true })).toBeVisible();
+      await expect(members.getByRole("img", { name: "Rahul", exact: true })).toHaveAttribute(
+        "title",
+        "Rahul",
+      );
+      await expect(members.locator('img[alt="Rahul"]')).toHaveAttribute(
+        "src",
+        /profile-pic\/fox-3d\.png/u,
+      );
+      if (count > 1) {
+        await expect(members.getByRole("img", { name: "Sam", exact: true })).toBeVisible();
+        await expect(members.locator('img[alt="Sam"]')).toHaveAttribute(
+          "src",
+          /profile-pic\/panda-3d\.png/u,
+        );
+      }
+      if (count >= 5) {
+        await expect(members.getByRole("img", { name: "Extra member 3", exact: true })).toBeVisible();
+      }
+      if (count > 5) {
+        await expect(
+          members.getByLabel(`${count - 5} more members`, { exact: true }),
+        ).toHaveText(`+${count - 5}`);
+        await expect(members.getByRole("img", { name: "Extra member 4", exact: true })).toHaveCount(0);
+      } else {
+        await expect(members.getByText(/^\+/u)).toHaveCount(0);
+      }
+
+      for (const theme of ["light", "dark"]) {
+        await page.evaluate((value) => document.documentElement.setAttribute("data-theme", value), theme);
+        await expect(members).toBeVisible();
+        const layout = await members.evaluate((element) => {
+          const cardBox = element.closest(".group-card")!.getBoundingClientRect();
+          return {
+            widthFits: element.scrollWidth <= element.clientWidth + 1,
+            avatarsFit: [...element.querySelectorAll(".avatar")].every((avatar) => {
+              const box = avatar.getBoundingClientRect();
+              return (
+                box.width <= 24 &&
+                box.height <= 24 &&
+                box.left >= cardBox.left &&
+                box.right <= cardBox.right
+              );
+            }),
+          };
+        });
+        expect(layout.widthFits).toBe(true);
+        expect(layout.avatarsFit).toBe(true);
+      }
+    }
+    await card.click();
+    await expect(page).toHaveURL(/\/groups\/avatar-preview$/u);
+  });
+}
+
 test("aligns the profile image with the dashboard greeting", async ({ page }) => {
   const heading = page.getByRole("heading", { level: 1, name: /Rahul/u });
   const textBox = await heading.locator("span").boundingBox();
@@ -151,6 +375,113 @@ test("keeps app-wide Back and title visible while the subtitle and content scrol
   }
 });
 
+for (const width of [667, 820, 1440, 1920]) {
+  test(`keeps dashboard summary headers outside their boxes at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 800 });
+    const unsettled = page.getByRole("region", { name: "Unsettled balances", exact: true });
+    const chart = page.getByRole("region", { name: "Spending by category", exact: true });
+
+    for (const content of ["populated", "empty"]) {
+      if (content === "empty") {
+        await page.evaluate(async () => {
+          const modulePath = "/src/shared/configs/db.ts";
+          const { db } = (await import(/* @vite-ignore */ modulePath)) as typeof DbModule;
+          await db.expenses.delete("dinner");
+        });
+        await page.reload();
+        await expect(unsettled.locator(".surface")).toHaveText("All square!");
+        await expect(chart.locator(".surface")).toHaveText("No spending yet.");
+      } else {
+        await expect(unsettled.locator(".surface .ui-row")).toHaveCount(1);
+        await expect(chart.locator(".surface").getByRole("link", { name: /Food/u })).toBeVisible();
+      }
+
+      for (const theme of ["light", "dark"]) {
+        await page.evaluate((value) => document.documentElement.setAttribute("data-theme", value), theme);
+        for (const section of [unsettled, chart]) {
+          const header = section.locator(":scope > header");
+          const surface = section.locator(":scope > .surface");
+          await expect(header.getByRole("heading", { level: 2 })).toBeVisible();
+          await expect(surface).toBeVisible();
+          await expect(surface.getByRole("heading")).toHaveCount(0);
+          await expect(surface.getByRole("link", { name: /View all/u })).toHaveCount(0);
+          const layout = await section.evaluate((element) => {
+            const header = element.querySelector(":scope > header")!;
+            const surface = element.querySelector(":scope > .surface")!;
+            const heading = header.querySelector("h2")!;
+            const headerBox = header.getBoundingClientRect();
+            const surfaceBox = surface.getBoundingClientRect();
+            const sectionBox = element.getBoundingClientRect();
+            return {
+              topMargin: parseFloat(getComputedStyle(element).marginTop),
+              rootFontSize: parseFloat(getComputedStyle(document.documentElement).fontSize),
+              gap: surfaceBox.top - headerBox.bottom,
+              headingOutside: heading.closest(".surface") === null,
+              headerBackground: getComputedStyle(header).backgroundColor,
+              headerFits: header.scrollWidth <= header.clientWidth + 1,
+              surfaceFits:
+                surfaceBox.left >= sectionBox.left && surfaceBox.right <= sectionBox.right + 1,
+              controlsAbove: [...header.querySelectorAll("a, .soft-caption")].every(
+                (control) => control.getBoundingClientRect().bottom < surfaceBox.top,
+              ),
+            };
+          });
+          expect(layout.topMargin).toBeCloseTo(layout.rootFontSize, 1);
+          expect(layout.gap).toBeCloseTo(layout.rootFontSize * 0.75, 1);
+          expect(layout.headingOutside).toBe(true);
+          expect(layout.headerBackground).toBe("rgba(0, 0, 0, 0)");
+          expect(layout.headerFits).toBe(true);
+          expect(layout.surfaceFits).toBe(true);
+          expect(layout.controlsAbove).toBe(true);
+        }
+        await expect(unsettled.locator("header").getByRole("link", { name: /View all/u })).toBeVisible();
+        if (width < 768) {
+          await expect(chart.locator("header").getByRole("link", { name: "View all" })).toBeVisible();
+        }
+        if (width >= 1440) {
+          const columns = await page.locator(".dashboard-lower").evaluate((element) =>
+            getComputedStyle(element).gridTemplateColumns.split(" "),
+          );
+          expect(columns).toHaveLength(2);
+          for (const headerSize of ["natural", "tall-action", "wrapped-title"]) {
+            const action = unsettled.locator("header").getByRole("link", { name: /View all/u });
+            const title = chart.getByRole("heading", { name: "Spending by category", exact: true });
+            if (headerSize === "tall-action") {
+              await action.evaluate((element) => {
+                element.style.minHeight = "5rem";
+              });
+            }
+            if (headerSize === "wrapped-title") {
+              await title.evaluate((element) => {
+                element.style.maxWidth = "8rem";
+              });
+            }
+            const unsettledHeader = (await unsettled.locator("header").boundingBox())!;
+            const chartHeader = (await chart.locator("header").boundingBox())!;
+            const unsettledBox = (await unsettled.locator(".surface").boundingBox())!;
+            const chartBox = (await chart.locator(".surface").boundingBox())!;
+            expect(chartBox.x).toBeGreaterThan(unsettledBox.x + unsettledBox.width);
+            expect(Math.abs(unsettledHeader.y - chartHeader.y)).toBeLessThan(1);
+            expect(Math.abs(unsettledHeader.height - chartHeader.height)).toBeLessThan(1);
+            expect(Math.abs(unsettledBox.y - chartBox.y)).toBeLessThan(1);
+            expect(
+              Math.abs(unsettledBox.y + unsettledBox.height - (chartBox.y + chartBox.height)),
+            ).toBeLessThan(1);
+          }
+          await unsettled.locator("header a").evaluate((element) => {
+            element.style.removeProperty("min-height");
+          });
+          await chart.getByRole("heading").evaluate((element) => {
+            element.style.removeProperty("max-width");
+          });
+        }
+      }
+    }
+    await page.setViewportSize({ width: 390, height: 800 });
+    await expect(page.locator(".dashboard-lower")).toBeHidden();
+  });
+}
+
 test("opens Analytics from the mobile dashboard chart and returns via Back", async ({
   page,
   isMobile,
@@ -161,14 +492,10 @@ test("opens Analytics from the mobile dashboard chart and returns via Back", asy
   await expect(footer.getByRole("link", { name: "Analytics" })).toHaveCount(0);
   await expect(footer.getByRole("link")).toHaveCount(5);
 
-  const unsettled = page.locator(".dashboard-lower .surface").filter({
-    has: page.getByRole("heading", { name: "Unsettled balances" }),
-  });
+  const unsettled = page.getByRole("region", { name: "Unsettled balances", exact: true });
   await expect(unsettled.getByText("Across all groups")).toBeVisible();
 
-  const chart = page.locator(".dashboard-lower .surface").filter({
-    has: page.getByRole("heading", { name: "Spending by category" }),
-  });
+  const chart = page.getByRole("region", { name: "Spending by category", exact: true });
   await expect(chart).toBeVisible();
   await expect(chart.getByText("All groups · ever")).toBeVisible();
   await chart.getByRole("link", { name: "View all" }).click();
@@ -201,9 +528,7 @@ test("returns from Unsettled through history and falls back after direct entry",
       .getByRole("link", { name: "Unsettled" })
       .click();
   } else {
-    const preview = page.locator(".dashboard-lower .surface").filter({
-      has: page.getByRole("heading", { name: "Unsettled balances" }),
-    });
+    const preview = page.getByRole("region", { name: "Unsettled balances", exact: true });
     await preview.getByRole("link", { name: /View all/u }).click();
   }
   await expect(page).toHaveURL(/\/unsettled$/u);

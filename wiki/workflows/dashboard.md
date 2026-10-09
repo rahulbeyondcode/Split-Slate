@@ -1,6 +1,6 @@
 # Dashboard View
 
-Last updated: 2026-10-09
+Last updated: 2026-10-10
 
 **Purpose:** Record the current dashboard implementation and the target cross-group summary design.
 
@@ -98,6 +98,15 @@ totals when there are no groups.
 
 One card per group showing the user's net position in that group.
 
+Each card shows up to five compact member avatars beneath its member/expense counts, using the
+linked people's saved profile icons. Additional members are represented by a `+N` count. Each
+visible avatar has the person's name as its accessible label and hover title; unresolved people
+use the shared profile-icon fallback and an "Unknown member" label. Empty groups omit the avatar
+row. This applies at every screen width without replacing the existing counts or balance.
+The `+N` indicator appears only beyond five members (ten members show five avatars and `+5`).
+Responsive light/dark coverage for zero, one, two, three, five, six, and ten members is added but
+unrun under the current execution pause. See [[global-people-directory]] and [[iconography]].
+
 Clicking a card navigates to that group's Overview page; the sidebar selection updates to reflect the active group.
 
 **Empty state:** No cards; section replaced by a create-first-group prompt.
@@ -112,6 +121,16 @@ below 640px; mobile has a separate Unsettled footer route. Only non-zero suggest
 
 This is distinct from per-group cards: group cards show the user's net position per group; unsettled balances show the individual people behind those numbers.
 
+The dashboard preview's heading, responsive subtitle, and View all action sit above and outside
+the bordered surface; only suggested-payment rows or the empty-state message remain boxed. This
+separates the section visually from the group cards without changing its data or navigation.
+Both dashboard preview sections reserve an additional 1rem (16px-reference) top margin above
+their headers; the existing 0.75rem header-to-box gap is unchanged in stacked and side-by-side layouts.
+In the two-column layout, both sections use a row subgrid with a shared naturally sized header
+row and content row. The taller header (including View all or wrapped text) sets the height for
+both, keeping the boxed contents' top and bottom edges aligned without fixed header heights.
+Stacked sections retain independent natural header heights and the same top margins and gaps.
+
 **Empty state:** The preview says "All square!"; the separate route explains that no unsettled
   balances remain. The separate Unsettled page has a Back button at every width that follows
   in-app history or opens Dashboard on a direct visit.
@@ -122,6 +141,15 @@ This is distinct from per-group cards: group cards show the user's net position 
 
 A visual breakdown of total spending by category, aggregated across same-currency groups, all time.
 There is no time filter.
+
+The dashboard preview's heading/link, subtitle, and mobile View all action sit above and outside
+the bordered chart surface. Only chart rows or the empty-state message remain inside. The existing
+single-column/two-column layout and ≥640px visibility are retained. Responsive light/dark coverage
+for both external dashboard headers with populated and empty contents is added but unrun under
+the current execution pause. Side-by-side coverage also checks aligned boxes at 1440px and 1920px
+with natural headers, a taller action, and a wrapped category title. Group Overview and full
+Analytics layouts are unchanged.
+
 Each expense refers to its own group's category ID; the chart resolves that category and aggregates
 by its exact name. Two groups with `Petrol Expense` become one total, but a differently spelled or
 capitalized name is a separate total. New-category suggestions help copy the same spelling/icon;

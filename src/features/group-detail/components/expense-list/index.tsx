@@ -60,35 +60,6 @@ const ExpenseList = () => {
   if (showPayments) {
     entries.sort((a, b) => (parsed.data.sort === "oldest" ? a.when - b.when : b.when - a.when));
   }
-  const entryIds = entries
-    .map((entry) => (entry.type === "payment" ? entry.settlement.id : entry.expense.expenseId))
-    .join("|");
-  useLayoutEffect(() => {
-    if (isMobile) return;
-    const list = ledgerRef.current?.querySelector<HTMLElement>(".expense-ledger-list");
-    if (!list) return;
-    const allRows = Array.from(
-      list.querySelectorAll<HTMLElement>("ul[aria-label='Expenses'] > li"),
-    );
-    if (allRows.length <= 10) return;
-    const rows = allRows.slice(0, 10);
-
-    const updateHeight = () => {
-      const height =
-        rows[9].getBoundingClientRect().bottom -
-        list.getBoundingClientRect().top +
-        list.scrollTop +
-        list.clientTop;
-      list.style.setProperty("--expense-ten-rows-height", `${Math.ceil(height)}px`);
-    };
-    const observer = new ResizeObserver(updateHeight);
-    rows.forEach((row) => observer.observe(row));
-    updateHeight();
-    return () => {
-      observer.disconnect();
-      list.style.removeProperty("--expense-ten-rows-height");
-    };
-  }, [entryIds, isMobile]);
   useLayoutEffect(() => {
     const ledger = ledgerRef.current;
     const title = titleRef.current;

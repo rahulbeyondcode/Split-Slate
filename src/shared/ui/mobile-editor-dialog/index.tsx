@@ -14,11 +14,14 @@ const MobileEditorDialog = ({ title, children, onCancel, busy = false }: PropsTy
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
-    dialog.showModal();
+    if (!dialog.open) dialog.showModal();
     const initialField = dialog.querySelector<HTMLElement>(
       "input:not([type='hidden']):not(:disabled), select:not(:disabled), textarea:not(:disabled)",
     );
     initialField?.focus({ preventScroll: true });
+    return () => {
+      if (dialog.open) dialog.close();
+    };
   }, []);
 
   const handleCancel = (event: SyntheticEvent<HTMLDialogElement>) => {
@@ -31,7 +34,7 @@ const MobileEditorDialog = ({ title, children, onCancel, busy = false }: PropsTy
       ref={dialogRef}
       aria-label={title}
       onCancel={handleCancel}
-      className="m-auto max-h-[90svh] w-[calc(100%-32px)] max-w-lg overflow-y-auto rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-4 text-[var(--ink)] shadow-2xl backdrop:bg-black/60"
+      className="app-dialog max-w-lg rounded-3xl border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] shadow-2xl backdrop:bg-black/60"
     >
       {children}
     </dialog>

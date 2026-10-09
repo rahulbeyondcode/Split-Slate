@@ -11,6 +11,34 @@ Last updated: 2026-10-10
 ---
 
 ## 2026-10-10
+- UPDATED workflows/dashboard.md — document shared row-subgrid sizing for side-by-side dashboard headers and aligned content boxes, preserving natural stacked sizing and approved spacing; revised alignment coverage remains unrun
+- UPDATED wiki/index.md — reflect aligned dashboard preview boxes and retain the verification pause
+- UPDATED workflows/dashboard.md — document approved additional 1rem top margins above both dashboard preview headings while preserving the header-to-box gap; revised spacing coverage remains unrun
+- UPDATED wiki/index.md — reflect extra dashboard summary-heading spacing and retain the verification pause
+- UPDATED workflows/dashboard.md — move dashboard Unsettled/Spending headings, subtitles, and existing View all actions outside boxed content; expand member previews to five before +N; revised responsive/theme coverage remains unrun
+- UPDATED wiki/index.md — reflect external dashboard summary headers and five-member previews while retaining the verification pause
+- UPDATED workflows/dashboard.md — document approved group-card member avatars with three-icon previews, +N overflow, accessible names, and shared profile fallbacks at every width; added coverage remains unrun
+- UPDATED wiki/index.md — reflect group-card member avatars and retain the verification pause
+- UPDATED architecture/layout-architecture.md — document approved transparent sidebar group rows with wrapping names/counts, bottom balances, and dividers; correct the stale member-avatar claim to member counts; added browser coverage remains unrun
+- UPDATED wiki/index.md — reflect the sidebar group layout and retain the verification pause
+- UPDATED decisions/settlement-recording.md — document approved compact payment tag checkbox labels with saved-colour dots across Record, Settle up, and Edit; added responsive/theme coverage remains unrun
+- UPDATED wiki/index.md — reflect compact colour-labelled payment tags and retain the verification pause
+- UPDATED architecture/layout-architecture.md — replace the desktop/tablet ten-row inner Expenses scroll with natural-height, outer-only scrolling at every width; revised coverage remains unrun
+- UPDATED workflows/filtering.md — document outer-only expense/payment ledger scrolling without a fixed-height short-list gap
+- UPDATED workflows/main-screen.md — reflect the single Expenses scroll pane across mobile, tablet, and desktop
+- UPDATED wiki/index.md — summarize outer-only Expenses scrolling and retain the verification pause
+- UPDATED architecture/layout-architecture.md — document approved group name/icon and currency-picker modals, cancellation/reset behavior, and sequential currency confirmation; revised coverage remains unrun
+- UPDATED wiki/index.md — reflect group-settings editor modals and the continued verification pause
+- UPDATED architecture/layout-architecture.md — document approved app-wide modal clearance, shared fixed header/actions, body-only scrolling, natural short height, and visible-viewport handling; added coverage remains unrun
+- UPDATED wiki/index.md — link the shared modal contract and distinguish earlier verification from current unverified app-wide edits
+- UPDATED workflows/filtering.md — document approved single-row horizontal filter pills and reserved scrollbar clearance; revised browser coverage remains unrun
+- UPDATED wiki/index.md — reflect horizontal filter-pill scrolling and current unverified edits
+- UPDATED workflows/filtering.md — document mobile Filters modal, retained wider popovers, compact-font reset override, and unverified latest edits
+- UPDATED wiki/index.md — reflect responsive filter surfaces and distinguish earlier passing verification from current unrun changes
+- UPDATED workflows/filtering.md — record approved compact chip typography, reduced padding/icons, and 24px minimum height
+- UPDATED wiki/index.md — describe compact selected-filter chips
+- UPDATED workflows/filtering.md — document all-width removable selected-filter chips, range clearing, bounded scrolling, and newly added browser cases awaiting execution
+- UPDATED wiki/index.md — reflect visible filter chips alongside URL-backed filtering and Analytics drill-down
 - UPDATED decisions/testing-strategy.md — explain all 18 project-specific skips and remove device-pending wording without adding verification claims
 - UPDATED architecture/layout-architecture.md — remove device-pending labels while retaining factual automated coverage
 - UPDATED workflows/main-screen.md — replace stale post-scaling pending status with the passing full-browser result

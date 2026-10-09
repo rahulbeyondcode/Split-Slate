@@ -73,8 +73,8 @@ headers stay visible while scrolling. On mobile, their plain text-and-arrow Back
 exits any non-form group screen, including expense detail and Settings; expense forms return to
 Expenses first. The desktop sidebar still provides All groups. Expenses scrolls the main pane at
 all widths, with the title/subtitle and filter controls sticking below the group header after
-insights pass. On desktop and tablet the ledger itself scrolls after ten rendered entries; mobile
-reaches the last row in the main pane. Members retains a bounded list. Mobile Categories & Tags
+insights pass. The ledger has no inner vertical scrolling or ten-entry height cap at any width;
+the main pane reaches the last expense/payment row. Members retains a bounded list. Mobile Categories & Tags
 scrolls only the main pane between sections and the content of each 50vh card independently; the
 browser window does not scroll. The section titles and Add buttons sit above the cards, not sticky
 inside them; the visible page title is omitted. Add/Edit category and tag forms open in dialogs

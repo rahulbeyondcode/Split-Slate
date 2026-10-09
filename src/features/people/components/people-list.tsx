@@ -10,6 +10,7 @@ import type { PersonEditorValues } from "@/features/people/helpers/schema";
 
 import Avatar from "@/shared/ui/avatar";
 import ConfirmationDialog from "@/shared/ui/confirmation-dialog";
+import DialogLayout from "@/shared/ui/dialog-layout";
 import EmojiImage from "@/shared/ui/emoji-image";
 import EmptyState from "@/shared/ui/empty-state";
 import Icon from "@/shared/ui/icon";
@@ -252,60 +253,64 @@ const PeopleList = () => {
         aria-labelledby="blocked-contact-title"
         aria-describedby="blocked-contact-description"
         onClose={() => setBlockedPersonId(null)}
-        className="m-auto w-full max-w-md rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-6 text-[var(--ink)] shadow-2xl backdrop:bg-black/60"
+        className="app-dialog max-w-md rounded-3xl border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] shadow-2xl backdrop:bg-black/60"
       >
-        <h2 id="blocked-contact-title" className="section-title">
-          Cannot delete {blockedPerson?.name ?? "this contact"}
-        </h2>
-        <p id="blocked-contact-description" className="mt-3 text-sm leading-relaxed">
-          {blockedPerson?.name ?? "This contact"} is referenced in expenses or recorded payments
-          across the groups below. Edit those references or delete the records before removing this
-          contact. An expense they created must be deleted, since its creator cannot be reassigned.
-        </p>
-        <div className="mt-4 flex flex-col gap-2">
-          {blockedGroups.map(({ group, memberId, count, paymentCount }) => (
-            <div key={memberId} className="flex flex-col gap-2">
-              {count > 0 && (
-                <Link
-                  to={`/groups/${group.id}/expenses?${new URLSearchParams({ memberIds: memberId })}`}
-                  className="btn btn-secondary justify-between !rounded-xl"
-                >
-                  <span className="min-w-0 truncate">
-                    <EmojiImage icon={group.icon} /> {group.name}
-                  </span>
-                  <span className="shrink-0">
-                    {count} {count === 1 ? "expense" : "expenses"}{" "}
-                    <Icon icon={ArrowRight} size={16} />
-                  </span>
-                </Link>
-              )}
-              {paymentCount > 0 && (
-                <Link
-                  to={`/groups/${group.id}/balances`}
-                  className="btn btn-secondary justify-between !rounded-xl"
-                >
-                  <span className="min-w-0 truncate">
-                    <EmojiImage icon={group.icon} /> {group.name}
-                  </span>
-                  <span className="shrink-0">
-                    {paymentCount} {paymentCount === 1 ? "payment" : "payments"}{" "}
-                    <Icon icon={ArrowRight} size={16} />
-                  </span>
-                </Link>
-              )}
-            </div>
-          ))}
-        </div>
-        <div className="mt-5 flex justify-end">
-          <button
-            type="button"
-            autoFocus
-            onClick={() => blockedDialogRef.current?.close()}
-            className="btn btn-secondary"
-          >
-            Close
-          </button>
-        </div>
+        <DialogLayout
+          title={`Cannot delete ${blockedPerson?.name ?? "this contact"}`}
+          titleId="blocked-contact-title"
+          onClose={() => blockedDialogRef.current?.close()}
+          closeLabel="Dismiss message"
+          footer={
+            <button
+              type="button"
+              autoFocus
+              onClick={() => blockedDialogRef.current?.close()}
+              className="btn btn-secondary"
+            >
+              Close
+            </button>
+          }
+        >
+          <p id="blocked-contact-description" className="text-sm leading-relaxed">
+            {blockedPerson?.name ?? "This contact"} is referenced in expenses or recorded payments
+            across the groups below. Edit those references or delete the records before removing this
+            contact. An expense they created must be deleted, since its creator cannot be reassigned.
+          </p>
+          <div className="mt-4 flex flex-col gap-2">
+            {blockedGroups.map(({ group, memberId, count, paymentCount }) => (
+              <div key={memberId} className="flex flex-col gap-2">
+                {count > 0 && (
+                  <Link
+                    to={`/groups/${group.id}/expenses?${new URLSearchParams({ memberIds: memberId })}`}
+                    className="btn btn-secondary justify-between !rounded-xl"
+                  >
+                    <span className="min-w-0 truncate">
+                      <EmojiImage icon={group.icon} /> {group.name}
+                    </span>
+                    <span className="shrink-0">
+                      {count} {count === 1 ? "expense" : "expenses"}{" "}
+                      <Icon icon={ArrowRight} size={16} />
+                    </span>
+                  </Link>
+                )}
+                {paymentCount > 0 && (
+                  <Link
+                    to={`/groups/${group.id}/balances`}
+                    className="btn btn-secondary justify-between !rounded-xl"
+                  >
+                    <span className="min-w-0 truncate">
+                      <EmojiImage icon={group.icon} /> {group.name}
+                    </span>
+                    <span className="shrink-0">
+                      {paymentCount} {paymentCount === 1 ? "payment" : "payments"}{" "}
+                      <Icon icon={ArrowRight} size={16} />
+                    </span>
+                  </Link>
+                )}
+              </div>
+            ))}
+          </div>
+        </DialogLayout>
       </dialog>
       <ConfirmationDialog
         open={Boolean(confirmPerson)}

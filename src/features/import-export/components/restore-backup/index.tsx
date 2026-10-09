@@ -12,6 +12,7 @@ import {
 import type { FullBackupSnapshot } from "@/features/import-export/utils/full-backup-schema";
 import { useStore } from "@/shared/configs/store";
 
+import DialogLayout from "@/shared/ui/dialog-layout";
 import Icon from "@/shared/ui/icon";
 import StatusBanner from "@/shared/ui/status-banner";
 
@@ -178,15 +179,36 @@ const RestoreBackup = () => {
             aria-describedby="restore-description"
             onCancel={handleDialogCancel}
             onClose={handleDialogClose}
-            className="m-auto w-[calc(100%-32px)] max-w-lg rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-6 text-[var(--ink)] shadow-2xl backdrop:bg-black/60"
+            className="app-dialog max-w-lg rounded-3xl border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] shadow-2xl backdrop:bg-black/60"
           >
-            <div className="flex flex-col gap-4">
-              <span className="text-[var(--negative)]">
-                <Icon icon={RotateCcw} size={28} />
-              </span>
-              <h2 id="restore-title" className="section-title">
-                Replace all SplitSlate data?
-              </h2>
+            <DialogLayout
+              title="Replace all SplitSlate data?"
+              titleId="restore-title"
+              onClose={handleCancel}
+              closeDisabled={restoring}
+              icon={<Icon icon={RotateCcw} size={28} className="text-[var(--negative)]" />}
+              bodyClassName="flex flex-col gap-4"
+              footer={
+                <>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    disabled={restoring}
+                    onClick={handleCancel}
+                  >
+                    Keep current data
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-danger"
+                    disabled={remaining > 0 || restoring}
+                    onClick={handleRestore}
+                  >
+                    {restoring ? "Restoring…" : "Replace and restore"}
+                  </button>
+                </>
+              }
+            >
               <p id="restore-description" className="text-sm leading-relaxed">
                 This will permanently remove your current SplitSlate data on this browser and
                 replace it with the validated backup. It cannot be undone. Save a backup of the
@@ -212,25 +234,7 @@ const RestoreBackup = () => {
                 </p>
               )}
               {error && <StatusBanner variant="error">{error}</StatusBanner>}
-              <div className="flex flex-wrap justify-end gap-2">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  disabled={restoring}
-                  onClick={handleCancel}
-                >
-                  Keep current data
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-danger"
-                  disabled={remaining > 0 || restoring}
-                  onClick={handleRestore}
-                >
-                  {restoring ? "Restoring…" : "Replace and restore"}
-                </button>
-              </div>
-            </div>
+            </DialogLayout>
           </dialog>
         </div>
       </section>

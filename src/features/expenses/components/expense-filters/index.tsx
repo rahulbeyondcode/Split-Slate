@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { useFormContext, useWatch } from "react-hook-form";
 import { useOutletContext, useSearchParams } from "react-router-dom";
 
+import ActiveExpenseFilters from "@/features/expenses/components/active-expense-filters";
 import ExpenseFilterOptions from "@/features/expenses/components/expense-filter-options";
 import Input from "@/shared/components/form-elements/input";
 
@@ -16,11 +17,14 @@ import {
   SPLIT_FILTER_OPTIONS,
   writeExpenseFilterParams,
 } from "@/features/expenses/utils/expense-filters";
+import { useViewport } from "@/shared/hooks/use-viewport";
 
 import type { ExpenseFilterValues } from "@/features/expenses/types/expense-filters.types";
 import type { GroupDetailContext } from "@/features/group-detail/types/group-detail.types";
 
+import DialogLayout from "@/shared/ui/dialog-layout";
 import Icon from "@/shared/ui/icon";
+import MobileEditorDialog from "@/shared/ui/mobile-editor-dialog";
 
 const getPopoverPosition = (details: HTMLDetailsElement, maxWidth: number): CSSProperties => {
   const rect = details.getBoundingClientRect();
@@ -41,17 +45,21 @@ const getPopoverPosition = (details: HTMLDetailsElement, maxWidth: number): CSSP
 };
 
 const ExpenseFilters = () => {
+  const { isMobile } = useViewport();
+  const mobileViewportRef = useRef(isMobile);
+  const mobileFiltersTriggerRef = useRef<HTMLButtonElement>(null);
+  const previousMobileFiltersOpenRef = useRef(false);
   const filtersRef = useRef<HTMLDetailsElement>(null);
   const sortRef = useRef<HTMLDetailsElement>(null);
   const filtersPanelRef = useRef<HTMLDivElement>(null);
   const sortPanelRef = useRef<HTMLDivElement>(null);
   const [sortOpen, setSortOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [sortPosition, setSortPosition] = useState<CSSProperties>();
   const [filtersPosition, setFiltersPosition] = useState<CSSProperties>();
   const [, setSearchParams] = useSearchParams();
-  const { group, groupCategories, groupTags, groupMembers } =
-    useOutletContext<GroupDetailContext>();
+  const { group, groupCategories, groupTags, groupMembers } = useOutletContext<GroupDetailContext>();
   const { control, getValues, register, reset, setValue, trigger } =
     useFormContext<ExpenseFilterValues>();
   const values = useWatch({ control }) as ExpenseFilterValues;
@@ -60,9 +68,21 @@ const ExpenseFilters = () => {
     value: member.id,
     label: member.person?.name ?? "Unknown person",
   }));
+  const categoryOptions = groupCategories.map((category) => ({
+    value: category.id,
+    label: `${category.name}${category.isActive ? "" : " (inactive)"}`,
+  }));
+  const tagOptions = groupTags.map((tag) => ({ value: tag.id, label: tag.name }));
   const categoryIds = groupCategories.map((category) => category.id);
   const tagIds = groupTags.map((tag) => tag.id);
   const memberIds = groupMembers.map((member) => member.id);
+
+  useEffect(() => {
+    if (previousMobileFiltersOpenRef.current && !mobileFiltersOpen) {
+      mobileFiltersTriggerRef.current?.focus({ preventScroll: true });
+    }
+    previousMobileFiltersOpenRef.current = mobileFiltersOpen;
+  }, [mobileFiltersOpen]);
 
   useEffect(() => {
     const current = getValues();
@@ -111,11 +131,21 @@ const ExpenseFilters = () => {
       if (sortRef.current?.open) setSortPosition(getPopoverPosition(sortRef.current, 300));
       if (filtersRef.current?.open) setFiltersPosition(getPopoverPosition(filtersRef.current, 560));
     };
-    window.addEventListener("resize", updatePositions);
+    const handleResize = () => {
+      const nextMobile = window.innerWidth < 768;
+      if (nextMobile !== mobileViewportRef.current) {
+        mobileViewportRef.current = nextMobile;
+        setMobileFiltersOpen(false);
+        setFiltersOpen(false);
+        if (filtersRef.current) filtersRef.current.open = false;
+      }
+      updatePositions();
+    };
+    window.addEventListener("resize", handleResize);
     const main = document.getElementById("main-content");
     main?.addEventListener("scroll", updatePositions, { passive: true });
     return () => {
-      window.removeEventListener("resize", updatePositions);
+      window.removeEventListener("resize", handleResize);
       main?.removeEventListener("scroll", updatePositions);
     };
   }, []);
@@ -123,9 +153,7 @@ const ExpenseFilters = () => {
   useLayoutEffect(() => {
     if (window.innerWidth >= 768) return;
     if (sortOpen && sortRef.current) setSortPosition(getPopoverPosition(sortRef.current, 300));
-    if (filtersOpen && filtersRef.current)
-      setFiltersPosition(getPopoverPosition(filtersRef.current, 560));
-  }, [filtersOpen, sortOpen, values]);
+  }, [sortOpen, values]);
 
   const handleClear = () => {
     const next = { ...createExpenseFilterDefaults(), sort: getValues("sort") };
@@ -146,6 +174,11 @@ const ExpenseFilters = () => {
     setFiltersOpen(open);
     if (open && filtersRef.current) setFiltersPosition(getPopoverPosition(filtersRef.current, 560));
   };
+  const handleOpenMobileFilters = () => {
+    if (sortRef.current) sortRef.current.open = false;
+    setMobileFiltersOpen(true);
+  };
+  const handleCloseMobileFilters = () => setMobileFiltersOpen(false);
   const handleChange = () => {
     setSearchParams(writeExpenseFilterParams(getValues()), {
       replace: true,
@@ -153,6 +186,43 @@ const ExpenseFilters = () => {
     });
     void trigger();
   };
+  const handleRemoveFilter = (changes: Partial<ExpenseFilterValues>) => {
+    const next = { ...getValues(), ...changes };
+    for (const field of Object.keys(changes) as (keyof ExpenseFilterValues)[]) {
+      setValue(field, next[field], { shouldDirty: true, shouldValidate: true });
+    }
+    setSearchParams(writeExpenseFilterParams(next), {
+      replace: true,
+      preventScrollReset: true,
+    });
+    void trigger();
+  };
+
+  const filterFields = (
+    <>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <label className="min-w-0 text-sm font-bold">
+          From date
+          <Input name="dateFrom" type="date" className="min-w-0" />
+        </label>
+        <label className="min-w-0 text-sm font-bold">
+          To date
+          <Input name="dateTo" type="date" className="min-w-0" />
+        </label>
+        <label className="min-w-0 text-sm font-bold">
+          Minimum amount ({group.currency})<Input name="minAmount" inputMode="decimal" />
+        </label>
+        <label className="min-w-0 text-sm font-bold">
+          Maximum amount ({group.currency})<Input name="maxAmount" inputMode="decimal" />
+        </label>
+      </div>
+      <ExpenseFilterOptions name="categoryIds" label="Categories" options={categoryOptions} />
+      <ExpenseFilterOptions name="tagIds" label="Tags" options={tagOptions} />
+      <ExpenseFilterOptions name="payerIds" label="Paid by" options={members} />
+      <ExpenseFilterOptions name="memberIds" label="Member involved" options={members} />
+      <ExpenseFilterOptions name="splitTypes" label="Split types" options={SPLIT_FILTER_OPTIONS} />
+    </>
+  );
 
   return (
     <form
@@ -215,67 +285,53 @@ const ExpenseFilters = () => {
             document.body,
           )}
         </details>
-        <details ref={filtersRef} onToggle={handleFiltersToggle} className="group relative">
-          <summary className="btn btn-secondary relative z-50 list-none cursor-pointer">
+        {isMobile ? (
+          <button
+            ref={mobileFiltersTriggerRef}
+            type="button"
+            aria-haspopup="dialog"
+            aria-expanded={mobileFiltersOpen}
+            onClick={handleOpenMobileFilters}
+            className="btn btn-secondary min-w-0"
+          >
             <Icon icon={ListFilter} size={18} /> Filters {count > 0 ? `(${count})` : ""}
-          </summary>
-          {createPortal(
-            <div
-              ref={filtersPanelRef}
-              hidden={!filtersOpen}
-              style={filtersPosition}
-              className="expense-filter-popover surface surface-pad fixed z-40 w-[min(85vw,560px)] overflow-auto flex flex-col gap-4"
-            >
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <label className="min-w-0 text-sm font-bold">
-                  From date
-                  <Input name="dateFrom" type="date" className="min-w-0" />
-                </label>
-                <label className="min-w-0 text-sm font-bold">
-                  To date
-                  <Input name="dateTo" type="date" className="min-w-0" />
-                </label>
-                <label className="min-w-0 text-sm font-bold">
-                  Minimum amount ({group.currency})<Input name="minAmount" inputMode="decimal" />
-                </label>
-                <label className="min-w-0 text-sm font-bold">
-                  Maximum amount ({group.currency})<Input name="maxAmount" inputMode="decimal" />
-                </label>
-              </div>
-              <ExpenseFilterOptions
-                name="categoryIds"
-                label="Categories"
-                options={groupCategories.map((category) => ({
-                  value: category.id,
-                  label: `${category.name}${category.isActive ? "" : " (inactive)"}`,
-                }))}
-              />
-              <ExpenseFilterOptions
-                name="tagIds"
-                label="Tags"
-                options={groupTags.map((tag) => ({ value: tag.id, label: tag.name }))}
-              />
-              <ExpenseFilterOptions name="payerIds" label="Paid by" options={members} />
-              <ExpenseFilterOptions name="memberIds" label="Member involved" options={members} />
-              <ExpenseFilterOptions
-                name="splitTypes"
-                label="Split types"
-                options={SPLIT_FILTER_OPTIONS}
-              />
-              {count > 0 && (
-                <button
-                  type="button"
-                  onClick={handleClear}
-                  className="hidden self-end text-[var(--brand-ink)] md:block"
-                >
-                  Clear all filters
-                </button>
-              )}
-            </div>,
-            document.body,
-          )}
-        </details>
+          </button>
+        ) : (
+          <details ref={filtersRef} onToggle={handleFiltersToggle} className="group relative">
+            <summary className="btn btn-secondary relative z-50 list-none cursor-pointer">
+              <Icon icon={ListFilter} size={18} /> Filters {count > 0 ? `(${count})` : ""}
+            </summary>
+            {createPortal(
+              <div
+                ref={filtersPanelRef}
+                hidden={!filtersOpen}
+                style={filtersPosition}
+                className="expense-filter-popover surface surface-pad fixed z-40 w-[min(85vw,560px)] overflow-auto flex flex-col gap-4"
+              >
+                {filterFields}
+                {count > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleClear}
+                    className="self-end text-[var(--brand-ink)]"
+                  >
+                    Clear all filters
+                  </button>
+                )}
+              </div>,
+              document.body,
+            )}
+          </details>
+        )}
       </div>
+      <ActiveExpenseFilters
+        values={values}
+        categoryOptions={categoryOptions}
+        tagOptions={tagOptions}
+        members={members}
+        currency={group.currency}
+        onRemove={handleRemoveFilter}
+      />
       <div className="flex items-center justify-between gap-3 text-xs">
         <span>
           {count} active {count === 1 ? "filter" : "filters"}
@@ -290,6 +346,41 @@ const ExpenseFilters = () => {
           </button>
         )}
       </div>
+      {isMobile &&
+        mobileFiltersOpen &&
+        createPortal(
+          <MobileEditorDialog title="Filters" onCancel={handleCloseMobileFilters}>
+            <DialogLayout
+              title="Filters"
+              onClose={handleCloseMobileFilters}
+              closeLabel="Close filters"
+              bodyLabel="Filter controls"
+              bodyClassName="flex flex-col gap-4"
+              footer={
+                <>
+                  <button
+                    type="button"
+                    onClick={handleClear}
+                    disabled={count === 0}
+                    className="btn btn-secondary"
+                  >
+                    Clear all filters
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCloseMobileFilters}
+                    className="btn btn-primary"
+                  >
+                    Done
+                  </button>
+                </>
+              }
+            >
+              {filterFields}
+            </DialogLayout>
+          </MobileEditorDialog>,
+          document.body,
+        )}
     </form>
   );
 };

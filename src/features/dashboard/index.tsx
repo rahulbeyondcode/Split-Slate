@@ -118,9 +118,8 @@ const Dashboard = () => {
         ) : (
           <div className="group-cards">
             {entries.map(({ group, amount }) => {
-              const memberCount = state.members.filter(
-                (member) => member.groupId === group.id,
-              ).length;
+              const groupMembers = state.members.filter((member) => member.groupId === group.id);
+              const memberCount = groupMembers.length;
               const expenseCount = state.expenses.filter(
                 (expense) => expense.groupId === group.id,
               ).length;
@@ -133,6 +132,35 @@ const Dashboard = () => {
                       <p className="soft-caption">
                         {memberCount} members · {expenseCount} expenses
                       </p>
+                      {memberCount > 0 && (
+                        <div
+                          role="group"
+                          aria-label="Group members"
+                          className="dashboard-group-members mt-2 flex flex-wrap items-center gap-1"
+                        >
+                          {groupMembers.slice(0, 5).map((member) => {
+                            const person = state.people.find((item) => item.id === member.personId);
+                            const name = person?.name ?? "Unknown member";
+                            return (
+                              <span key={member.id} role="img" aria-label={name} title={name}>
+                                <Avatar
+                                  icon={person?.icon}
+                                  name={name}
+                                  className="!h-6 !w-6 !text-xs"
+                                />
+                              </span>
+                            );
+                          })}
+                          {memberCount > 5 && (
+                            <span
+                              aria-label={`${memberCount - 5} more members`}
+                              className="px-1 text-xs font-semibold muted"
+                            >
+                              +{memberCount - 5}
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="dashboard-group-balance flex items-end justify-between gap-2">
@@ -162,60 +190,60 @@ const Dashboard = () => {
 
       {entries.length > 0 && (
         <div className="dashboard-lower max-sm:hidden">
-          <Surface className="surface-pad">
-            <div
-              className={
-                isMobile
-                  ? "flex items-start justify-between gap-2"
-                  : "flex items-center justify-between"
-              }
-            >
-              {isMobile ? (
-                <div className="min-w-0">
-                  <h2 className="section-title">Unsettled balances</h2>
-                  <p className="soft-caption">Across all groups</p>
-                </div>
-              ) : (
-                <h2 className="section-title">Unsettled balances</h2>
-              )}
-              <Link to="/unsettled" className="btn btn-secondary !px-3">
+          <section
+            aria-labelledby="dashboard-unsettled-title"
+            className="dashboard-preview mt-4 flex min-w-0 flex-col gap-3"
+          >
+            <header className="flex flex-wrap items-start justify-between gap-2">
+              <div className="min-w-0">
+                <h2 id="dashboard-unsettled-title" className="section-title">
+                  Unsettled balances
+                </h2>
+                {isMobile && <p className="soft-caption">Across all groups</p>}
+              </div>
+              <Link to="/unsettled" className="btn btn-secondary !px-3 shrink-0">
                 View all ({transfers.length}) <Icon icon={ArrowRight} size={16} />
               </Link>
-            </div>
-            {transfers.length ? (
-              transfers.slice(0, 5).map((transfer) => (
-                <Link
-                  key={transfer.key}
-                  to={`/groups/${transfer.group.id}/balances`}
-                  className="ui-row"
-                >
-                  <Avatar icon={transfer.person?.icon} name={transfer.person?.name} />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold truncate">
-                      {transfer.incoming
-                        ? `${transfer.person?.name ?? "Someone"} owes you`
-                        : `You owe ${transfer.person?.name ?? "someone"}`}
-                    </p>
-                    <p className="soft-caption">{transfer.group.name}</p>
-                  </div>
-                  <strong
-                    className={`money ${transfer.incoming ? "money-positive" : "money-negative"}`}
+            </header>
+            <Surface className="surface-pad flex-1">
+              {transfers.length ? (
+                transfers.slice(0, 5).map((transfer) => (
+                  <Link
+                    key={transfer.key}
+                    to={`/groups/${transfer.group.id}/balances`}
+                    className="ui-row"
                   >
-                    {transfer.incoming ? "+" : "−"}
-                    {formatCurrency(transfer.amount, transfer.group.currency)}
-                  </strong>
-                </Link>
-              ))
-            ) : (
-              <p className="muted mt-6">All square!</p>
-            )}
-          </Surface>
+                    <Avatar icon={transfer.person?.icon} name={transfer.person?.name} />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold truncate">
+                        {transfer.incoming
+                          ? `${transfer.person?.name ?? "Someone"} owes you`
+                          : `You owe ${transfer.person?.name ?? "someone"}`}
+                      </p>
+                      <p className="soft-caption">{transfer.group.name}</p>
+                    </div>
+                    <strong
+                      className={`money ${transfer.incoming ? "money-positive" : "money-negative"}`}
+                    >
+                      {transfer.incoming ? "+" : "−"}
+                      {formatCurrency(transfer.amount, transfer.group.currency)}
+                    </strong>
+                  </Link>
+                ))
+              ) : (
+                <p className="muted">All square!</p>
+              )}
+            </Surface>
+          </section>
           {currency && (
-            <Surface className="surface-pad">
+            <section
+              aria-labelledby="dashboard-category-title"
+              className="dashboard-preview mt-4 flex min-w-0 flex-col gap-3"
+            >
               {isMobile ? (
-                <div className="flex items-start justify-between gap-2">
+                <header className="flex flex-wrap items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <h2 className="section-title">
+                    <h2 id="dashboard-category-title" className="section-title">
                       <Link to="/analytics">Spending by category</Link>
                     </h2>
                     <p className="soft-caption">All groups · ever</p>
@@ -223,39 +251,41 @@ const Dashboard = () => {
                   <Link to="/analytics" className="btn btn-secondary !px-3 shrink-0">
                     View all <Icon icon={ArrowRight} size={16} />
                   </Link>
-                </div>
+                </header>
               ) : (
-                <div className="flex items-center justify-between">
-                  <h2 className="section-title">
+                <header className="flex flex-wrap items-center justify-between gap-2">
+                  <h2 id="dashboard-category-title" className="section-title">
                     <Link to="/analytics">Spending by category</Link>
                   </h2>
                   <span className="soft-caption">all groups · all time</span>
-                </div>
+                </header>
               )}
-              {categories.length ? (
-                categories.map((category) => (
-                  <Link
-                    key={category.name}
-                    to="/analytics"
-                    className="flex items-center gap-3 my-4"
-                  >
-                    <EmojiImage icon={category.icon} />
-                    <span className="w-24 truncate text-xs font-semibold">{category.name}</span>
-                    <div className="h-2 flex-1 rounded-full bg-[var(--surface-soft)]">
-                      <div
-                        className="h-2 rounded-full bg-[var(--brand)]"
-                        style={{ width: `${(category.amount / maxCategory) * 100}%` }}
-                      />
-                    </div>
-                    <span className="money text-xs">
-                      {formatCurrency(category.amount, currency)}
-                    </span>
-                  </Link>
-                ))
-              ) : (
-                <p className="muted mt-6">No spending yet.</p>
-              )}
-            </Surface>
+              <Surface className="surface-pad flex-1">
+                {categories.length ? (
+                  categories.map((category) => (
+                    <Link
+                      key={category.name}
+                      to="/analytics"
+                      className="flex items-center gap-3 my-4"
+                    >
+                      <EmojiImage icon={category.icon} />
+                      <span className="w-24 truncate text-xs font-semibold">{category.name}</span>
+                      <div className="h-2 flex-1 rounded-full bg-[var(--surface-soft)]">
+                        <div
+                          className="h-2 rounded-full bg-[var(--brand)]"
+                          style={{ width: `${(category.amount / maxCategory) * 100}%` }}
+                        />
+                      </div>
+                      <span className="money text-xs">
+                        {formatCurrency(category.amount, currency)}
+                      </span>
+                    </Link>
+                  ))
+                ) : (
+                  <p className="muted">No spending yet.</p>
+                )}
+              </Surface>
+            </section>
           )}
         </div>
       )}

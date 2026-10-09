@@ -73,6 +73,8 @@ for (const viewport of [
     await expect(savePerson).toBeInViewport();
     const initialCancel = (await cancel.boundingBox())!;
     const initialSavePerson = (await savePerson.boundingBox())!;
+    const header = dialog.locator(".dialog-header");
+    const initialHeader = (await header.boundingBox())!;
     const body = dialog.locator(".person-editor-dialog-body");
     await body.evaluate((element) => {
       element.scrollTop = element.scrollHeight;
@@ -81,13 +83,15 @@ for (const viewport of [
     await expect(savePerson).toBeInViewport();
     expect((await cancel.boundingBox())!.y).toBeCloseTo(initialCancel.y, 0);
     expect((await savePerson.boundingBox())!.y).toBeCloseTo(initialSavePerson.y, 0);
+    expect((await header.boundingBox())!.y).toBeCloseTo(initialHeader.y, 0);
+    await expect(header.getByRole("button", { name: "Close dialog", exact: true })).toBeInViewport();
     expect(await dialog.evaluate((element) => element.scrollTop)).toBe(0);
     await expect(page.locator(".onboarding-continue")).toBeDisabled();
     const box = (await dialog.boundingBox())!;
-    expect(box.x).toBeGreaterThanOrEqual(0);
-    expect(box.x + box.width).toBeLessThanOrEqual(viewport.width);
-    expect(box.y).toBeGreaterThanOrEqual(0);
-    expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
+    expect(box.x).toBeGreaterThanOrEqual(15.5);
+    expect(box.x + box.width).toBeLessThanOrEqual(viewport.width - 15.5);
+    expect(box.y).toBeGreaterThanOrEqual(15.5);
+    expect(box.y + box.height).toBeLessThanOrEqual(viewport.height - 15.5);
     await dialog.getByLabel("Name", { exact: true }).fill("Cal");
     await dialog.getByRole("button", { name: "Add person", exact: true }).click();
     await expect(dialog).toHaveCount(0);

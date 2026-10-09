@@ -9,7 +9,7 @@ metadata:
 
 Purpose: distinguish recorded external repayments from expenses, payment processing, and cross-group netting.
 
-Last updated: 2026-10-05
+Last updated: 2026-10-10
 
 ## Decision
 
@@ -28,6 +28,13 @@ The Add, Settle up, and Edit actions open a payment modal. Payer and recipient u
 avatar-and-name group-member dropdowns labeled **Paid by** and **Received by**. The shared expense
 date/time controls give new payments today's local date but require an explicit time; editing
 restores the saved local date and time. See [[main-screen]].
+
+Optional payment tags use compact native checkbox options with 12px-reference label text at every
+screen width and a colour dot beside each tag name. The dot uses the saved tag colour and is
+decorative; the tag name remains the checkbox's accessible label. Selection, keyboard handling,
+and saved tag IDs are unchanged. Record, Settle up, and Edit share these controls. The colour/sizing
+browser cases at mobile/tablet/desktop widths and in light/dark themes are added but not run under
+the current execution pause. See [[selection-controls]] and [[tag-management]].
 
 Balances add payments made to each payer's net and subtract payments received from each recipient's
 net, without modifying expenses. Expense spending totals, categories, insights, and filtering remain

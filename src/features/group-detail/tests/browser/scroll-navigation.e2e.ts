@@ -63,10 +63,7 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/groups/trip/expenses");
 });
 
-test("scrolls the expense page and limits the desktop ledger to ten rows, then resets on navigation", async ({
-  page,
-  isMobile,
-}) => {
+test("uses only the outer expense-page scroll and resets it on navigation", async ({ page }) => {
   const main = page.locator("#main-content");
   const ledger = page.locator(".expense-ledger-list");
   const header = page.locator(".group-page-header");
@@ -84,72 +81,41 @@ test("scrolls the expense page and limits the desktop ledger to ten rows, then r
     .getByRole("navigation", { name: "Group navigation" })
     .or(page.getByRole("navigation", { name: "Bottom navigation" }));
 
-  if (isMobile) {
-    const banner = page.getByRole("region", { name: "Expense insights" });
-    await expect
-      .poll(() => main.evaluate((element) => element.scrollHeight > element.clientHeight))
-      .toBe(true);
-    await expect
-      .poll(() => ledger.evaluate((element) => element.scrollHeight <= element.clientHeight))
-      .toBe(true);
-    await main.evaluate((element) => {
-      element.scrollTop = element.scrollHeight / 2;
-    });
-    await expect.poll(() => main.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
-    await expect(title).toBeInViewport();
-    await expect(toolbar).toBeInViewport();
-    const groupBottom = (await header.boundingBox())!.y + (await header.boundingBox())!.height;
-    const titleBox = (await title.boundingBox())!;
-    const toolbarBox = (await toolbar.boundingBox())!;
-    expect(Math.abs(titleBox.y - groupBottom)).toBeLessThan(3);
-    expect(Math.abs(toolbarBox.y - (titleBox.y + titleBox.height))).toBeLessThan(3);
-    expect((await banner.boundingBox())!.y + (await banner.boundingBox())!.height).toBeLessThan(
-      toolbarBox.y,
-    );
-    await main.evaluate((element) => {
-      element.scrollTop = element.scrollHeight;
-    });
-    await expect(
-      page.getByRole("list", { name: "Expenses" }).locator("li").last(),
-    ).toBeInViewport();
-  } else {
-    await expect
-      .poll(() => ledger.evaluate((element) => element.scrollHeight > element.clientHeight))
-      .toBe(true);
-    await expect
-      .poll(() => main.evaluate((element) => element.scrollHeight > element.clientHeight))
-      .toBe(true);
-    const tenthRow = ledger.getByRole("list", { name: "Expenses" }).locator(":scope > li").nth(9);
-    const ledgerBox = (await ledger.boundingBox())!;
-    const tenthBox = (await tenthRow.boundingBox())!;
-    expect(Math.abs(ledgerBox.y + ledgerBox.height - (tenthBox.y + tenthBox.height))).toBeLessThan(
-      3,
-    );
-    await main.evaluate((element) => {
-      element.scrollTop = element.scrollHeight;
-    });
-    await expect.poll(() => main.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
-    const title = page.locator(".expense-ledger > header");
-    const toolbar = page.getByRole("form", { name: "Expense filters" });
-    const banner = page.getByRole("region", { name: "Expense insights" });
-    const groupBottom = (await header.boundingBox())!.y + (await header.boundingBox())!.height;
-    const titleBox = (await title.boundingBox())!;
-    const toolbarBox = (await toolbar.boundingBox())!;
-    expect(Math.abs(titleBox.y - groupBottom)).toBeLessThan(3);
-    expect(Math.abs(toolbarBox.y - (titleBox.y + titleBox.height))).toBeLessThan(3);
-    expect((await banner.boundingBox())!.y + (await banner.boundingBox())!.height).toBeLessThan(
-      toolbarBox.y,
-    );
-    const pageScroll = await main.evaluate((element) => element.scrollTop);
-    await ledger.evaluate((element) => {
-      element.scrollTop = element.scrollHeight;
-    });
-    await expect.poll(() => ledger.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
-    await expect(
-      ledger.getByRole("list", { name: "Expenses" }).locator("li").last(),
-    ).toBeInViewport();
-    await expect.poll(() => main.evaluate((element) => element.scrollTop)).toBe(pageScroll);
-  }
+  const banner = page.getByRole("region", { name: "Expense insights" });
+  await expect(ledger).toHaveCSS("overflow-y", "visible");
+  await expect(ledger).toHaveCSS("max-height", "none");
+  await expect
+    .poll(() => main.evaluate((element) => element.scrollHeight > element.clientHeight))
+    .toBe(true);
+  await expect
+    .poll(() => ledger.evaluate((element) => element.scrollHeight <= element.clientHeight + 1))
+    .toBe(true);
+  await main.evaluate((element) => {
+    element.scrollTop = element.scrollHeight / 2;
+  });
+  await expect.poll(() => main.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+  await expect(title).toBeInViewport();
+  await expect(toolbar).toBeInViewport();
+  const groupBottom = (await header.boundingBox())!.y + (await header.boundingBox())!.height;
+  const titleBox = (await title.boundingBox())!;
+  const toolbarBox = (await toolbar.boundingBox())!;
+  expect(Math.abs(titleBox.y - groupBottom)).toBeLessThan(3);
+  expect(Math.abs(toolbarBox.y - (titleBox.y + titleBox.height))).toBeLessThan(3);
+  expect((await banner.boundingBox())!.y + (await banner.boundingBox())!.height).toBeLessThan(
+    toolbarBox.y,
+  );
+  await main.evaluate((element) => {
+    element.scrollTop = element.scrollHeight;
+  });
+  await expect(
+    ledger.getByRole("list", { name: "Expenses" }).locator(":scope > li").last(),
+  ).toBeInViewport();
+  const pageScroll = await main.evaluate((element) => element.scrollTop);
+  await ledger.evaluate((element) => {
+    element.scrollTop = element.scrollHeight;
+  });
+  expect(await ledger.evaluate((element) => element.scrollTop)).toBe(0);
+  expect(await main.evaluate((element) => element.scrollTop)).toBe(pageScroll);
   await expect(header).toBeInViewport();
 
   await navigation.getByRole("link", { name: "Overview" }).click();
@@ -163,15 +129,9 @@ test("scrolls the expense page and limits the desktop ledger to ten rows, then r
   await expect(page.getByRole("heading", { name: "Expenses and payments" })).toBeVisible();
   await expect.poll(() => main.evaluate((element) => element.scrollTop)).toBe(0);
 
-  if (isMobile) {
-    await main.evaluate((element) => {
-      element.scrollTop = element.scrollHeight;
-    });
-  } else {
-    await ledger.evaluate((element) => {
-      element.scrollTop = element.scrollHeight;
-    });
-  }
+  await main.evaluate((element) => {
+    element.scrollTop = element.scrollHeight;
+  });
   await page.goBack();
   await expect(page.getByRole("heading", { name: "Recent transactions" })).toBeVisible();
   await page.goForward();
@@ -179,7 +139,7 @@ test("scrolls the expense page and limits the desktop ledger to ten rows, then r
   await expect.poll(() => main.evaluate((element) => element.scrollTop)).toBe(0);
 });
 
-test("tablet expense ledger scrolls after ten rows and short filtered results do not", async ({
+test("tablet expenses use outer-only scrolling for long and short filtered lists", async ({
   page,
   isMobile,
 }) => {
@@ -190,17 +150,17 @@ test("tablet expense ledger scrolls after ten rows and short filtered results do
   const rows = ledger.getByRole("list", { name: "Expenses" }).locator(":scope > li");
   await expect(rows).toHaveCount(32);
   await expect
-    .poll(() => ledger.evaluate((element) => element.scrollHeight > element.clientHeight))
+    .poll(() => ledger.evaluate((element) => element.scrollHeight <= element.clientHeight + 1))
     .toBe(true);
   await expect
     .poll(() => main.evaluate((element) => element.scrollHeight > element.clientHeight))
     .toBe(true);
-  const ledgerBox = (await ledger.boundingBox())!;
-  const tenthBox = (await rows.nth(9).boundingBox())!;
-  expect(Math.abs(ledgerBox.y + ledgerBox.height - (tenthBox.y + tenthBox.height))).toBeLessThan(3);
+  await expect(ledger).toHaveCSS("overflow-y", "visible");
+  await expect(ledger).toHaveCSS("max-height", "none");
   await main.evaluate((element) => {
     element.scrollTop = element.scrollHeight;
   });
+  await expect(rows.last()).toBeInViewport();
   const banner = page.getByRole("region", { name: "Expense insights" });
   const toolbar = page.getByRole("form", { name: "Expense filters" });
   expect((await banner.boundingBox())!.y + (await banner.boundingBox())!.height).toBeLessThan(
@@ -210,9 +170,56 @@ test("tablet expense ledger scrolls after ten rows and short filtered results do
   await page.getByRole("searchbox", { name: "Search expenses" }).fill("Expense 31");
   await expect(rows).toHaveCount(1);
   await expect
-    .poll(() => ledger.evaluate((element) => element.scrollHeight <= element.clientHeight))
+    .poll(() => ledger.evaluate((element) => element.scrollHeight <= element.clientHeight + 1))
     .toBe(true);
+  expect((await ledger.boundingBox())!.height).toBeLessThanOrEqual(
+    (await rows.first().boundingBox())!.height + 4,
+  );
 });
+
+for (const width of [320, 820, 1440]) {
+  test(`scrolls mixed expense/payment history only in the outer pane at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 800 });
+    await page.evaluate(async () => {
+      const modulePath = "/src/shared/configs/db.ts";
+      const { db } = (await import(/* @vite-ignore */ modulePath)) as typeof DbModule;
+      await db.people.put({ id: "friend", name: "Bea", icon: "🐻" });
+      await db.members.put({ id: "b", groupId: "trip", personId: "friend" });
+      await db.settlements.bulkPut(
+        Array.from({ length: 20 }, (_, index) => ({
+          id: `payment-${index}`,
+          groupId: "trip",
+          kind: "payment" as const,
+          fromMemberId: "a",
+          toMemberId: "b",
+          recordedBy: "a",
+          amount: 100,
+          when: index + 100,
+          createdAt: index + 100,
+          tagIds: [],
+        })),
+      );
+    });
+    await page.goto("/groups/trip/expenses?sort=oldest");
+    const main = page.locator("#main-content");
+    const ledger = page.locator(".expense-ledger-list");
+    const rows = ledger.getByRole("list", { name: "Expenses" }).locator(":scope > li");
+    await expect(rows).toHaveCount(52);
+    await expect(ledger.locator(".settlement-entry")).toHaveCount(20);
+    await expect(ledger).toHaveCSS("overflow-y", "visible");
+    await expect(ledger).toHaveCSS("max-height", "none");
+    expect(await ledger.evaluate((element) => element.scrollHeight <= element.clientHeight + 1)).toBe(
+      true,
+    );
+    await main.evaluate((element) => {
+      element.scrollTop = element.scrollHeight;
+    });
+    await expect(rows.last().locator(".settlement-entry")).toBeInViewport();
+    expect(await ledger.evaluate((element) => element.scrollTop)).toBe(0);
+  });
+}
 
 test("shows full expense titles above amounts in mobile list and overview", async ({
   page,

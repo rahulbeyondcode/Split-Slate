@@ -18,6 +18,7 @@ import { transferSelectionSchema } from "@/features/import-export/utils/portable
 
 import type { TransferSelection } from "@/features/import-export/types/import-export.types";
 
+import DialogLayout from "@/shared/ui/dialog-layout";
 import Icon from "@/shared/ui/icon";
 import StatusBanner from "@/shared/ui/status-banner";
 
@@ -332,33 +333,30 @@ const ExportPanel = ({ groupId, groupName, attachmentCount }: PropsType) => {
           aria-labelledby="link-unavailable-title"
           aria-describedby="link-unavailable-description"
           onClose={() => setLinkDialogReason(null)}
-          className="m-auto w-full max-w-md rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-6 text-[var(--ink)] shadow-2xl backdrop:bg-black/60"
+          className="app-dialog max-w-md rounded-3xl border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] shadow-2xl backdrop:bg-black/60"
         >
-          <div className="flex items-start gap-4">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--brand-soft)] text-[var(--brand-ink)]">
-              <Icon icon={Info} size={26} />
-            </span>
-            <div>
-              <h2 id="link-unavailable-title" className="text-xl font-bold">
-                Transfer link unavailable
-              </h2>
-              <p id="link-unavailable-description" className="mt-2 text-sm leading-relaxed">
-                {linkDialogReason === "receipts"
-                  ? "Links cannot carry receipt files. Download ZIP to include them, or deselect receipt files to use a link."
-                  : "There is too much selected for a reliable link. Download CSV or ZIP instead, or select less content and try again."}
-              </p>
-            </div>
-          </div>
-          <div className="mt-6 flex justify-end">
-            <button
-              type="button"
-              autoFocus
-              onClick={handleCloseLinkDialog}
-              className="btn btn-primary"
-            >
-              Got it
-            </button>
-          </div>
+          <DialogLayout
+            title="Transfer link unavailable"
+            titleId="link-unavailable-title"
+            onClose={handleCloseLinkDialog}
+            icon={<Icon icon={Info} size={26} className="text-[var(--brand-ink)]" />}
+            footer={
+              <button
+                type="button"
+                autoFocus
+                onClick={handleCloseLinkDialog}
+                className="btn btn-primary"
+              >
+                Got it
+              </button>
+            }
+          >
+            <p id="link-unavailable-description" className="text-sm leading-relaxed">
+              {linkDialogReason === "receipts"
+                ? "Links cannot carry receipt files. Download ZIP to include them, or deselect receipt files to use a link."
+                : "There is too much selected for a reliable link. Download CSV or ZIP instead, or select less content and try again."}
+            </p>
+          </DialogLayout>
         </dialog>
       </section>
     </FormProvider>

@@ -1,7 +1,8 @@
-import { Download, X } from "lucide-react";
+import { Download } from "lucide-react";
 import type { SyntheticEvent } from "react";
 import { useEffect, useId, useRef, useState } from "react";
 
+import DialogLayout from "@/shared/ui/dialog-layout";
 import Icon from "@/shared/ui/icon";
 
 interface InstallPromptEvent extends Event {
@@ -122,56 +123,50 @@ const InstallDialog = ({ supported, installRequest }: PropsType) => {
       aria-labelledby={titleId}
       aria-describedby={descriptionId}
       onCancel={handleCancel}
-      className="m-auto max-h-[calc(100svh-32px)] w-[calc(100%-32px)] max-w-md overflow-y-auto rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-6 text-[var(--ink)] shadow-2xl backdrop:bg-black/60"
+      className="app-dialog max-w-md rounded-3xl border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] shadow-2xl backdrop:bg-black/60"
     >
-      <div className="flex items-start justify-between gap-3">
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--brand-soft)] text-[var(--brand-ink)]">
-          <Icon icon={Download} size={26} />
-        </span>
-        <button
-          type="button"
-          aria-label="Close install message"
-          disabled={!canDismiss}
-          onClick={handleDismiss}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[var(--muted)] hover:bg-[var(--surface-soft)]"
-        >
-          <Icon icon={X} size={20} />
-        </button>
-      </div>
-      <h2 id={titleId} className="mt-4 text-xl font-bold">
-        Take Split Slate with you
-      </h2>
-      <p id={descriptionId} className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
-        Install Split Slate for quick access and offline use. It opens like an app, with no app
-        store needed.
-      </p>
-      {instructions && (
-        <p role="status" className="note mt-4 leading-relaxed">
-          {isAppleMobile
-            ? "Open your browser’s Share menu, then choose Add to Home Screen. If that option is missing, open this page in Safari and use Share → Add to Home Screen."
-            : isAndroid
-              ? "Open your browser’s menu (⋮), then choose Install app or Add to Home screen."
-              : "Open your browser’s menu or the install icon in the address bar, then choose Install Split Slate."}
+      <DialogLayout
+        title="Take Split Slate with you"
+        titleId={titleId}
+        onClose={handleDismiss}
+        closeLabel="Close install message"
+        closeDisabled={!canDismiss}
+        icon={<Icon icon={Download} size={26} className="text-[var(--brand-ink)]" />}
+        footer={
+          <>
+            <button
+              type="button"
+              disabled={!canDismiss}
+              onClick={handleDismiss}
+              className="btn btn-secondary"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              autoFocus
+              onClick={() => void handleInstall()}
+              className="btn btn-primary"
+            >
+              Install
+            </button>
+          </>
+        }
+      >
+        <p id={descriptionId} className="text-sm leading-relaxed text-[var(--muted)]">
+          Install Split Slate for quick access and offline use. It opens like an app, with no app
+          store needed.
         </p>
-      )}
-      <div className="mt-6 flex flex-wrap justify-end gap-3">
-        <button
-          type="button"
-          disabled={!canDismiss}
-          onClick={handleDismiss}
-          className="btn btn-secondary"
-        >
-          Cancel
-        </button>
-        <button
-          type="button"
-          autoFocus
-          onClick={() => void handleInstall()}
-          className="btn btn-primary"
-        >
-          Install
-        </button>
-      </div>
+        {instructions && (
+          <p role="status" className="note mt-4 leading-relaxed">
+            {isAppleMobile
+              ? "Open your browser’s Share menu, then choose Add to Home Screen. If that option is missing, open this page in Safari and use Share → Add to Home Screen."
+              : isAndroid
+                ? "Open your browser’s menu (⋮), then choose Install app or Add to Home screen."
+                : "Open your browser’s menu or the install icon in the address bar, then choose Install Split Slate."}
+          </p>
+        )}
+      </DialogLayout>
     </dialog>
   );
 };

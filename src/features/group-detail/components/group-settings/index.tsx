@@ -22,7 +22,9 @@ import type { GroupDetailContext } from "@/features/group-detail/types/group-det
 
 import Avatar from "@/shared/ui/avatar";
 import ConfirmationDialog from "@/shared/ui/confirmation-dialog";
+import DialogLayout from "@/shared/ui/dialog-layout";
 import Icon from "@/shared/ui/icon";
+import MobileEditorDialog from "@/shared/ui/mobile-editor-dialog";
 import Surface from "@/shared/ui/surface";
 
 const schema = z.object({
@@ -40,6 +42,11 @@ type CurrencyValues = z.infer<typeof currencySchema>;
 const GroupSettings = () => {
   const navigate = useNavigate();
   const currencyDialogRef = useRef<HTMLDialogElement>(null);
+  const currencyPickerDialogRef = useRef<HTMLDialogElement>(null);
+  const editButtonRef = useRef<HTMLButtonElement>(null);
+  const currencyButtonRef = useRef<HTMLButtonElement>(null);
+  const previousEditingRef = useRef(false);
+  const previousEditingCurrencyRef = useRef(false);
   const exportPanelRef = useRef<HTMLDivElement>(null);
   const { group, groupExpenses, groupSettlements, groupMembers } =
     useOutletContext<GroupDetailContext>();
@@ -62,10 +69,33 @@ const GroupSettings = () => {
     values: { currency: group.currency },
   });
   useEffect(() => {
-    const dialog = currencyDialogRef.current;
-    if (pendingCurrency && !dialog?.open) dialog?.showModal();
-    if (!pendingCurrency && dialog?.open) dialog.close();
-  }, [pendingCurrency]);
+    const confirmation = currencyDialogRef.current;
+    const picker = currencyPickerDialogRef.current;
+    if (pendingCurrency) {
+      if (picker?.open) picker.close();
+      if (!confirmation?.open) confirmation?.showModal();
+    } else {
+      if (confirmation?.open) confirmation.close();
+      if (editingCurrency && picker && !picker.open) {
+        picker.showModal();
+        picker.querySelector<HTMLInputElement>('input[role="searchbox"]')?.focus({
+          preventScroll: true,
+        });
+      } else if (!editingCurrency && picker?.open) {
+        picker.close();
+      }
+    }
+  }, [editingCurrency, pendingCurrency]);
+  useEffect(() => {
+    if (previousEditingRef.current && !editing) {
+      editButtonRef.current?.focus({ preventScroll: true });
+    }
+    if (previousEditingCurrencyRef.current && !editingCurrency) {
+      currencyButtonRef.current?.focus({ preventScroll: true });
+    }
+    previousEditingRef.current = editing;
+    previousEditingCurrencyRef.current = editingCurrency;
+  }, [editing, editingCurrency]);
   useEffect(() => {
     if (!showExport) return;
     const panel = exportPanelRef.current;
@@ -88,6 +118,17 @@ const GroupSettings = () => {
       setError(failure instanceof Error ? failure.message : "Could not update group");
     }
   });
+  const handleOpenEdit = () => {
+    methods.reset({ name: group.name, icon: group.icon });
+    setError("");
+    setEditing(true);
+  };
+  const handleCancelEdit = () => {
+    if (methods.formState.isSubmitting) return;
+    setEditing(false);
+    setError("");
+    methods.reset({ name: group.name, icon: group.icon });
+  };
   const handleSaveCurrency = currencyMethods.handleSubmit(({ currency }) => {
     if (currency === group.currency) {
       setEditingCurrency(false);
@@ -111,13 +152,26 @@ const GroupSettings = () => {
     }
   };
   const handleCancelCurrencyChange = () => {
+    if (savingCurrency) return;
     setPendingCurrency(null);
     setCurrencyError("");
   };
   const handleDialogCancel = (event: SyntheticEvent<HTMLDialogElement>) => {
-    if (savingCurrency) event.preventDefault();
+    event.preventDefault();
+    handleCancelCurrencyChange();
+  };
+  const handleCancelCurrencyPicker = () => {
+    if (currencyMethods.formState.isSubmitting || savingCurrency) return;
+    setEditingCurrency(false);
+    setCurrencyError("");
+    currencyMethods.reset({ currency: group.currency });
+  };
+  const handleCurrencyPickerCancel = (event: SyntheticEvent<HTMLDialogElement>) => {
+    event.preventDefault();
+    handleCancelCurrencyPicker();
   };
   const handleOpenCurrency = () => {
+    currencyMethods.reset({ currency: group.currency });
     setCurrencyError("");
     setEditingCurrency(true);
   };
@@ -130,55 +184,75 @@ const GroupSettings = () => {
   return (
     <section className="flex flex-col gap-5">
       <h2 className="section-title">Group settings</h2>
-      {editing ? (
-        <FormProvider {...methods}>
-          <form onSubmit={handleSave} className="surface surface-pad flex flex-col gap-4">
-            <h2 className="section-title">Edit name & icon</h2>
-            <label>
-              <span className="field-label">Group name</span>
-              <Input name="name" />
-            </label>
-            <label>
-              <span className="field-label">Group icon</span>
-              <EmojiPicker name="icon" kind="other" emojis={GROUP_EMOJIS} />
-            </label>
-            {error && (
-              <p role="alert" className="note money-negative">
-                {error}
-              </p>
-            )}
-            <div className="flex gap-2">
-              <button type="button" className="btn btn-secondary" onClick={() => setEditing(false)}>
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={methods.formState.isSubmitting}
+      <Surface className="group-settings-identity surface-pad flex items-center gap-3">
+        <Avatar icon={group.icon} square />
+        <div className="group-settings-summary flex-1">
+          <p className="font-bold">{group.name}</p>
+          <p className="soft-caption">
+            {groupMembers.length} members · {groupExpenses.length} expenses · created{" "}
+            {formatDisplayDate(group.createdAt)}
+          </p>
+        </div>
+        <button
+          ref={editButtonRef}
+          type="button"
+          className="group-settings-edit btn btn-secondary"
+          aria-haspopup="dialog"
+          onClick={handleOpenEdit}
+        >
+          <Icon icon={Pencil} size={18} /> Edit name & icon
+        </button>
+      </Surface>
+      {editing && (
+        <MobileEditorDialog
+          title="Edit name & icon"
+          onCancel={handleCancelEdit}
+          busy={methods.formState.isSubmitting}
+        >
+          <FormProvider {...methods}>
+            <form onSubmit={handleSave} className="dialog-form">
+              <DialogLayout
+                title="Edit name & icon"
+                onClose={handleCancelEdit}
+                closeDisabled={methods.formState.isSubmitting}
+                bodyClassName="flex flex-col gap-4"
+                footer={
+                  <>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={handleCancelEdit}
+                      disabled={methods.formState.isSubmitting}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="btn btn-primary"
+                      disabled={methods.formState.isSubmitting}
+                    >
+                      Save changes
+                    </button>
+                  </>
+                }
               >
-                Save changes
-              </button>
-            </div>
-          </form>
-        </FormProvider>
-      ) : (
-        <Surface className="group-settings-identity surface-pad flex items-center gap-3">
-          <Avatar icon={group.icon} square />
-          <div className="group-settings-summary flex-1">
-            <p className="font-bold">{group.name}</p>
-            <p className="soft-caption">
-              {groupMembers.length} members · {groupExpenses.length} expenses · created{" "}
-              {formatDisplayDate(group.createdAt)}
-            </p>
-          </div>
-          <button
-            type="button"
-            className="group-settings-edit btn btn-secondary"
-            onClick={() => setEditing(true)}
-          >
-            <Icon icon={Pencil} size={18} /> Edit name & icon
-          </button>
-        </Surface>
+                <label>
+                  <span className="field-label">Group name</span>
+                  <Input name="name" autoFocus />
+                </label>
+                <div>
+                  <span className="field-label">Group icon</span>
+                  <EmojiPicker name="icon" kind="other" emojis={GROUP_EMOJIS} />
+                </div>
+                {error && (
+                  <p role="alert" className="note money-negative">
+                    {error}
+                  </p>
+                )}
+              </DialogLayout>
+            </form>
+          </FormProvider>
+        </MobileEditorDialog>
       )}
       <Surface className="surface-pad">
         <div className="ui-row flex-wrap">
@@ -190,49 +264,16 @@ const GroupSettings = () => {
             <p className="soft-caption">One currency per group</p>
           </div>
           <span className="chip">{group.currency}</span>
-          {!editingCurrency && (
-            <button type="button" onClick={handleOpenCurrency} className="btn btn-secondary">
-              Change
-            </button>
-          )}
+          <button
+            ref={currencyButtonRef}
+            type="button"
+            onClick={handleOpenCurrency}
+            aria-haspopup="dialog"
+            className="btn btn-secondary"
+          >
+            Change
+          </button>
         </div>
-        {editingCurrency && (
-          <FormProvider {...currencyMethods}>
-            <form onSubmit={handleSaveCurrency} className="flex flex-col gap-3 py-4">
-              <StepCurrency showHeading={false} />
-              <p className="soft-caption">
-                Changing currency relabels existing expenses and payments without converting their
-                numeric values.
-              </p>
-              {currencyMethods.formState.errors.currency && (
-                <p role="alert" className="money-negative">
-                  {currencyMethods.formState.errors.currency.message}
-                </p>
-              )}
-              {currencyError && (
-                <p role="alert" className="money-negative">
-                  {currencyError}
-                </p>
-              )}
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setEditingCurrency(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="btn btn-primary"
-                  disabled={currencyMethods.formState.isSubmitting}
-                >
-                  Save currency
-                </button>
-              </div>
-            </form>
-          </FormProvider>
-        )}
         <div className="ui-row">
           <span className="avatar avatar-square text-[var(--brand-ink)]">
             <Icon icon={Download} size={26} />
@@ -251,6 +292,56 @@ const GroupSettings = () => {
           </button>
         </div>
       </Surface>
+      <dialog
+        ref={currencyPickerDialogRef}
+        aria-labelledby="currency-picker-title"
+        onCancel={handleCurrencyPickerCancel}
+        className="app-dialog max-w-lg rounded-3xl border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] shadow-2xl backdrop:bg-black/60"
+      >
+        {editingCurrency && (
+          <FormProvider {...currencyMethods}>
+            <form onSubmit={handleSaveCurrency} className="dialog-form">
+              <DialogLayout
+                title="Change currency"
+                titleId="currency-picker-title"
+                onClose={handleCancelCurrencyPicker}
+                closeDisabled={currencyMethods.formState.isSubmitting || savingCurrency}
+                bodyClassName="flex flex-col gap-4"
+                footer={
+                  <>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={handleCancelCurrencyPicker}
+                      disabled={currencyMethods.formState.isSubmitting || savingCurrency}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="btn btn-primary"
+                      disabled={currencyMethods.formState.isSubmitting || savingCurrency}
+                    >
+                      Save currency
+                    </button>
+                  </>
+                }
+              >
+                <StepCurrency showHeading={false} />
+                <p className="soft-caption">
+                  Changing currency relabels existing expenses and payments without converting their
+                  numeric values.
+                </p>
+                {currencyMethods.formState.errors.currency && (
+                  <p role="alert" className="money-negative">
+                    {currencyMethods.formState.errors.currency.message}
+                  </p>
+                )}
+              </DialogLayout>
+            </form>
+          </FormProvider>
+        )}
+      </dialog>
       {showExport && (
         <Surface className="surface-pad">
           <div ref={exportPanelRef}>
@@ -299,26 +390,40 @@ const GroupSettings = () => {
         aria-labelledby="currency-confirm-title"
         aria-describedby="currency-confirm-description"
         onCancel={handleDialogCancel}
-        onClose={handleCancelCurrencyChange}
-        className="m-auto w-full max-w-md rounded-3xl border border-amber-400 bg-[var(--surface)] p-6 text-[var(--ink)] shadow-2xl backdrop:bg-black/60"
+        className="app-dialog max-w-md rounded-3xl border border-amber-400 bg-[var(--surface)] text-[var(--ink)] shadow-2xl backdrop:bg-black/60"
       >
-        <div className="flex flex-col gap-5">
-          <div className="flex items-start gap-4">
-            <span
-              aria-hidden="true"
-              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-500/15 text-amber-600"
-            >
-              <Icon icon={TriangleAlert} size={28} />
-            </span>
-            <div>
-              <h2 id="currency-confirm-title" className="text-xl font-bold">
-                Confirm currency change
-              </h2>
-              <p className="mt-1 text-sm text-[var(--muted)]">
-                {group.currency} → {pendingCurrency}
-              </p>
-            </div>
-          </div>
+        <DialogLayout
+          title="Confirm currency change"
+          titleId="currency-confirm-title"
+          onClose={handleCancelCurrencyChange}
+          closeDisabled={savingCurrency}
+          icon={<Icon icon={TriangleAlert} size={28} className="text-amber-600" />}
+          bodyClassName="flex flex-col gap-5"
+          footer={
+            <>
+              <button
+                type="button"
+                autoFocus
+                disabled={savingCurrency}
+                onClick={handleCancelCurrencyChange}
+                className="btn btn-secondary"
+              >
+                Keep current currency
+              </button>
+              <button
+                type="button"
+                disabled={savingCurrency}
+                onClick={handleConfirmCurrency}
+                className="btn bg-amber-600 text-white hover:bg-amber-700"
+              >
+                {savingCurrency ? "Changing…" : "Change currency"}
+              </button>
+            </>
+          }
+        >
+          <p className="text-sm text-[var(--muted)]">
+            {group.currency} → {pendingCurrency}
+          </p>
           <div
             id="currency-confirm-description"
             className="rounded-2xl border border-amber-400/60 bg-amber-500/10 p-4 text-sm leading-relaxed"
@@ -341,26 +446,7 @@ const GroupSettings = () => {
               {currencyError}
             </p>
           )}
-          <div className="flex flex-wrap justify-end gap-3">
-            <button
-              type="button"
-              autoFocus
-              disabled={savingCurrency}
-              onClick={handleCancelCurrencyChange}
-              className="btn btn-secondary"
-            >
-              Keep current currency
-            </button>
-            <button
-              type="button"
-              disabled={savingCurrency}
-              onClick={handleConfirmCurrency}
-              className="btn bg-amber-600 text-white hover:bg-amber-700"
-            >
-              {savingCurrency ? "Changing…" : "Change currency"}
-            </button>
-          </div>
-        </div>
+        </DialogLayout>
       </dialog>
     </section>
   );

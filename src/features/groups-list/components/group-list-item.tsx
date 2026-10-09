@@ -32,19 +32,19 @@ const GroupListItem = ({ groupId }: PropsType) => {
       className={`side-group ${currentId === groupId ? "active" : ""}`}
     >
       <Avatar icon={group.icon} square className="!h-9 !w-9 !text-lg" />
-      <span className="flex-1 min-w-0">
-        <span className="block truncate text-xs font-bold">{group.name}</span>
-        <span className="soft-caption block truncate">
+      <span className="side-group-details flex-1 min-w-0">
+        <span className="block text-xs font-bold">{group.name}</span>
+        <span className="soft-caption block">
           {members.filter((member) => member.groupId === groupId).length} members · {entries.length}{" "}
           expenses
         </span>
+        <strong
+          className={`money mt-1 block text-xs ${amount > 0 ? "money-positive" : amount < 0 ? "money-negative" : "muted"}`}
+        >
+          {amount > 0 ? "+" : amount < 0 ? "−" : ""}
+          {formatCurrency(Math.abs(amount), group.currency)}
+        </strong>
       </span>
-      <strong
-        className={`money text-xs ${amount > 0 ? "money-positive" : amount < 0 ? "money-negative" : "muted"}`}
-      >
-        {amount > 0 ? "+" : amount < 0 ? "−" : ""}
-        {formatCurrency(Math.abs(amount), group.currency)}
-      </strong>
     </Link>
   );
 };

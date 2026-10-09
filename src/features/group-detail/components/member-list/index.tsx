@@ -16,6 +16,7 @@ import type { Person } from "@/shared/types/domain.types";
 
 import Avatar from "@/shared/ui/avatar";
 import ConfirmationDialog from "@/shared/ui/confirmation-dialog";
+import DialogLayout from "@/shared/ui/dialog-layout";
 import EmojiImage from "@/shared/ui/emoji-image";
 import Icon from "@/shared/ui/icon";
 import MobileEditorDialog from "@/shared/ui/mobile-editor-dialog";
@@ -151,53 +152,62 @@ const MemberList = () => {
     if (mode?.type === "edit" && mode.memberId === confirmMemberId) closeEditor();
     setConfirmMemberId(null);
   };
-  const addEditor = mode?.type === "add" && (
-    <fieldset
-      disabled={isAddingMember}
-      aria-busy={isAddingMember}
-      className={
-        isMobile
-          ? "flex min-w-0 flex-col gap-3 disabled:opacity-60"
-          : "member-editor flex min-w-0 flex-col gap-3 disabled:opacity-60"
-      }
-    >
-      {availablePeople.length > 0 && (
-        <div className="flex flex-col gap-2">
-          <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
-            Add from friends
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {availablePeople.map((person) => (
-              <button
-                key={person.id}
-                type="button"
-                onClick={() => handleAddExistingPerson(person)}
-                className="chip"
-              >
-                <EmojiImage icon={person.icon} kind="profile" />
-                <span>{person.name}</span>
-                <Icon icon={Plus} size={16} className="text-[var(--brand-ink)]" />
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
+  const friendPicker = availablePeople.length > 0 && (
+    <div className="flex flex-col gap-2">
+      <p className="text-xs font-medium uppercase tracking-wide text-gray-400">Add from friends</p>
+      <div className="flex flex-wrap gap-2">
+        {availablePeople.map((person) => (
+          <button
+            key={person.id}
+            type="button"
+            onClick={() => handleAddExistingPerson(person)}
+            className="chip"
+          >
+            <EmojiImage icon={person.icon} kind="profile" />
+            <span>{person.name}</span>
+            <Icon icon={Plus} size={16} className="text-[var(--brand-ink)]" />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+  const addEditor =
+    mode?.type === "add" &&
+    (isMobile ? (
       <PersonEditor
         existingNames={existingNames()}
         onSave={handleCreatePerson}
         onCancel={closeEditor}
         submitLabel="Add"
+        inDialog
+        beforeFields={friendPicker}
+        error={memberError}
+        busy={isAddingMember}
       />
-    </fieldset>
-  );
+    ) : (
+      <fieldset
+        disabled={isAddingMember}
+        aria-busy={isAddingMember}
+        className="member-editor flex min-w-0 flex-col gap-3 disabled:opacity-60"
+      >
+        {friendPicker}
+        <PersonEditor
+          existingNames={existingNames()}
+          onSave={handleCreatePerson}
+          onCancel={closeEditor}
+          submitLabel="Add"
+        />
+      </fieldset>
+    ));
   const editEditor = editingMember?.person && (
-    <div className={isMobile ? "" : "member-editor py-2"}>
+    <div className={isMobile ? "dialog-form" : "member-editor py-2"}>
       <PersonEditor
         existingNames={existingNames(editingMember.personId)}
         initial={{ name: editingMember.person.name, icon: editingMember.person.icon }}
         onSave={handleEditMember(editingMember)}
         onCancel={closeEditor}
+        inDialog={isMobile}
+        error={isMobile ? memberError : undefined}
       />
     </div>
   );
@@ -225,11 +235,6 @@ const MemberList = () => {
       {mode?.type === "add" &&
         (isMobile ? (
           <MobileEditorDialog title="Add a person" onCancel={closeEditor} busy={isAddingMember}>
-            {memberError && (
-              <p role="alert" className="note money-negative mb-4">
-                {memberError}
-              </p>
-            )}
             {addEditor}
           </MobileEditorDialog>
         ) : (
@@ -239,11 +244,6 @@ const MemberList = () => {
       {editingMember?.person &&
         (isMobile ? (
           <MobileEditorDialog title="Edit person" onCancel={closeEditor}>
-            {memberError && (
-              <p role="alert" className="note money-negative mb-4">
-                {memberError}
-              </p>
-            )}
             {editEditor}
           </MobileEditorDialog>
         ) : (
@@ -318,43 +318,49 @@ const MemberList = () => {
         aria-labelledby="blocked-member-title"
         aria-describedby="blocked-member-description"
         onClose={() => setBlockedMemberId(null)}
-        className="m-auto w-full max-w-md rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-6 text-[var(--ink)] shadow-2xl backdrop:bg-black/60"
+        className="app-dialog max-w-md rounded-3xl border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] shadow-2xl backdrop:bg-black/60"
       >
-        <h2 id="blocked-member-title" className="section-title">
-          Cannot remove {blockedMember?.person?.name ?? "this member"}
-        </h2>
-        <p id="blocked-member-description" className="mt-3 text-sm leading-relaxed">
-          {blockedMember?.person?.name ?? "This member"} is referenced by{" "}
-          {blockedMember ? memberExpenseCount(blockedMember.id) : 0}{" "}
-          {blockedMember && memberExpenseCount(blockedMember.id) === 1 ? "expense" : "expenses"} and{" "}
-          {blockedMember ? memberPaymentCount(blockedMember.id) : 0}{" "}
-          {blockedMember && memberPaymentCount(blockedMember.id) === 1 ? "payment" : "payments"}.
-          Edit or delete those records before removing this member. An expense they created must be
-          deleted, since its creator cannot be reassigned.
-        </p>
-        <div className="mt-5 flex flex-wrap justify-end gap-2">
-          <button
-            type="button"
-            autoFocus
-            onClick={() => blockedDialogRef.current?.close()}
-            className="btn btn-secondary"
-          >
-            Close
-          </button>
-          {blockedMember && memberExpenseCount(blockedMember.id) > 0 && (
-            <Link
-              to={`/groups/${group.id}/expenses?${new URLSearchParams({ memberIds: blockedMember.id })}`}
-              className="btn btn-primary"
-            >
-              View {blockedMember.person?.name ?? "member"}'s expenses
-            </Link>
-          )}
-          {blockedMember && memberPaymentCount(blockedMember.id) > 0 && (
-            <Link to={`/groups/${group.id}/balances`} className="btn btn-primary">
-              View recorded payments
-            </Link>
-          )}
-        </div>
+        <DialogLayout
+          title={`Cannot remove ${blockedMember?.person?.name ?? "this member"}`}
+          titleId="blocked-member-title"
+          onClose={() => blockedDialogRef.current?.close()}
+          closeLabel="Dismiss message"
+          footer={
+            <>
+              <button
+                type="button"
+                autoFocus
+                onClick={() => blockedDialogRef.current?.close()}
+                className="btn btn-secondary"
+              >
+                Close
+              </button>
+              {blockedMember && memberExpenseCount(blockedMember.id) > 0 && (
+                <Link
+                  to={`/groups/${group.id}/expenses?${new URLSearchParams({ memberIds: blockedMember.id })}`}
+                  className="btn btn-primary"
+                >
+                  View {blockedMember.person?.name ?? "member"}'s expenses
+                </Link>
+              )}
+              {blockedMember && memberPaymentCount(blockedMember.id) > 0 && (
+                <Link to={`/groups/${group.id}/balances`} className="btn btn-primary">
+                  View recorded payments
+                </Link>
+              )}
+            </>
+          }
+        >
+          <p id="blocked-member-description" className="text-sm leading-relaxed">
+            {blockedMember?.person?.name ?? "This member"} is referenced by{" "}
+            {blockedMember ? memberExpenseCount(blockedMember.id) : 0}{" "}
+            {blockedMember && memberExpenseCount(blockedMember.id) === 1 ? "expense" : "expenses"} and{" "}
+            {blockedMember ? memberPaymentCount(blockedMember.id) : 0}{" "}
+            {blockedMember && memberPaymentCount(blockedMember.id) === 1 ? "payment" : "payments"}.
+            Edit or delete those records before removing this member. An expense they created must be
+            deleted, since its creator cannot be reassigned.
+          </p>
+        </DialogLayout>
       </dialog>
       <ConfirmationDialog
         open={Boolean(confirmMember)}

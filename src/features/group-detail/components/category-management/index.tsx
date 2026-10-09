@@ -18,6 +18,7 @@ import type { Category } from "@/shared/types/domain.types";
 
 import Avatar from "@/shared/ui/avatar";
 import ConfirmationDialog from "@/shared/ui/confirmation-dialog";
+import DialogLayout from "@/shared/ui/dialog-layout";
 import EntitySuggestions from "@/shared/ui/entity-suggestions";
 import Icon from "@/shared/ui/icon";
 import MobileEditorDialog from "@/shared/ui/mobile-editor-dialog";
@@ -137,47 +138,60 @@ const CategoryManagement = () => {
   const confirmCategory = groupCategories.find((category) => category.id === confirmCategoryId);
   const editor = categoryMode && (
     <FormProvider {...categoryForm}>
-      <form onSubmit={handleSaveCategory} className="flex min-w-0 flex-col gap-5">
-        <h3 className="section-title">{categoryFormTitle}</h3>
-        <div className="min-w-0">
-          <label className="field-label" htmlFor="group-category-name">
-            Category name
-          </label>
-          <Input
-            id="group-category-name"
-            name="name"
-            placeholder="e.g. Coffee runs"
-            wrapperClass="w-full"
-            autoFocus
-          />
-          {categoryMode === "add" && (
-            <EntitySuggestions
-              kind="category"
-              query={categoryQuery}
-              currentGroupId={group.id}
-              unavailableNames={groupCategories.map((item) => item.name)}
-              disabled={isSubmitting || suggesting}
-              onSelect={handleSuggestedCategory}
-            />
+      <form onSubmit={handleSaveCategory} className="dialog-form">
+        <DialogLayout
+          title={categoryFormTitle}
+          onClose={handleCancelCategoryForm}
+          closeDisabled={isSubmitting || suggesting}
+          bodyClassName="flex flex-col gap-5"
+          footer={
+            <>
+              <button
+                type="button"
+                onClick={handleCancelCategoryForm}
+                disabled={isSubmitting || suggesting}
+                className="btn btn-secondary"
+              >
+                Cancel
+              </button>
+              <button type="submit" disabled={isSubmitting || suggesting} className="btn btn-primary">
+                {isSubmitting ? "Saving..." : categorySubmitLabel}
+              </button>
+            </>
+          }
+        >
+          {categoryError && (
+            <p role="alert" className="note money-negative">
+              {categoryError}
+            </p>
           )}
-        </div>
-        <div className="min-w-0">
-          <span className="field-label">Choose an icon</span>
-          <EmojiPicker name="icon" kind="other" emojis={CATEGORY_EMOJIS} />
-        </div>
-        <div className="flex flex-wrap gap-2 justify-end">
-          <button
-            type="button"
-            onClick={handleCancelCategoryForm}
-            disabled={isSubmitting || suggesting}
-            className="btn btn-secondary"
-          >
-            Cancel
-          </button>
-          <button type="submit" disabled={isSubmitting || suggesting} className="btn btn-primary">
-            {isSubmitting ? "Saving..." : categorySubmitLabel}
-          </button>
-        </div>
+          <div className="min-w-0">
+            <label className="field-label" htmlFor="group-category-name">
+              Category name
+            </label>
+            <Input
+              id="group-category-name"
+              name="name"
+              placeholder="e.g. Coffee runs"
+              wrapperClass="w-full"
+              autoFocus
+            />
+            {categoryMode === "add" && (
+              <EntitySuggestions
+                kind="category"
+                query={categoryQuery}
+                currentGroupId={group.id}
+                unavailableNames={groupCategories.map((item) => item.name)}
+                disabled={isSubmitting || suggesting}
+                onSelect={handleSuggestedCategory}
+              />
+            )}
+          </div>
+          <div className="min-w-0">
+            <span className="field-label">Choose an icon</span>
+            <EmojiPicker name="icon" kind="other" emojis={CATEGORY_EMOJIS} />
+          </div>
+        </DialogLayout>
       </form>
     </FormProvider>
   );
@@ -242,11 +256,6 @@ const CategoryManagement = () => {
             onCancel={handleCancelCategoryForm}
             busy={isSubmitting || suggesting}
           >
-            {categoryError && (
-              <p role="alert" className="note money-negative mb-4">
-                {categoryError}
-              </p>
-            )}
             {editor}
           </MobileEditorDialog>
         )}
@@ -255,34 +264,40 @@ const CategoryManagement = () => {
           aria-labelledby="blocked-category-title"
           aria-describedby="blocked-category-description"
           onClose={() => setBlockedCategoryId(null)}
-          className="m-auto w-full max-w-md rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-6 text-[var(--ink)] shadow-2xl backdrop:bg-black/60"
+          className="app-dialog max-w-md rounded-3xl border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] shadow-2xl backdrop:bg-black/60"
         >
-          <h2 id="blocked-category-title" className="section-title">
-            Cannot delete {blockedCategory?.name ?? "this category"}
-          </h2>
-          <p id="blocked-category-description" className="mt-3 text-sm leading-relaxed">
-            {blockedExpenseCount > 0
-              ? `${blockedCategory?.name ?? "This category"} is used by ${blockedExpenseCount} ${blockedExpenseCount === 1 ? "expense" : "expenses"}. ${groupCategories.length <= 1 ? "Add another category and reassign those expenses" : "Reassign those expenses"} before deleting it.`
-              : "A group needs at least one category. Add another category before deleting this one."}
-          </p>
-          <div className="mt-5 flex flex-wrap justify-end gap-2">
-            <button
-              type="button"
-              autoFocus
-              onClick={() => blockedDialogRef.current?.close()}
-              className="btn btn-secondary"
-            >
-              Close
-            </button>
-            {blockedCategory && blockedExpenseCount > 0 && (
-              <Link
-                to={`/groups/${group.id}/expenses?${new URLSearchParams({ categoryIds: blockedCategory.id })}`}
-                className="btn btn-primary"
-              >
-                View expenses
-              </Link>
-            )}
-          </div>
+          <DialogLayout
+            title={`Cannot delete ${blockedCategory?.name ?? "this category"}`}
+            titleId="blocked-category-title"
+            onClose={() => blockedDialogRef.current?.close()}
+            closeLabel="Dismiss message"
+            footer={
+              <>
+                <button
+                  type="button"
+                  autoFocus
+                  onClick={() => blockedDialogRef.current?.close()}
+                  className="btn btn-secondary"
+                >
+                  Close
+                </button>
+                {blockedCategory && blockedExpenseCount > 0 && (
+                  <Link
+                    to={`/groups/${group.id}/expenses?${new URLSearchParams({ categoryIds: blockedCategory.id })}`}
+                    className="btn btn-primary"
+                  >
+                    View expenses
+                  </Link>
+                )}
+              </>
+            }
+          >
+            <p id="blocked-category-description" className="text-sm leading-relaxed">
+              {blockedExpenseCount > 0
+                ? `${blockedCategory?.name ?? "This category"} is used by ${blockedExpenseCount} ${blockedExpenseCount === 1 ? "expense" : "expenses"}. ${groupCategories.length <= 1 ? "Add another category and reassign those expenses" : "Reassign those expenses"} before deleting it.`
+                : "A group needs at least one category. Add another category before deleting this one."}
+            </p>
+          </DialogLayout>
         </dialog>
         <ConfirmationDialog
           open={Boolean(confirmCategory)}

@@ -2,6 +2,7 @@ import { TriangleAlert } from "lucide-react";
 import type { ReactNode, SyntheticEvent } from "react";
 import { useEffect, useId, useRef, useState } from "react";
 
+import DialogLayout from "@/shared/ui/dialog-layout";
 import Icon from "@/shared/ui/icon";
 
 interface PropsType {
@@ -73,45 +74,45 @@ const ConfirmationDialog = ({
       aria-describedby={descriptionId}
       onCancel={handleCancel}
       onClose={handleClose}
-      className="m-auto w-full max-w-md rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-6 text-[var(--ink)] shadow-2xl backdrop:bg-black/60"
+      className="app-dialog max-w-md rounded-3xl border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] shadow-2xl backdrop:bg-black/60"
     >
-      <div className="flex items-start gap-4">
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--negative-soft)] text-[var(--negative)]">
-          <Icon icon={TriangleAlert} size={26} />
-        </span>
-        <div className="min-w-0">
-          <h2 id={titleId} className="text-xl font-bold">
-            {title}
-          </h2>
-          <p id={descriptionId} className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
-            {description}
-          </p>
-        </div>
-      </div>
-      {error && (
-        <p role="alert" className="mt-4 text-sm money-negative">
-          {error}
+      <DialogLayout
+        title={title}
+        titleId={titleId}
+        onClose={onCancel}
+        closeDisabled={submitting}
+        icon={<Icon icon={TriangleAlert} size={26} className="text-[var(--negative)]" />}
+        footer={
+          <>
+            <button
+              type="button"
+              autoFocus
+              disabled={submitting}
+              onClick={onCancel}
+              className="btn btn-secondary"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={submitting}
+              onClick={() => void handleConfirm()}
+              className="btn btn-danger"
+            >
+              {submitting ? pendingLabel : confirmLabel}
+            </button>
+          </>
+        }
+      >
+        <p id={descriptionId} className="text-sm leading-relaxed text-[var(--muted)]">
+          {description}
         </p>
-      )}
-      <div className="mt-6 flex flex-wrap justify-end gap-3">
-        <button
-          type="button"
-          autoFocus
-          disabled={submitting}
-          onClick={onCancel}
-          className="btn btn-secondary"
-        >
-          Cancel
-        </button>
-        <button
-          type="button"
-          disabled={submitting}
-          onClick={() => void handleConfirm()}
-          className="btn btn-danger"
-        >
-          {submitting ? pendingLabel : confirmLabel}
-        </button>
-      </div>
+        {error && (
+          <p role="alert" className="mt-4 text-sm money-negative">
+            {error}
+          </p>
+        )}
+      </DialogLayout>
     </dialog>
   );
 };
