@@ -9,7 +9,7 @@ metadata:
 
 Purpose: document the implemented expense-list filters, their matching rules, and test coverage.
 
-Last updated: 2026-10-08
+Last updated: 2026-10-10
 
 ## Overview
 
@@ -60,6 +60,11 @@ than adding a history entry per keystroke.
   clearing removes filter parameters but retains a selected nondefault sort. Unknown query fields
   and invalid split types are ignored.
 - Filter state is not written to IndexedDB or Zustand.
+- On group Analytics, clicking a category row opens that group's Expenses route with only that
+  category filter active and the default newest-first sort, at every screen width. The link uses
+  category IDs rather than names; a chart row combining same-name categories selects all matching
+  group category IDs, including inactive historical categories. App-wide Analytics rows remain
+  noninteractive. See [[dashboard]].
 
 ## Expense Insights
 
@@ -125,6 +130,14 @@ deletes a selected tag while the list is unmounted. When the list remounts, sele
 payer, and involved-member IDs that are no longer available are removed automatically.
 It also checks the sectioned single-choice sort popover, all eight sort orders, retention
 through clearing, reload, and detail navigation, plus filter-aware insights.
+
+`src/features/group-detail/tests/browser/group-overview-navigation.e2e.ts` adds group Analytics
+drill-down cases at narrow-mobile, tablet, and desktop widths, covering active category selections,
+URL encoding, fresh filter state, reload, clearing, keyboard activation, and same-name historical
+categories. These cases pass in the 2026-10-10 full-browser suite (314 passes, 18 expected viewport
+skips, no failures). Seven additional Analytics smoke checks at 280–1440px confirm no horizontal
+overflow and clickable amount cells; four production offline checks confirm navigation and filtered
+reloads in light/dark mode. See [[testing-strategy]].
 
 ---
 

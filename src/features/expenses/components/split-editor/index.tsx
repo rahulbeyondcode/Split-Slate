@@ -2,7 +2,6 @@ import type { ChangeEvent, ReactNode } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 
 import Input from "@/shared/components/form-elements/input";
-import Avatar from "@/shared/ui/avatar";
 
 import {
   calculateSplit,
@@ -20,6 +19,8 @@ import { parseMoney } from "@/shared/utils/money";
 
 import type { ExpenseFormValues, PayerMember } from "@/features/expenses/types/expenses.types";
 import type { Transaction } from "@/shared/types/domain.types";
+
+import Avatar from "@/shared/ui/avatar";
 
 interface PropsType {
   members: PayerMember[];
@@ -39,7 +40,9 @@ const SplitEditor = ({ members, currency, validationMessage }: PropsType) => {
   let percentageSuggestions: { memberId: string; value: string }[] = [];
   if (splitType === "percentage") {
     try {
-      percentageSuggestions = resolvePercentageParticipants(participants.filter((row) => row.selected));
+      percentageSuggestions = resolvePercentageParticipants(
+        participants.filter((row) => row.selected),
+      );
     } catch {
       // Invalid in-progress values are reported by the preview calculator.
     }
@@ -97,9 +100,7 @@ const SplitEditor = ({ members, currency, validationMessage }: PropsType) => {
   const blankCount = selected.filter((row) => !row.value.trim()).length;
   const splitError =
     previewError ||
-    (!preview.length && !/payer|who paid/iu.test(validationMessage ?? "")
-      ? validationMessage
-      : "");
+    (!preview.length && !/payer|who paid/iu.test(validationMessage ?? "") ? validationMessage : "");
   let summary: ReactNode = null;
   if (
     total > 0 &&
@@ -112,40 +113,35 @@ const SplitEditor = ({ members, currency, validationMessage }: PropsType) => {
         (sum, row) => sum + (row.value.trim() ? parseMoney(row.value, currency) : 0),
         0,
       );
-      summary = blankCount
-        ? (
-            <>
-              ✓ <strong>{formatCurrency(entered, currency)}</strong> entered · remaining{" "}
-              <strong>{formatCurrency(total - entered, currency)}</strong> auto-splits across{" "}
-              <strong>{blankCount}</strong> blank field{blankCount === 1 ? "" : "s"}
-            </>
-          )
-        : (
-            <>
-              ✓ <strong>{formatCurrency(entered, currency)}</strong> entered · fully allocated
-            </>
-          );
+      summary = blankCount ? (
+        <>
+          ✓ <strong>{formatCurrency(entered, currency)}</strong> entered · remaining{" "}
+          <strong>{formatCurrency(total - entered, currency)}</strong> auto-splits across{" "}
+          <strong>{blankCount}</strong> blank field{blankCount === 1 ? "" : "s"}
+        </>
+      ) : (
+        <>
+          ✓ <strong>{formatCurrency(entered, currency)}</strong> entered · fully allocated
+        </>
+      );
     } else if (splitType === "percentage") {
       const entered = selected.reduce((sum, row) => {
         if (!row.value.trim()) return sum;
         const [whole, fraction = ""] = row.value.trim().split(".");
         return sum + BigInt(whole) * 1_000_000n + BigInt(fraction.padEnd(6, "0"));
       }, 0n);
-      summary = blankCount
-        ? (
-            <>
-              ✓ <strong>{formatPercentageDisplay(percentageText(entered))}%</strong> entered · remaining{" "}
-              <strong>{formatPercentageDisplay(percentageText(100_000_000n - entered))}%</strong>{" "}
-              auto-splits across{" "}
-              <strong>{blankCount}</strong> blank field{blankCount === 1 ? "" : "s"}
-            </>
-          )
-        : (
-            <>
-              ✓ <strong>100%</strong> assigned · <strong>{formatCurrency(total, currency)}</strong>{" "}
-              allocated
-            </>
-          );
+      summary = blankCount ? (
+        <>
+          ✓ <strong>{formatPercentageDisplay(percentageText(entered))}%</strong> entered · remaining{" "}
+          <strong>{formatPercentageDisplay(percentageText(100_000_000n - entered))}%</strong>{" "}
+          auto-splits across <strong>{blankCount}</strong> blank field{blankCount === 1 ? "" : "s"}
+        </>
+      ) : (
+        <>
+          ✓ <strong>100%</strong> assigned · <strong>{formatCurrency(total, currency)}</strong>{" "}
+          allocated
+        </>
+      );
     }
   }
   return (

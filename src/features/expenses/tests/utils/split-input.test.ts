@@ -29,9 +29,9 @@ describe("sanitizeSplitInput", () => {
   it("caps a typed percentage to the remainder after other entered fields", () => {
     expect(capPercentageInput("125", [])).toBe("100");
     expect(capPercentageInput("70", [{ memberId: "a", value: "40" }])).toBe("60");
-    expect(
-      capPercentageInput("66.666667", [{ memberId: "a", value: "33.333334" }]),
-    ).toBe("66.666666");
+    expect(capPercentageInput("66.666667", [{ memberId: "a", value: "33.333334" }])).toBe(
+      "66.666666",
+    );
     expect(capPercentageInput(".5", [{ memberId: "a", value: "50" }])).toBe(".5");
     expect(capPercentageInput("40.", [{ memberId: "a", value: "20" }])).toBe("40.");
   });

@@ -9,7 +9,7 @@ metadata:
 
 Purpose: provide a current planning compass without turning exploratory ideas into commitments.
 
-Last updated: 2026-10-08
+Last updated: 2026-10-10
 
 ## How to Read This Page
 
@@ -89,13 +89,13 @@ external payment recording is implemented. Current detail lives in [[index]], [[
 
 ## Next Tasks
 
-### Validate Narrow-Mobile Root Scaling
+### Narrow-Mobile Root Scaling — automated coverage complete 2026-10-10
 
 The 2026-10-08 pre-scaling browser suite verified mobile expense-form scrolling, the final split
 row, and Save/Cancel access. A subsequent rem refactor now scales the root from 16px at widths of
-400px and above to a bounded 14px minimum on narrower viewports. Physical-device appearance,
-post-scaling form/keyboard behavior, and regression coverage remain validation work; passing the
-earlier baseline does not close these checks. See [[layout-architecture]], [[main-screen]] and
+400px and above to a bounded 14px minimum on narrower viewports. The 2026-10-10 full post-scaling
+browser suite passes 314 cases with 18 expected project-specific skips and no failures, including
+expense-form scrolling and responsive regression coverage. See [[layout-architecture]], [[main-screen]] and
 [[testing-strategy]].
 
 ### Browser-Suite Failures — pre-scaling baseline cleared 2026-10-08
@@ -109,8 +109,8 @@ for a new suite regression. See [[testing-strategy]].
 
 The subsequent 2026-10-08 pre-scaling run passed 207 cases with no failures and 19 viewport-specific
 skips after current assertion drift, timezone assumptions, timeline sorting, desktop Add-tag
-visibility, and document-scroll leaks were repaired. The later root-scaling changes have a passing
-build but have not yet been through the full browser suite or physical-device validation.
+visibility, and document-scroll leaks were repaired. The later root-scaling changes now have passing
+builds and the 2026-10-10 full-browser run: 314 passes, 18 expected project-specific skips, no failures.
 
 ### Group Duplication
 
@@ -158,8 +158,8 @@ app is installed.
 Approved or required work:
 
 - The eight expense filters, stale-option cleanup, direct desktop/mobile filter coverage, and
-  detail display are implemented. Mobile expense-form scrolling passed the pre-scaling browser
-  suite; the subsequent narrow-mobile root scaling remains to be validated on devices.
+  detail display are implemented. Mobile expense-form scrolling and narrow-mobile root scaling
+  pass the 2026-10-10 full post-scaling browser suite.
 - Finish category activation/deactivation controls; active-category expense-picker behavior is implemented.
 - Implement receipt attachment ingestion, compression, and lazy loading; expense-deletion cascades are implemented.
 - Continue hardening the implemented Link/CSV/ZIP editable snapshot transfer in [[import-export]].
@@ -172,8 +172,7 @@ Approved or required work:
 - Installable metadata, production service-worker app-shell caching, offline deep-link launch,
   separate resumable icon caching/repair, and a waiting-update prompt are implemented. Production
   desktop/mobile-emulated browser checks cover offline startup, icon repair, and the prompt UI;
-  a true two-deployment update rehearsal, physical-device verification, and storage-pressure checks
-  remain release gates.
+  a true two-deployment update rehearsal and storage-pressure checks remain release gates.
   Updates do not force-reload an open session; users can postpone while finishing unsaved work.
   After all app windows close, the browser may activate a waiting worker before the next launch.
   A failed shell download must leave the older worker running. Icons are independently verified
@@ -283,8 +282,8 @@ be reintroduced:
   approved current feature.
 - Portable transfer is no longer CSV-only or read-only; selective Link, CSV, and ZIP snapshots create
   new editable groups with fresh group-owned IDs.
-- Offline application caching and install metadata are implemented; physical-device and
-  multi-deployment release verification is still pending.
+- Offline application caching and install metadata are implemented; multi-deployment release
+  verification is still pending.
 
 ## Related
 

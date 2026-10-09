@@ -345,6 +345,7 @@ test("scopes category previews and analytics to the group without changing app a
   );
   await expect(total).toHaveText("₹240.00");
   await expect(analytics.getByText("₹190.00", { exact: true })).toBeVisible();
+  await expect(analytics.getByRole("link")).toHaveCount(0);
   await page.goto("/groups/other/analytics");
   await expect(total).toHaveText("₹90.00");
   await expect(analytics.getByText("₹150.00", { exact: true })).toHaveCount(0);
@@ -358,6 +359,89 @@ test("scopes category previews and analytics to the group without changing app a
   await expect(page.getByRole("heading", { name: "Multiple currencies in use" })).toBeVisible();
   await page.goto("/groups/trip/analytics");
   await expect(total).toHaveText("₹150.00");
+});
+
+for (const viewport of [
+  { name: "narrow mobile", width: 320, height: 800 },
+  { name: "tablet", width: 820, height: 1180 },
+  { name: "desktop", width: 1440, height: 900 },
+]) {
+  test(`opens category-filtered expenses from group analytics on ${viewport.name}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+    await page.evaluate(async () => {
+      const modulePath = "/src/shared/configs/db.ts";
+      const { db } = (await import(/* @vite-ignore */ modulePath)) as typeof DbModule;
+      await db.categories.put({
+        id: "travel & taxi",
+        groupId: "trip",
+        name: "Travel",
+        icon: "🚕",
+        isActive: true,
+      });
+      await db.expenses.update("expense-5", { categoryId: "travel & taxi" });
+    });
+    await page.goto("/groups/trip/expenses?name=Expense+5&sort=oldest");
+    await page.goto("/groups/trip/analytics");
+
+    const analytics = page.locator("#main-content .page-narrow");
+    const food = analytics.getByRole("link", { name: /Food/u });
+    await expect(food).toHaveAttribute("href", "/groups/trip/expenses?categoryIds=food");
+    await food.click();
+    await expect(page).toHaveURL(/\/groups\/trip\/expenses\?categoryIds=food$/u);
+    const expenses = page.getByRole("list", { name: "Expenses", exact: true });
+    await expect(expenses.locator("li")).toHaveCount(4);
+    await expect(expenses.getByText("Expense 5", { exact: true })).toHaveCount(0);
+    await expect(page.getByLabel("Search expenses", { exact: true })).toHaveValue("");
+    await expect(page.getByRole("status")).toHaveText("4 of 5 expenses");
+    await page.locator("summary").filter({ hasText: "Filters" }).click();
+    const categories = page.getByRole("group", { name: "Categories", exact: true });
+    await expect(categories.getByLabel("Food", { exact: true })).toBeChecked();
+    await expect(categories.getByLabel("Travel", { exact: true })).not.toBeChecked();
+
+    await page.reload();
+    await expect(expenses.locator("li")).toHaveCount(4);
+    await page.getByRole("button", { name: "Clear all filters", exact: true }).click();
+    await expect(page).toHaveURL(/\/groups\/trip\/expenses$/u);
+    await expect(expenses.locator("li")).toHaveCount(5);
+
+    await page.goto("/groups/trip/analytics");
+    const travel = analytics.getByRole("link", { name: /Travel/u });
+    await travel.focus();
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(/\/groups\/trip\/expenses\?categoryIds=travel\+%26\+taxi$/u);
+    await expect(expenses.locator("li")).toHaveCount(1);
+    await expect(expenses.getByText("Expense 5", { exact: true })).toBeVisible();
+  });
+}
+
+test("filters every same-name category represented by a group analytics row", async ({ page }) => {
+  await page.evaluate(async () => {
+    const modulePath = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ modulePath)) as typeof DbModule;
+    await db.categories.put({
+      id: "historical-food",
+      groupId: "trip",
+      name: "Food",
+      icon: "🍽️",
+      isActive: false,
+    });
+    await db.expenses.update("expense-5", { categoryId: "historical-food" });
+  });
+  await page.goto("/groups/trip/analytics");
+  const food = page.locator("#main-content .page-narrow").getByRole("link", { name: /Food/u });
+  await expect(food).toContainText("₹150.00");
+  await food.click();
+  await expect(page.getByRole("list", { name: "Expenses", exact: true }).locator("li")).toHaveCount(
+    5,
+  );
+  expect(new URL(page.url()).searchParams.getAll("categoryIds").sort()).toEqual([
+    "food",
+    "historical-food",
+  ]);
+  await page.locator("summary").filter({ hasText: "Filters" }).click();
+  await expect(page.getByText("1 active filter", { exact: true })).toBeVisible();
 });
 
 test("links to group analytics even when the group has no expenses", async ({ page }) => {

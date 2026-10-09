@@ -1,6 +1,6 @@
 # Dashboard View
 
-Last updated: 2026-10-05
+Last updated: 2026-10-09
 
 **Purpose:** Record the current dashboard implementation and the target cross-group summary design.
 
@@ -32,7 +32,10 @@ The dashboard currently renders:
   group-scoped preview on Overview is visible at every width and links to
   `/groups/:groupId/analytics`; that route only totals the selected group's expenses, including
   when other groups use different currencies. Its Back button is available at every width: it
-  follows in-app history or opens the group Overview when the route was loaded directly.
+   follows in-app history or opens the group Overview when the route was loaded directly.
+- On the full group Analytics page, category rows link to that group's Expenses page with only
+  the clicked category filter active, at every screen width. Same-name category rows select all
+  matching group category IDs; app-wide Analytics rows remain noninteractive. See [[filtering]].
 - Links from each group row to that group's Overview route
 
 The desktop right pane shows saved activity events across all groups on Dashboard, app-wide

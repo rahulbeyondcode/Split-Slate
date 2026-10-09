@@ -127,9 +127,12 @@ test("keeps app-wide Back and title visible while the subtitle and content scrol
     const back = pageContent.getByRole("button", { name: "Back", exact: true });
     const heading = pageContent.getByRole("heading", { level: 1, name: title });
     const subtitle = pageContent.locator(":scope > .soft-caption");
-    await pageContent.locator(":scope > .surface").last().evaluate((surface) => {
-      surface.style.minHeight = "700px";
-    });
+    await pageContent
+      .locator(":scope > .surface")
+      .last()
+      .evaluate((surface) => {
+        surface.style.minHeight = "700px";
+      });
     const initialBackTop = (await back.boundingBox())!.y;
     const initialHeadingTop = (await heading.boundingBox())!.y;
     await expect(subtitle).toBeInViewport();

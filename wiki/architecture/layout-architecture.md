@@ -9,7 +9,7 @@ metadata:
 
 Purpose: document the implemented responsive shell and distinguish navigation stubs from working routes.
 
-Last updated: 2026-10-09
+Last updated: 2026-10-10
 
 ## Viewport States
 
@@ -162,8 +162,9 @@ dimensions. Text wrapping and intrinsic container heights can still change with 
 A source-level comparison confirmed baseline CSS equivalence at a 16px root, excluding separately
 approved prerequisite layout fixes. The post-scaling full browser run completed with seven failures;
 all seven passed focused checks after the theme, modal-focus, and resize-assertion corrections.
-Final responsive captures confirm saved themes and no horizontal overflow. Physical-device
-behavior and a single full-suite run after those corrections remain unverified. See
+Final responsive captures confirm saved themes and no horizontal overflow. The 2026-10-10 stable
+full-browser rerun passes 314 cases with 18 expected viewport skips and no failures, including the
+subsequent group Analytics drill-down. See
 [[testing-strategy]] and [[main-screen]].
 
 ---
@@ -180,7 +181,8 @@ Mobile Add/Edit Expense forms hide the footer and use `#main-content` as their s
 container: the body is fixed, document/shell overflow is clipped, and the main pane does not reserve
 footer padding. Before root scaling, the 2026-10-08 browser suite verified the last split row,
 Save/Cancel toolbar, and absence of a second document/form scroll area at 320px by 700px.
-Post-scaling device validation remains pending; see [[main-screen]] and [[testing-strategy]].
+The 2026-10-10 full-browser run also passes after scaling; see [[main-screen]] and
+[[testing-strategy]].
 Expenses scrolls the main pane on all viewport sizes: the group header, expense title/subtitle,
 and then the search/sort/filter toolbar stick in sequence, while insights scroll away. On tablet
 and desktop the ledger itself has a second scroll area sized to its first ten rendered entries

@@ -124,7 +124,9 @@ test("sizes dashed Add actions like the category and tag pills", async ({ page, 
   }
 });
 
-test("shows the member, owed amount, then narrow input for every split method", async ({ page }) => {
+test("shows the member, owed amount, then narrow input for every split method", async ({
+  page,
+}) => {
   await page.getByLabel("Amount (INR)", { exact: true }).fill("100");
   const row = page.locator(".expense-split-row").first();
   for (const [method, title] of [
@@ -148,9 +150,10 @@ test("shows the member, owed amount, then narrow input for every split method", 
     const amountBox = (await row.locator(".expense-split-values > span").boundingBox())!;
     expect(amountBox.x > memberBox.x || amountBox.y > memberBox.y).toBe(true);
     await expect(row.locator(".avatar img")).toHaveAttribute("src", /\/fox-3d\.png$/u);
-    await expect(
-      page.locator(".expense-split-row").nth(1).locator(".avatar img"),
-    ).toHaveAttribute("src", /\/panda-3d\.png$/u);
+    await expect(page.locator(".expense-split-row").nth(1).locator(".avatar img")).toHaveAttribute(
+      "src",
+      /\/panda-3d\.png$/u,
+    );
     if (method !== "Equal") {
       const input = row.locator(".expense-split-input input");
       const inputBox = (await input.boundingBox())!;
@@ -162,9 +165,7 @@ test("shows the member, owed amount, then narrow input for every split method", 
   }
 });
 
-test("summarizes only unequal and percentage splits with bold values", async ({
-  page,
-}) => {
+test("summarizes only unequal and percentage splits with bold values", async ({ page }) => {
   await page.getByLabel("Amount (INR)", { exact: true }).fill("100");
   const methods = page.getByRole("group", { name: "Split method" });
   const summary = page.locator(".expense-split-summary");
@@ -211,9 +212,9 @@ test("shows only one plain red message for an invalid split", async ({ page }) =
   await page.getByLabel("Amount owed for Amy").fill("110");
   await expect(page.locator(".expense-split-summary")).toHaveCount(0);
   await page.getByRole("button", { name: "Save expense" }).click();
-  await expect(page.getByText("Split amounts must add up to the total", { exact: true })).toHaveCount(
-    1,
-  );
+  await expect(
+    page.getByText("Split amounts must add up to the total", { exact: true }),
+  ).toHaveCount(1);
   await expect(page.locator(".note.money-negative")).toHaveCount(0);
   await expect(page.getByRole("alert")).toHaveCount(0);
 });
@@ -245,9 +246,7 @@ test("shows a missing-payer error once without an alert box", async ({ page }) =
   await expect(page.getByRole("alert")).toHaveCount(0);
 });
 
-test("uses emoji pills and suggested amounts for selected multiple payers", async ({
-  page,
-}) => {
+test("uses emoji pills and suggested amounts for selected multiple payers", async ({ page }) => {
   await page.getByLabel("Amount (INR)", { exact: true }).fill("100");
   await expect(page.getByRole("radio", { name: "Paid by Amy" })).toBeChecked();
   await expect(page.locator(".payer-choice-chip .avatar img").first()).toHaveAttribute(
@@ -303,7 +302,10 @@ test("omits a selected payer with a zero suggested remainder on save", async ({ 
   await page.getByLabel("Amount (INR)", { exact: true }).fill("100");
   await page.getByLabel("Multiple payers", { exact: true }).check();
   for (const name of ["Amy", "Bea", "Cal"]) {
-    await page.getByRole("checkbox", { name: `Paid by ${name}` }).locator("..").click();
+    await page
+      .getByRole("checkbox", { name: `Paid by ${name}` })
+      .locator("..")
+      .click();
   }
   await page.getByLabel("Amy paid (INR)").fill("40");
   await page.getByLabel("Bea paid (INR)").fill("60");
@@ -329,7 +331,7 @@ test("keeps split rows compact while preserving a 44px tap target", async ({ pag
     for (const method of ["Equal", "Unequal"]) {
       await page
         .getByRole("group", { name: "Split method" })
-        .getByRole("button", { name: method })
+        .getByRole("button", { name: method, exact: true })
         .click();
       const height = (await row.boundingBox())!.height;
       expect(height).toBeGreaterThanOrEqual(44);
@@ -591,7 +593,10 @@ test("saves blank percentage suggestions as the displayed owed amounts", async (
   for (const name of ["Bea", "Cal"]) {
     await expect(page.getByLabel(`Percentage for ${name}`)).toHaveAttribute("placeholder", "40");
     await expect(
-      page.locator(".expense-split-row").filter({ hasText: name }).locator(".expense-split-values > span"),
+      page
+        .locator(".expense-split-row")
+        .filter({ hasText: name })
+        .locator(".expense-split-values > span"),
     ).toHaveText("₹40.00");
   }
   await page.getByRole("button", { name: "Save expense" }).click();

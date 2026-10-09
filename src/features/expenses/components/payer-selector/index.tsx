@@ -2,7 +2,6 @@ import { useRef, useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 
 import Input from "@/shared/components/form-elements/input";
-import Avatar from "@/shared/ui/avatar";
 
 import { previewPayerContributions } from "@/features/expenses/utils/payer-contributions";
 import { sanitizeDecimalInput } from "@/features/expenses/utils/split-input";
@@ -10,6 +9,8 @@ import { formatCurrency } from "@/shared/utils/currency";
 import { moneyToDecimal } from "@/shared/utils/money";
 
 import type { ExpenseFormValues, PayerMember } from "@/features/expenses/types/expenses.types";
+
+import Avatar from "@/shared/ui/avatar";
 
 interface PropsType {
   members: PayerMember[];
@@ -38,8 +39,9 @@ const PayerSelector = ({ members, quickIds, currency, validationMessage }: Props
   );
   const initialRemainder = useRef(
     getValues("payerMode") === "multiple"
-      ? getValues("payers").filter((payer) => payer.selected && payer.amount.trim()).at(-1)
-          ?.memberId
+      ? getValues("payers")
+          .filter((payer) => payer.selected && payer.amount.trim())
+          .at(-1)?.memberId
       : undefined,
   );
   const visibleIds = showAll
@@ -53,9 +55,7 @@ const PayerSelector = ({ members, quickIds, currency, validationMessage }: Props
     chosenPayers.map((payer) => ({ memberId: payer.memberId, value: payer.amount })),
     currency,
   );
-  const payerValidation = /payer|who paid/iu.test(validationMessage ?? "")
-    ? validationMessage
-    : "";
+  const payerValidation = /payer|who paid/iu.test(validationMessage ?? "") ? validationMessage : "";
   const payerError = preview.error || (!preview.paid.length ? payerValidation : "");
 
   const handleTogglePayer = (id: string, index: number) => {
@@ -75,7 +75,8 @@ const PayerSelector = ({ members, quickIds, currency, validationMessage }: Props
           ))
       ) {
         const suggestedId =
-          editedOrder.current.find((memberId) => remainingIds.includes(memberId)) ?? remainingIds[0];
+          editedOrder.current.find((memberId) => remainingIds.includes(memberId)) ??
+          remainingIds[0];
         const suggestedIndex = current.findIndex((payer) => payer.memberId === suggestedId);
         setValue(`payers.${suggestedIndex}.amount`, "", {
           shouldDirty: true,

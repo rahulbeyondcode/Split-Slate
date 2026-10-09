@@ -9,7 +9,7 @@ metadata:
 
 Purpose: describe implemented group navigation, expense workflows, balances, and group transfer.
 
-Last updated: 2026-10-09
+Last updated: 2026-10-10
 
 ## Current Implementation
 
@@ -180,8 +180,9 @@ fields and sticky at the bottom of the main scroll pane. The 2026-10-08 pre-scal
 verified the last split row and Save/Cancel access at 320px by 700px without a second document or
 form scroller. The later root-scaling refactor keeps the 16px reference root at widths of 400px and
 above and reduces it gradually to 14px below that range. Fonts, rem component dimensions, and
-spacing follow the root; structural navigation breakpoints do not change. Post-scaling browser and
-physical-device validation remain pending. See [[layout-architecture]] and [[testing-strategy]].
+spacing follow the root; structural navigation breakpoints do not change. The 2026-10-10 full
+post-scaling browser suite passes 314 cases with 18 expected project-specific skips and no failures.
+See [[layout-architecture]] and [[testing-strategy]].
 
 ### Expense Recording
 

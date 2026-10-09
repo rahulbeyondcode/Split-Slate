@@ -16,7 +16,11 @@ export const expenseFieldsSchema = z.object({
   payerMode: z.enum(["single", "multiple"]),
   payerId: z.string().trim(),
   payers: z.array(
-    z.object({ memberId: required("Invalid payer"), selected: z.boolean(), amount: z.string().trim() }),
+    z.object({
+      memberId: required("Invalid payer"),
+      selected: z.boolean(),
+      amount: z.string().trim(),
+    }),
   ),
   splitType: z.enum(["equal", "amount", "shares", "percentage", "adjustment"]),
   participants: z.array(
@@ -44,7 +48,7 @@ export const expenseTransactions = (values: ExpenseFormValues, currency: string)
       ).owes.filter((payer) => payer.amount > 0);
     } catch (error) {
       if ((error as Error).message === "Split amounts must add up to the total") {
-        throw new Error("Payer amounts must add up to the total");
+        throw new Error("Payer amounts must add up to the total", { cause: error });
       }
       throw error;
     }

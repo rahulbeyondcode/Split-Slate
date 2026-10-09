@@ -5,7 +5,7 @@ This wiki is the sole persistent compiled knowledge layer. The implementation in
 authoritative; `app-featureset-context/spec-sheet.md` is a historical baseline where later source
 and approved decisions have superseded it. Changes: [log.md](log.md)
 
-Last updated: 2026-10-09
+Last updated: 2026-10-10
 
 ---
 
@@ -19,15 +19,15 @@ Last updated: 2026-10-09
 
 ---
 
-> **Verification status (2026-10-09):** Lint, formatting, TypeScript, and the production build
-> pass, including a build with Devtools enabled. Earlier checks passed all 443 unit cases and
-> 18 PWA cases, before the final theme/focus fixes.
-> The full browser run completed with 258 passes, 19 expected viewport skips, and 7 failures.
-> All seven failing cases now pass in focused verification. The final targeted coverage totals
-> 22 passing current cases across two runs, including the new direct-entry theme matrix.
-> All 28 final responsive captures have the correct saved theme, no horizontal overflow, and
-> visible modal/currency actions. No post-fix full-browser/unit/PWA rerun or physical-device
-> verification is claimed. Pending checks do not authorize execution.
+> **Verification status (2026-10-10):** Lint, formatting, TypeScript, production build, and
+> Devtools-enabled build pass. All 467 unit cases across 40 files and all 18 PWA cases pass.
+> The final stable full-browser run passes 314 cases with 18 expected viewport skips and no
+> failures, including group Analytics category drill-down on mobile, tablet, and desktop.
+> Seven Analytics smoke checks at 280–1440px show no horizontal overflow; four production offline
+> checks verify category navigation, filtered reloads, and unchanged app-wide Analytics in light
+> and dark modes. Deployment-specific release checks remain outside this automated verification.
+> Future runs still require approval. The 18 skips are inapplicable project combinations; each
+> corresponding test passes in its appropriate mobile, desktop, or tablet-sized project.
 > See [[testing-strategy]] and [[layout-architecture]].
 
 ---
@@ -35,7 +35,7 @@ Last updated: 2026-10-09
 ## Navigation
 
 ### Roadmap
-- [Product Direction and Roadmap](roadmap/product-roadmap.md) — narrow-mobile scaling validation, group duplication, PWA release gates, and implemented group-only repayment recording
+- [Product Direction and Roadmap](roadmap/product-roadmap.md) — verified narrow-mobile scaling, group duplication, PWA release gates, and implemented group-only repayment recording
 
 ### Architecture
 - [Domain Models](architecture/domain-models.md) — expense and payment shapes, PNG icon keys, fixed-hundredths money, and optional group tags
@@ -59,7 +59,7 @@ Last updated: 2026-10-09
 - [Selection Controls](decisions/selection-controls.md) — native checkboxes/radios with selected and visibly locked states across forms, filters, and transfer
 - [Offline Payment Recording](decisions/settlement-recording.md) — group-only repayment records, modal member/date entry, correction, and portability
 - [String Input Normalization](decisions/string-input-normalization.md) — required strings reject trimmed blanks; optional expense inputs have explicit blank-value semantics
-- [Testing Strategy](decisions/testing-strategy.md) — approval-gated execution, passing targeted fixes, verified baselines, and unverified post-fix full-suite/device checks
+- [Testing Strategy](decisions/testing-strategy.md) — approval-gated execution, 467 unit/314 browser/18 PWA passes, responsive/offline Analytics checks, and explained project-specific skips
 
 ### Systems
 - [IndexedDB Schema](systems/indexeddb-schema.md) — version 3 payments, safe expense/balance writes, and bootstrap recovery
@@ -77,8 +77,8 @@ Last updated: 2026-10-09
 - [Member Management](workflows/member-management.md) — setup person-draft modals with initial field focus and visible actions, directory linking, and guarded removal
 - [Category Management](workflows/category-management.md) — all-width management and setup modals, draft-only category entry, and guarded deletion; deactivation pending
 - [Tag Management](workflows/tag-management.md) — group-scoped tags, all-width Add/Edit modal, tablet-stacked cards, and transactional cleanup
-- [Filtering](workflows/filtering.md) — URL-backed filtering, sticky toolbar, ten-row ledger, and payment-timeline merge that preserves non-date expense sorts
-- [Dashboard](workflows/dashboard.md) — group summaries, app/group Activity navigation on tablet, Analytics/Unsettled activity, and scoped totals
+- [Filtering](workflows/filtering.md) — URL-backed filters, all-width group Analytics category drill-down, sticky ledger, and sort-preserving payment merge
+- [Dashboard](workflows/dashboard.md) — group summaries, tablet Activity navigation, group-only Analytics category links, and scoped totals
 
 ### Ideas (captured, not committed)
 - [Rewarded Ads](ideas/rewarded-ads.md) — optional ad-watch → credits → Pro unlock mechanic; fully opt-in
@@ -114,7 +114,7 @@ Last updated: 2026-10-09
 | Split types (5 types)              | DONE        |
 | Paid-by (frequent payers UI)       | DONE        |
 | Expense list + filtering           | DONE        |
-| Mobile expense-form scroll/actions | BASELINE VERIFIED; SCALING VALIDATION PENDING |
+| Mobile expense-form scroll/actions | AUTOMATED VERIFIED |
 | Balances / who-owes-whom view      | DONE        |
 | Offline repayment recording        | DONE        |
 | Receipt attachments                | PENDING     |
@@ -156,16 +156,15 @@ Group transfer is implemented as selective snapshot export and fresh editable im
 bounded to 32,000 characters without receipts; CSV carries typed data without blobs; ZIP optionally
 carries verified receipts. Fresh group-owned IDs, count/reference/integrity validation, recipient
 identity mapping, default categories, same-name numbering, and the complete IndexedDB transaction
-have passing desktop/mobile browser journeys in the 2026-10-08 pre-scaling baseline, including
-opening the export questionnaire. Post-scaling validation remains pending. Settlement Link/PDF/Excel
+have passing desktop/mobile browser journeys in the 2026-10-10 post-scaling full suite, including
+opening the export questionnaire. Settlement Link/PDF/Excel
 sharing remains separate and pending.
 See [[import-export]] and [[testing-strategy]].
 
 The production build now has install metadata, a five-day install reminder with a Settings retry, an offline app
 shell, background verified icon downloads with incremental repair, and a user-controlled update prompt. Desktop/mobile-emulated PWA
 browser checks cover offline launch and cache repair. A real two-deployment update rehearsal,
-physical-device verification, storage pressure behavior, and versioned IndexedDB upgrades remain
-release checks; caches cannot guarantee
+storage pressure behavior, and versioned IndexedDB upgrades remain release checks; caches cannot guarantee
 permanent storage. See [[mobile-pwa-install]], [[iconography]] and [[product-roadmap]].
 
 ---

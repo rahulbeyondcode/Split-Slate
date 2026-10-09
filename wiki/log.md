@@ -6,11 +6,26 @@ Entries record historical changes, not current execution instructions. The expli
 policy in [[testing-strategy]], `AGENTS.md`, and `CLAUDE.md` supersedes older automatic-run or
 "highest-priority next task" directives. Historical results do not authorize new runs.
 
-Last updated: 2026-10-09
+Last updated: 2026-10-10
 
 ---
 
+## 2026-10-10
+- UPDATED decisions/testing-strategy.md — explain all 18 project-specific skips and remove device-pending wording without adding verification claims
+- UPDATED architecture/layout-architecture.md — remove device-pending labels while retaining factual automated coverage
+- UPDATED workflows/main-screen.md — replace stale post-scaling pending status with the passing full-browser result
+- UPDATED roadmap/product-roadmap.md — remove the device-validation gate and reconcile root-scaling browser coverage
+- UPDATED debugging/mobile-pwa-install.md — remove the outstanding device install-rehearsal statement
+- UPDATED wiki/index.md — reflect scope-aware skips and remove device-pending status labels
+- UPDATED decisions/testing-strategy.md — record final passing static checks, both builds, 467 unit cases, 314 browser cases with 18 expected skips, 18 PWA cases, and responsive/offline Analytics verification
+- UPDATED architecture/layout-architecture.md — replace stale unverified-full-suite claim with the passing automated baseline while retaining the physical-device limitation
+- UPDATED workflows/filtering.md — record passing group Analytics drill-down, seven-width overflow checks, and production offline reload coverage
+- UPDATED wiki/index.md — refresh verification summary, post-scaling transfer coverage, and automated-versus-device status
+
 ## 2026-10-09
+- UPDATED workflows/filtering.md — document all-width group Analytics category drill-down with fresh URL-backed filters and pending added browser cases
+- UPDATED workflows/dashboard.md — distinguish clickable group Analytics categories from noninteractive app-wide rows
+- UPDATED wiki/index.md — reflect group-only Analytics category drill-down
 - UPDATED architecture/layout-architecture.md — tablet app/group Activity sidebar links, desktop direct-route behavior, and pending mobile group entry point
 - UPDATED workflows/dashboard.md — distinguish app-wide and group-only Activity feeds on tablet
 - UPDATED workflows/main-screen.md — document the group-scoped Activity route and tablet sidebar link

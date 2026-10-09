@@ -98,11 +98,9 @@ describe("calculateSplit", () => {
     const result = calculateSplit(10000, "percentage", members(["100", "", ""]), "INR");
     expect(result.owes).toEqual([{ memberId: "a", amount: 10000 }]);
     expect(result.splitMeta).toEqual([{ memberId: "a", value: "100" }]);
-    expect(resolvePercentageParticipants(members(["100", "", ""])).map((row) => row.value)).toEqual([
-      "100",
-      "0",
-      "0",
-    ]);
+    expect(resolvePercentageParticipants(members(["100", "", ""])).map((row) => row.value)).toEqual(
+      ["100", "0", "0"],
+    );
   });
   it.each(["0.000001", "8589934592.000001", "9007199254.740991"])(
     "preserves the exact accepted shares input %s",

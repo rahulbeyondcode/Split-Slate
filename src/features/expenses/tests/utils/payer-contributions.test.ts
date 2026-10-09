@@ -30,7 +30,10 @@ describe("previewPayerContributions", () => {
   it("reports an over-total amount immediately without making a negative suggestion", () => {
     const preview = previewPayerContributions(
       "100",
-      [{ memberId: "a", value: "110" }, { memberId: "b", value: "" }],
+      [
+        { memberId: "a", value: "110" },
+        { memberId: "b", value: "" },
+      ],
       "INR",
     );
     expect(preview.error).toBe("Payer amounts exceed the total");

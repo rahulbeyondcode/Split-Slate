@@ -1,7 +1,11 @@
 import { ArrowLeft, ChartColumn, Globe2 } from "lucide-react";
-import { useNavigate, useOutletContext, useParams } from "react-router-dom";
+import { Link, useNavigate, useOutletContext, useParams } from "react-router-dom";
 
 import { dashboardCategories, dashboardPositions } from "@/features/dashboard/utils/dashboard-data";
+import {
+  createExpenseFilterDefaults,
+  writeExpenseFilterParams,
+} from "@/features/expenses/utils/expense-filters";
 import { useStore } from "@/shared/configs/store";
 import { useViewport } from "@/shared/hooks/use-viewport";
 import { categorySpending } from "@/shared/utils/category-spending";
@@ -85,19 +89,46 @@ const Analytics = () => {
             )}
           </p>
           <p className="soft-caption mb-4">total recorded spend</p>
-          {categories.map((item) => (
-            <div key={item.name} className="ui-row">
-              <EmojiImage icon={item.icon} />
-              <span className="w-28 font-semibold">{item.name}</span>
-              <span className="h-2 flex-1 rounded-full bg-[var(--surface-soft)]">
-                <span
-                  className="block h-full rounded-full bg-[var(--brand)]"
-                  style={{ width: `${(item.amount / max) * 100}%` }}
-                />
-              </span>
-              <span className="money text-xs">{formatCurrency(item.amount, currency)}</span>
-            </div>
-          ))}
+          {categories.map((item) => {
+            const categoryIds =
+              groupContext?.groupCategories
+                .filter((category) => category.name === item.name)
+                .map((category) => category.id) ?? [];
+            const content = (
+              <>
+                <EmojiImage icon={item.icon} />
+                <span className="min-w-0 w-28 break-words font-semibold">{item.name}</span>
+                <span className="h-2 min-w-0 flex-1 rounded-full bg-[var(--surface-soft)]">
+                  <span
+                    className="block h-full rounded-full bg-[var(--brand)]"
+                    style={{ width: `${(item.amount / max) * 100}%` }}
+                  />
+                </span>
+                <span className="money shrink-0 text-xs">
+                  {formatCurrency(item.amount, currency)}
+                </span>
+              </>
+            );
+            return groupId && categoryIds.length ? (
+              <Link
+                key={item.name}
+                to={{
+                  pathname: `/groups/${groupId}/expenses`,
+                  search: writeExpenseFilterParams({
+                    ...createExpenseFilterDefaults(),
+                    categoryIds,
+                  }).toString(),
+                }}
+                className="ui-row rounded-lg transition-colors hover:bg-[var(--surface-soft)]"
+              >
+                {content}
+              </Link>
+            ) : (
+              <div key={item.name} className="ui-row">
+                {content}
+              </div>
+            );
+          })}
         </Surface>
       ) : (
         <EmptyState

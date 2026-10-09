@@ -2,7 +2,7 @@
 
 Purpose: explain why the installed-app option may be absent and how the interface handles browser-controlled installation.
 
-Last updated: 2026-10-04
+Last updated: 2026-10-10
 
 ## Observed deployment issue
 
@@ -29,5 +29,5 @@ action displays browser-menu instructions instead. Accepted installation is trac
 from temporary dismissal so it does not trigger five-day reminders.
 
 The production service worker does not run in the Vite development server. PWA browser tests run
-against a production build on localhost; a real mobile-browser install rehearsal remains necessary.
+against a production build on localhost.
 See [[product-roadmap]] and [[iconography]] for the offline shell and release checks.
