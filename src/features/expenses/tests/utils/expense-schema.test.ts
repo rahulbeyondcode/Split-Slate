@@ -13,8 +13,8 @@ const values = (): ExpenseFormValues => ({
   payerMode: "single",
   payerId: "a",
   payers: [
-    { memberId: "a", amount: "" },
-    { memberId: "b", amount: "" },
+    { memberId: "a", selected: false, amount: "" },
+    { memberId: "b", selected: false, amount: "" },
   ],
   splitType: "equal",
   participants: [
@@ -61,6 +61,8 @@ describe("expense schema", () => {
   it("validates multiple payers exactly", () => {
     const input = values();
     input.payerMode = "multiple";
+    input.payers[0].selected = true;
+    input.payers[1].selected = true;
     input.payers[0].amount = "40";
     input.payers[1].amount = "60.01";
     expect(createExpenseSchema("INR").safeParse(input).success).toBe(true);
@@ -71,10 +73,43 @@ describe("expense schema", () => {
     const input = values();
     input.payerMode = "multiple";
     input.payers = [
-      { memberId: "a", amount: "50" },
-      { memberId: "a", amount: "50.01" },
+      { memberId: "a", selected: true, amount: "50" },
+      { memberId: "a", selected: true, amount: "50.01" },
     ];
     expect(createExpenseSchema("INR").safeParse(input).success).toBe(false);
+  });
+  it("saves positive suggested contributions but omits a zero remainder", () => {
+    const input = values();
+    input.amount = "100";
+    input.payerMode = "multiple";
+    input.payers = [
+      { memberId: "a", selected: true, amount: "40" },
+      { memberId: "b", selected: true, amount: "60" },
+      { memberId: "c", selected: true, amount: "" },
+      { memberId: "d", selected: false, amount: "500" },
+    ];
+    expect(expenseTransactions(input, "INR").transactions.paid).toEqual([
+      { memberId: "a", amount: 4000 },
+      { memberId: "b", amount: 6000 },
+    ]);
+    input.payers[1].amount = "50";
+    expect(expenseTransactions(input, "INR").transactions.paid).toEqual([
+      { memberId: "a", amount: 4000 },
+      { memberId: "b", amount: 5000 },
+      { memberId: "c", amount: 1000 },
+    ]);
+  });
+  it("distributes blank selected payer amounts exactly and requires a selection", () => {
+    const input = values();
+    input.payerMode = "multiple";
+    expect(createExpenseSchema("INR").safeParse(input).success).toBe(false);
+    input.payers.forEach((payer) => {
+      payer.selected = true;
+    });
+    expect(expenseTransactions(input, "INR").transactions.paid).toEqual([
+      { memberId: "a", amount: 5001 },
+      { memberId: "b", amount: 5000 },
+    ]);
   });
   it("ignores unselected split members", () => {
     const input = values();

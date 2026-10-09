@@ -4,6 +4,7 @@ import { Link, NavLink, useParams } from "react-router-dom";
 import GroupListItem from "@/features/groups-list/components/group-list-item";
 
 import { useStore } from "@/shared/configs/store";
+import { useViewport } from "@/shared/hooks/use-viewport";
 
 import { SIDEBAR_NAV } from "@/app/layouts/nav-config";
 import AppLogo from "@/shared/ui/app-logo";
@@ -12,12 +13,15 @@ import Icon from "@/shared/ui/icon";
 
 const AppSidebar = () => {
   const { groupId } = useParams();
+  const { isTablet } = useViewport();
   const { localUser, groups, members, expenses } = useStore();
   const group = groups.find((item) => item.id === groupId);
-  const items = SIDEBAR_NAV[groupId ? "group" : "dashboard"].map((item) => ({
-    ...item,
-    path: groupId ? item.path.replace(":groupId", groupId) : item.path,
-  }));
+  const items = SIDEBAR_NAV[groupId ? "group" : "dashboard"]
+    .filter((item) => isTablet || item.label !== "Activity")
+    .map((item) => ({
+      ...item,
+      path: groupId ? item.path.replace(":groupId", groupId) : item.path,
+    }));
 
   return (
     <aside className="app-sidebar" aria-label="Sidebar">

@@ -90,8 +90,6 @@ test("keeps mobile destination titles and subtitles visible at the bottom of eac
 
   for (const [route, title] of [
     ["/activity", "Activity"],
-    ["/unsettled", "Unsettled"],
-    ["/analytics", "Spending by category"],
     ["/settings", "Settings"],
   ]) {
     await page.goto(route);
@@ -114,12 +112,48 @@ test("keeps mobile destination titles and subtitles visible at the bottom of eac
   }
 });
 
+test("keeps app-wide Back and title visible while the subtitle and content scroll", async ({
+  page,
+  isMobile,
+}) => {
+  await page.setViewportSize({ width: isMobile ? 390 : 1280, height: 320 });
+
+  for (const [route, title] of [
+    ["/unsettled", "Unsettled"],
+    ["/analytics", isMobile ? "Spending by category" : "Analytics"],
+  ]) {
+    await page.goto(route);
+    const pageContent = page.locator(".dashboard-detail-page");
+    const back = pageContent.getByRole("button", { name: "Back", exact: true });
+    const heading = pageContent.getByRole("heading", { level: 1, name: title });
+    const subtitle = pageContent.locator(":scope > .soft-caption");
+    await pageContent.locator(":scope > .surface").last().evaluate((surface) => {
+      surface.style.minHeight = "700px";
+    });
+    const initialBackTop = (await back.boundingBox())!.y;
+    const initialHeadingTop = (await heading.boundingBox())!.y;
+    await expect(subtitle).toBeInViewport();
+
+    await page.locator("#main-content").evaluate((main) => {
+      main.scrollTop = main.scrollHeight;
+    });
+    await expect
+      .poll(() => page.locator("#main-content").evaluate((main) => main.scrollTop))
+      .toBeGreaterThan(0);
+    await expect(back).toBeInViewport();
+    await expect(heading).toBeInViewport();
+    await expect(subtitle).not.toBeInViewport();
+    expect(Math.abs((await back.boundingBox())!.y - initialBackTop)).toBeLessThan(2);
+    expect(Math.abs((await heading.boundingBox())!.y - initialHeadingTop)).toBeLessThan(2);
+  }
+});
+
 test("opens Analytics from the mobile dashboard chart and returns via Back", async ({
   page,
   isMobile,
 }) => {
   test.skip(!isMobile, "Mobile dashboard navigation only");
-  await page.setViewportSize({ width: 320, height: 800 });
+  await page.setViewportSize({ width: 667, height: 800 });
   const footer = page.getByRole("navigation", { name: "Bottom navigation" });
   await expect(footer.getByRole("link", { name: "Analytics" })).toHaveCount(0);
   await expect(footer.getByRole("link")).toHaveCount(5);
@@ -136,9 +170,8 @@ test("opens Analytics from the mobile dashboard chart and returns via Back", asy
   await expect(chart.getByText("All groups · ever")).toBeVisible();
   await chart.getByRole("link", { name: "View all" }).click();
   await expect(page).toHaveURL(/\/analytics$/u);
-  const dashboardBack = page.getByRole("link", { name: "Back to dashboard" });
-  await expect(dashboardBack).toHaveCSS("border-style", "none");
-  await expect(dashboardBack).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  const dashboardBack = page.getByRole("button", { name: "Back", exact: true });
+  await expect(dashboardBack).toBeVisible();
   await dashboardBack.click();
   await expect(page).toHaveURL(/\/dashboard$/u);
 
@@ -146,12 +179,42 @@ test("opens Analytics from the mobile dashboard chart and returns via Back", asy
   await expect(page).toHaveURL(/\/analytics$/u);
   await expect(page.getByRole("heading", { name: "Spending by category" })).toBeVisible();
   await expect(page.getByText("Every category across your groups, all time")).toBeVisible();
-  await page.getByRole("link", { name: "Back to dashboard" }).click();
+  await dashboardBack.click();
   await expect(page).toHaveURL(/\/dashboard$/u);
 
   await chart.getByRole("link", { name: /Food/u }).click();
   await expect(page).toHaveURL(/\/analytics$/u);
-  await page.getByRole("link", { name: "Back to dashboard" }).click();
+  await dashboardBack.click();
+  await expect(page).toHaveURL(/\/dashboard$/u);
+});
+
+test("returns from Unsettled through history and falls back after direct entry", async ({
+  page,
+  isMobile,
+}) => {
+  if (isMobile) {
+    await page
+      .getByRole("navigation", { name: "Bottom navigation" })
+      .getByRole("link", { name: "Unsettled" })
+      .click();
+  } else {
+    const preview = page.locator(".dashboard-lower .surface").filter({
+      has: page.getByRole("heading", { name: "Unsettled balances" }),
+    });
+    await preview.getByRole("link", { name: /View all/u }).click();
+  }
+  await expect(page).toHaveURL(/\/unsettled$/u);
+  await page.getByRole("button", { name: "Back", exact: true }).click();
+  await expect(page).toHaveURL(/\/dashboard$/u);
+
+  await page.goto("/unsettled");
+  await page.getByRole("button", { name: "Back", exact: true }).click();
+  await expect(page).toHaveURL(/\/dashboard$/u);
+});
+
+test("app-wide Analytics Back falls back to Dashboard after direct entry", async ({ page }) => {
+  await page.goto("/analytics");
+  await page.getByRole("button", { name: "Back", exact: true }).click();
   await expect(page).toHaveURL(/\/dashboard$/u);
 });
 

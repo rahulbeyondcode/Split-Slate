@@ -14,9 +14,12 @@ const AppLayout = () => {
   const groupSettingsPath = groupId ? `/groups/${groupId}/settings` : "";
   const showActivity =
     pathname === "/dashboard" ||
+    pathname === "/analytics" ||
+    pathname === "/unsettled" ||
     Boolean(
       groupId &&
       groupId !== "new" &&
+      pathname !== `/groups/${groupId}/activity` &&
       pathname !== groupSettingsPath &&
       !pathname.startsWith(`${groupSettingsPath}/`),
     );

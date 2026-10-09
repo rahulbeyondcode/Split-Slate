@@ -9,7 +9,7 @@ metadata:
 
 Purpose: explain implemented split calculations, inputs, rounding, and remaining presentation work.
 
-Last updated: 2026-09-29
+Last updated: 2026-10-09
 
 ## Overview
 
@@ -29,7 +29,28 @@ be recovered automatically. See [[expense-edit-delete]].
 In the entry flow, the user selects **which members are affected** — it does not have to be the
 entire group. A group of 10 can split an expense among just 4 selected members.
 
-The selected members and the computed amounts are stored in `transactions.owes[]`. For split types where the input values cannot be derived back from `owes[]` alone (shares, percentage, adjustment), the raw input values are stored in `splitMeta[]` so the expense can be accurately displayed and edited later.
+The selected members with nonzero suggested percentages and their computed amounts are stored in
+`transactions.owes[]`. For split types where the input values cannot be derived back from `owes[]`
+alone (shares, percentage, adjustment), the resolved values are stored in `splitMeta[]` so the
+expense can be accurately displayed and edited later.
+
+The shared create/edit form presents the methods as Equal, Unequal, Shares, %, and Adjust at every
+width. Unequal is the display label for the existing `amount` split type; saved data is unchanged.
+Select all sits below the methods, followed by a prominent method-specific heading above the names;
+blank percentage inputs show suggested values; the other split inputs have no placeholders. Each participant row includes their profile icon and is selectable
+across its surface except over an editable input. The owed amount appears after the name and before
+the narrow, center-aligned value input, or at the right edge for Equal; unselected rows show a currency-formatted
+zero. Typing or pasting into split-value inputs keeps digits and one decimal point, plus an optional
+leading minus sign for Adjust. This UI filter does not replace decimal-precision, range, and
+balanced-split validation at save time.
+
+A green, live summary appears immediately beneath the Unequal or Percentage heading only after at
+least one selected participant has a value entered and the expense total and current split are
+valid. Empty fields and suggested placeholders alone do not show it. Unequal summarizes the entered amount and how much
+auto-splits across blank fields; Percentage summarizes entered and remaining percentages. Only
+the numerical values (including the number of blank fields) are bold. Equal, Shares, and Adjust
+have no green summary. Invalid split drafts show a single plain red message instead of a success
+summary or a second alert-styled message at the bottom of the form.
 
 ## Implemented Rounding Policy
 
@@ -44,7 +65,8 @@ total. See [[money-representation-and-rounding]] for fixed two-decimal input and
 
 **What it does:** Divides the total amount equally among all selected members.
 
-**UX:** User selects members. System computes equal share automatically. Nothing else to enter.
+**UX:** User selects members. System computes and shows each equal share automatically beside their
+name. Nothing else to enter.
 
 **Formula:**
 ```
@@ -58,26 +80,29 @@ each_member_owes = total / number_of_selected_members
 
 ---
 
-## 2. Amount
+## 2. Unequal (stored as `amount`)
 
 **What it does:** User manually enters the exact amount each selected member owes.
 
 **UX:**
 - Each selected member gets an input field
-- As you fill in amounts, the remaining unallocated amount is distributed equally among members whose fields are still empty — shown as a placeholder
-- Placeholder values update dynamically as you type
-- If a member's field is left blank (showing only a placeholder), the system treats the placeholder value as the real value on save
+- As you fill in amounts, the remaining unallocated amount is distributed equally among members whose fields are still empty — shown in each person's owed-amount preview, not inside the input
+- Suggested owed amounts update dynamically as you type; the inputs have no placeholders
+- If a member's field is left blank, the system treats the displayed suggested amount as the real value on save
+- Entered amounts and the remaining members' suggested amounts update beside each name as inputs
+  change. If the entered sum is temporarily invalid, entered amounts remain visible while save
+  validation reports the error.
 
 **Formula:**
 ```
 remaining = total - sum(manually_entered_amounts)
-placeholder_per_blank_member = remaining / number_of_blank_members
+suggested_per_blank_member = remaining / number_of_blank_members
 ```
 
 **splitMeta:** Not needed — `owes[]` stores the final amounts directly.
 
 **Validation:**
-- Sum of all entered amounts (including placeholders for blanks) must equal the total
+- Sum of all entered amounts (including suggested amounts for blanks) must equal the total
 - No individual amount can be negative
 
 ---
@@ -86,7 +111,9 @@ placeholder_per_blank_member = remaining / number_of_blank_members
 
 **What it does:** Each member is assigned a number of shares. The total is divided proportionally based on the share ratio.
 
-**UX:** Each selected member gets a shares input (e.g., 1, 1, 2). System shows the computed amount for each member in real time.
+**UX:** Each selected member gets a shares input (e.g., 1, 1, 2). System shows the computed amount
+for each member in real time; while an entry is incomplete, valid entered shares receive a
+provisional proportional preview and incomplete entries show zero.
 
 **Formula:**
 ```
@@ -100,6 +127,8 @@ member_owes = (member_shares / total_shares) × total
 
 **Validation:**
 - All share values must be positive decimals with up to six fractional digits (no zeros, no negatives)
+- Zero or out-of-range shares report "Shares must be positive and within range"; the message does
+  not refer to percentages.
 
 ---
 
@@ -107,9 +136,17 @@ member_owes = (member_shares / total_shares) × total
 
 **What it does:** Each member is assigned a percentage of the total.
 
-**UX:** Each selected member gets a percentage input. Calculation and save validation require the
-percentages to total exactly 100%; invalid totals produce a validation message. Per-member amount
-previews appear when the split is valid. A numeric running percentage-total display remains pending.
+**UX:** Each selected member gets a percentage input. Blank fields display an equal share of the
+  remaining percentage as a placeholder. The allocation uses exact six-decimal percentages with
+  leftover units assigned by ascending member ID, but placeholders, the green summary, and saved
+  expense details round their displayed percentages to at most three decimal places (trailing zeros
+  omitted). Rounded displays need not sum visibly to 100%; entered/editable fields, saved metadata,
+  and monetary allocations retain the exact accepted values. The corresponding currency amounts
+  update while typing and match the values saved. If the typed percentage exceeds what is left after the other entered
+  fields, it is capped at that remainder (at most 100%). Focusing alone does not enter a value.
+  The calculator requires the resolved percentages to total exactly 100%; if a suggested value is
+  zero, that member is omitted from the saved owed amounts and metadata. Explicit zero input is
+  still invalid. A numeric running percentage-total display remains pending.
 
 **Formula:**
 ```
@@ -120,7 +157,9 @@ member_owes = (member_percentage / 100) × total
 
 **Validation:**
 - All percentages must be positive decimals with up to six fractional digits
-- Sum of all percentages must equal exactly 100%
+- Entered plus suggested percentages must sum to exactly 100%
+- Percentage errors use percentage-specific wording: explicit zero reports "Percentages must be
+  positive" and a mismatched completed split reports "Percentages must add up to 100%".
 
 ---
 

@@ -331,6 +331,14 @@ a {
 .page-narrow {
   max-width: 52.5rem;
 }
+.dashboard-detail-page > header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  margin-top: -2rem;
+  padding: 2rem 0 0.75rem;
+  background: var(--page);
+}
 .surface {
   background: var(--surface);
   border: 1px solid var(--line);
@@ -959,6 +967,81 @@ input:focus-visible + .choice-chip {
   min-width: 0;
   padding-inline: 0.25rem;
   text-align: center;
+}
+.payer-choice-chip .avatar {
+  width: 1.375rem;
+  height: 1.375rem;
+}
+.payer-choice-chip {
+  max-width: 100%;
+}
+.expense-split-row,
+.expense-payer-row {
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  min-height: 44px;
+  padding: 0.375rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  background: var(--surface);
+}
+.expense-split-row {
+  position: relative;
+  cursor: pointer;
+}
+.expense-split-member,
+.expense-split-values,
+.expense-payer-member {
+  gap: 0.375rem;
+}
+.expense-split-member .avatar,
+.expense-payer-member .avatar {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+.expense-split-input .form-input,
+.expense-payer-input .form-input {
+  min-height: 2rem;
+  padding: 0.25rem 0.375rem;
+  font-size: 0.875rem;
+  text-align: center;
+}
+.expense-split-row:last-child {
+  border-bottom: 1px solid var(--line);
+}
+.expense-split-row:has(input[type="checkbox"]:checked) {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+}
+.expense-split-row:has(input[type="checkbox"]:focus-visible) {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+.expense-split-member::before {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  content: "";
+}
+.expense-split-member > input,
+.expense-split-input {
+  position: relative;
+  z-index: 2;
+}
+.expense-split-values > span {
+  overflow-wrap: anywhere;
+  text-align: right;
+  pointer-events: none;
+}
+.expense-payer-preview {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+.expense-payer-input .form-input:disabled {
+  background: var(--surface-soft);
+  color: var(--muted);
+  cursor: not-allowed;
 }
 .empty-state {
   text-align: center;
@@ -2756,22 +2839,8 @@ body:has(.group-page-contained),
   .onboarding-main:has(.onboarding-step-content--currency) {
     padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
   }
-  .onboarding-content:has(.onboarding-step-content--currency) {
-    grid-template-rows: minmax(0, 1fr) auto;
-  }
-  .onboarding-content:has(.onboarding-step-content--currency) .onboarding-form-scroll {
-    display: block;
-    min-height: 0;
-    overflow-x: hidden;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    margin-inline: -0.5rem;
-    padding-inline: 0.5rem;
-  }
   .onboarding-step-content--currency {
-    overflow: visible;
-    margin-inline: 0;
-    padding-inline: 0;
+    overflow-y: auto;
   }
   .onboarding-step-content--currency > .currency-step,
   .onboarding-step-content--currency .currency-list-section,
@@ -3202,35 +3271,6 @@ body:has(.group-page-contained),
   }
   .form-toolbar {
     padding: 0.875rem 1.125rem;
-  }
-  .expense-split-row {
-    position: relative;
-    padding: 0.75rem;
-    border: 1px solid var(--line);
-    border-radius: 0.875rem;
-    background: var(--surface);
-    cursor: pointer;
-  }
-  .expense-split-row:last-child {
-    border-bottom: 1px solid var(--line);
-  }
-  .expense-split-row:has(input[type="checkbox"]:checked) {
-    border-color: var(--brand);
-    background: var(--brand-soft);
-  }
-  .expense-split-row:has(input[type="checkbox"]:focus-visible) {
-    outline: 2px solid var(--brand);
-    outline-offset: 2px;
-  }
-  .expense-split-row > label::before {
-    position: absolute;
-    inset: 0;
-    content: "";
-  }
-  .expense-split-row > label > input,
-  .expense-split-row > div {
-    position: relative;
-    z-index: 1;
   }
 }
 @media (max-width: 767px) and (max-height: 749px) {

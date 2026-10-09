@@ -108,6 +108,10 @@ test("shows group activity on desktop group screens except settings", async ({ p
     await page.goto("/groups/second/expenses");
     await expect(page.getByRole("complementary", { name: "Recent activity" })).toHaveCount(0);
     await expect(page.getByRole("link", { name: "Group settings", exact: true })).toHaveCount(0);
+    for (const route of ["/analytics", "/unsettled"]) {
+      await page.goto(route);
+      await expect(page.getByRole("complementary", { name: "Recent activity" })).toHaveCount(0);
+    }
     return;
   }
 
@@ -125,6 +129,10 @@ test("shows group activity on desktop group screens except settings", async ({ p
     "src",
     /\/food-and-drinks\/fork-and-knife-with-plate-3d\.png$/u,
   );
+  for (const route of ["/analytics", "/unsettled"]) {
+    await page.goto(route);
+    await expect(entries, `App activity is visible on ${route}`).toHaveCount(2);
+  }
   const recordedAt = await page.evaluate(() => {
     const date = new Date(Date.UTC(2026, 8, 20, 12));
     const hour = date.getHours();

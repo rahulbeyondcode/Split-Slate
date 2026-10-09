@@ -284,13 +284,7 @@ const SetupFlow = () => {
 
         <section className="onboarding-main" aria-label={`${presentation.label} setup`}>
           <div className="onboarding-content">
-            <div
-              className="onboarding-form-scroll"
-              key={onboardingStep}
-              role={onboardingStep === "currency" ? "region" : undefined}
-              aria-label={onboardingStep === "currency" ? "Currency options" : undefined}
-              tabIndex={onboardingStep === "currency" ? 0 : undefined}
-            >
+            <div className="onboarding-form-scroll" key={onboardingStep}>
               <header className="onboarding-header">
                 <p className="eyebrow onboarding-step-count">
                   Step {currentIndex + 1} of {SETUP_STEPS.length}
@@ -300,6 +294,9 @@ const SetupFlow = () => {
               </header>
               <div
                 className={`onboarding-step-content ${onboardingStep === "currency" ? "onboarding-step-content--currency" : ""} ${onboardingStep === "members" ? "onboarding-step-content--members" : ""}`}
+                role={onboardingStep === "currency" ? "region" : undefined}
+                aria-label={onboardingStep === "currency" ? "Currency options" : undefined}
+                tabIndex={onboardingStep === "currency" ? 0 : undefined}
               >
                 {onboardingStep === "identity" && <StepIdentity />}
                 {onboardingStep === "group" && <StepGroup showHeading={false} />}

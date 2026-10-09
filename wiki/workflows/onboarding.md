@@ -25,10 +25,11 @@ For users opening the app for the first time without any imported data.
 2. **Set up identity** — Enter name (mandatory) + choose an icon. Name is required before proceeding.
 3. **Create a group** — Mandatory. User must create at least one group to enter the app.
 4. **Select currency** — Pre-filled with INR (India-first default). User can change it. If left untouched, INR is used. Always results in a currency being set — not skippable but requires zero effort if INR is correct.
-   On mobile, the form heading, search, quick picks, and full currency list share one scroll region;
-   Back/Save and Proceed remain outside it and visible. Below 750px height, the currency step's
-   decorative header hides its artwork/helper copy and reduces spacing so the form has more room.
-   Desktop retains its independently scrolling list. Other setup steps keep their existing layout.
+    On mobile, the step count, form title/subtitle, and Back/Save and Proceed stay visible while
+    the currency choices (search, quick picks, and full list) scroll in one region. Below 750px
+    height, the currency step's decorative header hides its artwork/helper copy and reduces spacing
+    so the form has more room. Desktop retains its independently scrolling list. Other setup steps
+    keep their existing layout.
 5. **Select categories** — **Mandatory: at least one.** A sensible default set is pre-selected (`defaultGroupCategories`); the creator can toggle these, add custom ones, or change the selection — but cannot proceed with zero, since every expense requires a category.
    - Screen explains: *"Pick the categories that make sense for this group. You can always add more later."*
     - More categories can be added anytime after creation.

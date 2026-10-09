@@ -63,6 +63,7 @@ const GroupDetail = () => {
   const showGroupHeader =
     showGroupNavigation ||
     [
+      `/groups/${groupId}/activity`,
       `/groups/${groupId}/members`,
       `/groups/${groupId}/categories`,
       `/groups/${groupId}/settings`,

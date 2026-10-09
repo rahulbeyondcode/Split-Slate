@@ -68,6 +68,11 @@ describe("expenseFormValues", () => {
         ["a", true],
         ["c", false],
       ]);
+      expect(values.payers.map((row) => [row.memberId, row.selected, row.amount])).toEqual([
+        ["b", true, "40.00"],
+        ["a", true, "60.01"],
+        ["c", false, ""],
+      ]);
       expect(values.tagIds).toEqual(["holiday"]);
       expect(expenseFormMembers(members, expense).map((member) => member.id)).toEqual([
         "b",

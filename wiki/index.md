@@ -41,8 +41,8 @@ Last updated: 2026-10-09
 - [Domain Models](architecture/domain-models.md) — expense and payment shapes, PNG icon keys, fixed-hundredths money, and optional group tags
 - [Balance Calculation](architecture/balance-calculation.md) — safe payment-aware balances, expense-only spending, and deterministic suggested transfers
 - [State Management](architecture/state-management.md) — Zustand hydration and transactional expense, payment, and group mutations
-- [Split Types](architecture/split-types.md) — 5 split types with fixed-hundredths monetary allocations and exact ratios; numeric percentage-total display remains pending
-- [Layout Architecture](architecture/layout-architecture.md) — app-wide saved-theme initialization, narrow-mobile scaling, scroll boundaries, and guarded-home entry navigation
+- [Split Types](architecture/split-types.md) — 5 split types with exact allocations and at-most-three-decimal display of percentages
+- [Layout Architecture](architecture/layout-architecture.md) — tablet app/group Activity links, pending mobile group entry, sidebar Balances, and desktop panel placement
 
 ### Decisions
 - [Global People Directory](decisions/global-people-directory.md) — shared device-local people identities versus group-owned category labels; supersedes per-group members
@@ -69,16 +69,16 @@ Last updated: 2026-10-09
 
 ### Workflows
 - [Development Tools](workflows/development-tools.md) — typed realistic presets, randomized onboarding contacts, individual creation buttons, and persistence boundaries
-- [Onboarding](workflows/onboarding.md) — stable intro rows, themed restore chooser, modal category/person drafts, and mobile currency-form scrolling
+- [Onboarding](workflows/onboarding.md) — stable intro rows, themed restore chooser, modal category/person drafts, and a fixed mobile currency heading above scrolling choices
 - [Group Creation](workflows/group-creation.md) — standalone 4-step flow, cross-group category suggestions, and sequential save after final submission
-- [Main Screen](workflows/main-screen.md) — tablet-stacked previews, counted Recent transactions, and baseline-verified mobile form scrolling; root-scaling validation pending
-- [Paid-By](workflows/paid-by.md) — implemented frequent-payer selection, atomic ranking updates, recent-payer defaults, and multi-payer entry
+- [Main Screen](workflows/main-screen.md) — group navigation including tablet Activity and sidebar Balances, counted Recent transactions, and expense workflows
+- [Paid-By](workflows/paid-by.md) — emoji payer pills, filled edit contributions, live suggestions, and single-message red validation
 - [People Directory](workflows/people-directory.md) — shared contacts with expense/payment-aware deletion guards; mobile route lacks an in-app entry point
 - [Member Management](workflows/member-management.md) — setup person-draft modals with initial field focus and visible actions, directory linking, and guarded removal
 - [Category Management](workflows/category-management.md) — all-width management and setup modals, draft-only category entry, and guarded deletion; deactivation pending
 - [Tag Management](workflows/tag-management.md) — group-scoped tags, all-width Add/Edit modal, tablet-stacked cards, and transactional cleanup
 - [Filtering](workflows/filtering.md) — URL-backed filtering, sticky toolbar, ten-row ledger, and payment-timeline merge that preserves non-date expense sorts
-- [Dashboard](workflows/dashboard.md) — group summaries, pruned deletion activity, and exact-name app-wide versus group-scoped category analytics
+- [Dashboard](workflows/dashboard.md) — group summaries, app/group Activity navigation on tablet, Analytics/Unsettled activity, and scoped totals
 
 ### Ideas (captured, not committed)
 - [Rewarded Ads](ideas/rewarded-ads.md) — optional ad-watch → credits → Pro unlock mechanic; fully opt-in

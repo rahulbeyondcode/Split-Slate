@@ -42,7 +42,7 @@ const ExpenseForm = () => {
   const members = expenseFormMembers(
     groupMembers
       .filter((member) => member.person)
-      .map((member) => ({ id: member.id, name: member.person!.name })),
+      .map((member) => ({ id: member.id, name: member.person!.name, icon: member.person!.icon })),
     expense,
   );
   const creatorId = groupMembers.find((member) => member.personId === localUser?.id)?.id ?? "";
@@ -59,7 +59,7 @@ const ExpenseForm = () => {
         tagIds: [],
         payerMode: "single",
         payerId: defaultPayer(members, groupExpenses, creatorId),
-        payers: members.map((member) => ({ memberId: member.id, amount: "" })),
+        payers: members.map((member) => ({ memberId: member.id, selected: false, amount: "" })),
         splitType: "equal",
         participants: members.map((member) => ({ memberId: member.id, selected: true, value: "" })),
       };
@@ -116,8 +116,7 @@ const ExpenseForm = () => {
     }
   };
   const errors = methods.formState.errors;
-  const formError =
-    errors.root?.message ?? errors.participants?.root?.message ?? errors.participants?.message;
+  const validationMessage = errors.participants?.root?.message ?? errors.participants?.message;
 
   if (expenseId && !expense)
     return (
@@ -224,13 +223,22 @@ const ExpenseForm = () => {
             </p>
           </div>
           <div className="surface form-card flex flex-col gap-5">
-            <PayerSelector members={payerMembers} quickIds={quickIds} currency={group.currency} />
+            <PayerSelector
+              members={payerMembers}
+              quickIds={quickIds}
+              currency={group.currency}
+              validationMessage={validationMessage}
+            />
             <div className="border-t border-[var(--line)] pt-4">
-              <SplitEditor members={members} currency={group.currency} />
+              <SplitEditor
+                members={members}
+                currency={group.currency}
+                validationMessage={validationMessage}
+              />
             </div>
-            {formError && (
-              <p role="alert" className="note money-negative">
-                {formError}
+            {errors.root?.message && (
+              <p className="text-sm money-negative" aria-live="polite">
+                {errors.root.message}
               </p>
             )}
           </div>

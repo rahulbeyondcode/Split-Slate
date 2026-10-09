@@ -9,7 +9,7 @@ metadata:
 
 Purpose: describe implemented group navigation, expense workflows, balances, and group transfer.
 
-Last updated: 2026-10-08
+Last updated: 2026-10-09
 
 ## Current Implementation
 
@@ -22,7 +22,7 @@ also lists groups and currently sorts them by `createdAt` descending.
 
 ### Group Detail Routes
 
-`/groups/:groupId` is an implemented parent route with nested routes for Overview, Analytics,
+`/groups/:groupId` is an implemented parent route with nested routes for Overview, Activity, Analytics,
 Expenses, Add Expense, Expense Detail/Edit, Balances, Members, Categories & Tags, and Settings. The parent resolves the active group's
 members, people, categories, tags, expenses, and payments and supplies them to child screens through the
 router outlet context. An unknown group shows a not-found state with a return link to the dashboard.
@@ -32,6 +32,8 @@ The current child screens are:
 - **Overview** — the group's snapshot: local net position, group total in the header, up to six
   members ranked by the number of expenses they paid for, suggested-transfer count, five most
   recent expenses and payments, and a group-only category-spending preview after them with links to full views
+- **Activity** — `/groups/:groupId/activity` shows only that group's recorded and derived activity;
+  the group sidebar links to it on tablet, while app sidebar Activity opens the cross-group feed
 - **Analytics** — `/groups/:groupId/analytics` shows all-time category totals for that group, using
   its own currency even when other groups use different currencies; `/analytics` remains app-wide
 - **Expenses** — searchable, filterable expenses with recorded payments interleaved by date when
@@ -50,7 +52,8 @@ single-row identity card.
 
 The group's default route opens Overview. Its recent-activity "View all", "View all balances", and
 category-spending "View all" links open the full ledger, per-member balances, and group-scoped
-Analytics respectively. Expenses is also available through the sidebar and mobile navigation.
+Analytics respectively. Expenses is also available through the sidebar and mobile navigation;
+Balances is a group-sidebar link on tablet and desktop, not an app-wide or mobile-footer item.
 There is no additional group-view tab bar. The large local-balance hero appears only on Overview.
 The Members and Suggested transfers cards end in full-width, center-labeled actions with right-edge
 arrows. The Members title has no count; "Manage Members (N)" carries the full group count and is
@@ -196,14 +199,17 @@ physical-device validation remain pending. See [[layout-architecture]] and [[tes
 - The shared expense/payment picker advances Hour to Minute on mobile, tablet, and desktop after a
   valid two-digit 12-hour value or a single digit from 2 to 9; an initial 0 or 1 waits for a second
   digit. Backspace in an empty Minute field returns focus to the end of Hour; deleting minute digits
-  first stays in Minute. Mobile split-participant rows toggle when tapped anywhere outside an editable
-  value field and show a brand-colored selected background and border; the whole **Select all**
-  checkbox label toggles the entire participant list without changing its text. The mobile form can
-  also create and select a new tag in a modal without clearing the unfinished expense. Desktop form
-  styling remains unchanged.
+  first stays in Minute. At every width, split-participant rows toggle when clicked outside an
+  editable value field and show a brand-colored selected background and border. **Select all** sits
+  below the split-method tabs and toggles the entire participant list. The mobile form can also
+  create and select a new tag in a modal without clearing the unfinished expense.
 - In the expense form, Add new category and the mobile-only Add new tag sit beside their choice pills
-  with dashed borders. Split-participant names and their value/preview areas are justified to
-  opposite sides for each split method, wrapping long names or values rather than hiding them.
+  with dashed borders. Each split-participant row displays a profile icon and name, then a live
+  currency-formatted owed amount, then a compact numeric input when applicable; unselected rows
+  show zero. Equal places the computed amount to the right of the name. The row wraps at narrow
+  widths instead of clipping. The Unequal tab retains the stored `amount` method; per-person split
+  inputs filter nonnumeric characters while allowing negative Adjust values and preserving save
+  validation. See [[split-types]].
 - One or multiple payers, all five split types, and existing optional group tags are supported.
 - React Hook Form and Zod validate input; the store revalidates current persisted references and
   saves the expense plus frequent-payer ranking atomically in IndexedDB.

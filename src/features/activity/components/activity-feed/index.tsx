@@ -1,5 +1,5 @@
 import { ReceiptText } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
 import { activityFeed } from "@/features/activity/utils/activity-feed";
 import { useStore } from "@/shared/configs/store";
@@ -18,8 +18,10 @@ interface PropsType {
 }
 
 const ActivityFeed = ({ compact = false, groupId }: PropsType) => {
+  const { groupId: routeGroupId } = useParams();
+  const activeGroupId = groupId ?? routeGroupId;
   const state = useStore();
-  const entries = activityFeed(state, groupId);
+  const entries = activityFeed(state, activeGroupId);
   const activityRows = entries.map((event: ActivityEvent) => {
     const recordedAt = formatDisplayDateTime(event.createdAt);
     const formattedAmount =
@@ -83,7 +85,11 @@ const ActivityFeed = ({ compact = false, groupId }: PropsType) => {
     <div className={compact ? "" : "page page-narrow mobile-sticky-page"}>
       <header className={compact ? "activity-panel-header" : "mb-5"}>
         <h1 className={compact ? "section-title" : "page-title"}>Activity</h1>
-        {!compact && <p className="soft-caption mt-1">Recent changes across your groups</p>}
+        {!compact && (
+          <p className="soft-caption mt-1">
+            {activeGroupId ? "Recent changes in this group" : "Recent changes across your groups"}
+          </p>
+        )}
       </header>
       {entries.length ? (
         compact ? (

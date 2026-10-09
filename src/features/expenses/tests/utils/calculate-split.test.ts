@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { calculateSplit } from "@/features/expenses/utils/calculate-split";
+import {
+  calculateSplit,
+  resolvePercentageParticipants,
+} from "@/features/expenses/utils/calculate-split";
 
 import type { Expense } from "@/shared/types/domain.types";
 
@@ -70,6 +73,37 @@ describe("calculateSplit", () => {
     expect(result.owes.map((row) => row.amount)).toEqual([33, 33, 34]);
     expect(result.splitMeta.map((row) => row.value)).toEqual(["33.33", "33.33", "33.34"]);
   });
+  it("suggests blank percentages exactly and saves their currency allocations", () => {
+    const selected = members(["20", "", ""]);
+    expect(resolvePercentageParticipants(selected).map((row) => row.value)).toEqual([
+      "20",
+      "40",
+      "40",
+    ]);
+    const result = calculateSplit(10000, "percentage", selected, "INR");
+    expect(result.owes.map((row) => row.amount)).toEqual([2000, 4000, 4000]);
+    expect(result.splitMeta.map((row) => row.value)).toEqual(["20", "40", "40"]);
+  });
+  it("allocates repeating percentage suggestions and monetary rounding deterministically", () => {
+    const selected = members(["", "", ""]);
+    expect(resolvePercentageParticipants(selected).map((row) => row.value)).toEqual([
+      "33.333334",
+      "33.333333",
+      "33.333333",
+    ]);
+    const result = calculateSplit(10001, "percentage", selected, "INR");
+    expect(result.owes.map((row) => row.amount)).toEqual([3334, 3334, 3333]);
+  });
+  it("omits selected blank members whose suggested percentage is zero", () => {
+    const result = calculateSplit(10000, "percentage", members(["100", "", ""]), "INR");
+    expect(result.owes).toEqual([{ memberId: "a", amount: 10000 }]);
+    expect(result.splitMeta).toEqual([{ memberId: "a", value: "100" }]);
+    expect(resolvePercentageParticipants(members(["100", "", ""])).map((row) => row.value)).toEqual([
+      "100",
+      "0",
+      "0",
+    ]);
+  });
   it.each(["0.000001", "8589934592.000001", "9007199254.740991"])(
     "preserves the exact accepted shares input %s",
     (value) => {
@@ -88,6 +122,20 @@ describe("calculateSplit", () => {
     const result = calculateSplit(10000, "adjustment", members(["-10", "10"]), "INR");
     expect(result.owes.map((row) => row.amount)).toEqual([4000, 6000]);
     expect(result.splitMeta.map((row) => row.value)).toEqual([-1000, 1000]);
+  });
+  it("uses method-specific ratio validation messages", () => {
+    expect(() => calculateSplit(10000, "shares", members(["0", "1"]), "INR")).toThrow(
+      "Shares must be positive and within range",
+    );
+    expect(() =>
+      calculateSplit(10000, "shares", members(["9007199254.740992", "1"]), "INR"),
+    ).toThrow("Shares must be positive and within range");
+    expect(() => calculateSplit(10000, "percentage", members(["0", ""]), "INR")).toThrow(
+      "Percentages must be positive",
+    );
+    expect(() => calculateSplit(10000, "percentage", members(["20", "30"]), "INR")).toThrow(
+      "Percentages must add up to 100%",
+    );
   });
   it("allows a negative base if all final quotas are nonnegative", () => {
     expect(

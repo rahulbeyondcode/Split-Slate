@@ -1,5 +1,5 @@
-import { CircleCheck } from "lucide-react";
-import { Link } from "react-router-dom";
+import { ArrowLeft, CircleCheck } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 
 import { dashboardPositions, dashboardTransfers } from "@/features/dashboard/utils/dashboard-data";
 import { useStore } from "@/shared/configs/store";
@@ -7,20 +7,32 @@ import { formatCurrency } from "@/shared/utils/currency";
 
 import Avatar from "@/shared/ui/avatar";
 import EmptyState from "@/shared/ui/empty-state";
+import Icon from "@/shared/ui/icon";
 import Surface from "@/shared/ui/surface";
 
 const Unsettled = () => {
   const state = useStore();
+  const navigate = useNavigate();
   const transfers = dashboardTransfers(state);
   const { currency, get, give } = dashboardPositions(state);
+  const handleBack = () => {
+    if (window.history.state?.idx > 0) {
+      navigate(-1);
+    } else {
+      navigate("/dashboard");
+    }
+  };
   return (
-    <div className="page page-narrow mobile-sticky-page">
-      <header className="mb-5">
+    <div className="page page-narrow mobile-sticky-page dashboard-detail-page">
+      <header className="mb-0">
+        <button type="button" onClick={handleBack} className="page-back-link mb-3">
+          <Icon icon={ArrowLeft} size={18} /> Back
+        </button>
         <h1 className="page-title">Unsettled</h1>
-        <p className="soft-caption mt-1">
-          Suggested transfers between you and others · record payments within each group
-        </p>
       </header>
+      <p className="soft-caption mb-5">
+        Suggested transfers between you and others · record payments within each group
+      </p>
       {currency && (
         <Surface className="surface-pad mb-4">
           <div className="flex justify-between gap-5 text-xs font-bold">

@@ -23,9 +23,10 @@ sidebar or activity panel.
 
 There is no persistent top bar or app chrome header on mobile. The greeting belongs to dashboard
 page content. The light/dark theme toggle is in Settings. See [[dashboard]] for details.
-The dashboard-level Activity, Unsettled, Analytics, and app Settings pages keep their title and
-subtitle visible while the main pane scrolls, including at the bottom. This is limited to mobile;
-the desktop activity panel and page headers retain their existing scrolling behavior.
+On mobile, dashboard-level Activity and app Settings keep their title and subtitle visible while
+the main pane scrolls. App-wide Analytics and Unsettled keep their Back button and title visible
+at every width, while the subtitle and remaining content scroll in the main pane. The desktop
+activity panel retains its independent scrolling behavior.
 
 **Bottom nav** — fixed at the bottom of ordinary mobile app routes and context-aware; Add/Edit
 Expense forms hide it to give the form focus:
@@ -36,18 +37,22 @@ Expense forms hide it to give the form focus:
 | Inside a group | Overview, Expenses, Members, Categories & Tags, Settings |
 | Add/Edit Expense | No bottom nav |
 
+Group-scoped Activity should eventually be reachable on mobile, but its entry point has not been
+decided. The current mobile group footer remains unchanged; do not treat the tablet sidebar link as
+a mobile navigation decision.
+
 The centered New group footer action replaces the floating dashboard New group CTA on mobile; it
 uses the same purple accent and opens `/groups/new`. The dashboard-level Activity, Unsettled, and
-Settings destinations have footer links. App-wide Analytics retains `/analytics`, with a mobile
-Back to dashboard link but no footer item. The dashboard's category preview links to it only at
+Settings destinations have footer links. App-wide Analytics retains `/analytics`, with a Back
+button but no footer item. The dashboard's category preview links to it only at
 widths of 640px and above; at narrower mobile widths the preview is hidden, so there is currently
 no dashboard link to app-wide Analytics. Group Overview has a category preview at every width;
 `/groups/:groupId/analytics` retains the group shell without adding a second page's top padding.
 Its rounded secondary Back button follows in-app history or falls back to the group Overview for
 direct visits. Balances uses the same rounded secondary styling with its own navigation behavior.
 Import/Restore also have rounded text-and-arrow controls, but link to guarded home (`/`) rather
-than browser history. App-wide Analytics uses the original plain Back to dashboard link on mobile
-instead.
+than browser history. App-wide Analytics and Unsettled use rounded Back buttons at every width:
+they follow in-app history or open Dashboard when entered directly.
 All five in-group footer destinations resolve to nested group-detail routes. See [[dashboard]].
 The group-context footer is unchanged; it has no New group action. Other route-specific floating
 actions, such as Add expense and Add contact, are unaffected.
@@ -66,16 +71,29 @@ there is no persistent top bar.
 - No activity panel or stacked activity section is currently rendered
 - No footer
 
+Tablet sidebars show Activity because there is no activity panel: the app-level sidebar links to
+`/activity` for changes across groups, and the group sidebar links to
+`/groups/:groupId/activity` for events from that group only. The active route is highlighted in
+the sidebar. Mobile has no sidebar; desktop keeps the activity panel and does not show these
+sidebar links.
+
+The shared group sidebar links to that group's Balances page from every group screen where the
+sidebar is rendered. It is not an app-wide balances destination and is not added to the dashboard
+sidebar or mobile group footer.
+
 ### Desktop (1080px+)
 
-- Three-pane layout on Dashboard and group screens other than Settings and expense forms: sidebar
-  on left, main content in centre, activity panel on right
+- Three-pane layout on Dashboard, app-wide Analytics and Unsettled, and group screens other than
+  Settings and expense forms: sidebar on left, main content in centre, activity panel on right
 - Expense add/edit forms retain their focus mode without a sidebar but show group activity on the
-  right; group Settings and unrelated screens do not show the activity panel
+  right; group Settings and other app-wide screens do not show the activity panel
+- Direct entry to `/groups/:groupId/activity` renders its group-scoped page without duplicating the
+  feed in the right activity panel; the tablet-only sidebar link remains hidden on desktop
 - No footer
 
-The desktop activity panel shows saved action events from all groups on the dashboard, ordered
-newest-first by recording time (`createdAt`) rather than expense occurrence (`when`). On a group's
+The desktop activity panel shows saved action events from all groups on Dashboard, app-wide
+Analytics, and Unsettled, ordered newest-first by recording time (`createdAt`) rather than expense
+occurrence (`when`). On a group's
 routes it shows only that group's events, in the same order, with compact rows, except on group
 Settings. Individual deleted-item rows remain visible without a link until the whole group is
 deleted, when only its group-created/deleted rows remain. Older current expenses lacking a saved
@@ -247,7 +265,7 @@ Route content is shared across viewport states. The navigation chrome differs:
 
 - **Footer** — mobile only; route-aware, except on Add/Edit Expense forms
 - **Sidebar** — tablet and desktop app routes, except Add/Edit Expense focus-mode forms
-- **Activity panel** — desktop only (1080px+); Dashboard and non-Settings group routes show saved action events and legacy expense fallbacks; create-group shows its live preview
+- **Activity panel** — desktop only (1080px+); Dashboard, app-wide Analytics and Unsettled, and non-Settings group routes show saved action events and legacy expense fallbacks; create-group shows its live preview
 
 ### Bottom nav behaviour by route (mobile)
 

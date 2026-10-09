@@ -11,6 +11,45 @@ Last updated: 2026-10-09
 ---
 
 ## 2026-10-09
+- UPDATED architecture/layout-architecture.md — tablet app/group Activity sidebar links, desktop direct-route behavior, and pending mobile group entry point
+- UPDATED workflows/dashboard.md — distinguish app-wide and group-only Activity feeds on tablet
+- UPDATED workflows/main-screen.md — document the group-scoped Activity route and tablet sidebar link
+- UPDATED wiki/index.md — reflect tablet Activity navigation and undecided mobile group access
+- UPDATED architecture/split-types.md — round displayed percentage placeholders, summaries, and details to at most three places without changing exact calculations or edit values
+- UPDATED architecture/layout-architecture.md — add Balances to the group sidebar on tablet/desktop only
+- UPDATED workflows/main-screen.md — clarify group-only sidebar Balances navigation
+- UPDATED wiki/index.md — reflect display-only percentage rounding and group-sidebar Balances
+- UPDATED architecture/split-types.md — document Shares-only range errors and distinct Percentage validation messages
+- UPDATED wiki/index.md — reflect method-specific split validation
+- UPDATED architecture/split-types.md — show green Unequal/Percentage summaries only after a selected field is entered
+- UPDATED wiki/index.md — clarify entered-value-only split summaries
+- UPDATED architecture/split-types.md — restrict green summaries to Unequal and Percentage, bolding only numeric values
+- UPDATED wiki/index.md — reflect restricted, value-emphasized split summaries
+- UPDATED architecture/split-types.md — document contextual green split summaries and single-message inline validation
+- UPDATED workflows/paid-by.md — document single-message red payer validation without a duplicate alert
+- UPDATED wiki/index.md — reflect green split summaries and payer validation placement
+- UPDATED architecture/split-types.md — clarify that zero-suggested percentage members are omitted from owed rows and resolved percentages are stored
+- UPDATED wiki/index.md — clarify percentage split navigation description
+- UPDATED architecture/split-types.md — document percentage suggestion placeholders, exact saved allocations, input capping, zero omission, and center-aligned values
+- UPDATED workflows/paid-by.md — document prefilled edit contributions and deferred remainder handoff
+- UPDATED wiki/index.md — reflect percentage suggestions and filled edit payers
+- UPDATED workflows/paid-by.md — clarify that the recent payer default applies to single-payer mode; new multiple-payer drafts start unselected
+- UPDATED wiki/index.md — distinguish single-payer default from new multi-payer selection
+- UPDATED workflows/paid-by.md — replace provisional all-member input rows with shared emoji pills, checkbox selection, rounded suggestions and paid-only persistence
+- UPDATED wiki/index.md — reflect pill-based single/multiple payer entry and suggested amounts
+- UPDATED architecture/split-types.md — replace stale placeholder UX with method headings and owed-amount previews above compact member rows
+- UPDATED workflows/paid-by.md — document matching compact multi-payer rows and explicit input guidance
+- UPDATED wiki/index.md — reflect visible split headings and placeholder-free payer inputs
+- UPDATED architecture/split-types.md — document all-width participant rows, Unequal UI label, numeric entry filter and provisional previews without changing save validation
+- UPDATED workflows/main-screen.md — describe shared expense split-row layout, selection, icons and live amounts at every width
+- UPDATED wiki/index.md — reflect updated split UI and expense workflow navigation
+- UPDATED architecture/layout-architecture.md — keep app-wide Analytics and Unsettled Back/title visible while subtitle and content scroll at every width
+- UPDATED wiki/index.md — reflect sticky Analytics/Unsettled headers in layout navigation
+- UPDATED architecture/layout-architecture.md — extend the desktop activity pane to app-wide Analytics and Unsettled and document history-based Back controls
+- UPDATED workflows/dashboard.md — describe app-wide activity visibility and Back behavior for both dashboard destinations
+- UPDATED wiki/index.md — reflect Analytics/Unsettled activity and Back navigation in wiki links
+- UPDATED workflows/onboarding.md — clarify the fixed mobile currency title/subtitle and separately scrolling choices
+- UPDATED wiki/index.md — reflect fixed mobile currency heading in onboarding navigation
 - UPDATED decisions/testing-strategy.md — reconcile earlier pending-verification statements with completed focused checks while retaining historical result boundaries
 - UPDATED wiki/index.md — surface passing targeted fixes without implying a new full-suite run
 - UPDATED decisions/testing-strategy.md — record passing targeted fixes and split theme matrix, final responsive evidence, and the verified Netlify fixture correction without claiming a post-fix full-suite run

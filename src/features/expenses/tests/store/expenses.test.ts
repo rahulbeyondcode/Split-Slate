@@ -179,7 +179,7 @@ describe("addExpense", () => {
   it("rejects mismatched multi-payer totals before writing", async () => {
     const data = input();
     data.values.payerMode = "multiple";
-    data.values.payers = [{ memberId: "a", amount: "100" }];
+    data.values.payers = [{ memberId: "a", selected: true, amount: "100" }];
     await expect(useStore.getState().addExpense(data)).rejects.toThrow("add up");
     expect(await db.expenses.count()).toBe(0);
   });

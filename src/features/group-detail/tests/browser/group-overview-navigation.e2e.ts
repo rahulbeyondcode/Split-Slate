@@ -142,6 +142,10 @@ test("distinguishes the snapshot from the complete expense history", async ({ pa
     const sidebar = page.getByRole("complementary", { name: "Sidebar" });
     await expect(sidebar.getByRole("link", { name: "All groups" })).toBeVisible();
     await expect(sidebar.getByText("Weekend Trip")).toBeVisible();
+    await expect(sidebar.getByRole("link", { name: "Balances", exact: true })).toHaveAttribute(
+      "href",
+      "/groups/trip/balances",
+    );
     await expect(sidebar.getByRole("link", { name: "New group" })).toHaveCount(0);
     await expect(sidebar.getByRole("link", { name: /Weekend Trip/u })).toHaveCount(0);
   }
@@ -187,6 +191,28 @@ test("distinguishes the snapshot from the complete expense history", async ({ pa
     "₹150.00",
   );
   await expect(page.getByRole("searchbox", { name: "Search expenses" })).toHaveCount(0);
+  if ((page.viewportSize()?.width ?? 0) >= 768) {
+    const balancesLink = navigation.getByRole("link", { name: "Balances", exact: true });
+    await balancesLink.click();
+    await expect(page).toHaveURL(/\/groups\/trip\/balances$/u);
+    await expect(balancesLink).toHaveAttribute("aria-current", "page");
+    await expect(page.getByRole("heading", { name: "Net per member" })).toBeVisible();
+    await navigation.getByRole("link", { name: "Overview" }).click();
+    await expect(page.getByRole("heading", { name: "At a glance" })).toBeVisible();
+  } else {
+    await expect(navigation.getByRole("link", { name: "Balances", exact: true })).toHaveCount(0);
+  }
+  if ((page.viewportSize()?.width ?? 0) >= 768 && (page.viewportSize()?.width ?? 0) < 1080) {
+    const activityLink = navigation.getByRole("link", { name: "Activity", exact: true });
+    await expect(activityLink).toHaveAttribute("href", "/groups/trip/activity");
+    await activityLink.click();
+    await expect(page).toHaveURL(/\/groups\/trip\/activity$/u);
+    await expect(activityLink).toHaveAttribute("aria-current", "page");
+    await expect(page.getByText("Recent changes in this group")).toBeVisible();
+    await navigation.getByRole("link", { name: "Overview" }).click();
+  } else {
+    await expect(navigation.getByRole("link", { name: "Activity", exact: true })).toHaveCount(0);
+  }
 
   await page.getByRole("link", { name: "Manage Members (1)" }).click();
   await expect(page).toHaveURL(/\/groups\/trip\/members$/u);
@@ -205,6 +231,9 @@ test("distinguishes the snapshot from the complete expense history", async ({ pa
   await navigation.getByRole("link", { name: "Settings" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Weekend Trip" })).toBeVisible();
   await expect(page.getByRole("heading", { level: 2, name: "Group settings" })).toBeVisible();
+  if ((page.viewportSize()?.width ?? 0) >= 768) {
+    await expect(navigation.getByRole("link", { name: "Balances", exact: true })).toBeVisible();
+  }
   await navigation.getByRole("link", { name: "Overview" }).click();
 
   await page.getByRole("link", { name: "View all balances (0)" }).click();

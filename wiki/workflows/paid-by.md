@@ -9,7 +9,7 @@ metadata:
 
 Purpose: explain payer selection defaults and ranking across expense mutations.
 
-Last updated: 2026-09-20
+Last updated: 2026-10-09
 
 ## Overview
 
@@ -18,10 +18,12 @@ New groups start with the creator selected; the remaining initial shortcuts are 
 After creation, editing, or deletion, the top-five ranking is persisted atomically with the expense. The selector reads
 that stored ranking and can reveal every remaining group member.
 
-The default is the first positive contributor on the most recently recorded expense (`createdAt`,
+The single-payer default is the first positive contributor on the most recently recorded expense (`createdAt`,
 with expense ID as a stable tie-break). For multiple-payer history, the first contributor follows
 stored transaction order. An otherwise hidden preselected payer is also shown. Missing historical
 payers fall back to the local creator or first available member.
+Both modes use emoji-and-name member pills. Single payer uses radio selection; multiple payers
+uses checkboxes. The pills share the same compact size and reveal additional members with Show more.
 
 ---
 
@@ -59,10 +61,25 @@ After each expense is created, edited, or deleted, the app recalculates frequenc
 
 When more than one person contributed to paying a bill:
 
-- User switches to "multiple payers" mode via an explicit toggle
-- All group members are listed with an amount input next to each name
-- User fills in the amounts for members who paid; others are left blank (treated as zero)
-- **Validation:** submit is blocked until the sum of all entered amounts equals the total expense amount; an error is shown until they match
+- Switching to Multiple payers on a new expense starts with no selected pills. Selecting or
+  unselecting a member adds or removes their contribution row below the pills; unselecting clears
+  that person's draft amount. Editing restores saved positive payers as selected.
+- Each selected row shows its emoji and name, a live currency-formatted contribution, and a narrow
+  center-aligned numeric input. With only one selected member, the input is disabled with the full total as its
+  placeholder. With two or more, the fields are enabled: empty fields show a suggested amount as
+  placeholder, and the remaining total is allocated evenly among empty fields using the same
+  deterministic rounding as save. Typing changes the suggestions immediately.
+- Tapping or focusing a suggested input does not clear any amounts. If typing into the last empty
+  field would leave no field for the remainder, the earliest manually entered contribution is
+  cleared and becomes the new suggested field. There is no separately saved "manual versus
+  suggested" flag; reopening an edited expense fills every saved payer amount. Typing a different
+  payer's contribution turns the last saved payer into the suggested remainder field; simply
+  opening or focusing the form does not clear it.
+- An over-total draft displays an immediate error. Submit still validates that paid contributions
+  sum exactly to the expense total. Only positive contributions are saved; a selected member with
+  a zero suggested remainder is omitted from the persisted paid list.
+- Payer validation is shown once as plain red text near the contribution rows; submitting an invalid
+  draft does not add a duplicate alert-styled message below the split editor.
 
 ---
 

@@ -46,7 +46,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 for (const viewport of MOBILE_VIEWPORTS) {
-  test(`scrolls the whole currency form while keeping actions visible at ${viewport.width}x${viewport.height}`, async ({
+  test(`scrolls currency choices while keeping the heading and actions visible at ${viewport.width}x${viewport.height}`, async ({
     page,
   }) => {
     await page.setViewportSize(viewport);
@@ -55,9 +55,17 @@ for (const viewport of MOBILE_VIEWPORTS) {
     const allCurrencies = page.getByRole("region", { name: "All currencies", exact: true });
     const back = page.getByRole("button", { name: "Back", exact: true });
     const save = page.getByRole("button", { name: "Save and Proceed", exact: true });
-    await expect(
-      page.getByRole("heading", { name: "One currency for this group", exact: true }),
-    ).toBeVisible();
+    const stepCount = page.getByText("Step 3 of 5", { exact: true });
+    const heading = page.getByRole("heading", {
+      name: "One currency for this group",
+      exact: true,
+    });
+    const description = page.getByText("All expenses in this group will use this currency.", {
+      exact: true,
+    });
+    await expect(stepCount).toBeInViewport();
+    await expect(heading).toBeInViewport();
+    await expect(description).toBeInViewport();
     await expect(back).toBeInViewport();
     await expect(save).toBeInViewport();
     await expect
@@ -65,6 +73,9 @@ for (const viewport of MOBILE_VIEWPORTS) {
       .toBe(true);
     const initialSave = (await save.boundingBox())!;
     const initialBack = (await back.boundingBox())!;
+    const initialStepCount = (await stepCount.boundingBox())!;
+    const initialHeading = (await heading.boundingBox())!;
+    const initialDescription = (await description.boundingBox())!;
     const actionRow = (await page.locator(".onboarding-actions").boundingBox())!;
     expect(initialBack.x).toBeCloseTo(actionRow.x, 0);
     expect(initialBack.width).toBeLessThan(initialSave.width);
@@ -80,6 +91,12 @@ for (const viewport of MOBILE_VIEWPORTS) {
     });
     await expect(allCurrencies.getByRole("button", { name: /ZMW/u })).toBeInViewport();
     await expect.poll(() => options.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+    await expect(stepCount).toBeInViewport();
+    await expect(heading).toBeInViewport();
+    await expect(description).toBeInViewport();
+    expect((await stepCount.boundingBox())!.y).toBeCloseTo(initialStepCount.y, 0);
+    expect((await heading.boundingBox())!.y).toBeCloseTo(initialHeading.y, 0);
+    expect((await description.boundingBox())!.y).toBeCloseTo(initialDescription.y, 0);
     expect((await save.boundingBox())!.y).toBeCloseTo(initialSave.y, 0);
     expect((await back.boundingBox())!.y).toBeCloseTo(initialBack.y, 0);
     expect(

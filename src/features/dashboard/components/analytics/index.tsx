@@ -1,5 +1,5 @@
 import { ArrowLeft, ChartColumn, Globe2 } from "lucide-react";
-import { Link, useNavigate, useOutletContext, useParams } from "react-router-dom";
+import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 
 import { dashboardCategories, dashboardPositions } from "@/features/dashboard/utils/dashboard-data";
 import { useStore } from "@/shared/configs/store";
@@ -35,7 +35,7 @@ const Analytics = () => {
     if (window.history.state?.idx > 0) {
       navigate(-1);
     } else {
-      navigate(`/groups/${groupId}`);
+      navigate(groupId ? `/groups/${groupId}` : "/dashboard");
     }
   };
   return (
@@ -43,32 +43,33 @@ const Analytics = () => {
       className={
         groupId
           ? "page-narrow mobile-sticky-page mx-auto w-full"
-          : "page page-narrow mobile-sticky-page"
+          : "page page-narrow mobile-sticky-page dashboard-detail-page"
       }
     >
-      <header className="mb-5">
-        {groupId ? (
-          <button type="button" onClick={handleBack} className="page-back-link">
-            <Icon icon={ArrowLeft} size={18} /> Back
-          </button>
-        ) : (
-          isMobile && (
-            <Link to="/dashboard" className="page-back-link dashboard-back-link">
-              <Icon icon={ArrowLeft} size={18} /> Back to dashboard
-            </Link>
-          )
-        )}
+      <header className={groupId ? "mb-5" : "mb-0"}>
+        <button
+          type="button"
+          onClick={handleBack}
+          className={groupId ? "page-back-link" : "page-back-link mb-3"}
+        >
+          <Icon icon={ArrowLeft} size={18} /> Back
+        </button>
         {!groupId && (
           <h1 className="page-title">{isMobile ? "Spending by category" : "Analytics"}</h1>
         )}
-        <p className={groupId ? "soft-caption mt-4" : "soft-caption mt-1"}>
-          {groupId
-            ? `Spending by category · ${groupContext?.group.name ?? "this group"} · all time`
-            : isMobile
-              ? "Every category across your groups, all time"
-              : "Spending by category · all groups · all time"}
-        </p>
+        {groupId && (
+          <p className="soft-caption mt-4">
+            Spending by category · {groupContext?.group.name ?? "this group"} · all time
+          </p>
+        )}
       </header>
+      {!groupId && (
+        <p className="soft-caption mb-5">
+          {isMobile
+            ? "Every category across your groups, all time"
+            : "Spending by category · all groups · all time"}
+        </p>
+      )}
       {!currency ? (
         <EmptyState
           icon={Globe2}

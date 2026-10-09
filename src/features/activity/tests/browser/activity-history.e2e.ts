@@ -63,23 +63,68 @@ test("records additions and deletions, retains them after reload, and filters th
       },
     });
     await useStore.getState().removeExpense(expense.expenseId, "g");
+    await useStore.getState().addPerson("Global contact", "🦉");
   });
 
   await page.goto("/activity");
   await expect(page.locator("main")).toContainText("Category deleted: Taxi");
   await expect(page.locator("main")).toContainText("Tag deleted: Holiday");
   await expect(page.locator("main")).toContainText("Expense deleted: Dinner");
+  await expect(page.locator("main")).toContainText("Person created: Global contact");
   await expect(
     page.locator("main").getByRole("link", { name: /Expense deleted: Dinner/u }),
   ).toHaveCount(0);
   await page.reload();
   await expect(page.locator("main")).toContainText("Expense deleted: Dinner");
-  if ((page.viewportSize()?.width ?? 0) >= 1080) {
+  const width = page.viewportSize()?.width ?? 0;
+  if (width >= 768 && width < 1080) {
+    await page.goto("/dashboard");
+    const appActivity = page
+      .getByRole("navigation", { name: "Main navigation" })
+      .getByRole("link", { name: "Activity", exact: true });
+    await expect(appActivity).toHaveAttribute("href", "/activity");
+    await appActivity.click();
+    await expect(page).toHaveURL(/\/activity$/u);
+    await expect(page.locator("main")).toContainText("Person created: Global contact");
+
+    await page.goto("/groups/g");
+    const groupActivity = page
+      .getByRole("navigation", { name: "Group navigation" })
+      .getByRole("link", { name: "Activity", exact: true });
+    await expect(groupActivity).toHaveAttribute("href", "/groups/g/activity");
+    await groupActivity.click();
+    await expect(page).toHaveURL(/\/groups\/g\/activity$/u);
+    await expect(groupActivity).toHaveAttribute("aria-current", "page");
+    await expect(page.locator("main")).toContainText("Expense deleted: Dinner");
+    await expect(page.locator("main")).not.toContainText("Person created: Global contact");
+    await expect(page.locator("main")).toContainText("Recent changes in this group");
+    await page.reload();
+    await expect(page.locator("main")).not.toContainText("Person created: Global contact");
+  }
+  if (width >= 1080) {
     await page.goto("/groups/g");
     const panel = page.getByRole("complementary", { name: "Recent activity" });
     await expect(panel).toContainText("Expense deleted: Dinner");
+    await expect(
+      page.getByRole("navigation", { name: "Group navigation" }).getByRole("link", {
+        name: "Activity",
+        exact: true,
+      }),
+    ).toHaveCount(0);
+    await page.goto("/groups/g/activity");
+    await expect(page.getByRole("complementary", { name: "Recent activity" })).toHaveCount(0);
+    await expect(page.locator("main")).toContainText("Expense deleted: Dinner");
+    await expect(page.locator("main")).not.toContainText("Person created: Global contact");
   }
   await page.goto("/activity");
+  if (width >= 1080) {
+    await expect(
+      page.getByRole("navigation", { name: "Main navigation" }).getByRole("link", {
+        name: "Activity",
+        exact: true,
+      }),
+    ).toHaveCount(0);
+  }
   await page.evaluate(async () => {
     const modulePath = "/src/shared/configs/store/index.ts";
     const { useStore } = (await import(/* @vite-ignore */ modulePath)) as typeof StoreModule;

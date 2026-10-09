@@ -5,6 +5,7 @@ import { Link, useLocation, useNavigate, useOutletContext, useParams } from "rea
 
 import TagCreator from "@/features/expenses/components/tag-creator";
 
+import { formatPercentageDisplay } from "@/features/expenses/utils/percentage-display";
 import { useStore } from "@/shared/configs/store";
 import { formatCurrency } from "@/shared/utils/currency";
 import { formatDisplayDate, formatDisplayTime } from "@/shared/utils/date-time";
@@ -344,7 +345,7 @@ const ExpenseDetail = () => {
                 ? expense.splitType === "adjustment"
                   ? `Adjustment: ${formatCurrency(Number(meta.value), group.currency)}`
                   : expense.splitType === "percentage"
-                    ? `${meta.value}%`
+                    ? `${formatPercentageDisplay(meta.value)}%`
                     : `${meta.value} shares`
                 : "";
               return (

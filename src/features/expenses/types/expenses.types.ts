@@ -36,4 +36,5 @@ export interface ExpensesSlice {
 export interface PayerMember {
   id: string;
   name: string;
+  icon?: string;
 }

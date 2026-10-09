@@ -27,23 +27,26 @@ The dashboard currently renders:
   category and unsettled previews, leaving no dashboard link to Analytics; Analytics is still
   directly routable but has no mobile footer item. With one shared currency and recorded expenses,
   the app-wide full page shows spending categories and their total; with multiple currencies, it
-  shows a notice instead of combining amounts. Mobile has a Back to dashboard link. A separate
+  shows a notice instead of combining amounts. App-wide Analytics has a Back button at every width
+  that follows in-app history or opens Dashboard when entered directly. A separate
   group-scoped preview on Overview is visible at every width and links to
   `/groups/:groupId/analytics`; that route only totals the selected group's expenses, including
   when other groups use different currencies. Its Back button is available at every width: it
   follows in-app history or opens the group Overview when the route was loaded directly.
 - Links from each group row to that group's Overview route
 
-The desktop right pane shows saved activity events across all groups in recording order (event
-`createdAt` descending). Create/update/delete actions for expenses, tags, categories, groups,
+The desktop right pane shows saved activity events across all groups on Dashboard, app-wide
+Analytics, and Unsettled in recording order (event `createdAt` descending). Create/update/delete
+actions for expenses, tags, categories, groups,
 members, and contacts are recorded separately from current entities; imported groups have a group
-creation event. Individual deleted-item entries retain their name, icon, amount (for expenses), and
+  creation event. Individual deleted-item entries retain their name, icon, amount (for expenses), and
 group snapshot without a link **while that group still exists**. Permanent group deletion purges all
 of its activity except group-created and group-deleted entries. Global contact entries remain.
 Older expenses recorded before the event table, including transferred expenses, still appear as
 derived entries while they exist. Past deletions cannot be reconstructed. On group routes other than
-Settings, the panel filters by group, including expense forms. The dedicated Activity route shows
-the same cross-group feed; tablet renders no separate activity section.
+  Settings, the panel filters by group, including expense forms. The app-level `/activity` page shows
+  the same cross-group feed; tablet exposes it through the app sidebar and exposes the group-only
+  `/groups/:groupId/activity` feed through the group sidebar instead of rendering a separate panel.
 Expense rows display the category icon (or group fallback) as a non-profile image on both surfaces.
 Compact rows show the recording date and time below the group name.
 Compact desktop rows show the group and date/time on separate lines; longer titles and group names
@@ -107,7 +110,8 @@ below 640px; mobile has a separate Unsettled footer route. Only non-zero suggest
 This is distinct from per-group cards: group cards show the user's net position per group; unsettled balances show the individual people behind those numbers.
 
 **Empty state:** The preview says "All square!"; the separate route explains that no unsettled
-balances remain.
+  balances remain. The separate Unsettled page has a Back button at every width that follows
+  in-app history or opens Dashboard on a direct visit.
 
 ---
 

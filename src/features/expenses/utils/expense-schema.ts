@@ -15,7 +15,9 @@ export const expenseFieldsSchema = z.object({
   tagIds: z.array(required("Invalid tag")),
   payerMode: z.enum(["single", "multiple"]),
   payerId: z.string().trim(),
-  payers: z.array(z.object({ memberId: required("Invalid payer"), amount: z.string().trim() })),
+  payers: z.array(
+    z.object({ memberId: required("Invalid payer"), selected: z.boolean(), amount: z.string().trim() }),
+  ),
   splitType: z.enum(["equal", "amount", "shares", "percentage", "adjustment"]),
   participants: z.array(
     z.object({
@@ -29,15 +31,24 @@ export const expenseFieldsSchema = z.object({
 export const expenseTransactions = (values: ExpenseFormValues, currency: string) => {
   const total = parseMoney(values.amount, currency);
   if (total <= 0) throw new Error("Amount must be greater than zero");
-  const paid =
-    values.payerMode === "single"
-      ? [{ memberId: values.payerId, amount: total }]
-      : values.payers
-          .map((payer) => ({
-            memberId: payer.memberId,
-            amount: parseMoney(payer.amount || "0", currency),
-          }))
-          .filter((payer) => payer.amount > 0);
+  let paid = [{ memberId: values.payerId, amount: total }];
+  if (values.payerMode === "multiple") {
+    const selected = values.payers.filter((payer) => payer.selected);
+    if (!selected.length) throw new Error("Choose who paid");
+    try {
+      paid = calculateSplit(
+        total,
+        "amount",
+        selected.map((payer) => ({ memberId: payer.memberId, value: payer.amount })),
+        currency,
+      ).owes.filter((payer) => payer.amount > 0);
+    } catch (error) {
+      if ((error as Error).message === "Split amounts must add up to the total") {
+        throw new Error("Payer amounts must add up to the total");
+      }
+      throw error;
+    }
+  }
   if (paid.some((payer) => !payer.memberId) || !paid.length) throw new Error("Choose who paid");
   if (new Set(paid.map((payer) => payer.memberId)).size !== paid.length)
     throw new Error("Duplicate payer");

@@ -38,11 +38,12 @@ export const expenseFormValues = (
   payers: [
     ...expense.transactions.paid.map((row) => ({
       memberId: row.memberId,
+      selected: true,
       amount: moneyToDecimal(row.amount, currency),
     })),
     ...members
       .filter((member) => !expense.transactions.paid.some((row) => row.memberId === member.id))
-      .map((member) => ({ memberId: member.id, amount: "" })),
+      .map((member) => ({ memberId: member.id, selected: false, amount: "" })),
   ],
   splitType: expense.splitType,
   participants: expenseFormMembers(members, expense).map((member) => {
