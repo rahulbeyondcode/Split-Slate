@@ -9,7 +9,7 @@ metadata:
 
 Purpose: document the implemented responsive shell and distinguish navigation stubs from working routes.
 
-Last updated: 2026-10-10
+Last updated: 2026-10-11
 
 ## Viewport States
 
@@ -44,9 +44,12 @@ a mobile navigation decision.
 The centered New group footer action replaces the floating dashboard New group CTA on mobile; it
 uses the same purple accent and opens `/groups/new`. The dashboard-level Activity, Unsettled, and
 Settings destinations have footer links. App-wide Analytics retains `/analytics`, with a Back
-button but no footer item. The dashboard's category preview links to it only at
-widths of 640px and above; at narrower mobile widths the preview is hidden, so there is currently
-no dashboard link to app-wide Analytics. Group Overview has a category preview at every width;
+button but no footer item. When groups exist, the dashboard's Unsettled balances and category
+previews stack beneath its group list at every mobile width, including with a single group. The
+category preview requires a shared currency; its heading, View all action, and rows link to
+app-wide Analytics without changing the footer. Revised mobile coverage remains unrun.
+See [[dashboard]] for the historical hiding rules and their approved removal.
+Group Overview has a category preview at every width;
 `/groups/:groupId/analytics` retains the group shell without adding a second page's top padding.
 Its rounded secondary Back button follows in-app history or falls back to the group Overview for
 direct visits. Balances uses the same rounded secondary styling with its own navigation behavior.

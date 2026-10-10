@@ -164,7 +164,7 @@ const GroupDetail = () => {
         <div className={isContainedPage ? "group-page-body" : undefined}>
           <Outlet context={context} />
         </div>
-        {showGroupNavigation && (
+        {showGroupNavigation && !(isMobile && pathname === `/groups/${groupId}/analytics`) && (
           <Link className="mobile-cta" to={`/groups/${group.id}/expenses/new${search}`}>
             <Icon icon={Plus} size={20} /> Add expense
           </Link>

@@ -9,7 +9,7 @@ metadata:
 
 Purpose: document the implemented expense-list filters, their matching rules, and test coverage.
 
-Last updated: 2026-10-10
+Last updated: 2026-10-11
 
 ## Overview
 
@@ -75,6 +75,13 @@ than adding a history entry per keystroke.
   The shared unlayered `button { font: inherit; }` reset overrides ordinary Tailwind font utilities;
   chip font size and line height use explicit important utilities to retain their compact sizing
   without changing the global reset.
+- Active chips use seven fixed, distinct filter-type hues: Category purple, Tags blue, Paid by
+  green, Member pink, Split orange, Date cyan, and Amount gold/yellow. All selections within a type
+  share the same colour, independent of selection order, removal, and the saved colour of a tag.
+  Scoped chip backgrounds, borders, text, and hue-preserving hover colours have separate light/dark
+  palettes. Labels, remove icons, keyboard controls, compact sizing, and horizontal scrolling remain
+  intact; colour supplements the labels rather than replacing them. Search remains in its input
+  and has no duplicated chip. Matching rules, URL state, and sort behavior are unchanged.
 - On group Analytics, clicking a category row opens that group's Expenses route with only that
   category filter active and the default newest-first sort, at every screen width. The link uses
   category IDs rather than names; a chart row combining same-name categories selects all matching
@@ -160,6 +167,12 @@ previously exposed the global button-font reset; the explicit compact font overr
 The latest chip/modal/horizontal-scroll cases and a popover-trigger overlap regression pass in the
 final 2026-10-10 full browser suite. Eight production responsive/offline smoke cases at 280–1920px
 also pass. See [[testing-strategy]].
+
+The subsequent filter-type colour change is not covered by that passing baseline. Added light/dark
+browser cases at mobile/tablet/desktop widths check seven distinct colours, at least 20 degrees
+between border hues, consistent same-type styling, 4.5:1 text contrast on normal/hover backgrounds,
+and stable colours after keyboard removal and reload. These revised checks have not been run;
+execution requires explicit approval.
 
 `src/features/group-detail/tests/browser/group-overview-navigation.e2e.ts` adds group Analytics
 drill-down cases at narrow-mobile, tablet, and desktop widths, covering active category selections,

@@ -5,7 +5,10 @@ import { formatCurrency } from "@/shared/utils/currency";
 import { formatDisplayDate } from "@/shared/utils/date-time";
 import { parseMoney } from "@/shared/utils/money";
 
-import type { ExpenseFilterValues } from "@/features/expenses/types/expense-filters.types";
+import type {
+  ExpenseFilterOptionField,
+  ExpenseFilterValues,
+} from "@/features/expenses/types/expense-filters.types";
 
 import Icon from "@/shared/ui/icon";
 
@@ -16,6 +19,7 @@ interface FilterOption {
 
 interface FilterChip {
   key: string;
+  filterType: ExpenseFilterOptionField | "date" | "amount";
   label: string;
   changes: Partial<ExpenseFilterValues>;
 }
@@ -69,6 +73,7 @@ const ActiveExpenseFilters = ({
       return [
         {
           key: `${field}:${value}`,
+          filterType: field,
           label: `${label}: ${option.label}`,
           changes: { [field]: values[field].filter((selected) => selected !== value) },
         },
@@ -81,6 +86,7 @@ const ActiveExpenseFilters = ({
     const to = formatFilterDate(values.dateTo);
     chips.push({
       key: "date",
+      filterType: "date",
       label: `Date: ${from && to ? `${from} – ${to}` : from ? `From ${from}` : `Until ${to}`}`,
       changes: { dateFrom: "", dateTo: "" },
     });
@@ -90,6 +96,7 @@ const ActiveExpenseFilters = ({
     const maximum = values.maxAmount.trim() ? formatFilterAmount(values.maxAmount, currency) : "";
     chips.push({
       key: "amount",
+      filterType: "amount",
       label: `Amount: ${minimum && maximum ? `${minimum} – ${maximum}` : minimum ? `At least ${minimum}` : `At most ${maximum}`}`,
       changes: { minAmount: "", maxAmount: "" },
     });
@@ -107,8 +114,9 @@ const ActiveExpenseFilters = ({
           <button
             type="button"
             aria-label={`Remove ${chip.label} filter`}
+            data-filter-type={chip.filterType}
             onClick={() => onRemove(chip.changes)}
-            className="flex min-h-[24px] items-center gap-1 whitespace-nowrap rounded-full border border-[var(--line)] bg-[var(--brand-soft)] px-2 py-0.5 text-left !text-[0.625rem] font-semibold !leading-3 text-[var(--brand-ink)] transition-colors hover:bg-[var(--surface-soft)]"
+            className="active-expense-filter flex min-h-[24px] items-center gap-1 whitespace-nowrap rounded-full border px-2 py-0.5 text-left !text-[0.625rem] font-semibold !leading-3 transition-colors"
           >
             <span>{chip.label}</span>
             <Icon icon={X} size={10} className="shrink-0" />

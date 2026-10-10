@@ -1,6 +1,7 @@
 import { ArrowRight, FolderPlus, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 
+import { useDashboardClock } from "@/features/dashboard/hooks/use-dashboard-clock";
 import {
   dashboardCategories,
   dashboardPositions,
@@ -13,6 +14,7 @@ import { formatDisplayDate } from "@/shared/utils/date-time";
 
 import Avatar from "@/shared/ui/avatar";
 import BalanceHero from "@/shared/ui/balance-hero";
+import CategorySpendingList from "@/shared/ui/category-spending-list";
 import EmojiImage from "@/shared/ui/emoji-image";
 import EmptyState from "@/shared/ui/empty-state";
 import Icon from "@/shared/ui/icon";
@@ -21,24 +23,21 @@ import Surface from "@/shared/ui/surface";
 const Dashboard = () => {
   const state = useStore();
   const { isMobile } = useViewport();
+  const { now, greeting, isLateNight } = useDashboardClock();
   const { entries, currency, get, give } = dashboardPositions(state);
   const transfers = dashboardTransfers(state);
-  const categories = currency ? dashboardCategories(state, currency).slice(0, 6) : [];
-  const maxCategory = categories[0]?.amount || 1;
-  const greeting =
-    new Date().getHours() < 12
-      ? "Good morning"
-      : new Date().getHours() < 17
-        ? "Good afternoon"
-        : "Good evening";
+  const allCategories = currency ? dashboardCategories(state, currency) : [];
+  const categories = allCategories.slice(0, 6);
+  const totalCategorySpend = allCategories.reduce((sum, category) => sum + category.amount, 0);
 
   return (
     <div className="page dashboard-page flex flex-col gap-8">
       <header>
-        <p className="soft-caption mb-1">{formatDisplayDate(new Date())}</p>
+        <p className="soft-caption mb-1">{formatDisplayDate(now)}</p>
         <h1 className="page-title flex flex-wrap items-center gap-x-2 gap-y-1">
           <span>
             {greeting}, {state.localUser?.name ?? "there"}
+            {isLateNight ? " 🌙" : ""}
           </span>
           <EmojiImage
             icon={state.localUser?.icon}
@@ -189,7 +188,7 @@ const Dashboard = () => {
       </section>
 
       {entries.length > 0 && (
-        <div className="dashboard-lower max-sm:hidden">
+        <div className="dashboard-lower">
           <section
             aria-labelledby="dashboard-unsettled-title"
             className="dashboard-preview mt-4 flex min-w-0 flex-col gap-3"
@@ -262,25 +261,11 @@ const Dashboard = () => {
               )}
               <Surface className="surface-pad flex-1">
                 {categories.length ? (
-                  categories.map((category) => (
-                    <Link
-                      key={category.name}
-                      to="/analytics"
-                      className="flex items-center gap-3 my-4"
-                    >
-                      <EmojiImage icon={category.icon} />
-                      <span className="w-24 truncate text-xs font-semibold">{category.name}</span>
-                      <div className="h-2 flex-1 rounded-full bg-[var(--surface-soft)]">
-                        <div
-                          className="h-2 rounded-full bg-[var(--brand)]"
-                          style={{ width: `${(category.amount / maxCategory) * 100}%` }}
-                        />
-                      </div>
-                      <span className="money text-xs">
-                        {formatCurrency(category.amount, currency)}
-                      </span>
-                    </Link>
-                  ))
+                  <CategorySpendingList
+                    categories={categories.map((category) => ({ ...category, to: "/analytics" }))}
+                    currency={currency}
+                    totalAmount={totalCategorySpend}
+                  />
                 ) : (
                   <p className="muted">No spending yet.</p>
                 )}

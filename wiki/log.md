@@ -11,6 +11,21 @@ Last updated: 2026-10-11
 ---
 
 ## 2026-10-11
+- UPDATED workflows/dashboard.md — restore documented all-width stacked mobile previews, record the Sep 27/Oct 10 hiding-rule provenance and CSS-layer cause, preserve one-group/empty/currency behavior, and distinguish unrun revised coverage
+- UPDATED architecture/layout-architecture.md — document app-wide Analytics access through narrow mobile dashboard previews without footer changes
+- UPDATED wiki/index.md — surface restored mobile previews and retain the verification pause
+- UPDATED workflows/dashboard.md — record the user-requested extra 0.5rem gap between spending rows, preserving compact padding and divider-free styling; revised gap assertions remain unrun
+- UPDATED wiki/index.md — surface the additional category-row spacing and retain the verification pause
+- UPDATED workflows/dashboard.md — remove row/summary divider lines from the approved compact spending design at the user's request; spacing and slim data bars distinguish entries instead
+- UPDATED workflows/main-screen.md — describe the shared group breakdown as divider-free, preserving compactness and navigation
+- UPDATED wiki/index.md — surface divider-free category-spending rows and retain the verification pause
+- UPDATED workflows/dashboard.md — document approved compact shared spending breakdown, truthful total-share bars and preview denominators, preserved navigation/currency scope, and unrun responsive coverage
+- UPDATED workflows/main-screen.md — reflect shared Overview/Analytics rows and approved removal of the mobile Analytics Add expense action only
+- UPDATED wiki/index.md — surface the Analytics redesign and retain the verification pause
+- UPDATED workflows/dashboard.md — document approved 21:30–04:30 overnight Hello, morning/afternoon/evening cutoffs, live local clock and date refresh, and unrun boundary/return-to-app coverage
+- UPDATED wiki/index.md — surface time-aware dashboard greetings and retain the verification pause
+- UPDATED workflows/filtering.md — document approved seven distinct filter-type chip hues, light/dark and hover palettes, unchanged filtering behavior, and unrun colour/contrast/stability coverage
+- UPDATED wiki/index.md — surface colour-coded active filters and retain the verification pause
 - UPDATED workflows/tag-management.md — document approved all-width Add new tag in Expense Add/Edit, preserved fixed modal controls and draft fields, and unrun creation/suggestion/layout coverage
 - UPDATED workflows/main-screen.md — remove mobile-only expense tag creation claims and document the unchanged modal save/selection flow at every width
 - UPDATED wiki/index.md — surface all-width expense tag creation and retain its unverified status

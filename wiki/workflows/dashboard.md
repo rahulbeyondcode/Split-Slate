@@ -1,6 +1,6 @@
 # Dashboard View
 
-Last updated: 2026-10-10
+Last updated: 2026-10-11
 
 **Purpose:** Record the current dashboard implementation and the target cross-group summary design.
 
@@ -19,13 +19,12 @@ The dashboard currently renders:
   intake route after groups exist
 - An empty-state prompt when there are no groups
 - Per-group balance cards and an overall balance summary (or a mixed-currency notice)
-- Unsettled-balance and category-spending previews at widths of 640px and above; the unsettled
-  preview has a labelled View all link and arrow to `/unsettled`
-- At widths of 640px and above, the dashboard category preview shows up to six categories; its
-  heading and each chart row link to `/analytics`. At 640–767px, it also shows View all and a
-  shorter subtitle. Below 640px, the `max-sm:hidden` dashboard-lower container hides both the
-  category and unsettled previews, leaving no dashboard link to Analytics; Analytics is still
-  directly routable but has no mobile footer item. With one shared currency and recorded expenses,
+- Unsettled-balance and category-spending previews at every width when at least one group exists,
+  including a single group; they stack beneath the group list on mobile. The unsettled preview has
+  a labelled View all link and arrow to `/unsettled`. Category spending requires one shared currency.
+- The dashboard category preview shows up to six categories; its heading and each row link to
+  `/analytics`. Below 768px, it also shows View all and a shorter subtitle, providing mobile
+  dashboard access to Analytics without adding a footer item. With one shared currency and recorded expenses,
   the app-wide full page shows spending categories and their total; with multiple currencies, it
   shows a notice instead of combining amounts. App-wide Analytics has a Back button at every width
   that follows in-app history or opens Dashboard when entered directly. A separate
@@ -69,7 +68,28 @@ review and identity selection, and creates a separate editable group. See [[impo
 
 ### Page Header
 
-The time-aware greeting uses the device clock (e.g. "Good morning Rahul"). This is implemented.
+The greeting and date use one live device-local clock through the dashboard-only
+`useDashboardClock` hook. The approved greeting windows are:
+
+| Local time | Greeting |
+|---|---|
+| 21:30–04:29 | Hello, [name] 🌙 |
+| 04:30–11:59 | Good morning, [name] |
+| 12:00–16:59 | Good afternoon, [name] |
+| 17:00–21:29 | Good evening, [name] |
+
+Cutoffs are inclusive at their start, including 21:30 and 04:30. The late-night Hello avoids treating
+midnight as morning or using Good night as an arrival greeting. The saved user's name/profile icon
+remain unchanged; a missing name falls back to "there".
+
+While visible, the clock refreshes at the next minute boundary and reschedules from the current
+device time. Focus and visibility changes refresh immediately, so returning after sleep/background
+time catches up without reloading. The minute timer pauses while hidden and is cleaned up with the
+listeners on unmount. The date also updates across midnight, using its existing `DD-MMM-YYYY` format.
+
+Added browser cases cover local-time cutoffs (including 00:54), live transitions, midnight date
+rollover, and focus/visibility refresh. These revised checks have not been run; prior verification
+predates the new greeting windows and live clock. Execution requires explicit approval.
 
 Light/dark mode toggle lives in Settings, not on the dashboard.
 
@@ -77,8 +97,8 @@ Light/dark mode toggle lives in Settings, not on the dashboard.
 
 ### Section Status
 
-Overall totals, per-group balance cards, the desktop unsettled preview, category spending at
-widths of 640px and above, and saved action activity are implemented as described under Current
+Overall totals, per-group balance cards, all-width unsettled/category previews, and saved action
+activity are implemented as described under Current
 Implementation. The sections below distinguish remaining presentation work from working screens.
 
 #### 1. Overall Summary — implemented
@@ -115,11 +135,12 @@ Clicking a card navigates to that group's Overview page; the sidebar selection u
 
 ---
 
-#### 3. Unsettled Balances — preview at ≥640px and separate route implemented
+#### 3. Unsettled Balances — all-width preview and separate route implemented
 
 A compact list of suggested payments involving the local user, grouped by the originating group;
-each row names the other person, direction, amount, and group. The dashboard preview is hidden
-below 640px; mobile has a separate Unsettled footer route. Only non-zero suggestions are listed.
+each row names the other person, direction, amount, and group. The dashboard preview is visible at
+every width when groups exist; mobile also keeps its separate Unsettled footer route. Only non-zero
+suggestions are listed.
 
 This is distinct from per-group cards: group cards show the user's net position per group; unsettled balances show the individual people behind those numbers.
 
@@ -139,18 +160,44 @@ Stacked sections retain independent natural header heights and the same top marg
 
 ---
 
-#### 4. Category Spending Chart — app preview hidden below 640px; app and group Analytics routes implemented
+#### 4. Category Spending Breakdown — all-width preview; app and group Analytics routes implemented
 
 A visual breakdown of total spending by category, aggregated across same-currency groups, all time.
 There is no time filter.
 
+Full app/group Analytics, the Dashboard preview, and Group Overview share the compact
+`CategorySpendingList`. Categories retain descending spending order, with a small icon, stable-width
+name column, full amount, one-decimal share of total, and a full-width 4px-reference bar beneath.
+There are no divider lines between items or beneath the summary: compact spacing and the spending
+bars distinguish rows without a second, confusing set of horizontal lines. 8px-reference vertical
+padding remains unchanged, with an extra 8px-reference (0.5rem) gap between adjacent items for
+clearer separation. The first and last items have no additional outer gap. Narrow containers stack
+names above figures, independently of the viewport's navigation breakpoint. Names take at most two
+lines and retain their full text/title; amounts can
+wrap rather than being clipped. Full Analytics also summarizes total recorded spending and the
+largest category above the list.
+
+Bars show share of **total** spending, not relative size against the largest category, and have no
+artificial minimum length. Exact amounts and explicit shares keep tiny categories useful when one
+expense dominates. Positive shares below 0.1% display `<0.1%`, not a misleading zero. Six-category
+previews use the complete scope's total as their denominator, not the sum of just the visible six.
+Category-name aggregation, expense-only totals, currency boundaries, empty states, and navigation
+are unchanged: previews open Analytics, full group rows open category-filtered Expenses, and full
+app rows remain noninteractive. The mobile group Analytics route no longer shows the floating Add
+expense action; other group routes retain their actions. See [[main-screen]] and [[filtering]].
+
+Added browser coverage exercises compact responsive light/dark rows, dominant spending, tiny shares,
+long names/large amounts, preview denominators, scope/navigation, and mobile Analytics action removal.
+These revised checks have not been run; earlier chart verification predates the redesign.
+
 The dashboard preview's heading/link, subtitle, and mobile View all action sit above and outside
-the bordered chart surface. Only chart rows or the empty-state message remain inside. The existing
-single-column/two-column layout and ≥640px visibility are retained. Responsive light/dark coverage
+the bordered breakdown surface. Only list rows or the empty-state message remain inside. The existing
+single-column/two-column layout is retained, with preview visibility restored below 640px.
+Earlier responsive light/dark coverage
 for both external dashboard headers with populated and empty contents passes in the final
 2026-10-10 full suite. Side-by-side coverage also verifies aligned boxes at 1440px and 1920px with
-natural headers, a taller action, and a wrapped category title. Group Overview and full Analytics
-layouts are unchanged.
+natural headers, a taller action, and a wrapped category title. Those results are the pre-redesign
+baseline; the shared compact rows above remain unverified.
 
 Each expense refers to its own group's category ID; the chart resolves that category and aggregates
 by its exact name. Two groups with `Petrol Expense` become one total, but a differently spelled or
@@ -158,7 +205,8 @@ capitalized name is a separate total. New-category suggestions help copy the sam
 deleting one group removes only its expenses from the total. See [[category-management]].
 
 **Empty state:** For an existing single-currency group with no expenses, the visible preview says
-"No spending yet." The section is absent when no groups exist or at widths below 640px.
+"No spending yet." The section is absent when no groups exist or their currencies differ; screen
+width and having only one group do not hide it.
 The group Overview preview instead remains visible at every width, including for an empty group;
 its View all action opens that group's analytics page, where an empty group has no chart. Group
 and app previews use the same category-name aggregation and sum all payer contributions.
@@ -184,22 +232,30 @@ Adding a tablet section remains a target, not implemented behavior.
 
 ## Mobile Content Mapping
 
-On narrow mobile screens (<640px), the dashboard retains the groups and overall summary but hides
-the unsettled and category previews. Analytics is directly routable, but has no link from the
-dashboard or mobile footer at this width. At 640–767px, the previews are visible. Other
-destinations are reached through the bottom navigation:
+Mobile dashboards show the groups and overall summary followed by stacked Unsettled balances and
+Spending by category previews when their usual data/currency conditions allow. The category heading,
+View all action, and rows link to app-wide Analytics at every mobile width; Analytics has no footer
+item. Other destinations are reached through the bottom navigation.
 
-Narrow preview and New group CTA visibility uses scoped custom media rules: the custom grid/button
-display declarations otherwise override Tailwind's layered hiding utilities. Production smoke
-checks at 280–1920px confirm the intended visibility and absence of horizontal main-pane overflow.
+The former hiding rule was unrelated to group count. Commit `a384d9c` (2026-09-27) introduced
+`max-sm:hidden` on the preview container. Its unlayered `.dashboard-lower { display: grid; }` rule
+overrode Tailwind's layered utility. Commit `b56494f` (2026-10-10), a responsive-regression fix,
+added explicit `display: none` below 640px to enforce that old instruction. The approved restoration
+removes both preview-hiding rules; the separate narrow-screen New group hiding rule remains intact.
+Git history explains the implementation, not which revision or cached stylesheet a deployment serves.
+
+Revised browser coverage expects visible, stacked previews with one group at 280–390px, covers
+populated/empty light/dark layouts and mobile Analytics navigation, and retains the mixed-currency
+guard. Shared spending-layout cases now include the narrow dashboard preview. These checks remain
+unrun; the earlier 2026-10-10 production smoke result predates this restoration.
 
 | Desktop dashboard section | Mobile tab |
 |--------------------------|------------|
 | Groups list + overall summary | Groups tab |
 | Activity feed | Activity tab |
 | Create a group | Centered New group footer item |
-| Unsettled balances | Unsettled tab |
-| Category spending chart | Groups tab preview at ≥640px → Analytics page; below 640px no visible dashboard link |
+| Unsettled balances | Stacked Groups-tab preview and Unsettled tab |
+| Category spending breakdown | Groups-tab preview at every width → Analytics page, when groups share one currency |
 | App settings + profile editing | Settings tab |
 
 Analytics retains its route but no longer has a footer item. Activity reads persisted action

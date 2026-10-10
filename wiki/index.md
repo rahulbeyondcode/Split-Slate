@@ -34,9 +34,11 @@ Last updated: 2026-10-11
 
 The subsequent all-width Add/Edit member and Contacts modal changes, numeric expense amount/shared
 time-input filtering, grouped eight-digit/two-decimal Expense Amount input, fixed percentage-input
-suffixes, all-width expense tag creation, and revised coverage remain unverified; no checks have
-been run for these changes. See [[member-management]], [[people-directory]], [[main-screen]],
-[[split-types]], and [[tag-management]].
+suffixes, all-width expense tag creation, distinct active-filter colours, live dashboard greetings,
+compact category-spending breakdowns, mobile Analytics action removal, restored mobile dashboard previews,
+and revised coverage remain unverified; no checks have been run for these changes.
+See [[member-management]], [[people-directory]], [[main-screen]],
+[[split-types]], [[tag-management]], [[filtering]], and [[dashboard]].
 
 ---
 
@@ -50,7 +52,7 @@ been run for these changes. See [[member-management]], [[people-directory]], [[m
 - [Balance Calculation](architecture/balance-calculation.md) — safe payment-aware balances, expense-only spending, and deterministic suggested transfers
 - [State Management](architecture/state-management.md) — Zustand hydration and transactional expense, payment, and group mutations
 - [Split Types](architecture/split-types.md) — 5 exact split methods, fixed percentage-input suffixes, and at-most-three-decimal percentage display; latest suffix checks unrun
-- [Layout Architecture](architecture/layout-architecture.md) — responsive shell, transparent divided sidebar groups with bottom balances, inset modals with fixed controls, and viewport handling
+- [Layout Architecture](architecture/layout-architecture.md) — responsive shell, stacked mobile dashboard previews, divided sidebar groups, fixed-control modals, and viewport handling; latest preview checks unrun
 
 ### Decisions
 - [Global People Directory](decisions/global-people-directory.md) — shared device-local people identities versus group-owned category labels; supersedes per-group members
@@ -85,8 +87,8 @@ been run for these changes. See [[member-management]], [[people-directory]], [[m
 - [Member Management](workflows/member-management.md) — all-width Add/Edit member and setup modals with fixed heading/actions, directory linking, and guarded removal; latest coverage unrun
 - [Category Management](workflows/category-management.md) — all-width management and setup modals, draft-only category entry, and guarded deletion; deactivation pending
 - [Tag Management](workflows/tag-management.md) — group-scoped tags, all-width management/expense-creation modals, suggestions, and transactional cleanup; latest checks unrun
-- [Filtering](workflows/filtering.md) — outer-only Expenses scrolling, horizontal filter pills, mobile Filters modal/wider popover, and URL-backed Analytics drill-down
-- [Dashboard](workflows/dashboard.md) — five-member avatar previews, external summary headings with aligned side-by-side boxes, tablet Activity navigation, group-only Analytics links, and scoped totals
+- [Filtering](workflows/filtering.md) — distinct filter-type colours, horizontal pills, outer-only Expenses scrolling, mobile Filters modal/wider popover, and Analytics drill-down; latest colour checks unrun
+- [Dashboard](workflows/dashboard.md) — restored all-width previews with hiding-rule history, compact divider-free spending rows, live greetings, avatar previews, and scoped totals; latest checks unrun
 
 ### Ideas (captured, not committed)
 - [Rewarded Ads](ideas/rewarded-ads.md) — optional ad-watch → credits → Pro unlock mechanic; fully opt-in

@@ -12,7 +12,7 @@ import { formatCurrency } from "@/shared/utils/currency";
 import type { GroupDetailContext } from "@/features/group-detail/types/group-detail.types";
 
 import Avatar from "@/shared/ui/avatar";
-import EmojiImage from "@/shared/ui/emoji-image";
+import CategorySpendingList from "@/shared/ui/category-spending-list";
 import EmptyState from "@/shared/ui/empty-state";
 import Icon from "@/shared/ui/icon";
 import Surface from "@/shared/ui/surface";
@@ -30,8 +30,9 @@ const GroupOverview = () => {
   ]
     .sort((a, b) => b.when - a.when)
     .slice(0, 5);
-  const categories = categorySpending(groupExpenses, groupCategories).slice(0, 6);
-  const maxCategory = categories[0]?.amount || 1;
+  const allCategories = categorySpending(groupExpenses, groupCategories);
+  const categories = allCategories.slice(0, 6);
+  const totalCategorySpend = allCategories.reduce((sum, category) => sum + category.amount, 0);
   const featuredMembers = overviewMembers(groupMembers, groupExpenses);
   const transfers = suggestTransfers(
     calculateBalances(
@@ -192,25 +193,14 @@ const GroupOverview = () => {
             </Link>
           </div>
           {categories.length ? (
-            categories.map((category) => (
-              <Link
-                key={category.name}
-                to={`/groups/${group.id}/analytics`}
-                className="flex items-center gap-3 my-4"
-              >
-                <EmojiImage icon={category.icon} />
-                <span className="w-24 truncate text-xs font-semibold">{category.name}</span>
-                <div className="h-2 flex-1 rounded-full bg-[var(--surface-soft)]">
-                  <div
-                    className="h-2 rounded-full bg-[var(--brand)]"
-                    style={{ width: `${(category.amount / maxCategory) * 100}%` }}
-                  />
-                </div>
-                <span className="money text-xs">
-                  {formatCurrency(category.amount, group.currency)}
-                </span>
-              </Link>
-            ))
+            <CategorySpendingList
+              categories={categories.map((category) => ({
+                ...category,
+                to: `/groups/${group.id}/analytics`,
+              }))}
+              currency={group.currency}
+              totalAmount={totalCategorySpend}
+            />
           ) : (
             <p className="muted mt-6">No spending yet.</p>
           )}

@@ -70,6 +70,104 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/dashboard");
 });
 
+test("uses local-time greetings including the overnight Hello window", async ({ page }) => {
+  for (const { hour, minute, greeting } of [
+    { hour: 0, minute: 0, greeting: "Hello, Rahul 🌙" },
+    { hour: 0, minute: 54, greeting: "Hello, Rahul 🌙" },
+    { hour: 4, minute: 29, greeting: "Hello, Rahul 🌙" },
+    { hour: 4, minute: 30, greeting: "Good morning, Rahul" },
+    { hour: 11, minute: 59, greeting: "Good morning, Rahul" },
+    { hour: 12, minute: 0, greeting: "Good afternoon, Rahul" },
+    { hour: 16, minute: 59, greeting: "Good afternoon, Rahul" },
+    { hour: 17, minute: 0, greeting: "Good evening, Rahul" },
+    { hour: 21, minute: 29, greeting: "Good evening, Rahul" },
+    { hour: 21, minute: 30, greeting: "Hello, Rahul 🌙" },
+    { hour: 23, minute: 59, greeting: "Hello, Rahul 🌙" },
+  ]) {
+    const timestamp = await page.evaluate(
+      ({ hour, minute }) => new Date(2026, 9, 11, hour, minute).getTime(),
+      { hour, minute },
+    );
+    await page.clock.setFixedTime(new Date(timestamp));
+    await page.reload();
+    await expect(page.getByRole("heading", { level: 1, name: greeting, exact: true })).toBeVisible();
+    await expect(page.locator(".dashboard-page > header > p")).toHaveText("11-Oct-2026");
+  }
+});
+
+for (const { hour, minute, before, after, date } of [
+  {
+    hour: 4,
+    minute: 29,
+    before: "Hello, Rahul 🌙",
+    after: "Good morning, Rahul",
+    date: "11-Oct-2026",
+  },
+  {
+    hour: 11,
+    minute: 59,
+    before: "Good morning, Rahul",
+    after: "Good afternoon, Rahul",
+    date: "11-Oct-2026",
+  },
+  {
+    hour: 16,
+    minute: 59,
+    before: "Good afternoon, Rahul",
+    after: "Good evening, Rahul",
+    date: "11-Oct-2026",
+  },
+  {
+    hour: 21,
+    minute: 29,
+    before: "Good evening, Rahul",
+    after: "Hello, Rahul 🌙",
+    date: "11-Oct-2026",
+  },
+  {
+    hour: 23,
+    minute: 59,
+    before: "Hello, Rahul 🌙",
+    after: "Hello, Rahul 🌙",
+    date: "12-Oct-2026",
+  },
+]) {
+  test(`refreshes the dashboard clock after ${hour}:${minute}:59 without reloading`, async ({
+    page,
+  }) => {
+    const timestamp = await page.evaluate(
+      ({ hour, minute }) => new Date(2026, 9, 11, hour, minute, 59).getTime(),
+      { hour, minute },
+    );
+    await page.clock.install({ time: new Date(timestamp - 1000) });
+    await page.clock.pauseAt(new Date(timestamp));
+    await page.reload();
+    const heading = page.locator(".dashboard-page > header h1");
+    await expect(heading).toHaveText(before);
+    await expect(page.locator(".dashboard-page > header > p")).toHaveText("11-Oct-2026");
+    await page.clock.runFor(1000);
+    await expect(heading).toHaveText(after);
+    await expect(page.locator(".dashboard-page > header > p")).toHaveText(date);
+  });
+}
+
+test("refreshes greetings and dates when returning to the dashboard", async ({ page }) => {
+  const evening = await page.evaluate(() => new Date(2026, 9, 11, 21, 29).getTime());
+  await page.clock.setFixedTime(new Date(evening));
+  await page.reload();
+  const heading = page.locator(".dashboard-page > header h1");
+  await expect(heading).toHaveText("Good evening, Rahul");
+  await page.clock.setFixedTime(new Date(evening + 60_000));
+  await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+  await expect(heading).toHaveText("Hello, Rahul 🌙");
+
+  const morning = await page.evaluate(() => new Date(2026, 9, 12, 4, 30).getTime());
+  await page.clock.setFixedTime(new Date(morning));
+  await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+  await expect(heading).toHaveText("Good morning, Rahul");
+  await expect(page.locator(".dashboard-page > header > p")).toHaveText("12-Oct-2026");
+});
+
 for (const width of [768, 820, 1440]) {
   test(`stacks sidebar group balances below wrapping names and separates unfilled rows at ${width}px`, async ({
     page,
@@ -385,9 +483,10 @@ test("keeps app-wide Back and title visible while the subtitle and content scrol
   }
 });
 
-for (const width of [667, 820, 1440, 1920]) {
+for (const width of [280, 320, 390, 667, 820, 1440, 1920]) {
   test(`keeps dashboard summary headers outside their boxes at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 800 });
+    await expect(page.locator(".group-cards > a")).toHaveCount(1);
     const unsettled = page.getByRole("region", { name: "Unsettled balances", exact: true });
     const chart = page.getByRole("region", { name: "Spending by category", exact: true });
 
@@ -495,7 +594,18 @@ for (const width of [667, 820, 1440, 1920]) {
       }
     }
     await page.setViewportSize({ width: 390, height: 800 });
-    await expect(page.locator(".dashboard-lower")).toBeHidden();
+    await expect(page.locator(".dashboard-lower")).toBeVisible();
+    await expect(unsettled).toBeVisible();
+    await expect(chart).toBeVisible();
+    const unsettledBox = (await unsettled.boundingBox())!;
+    const chartBox = (await chart.boundingBox())!;
+    expect(chartBox.y).toBeGreaterThanOrEqual(unsettledBox.y + unsettledBox.height);
+    expect(Math.abs(chartBox.x - unsettledBox.x)).toBeLessThan(1);
+    const dimensions = await page.locator(".dashboard-lower").evaluate((element) => ({
+      width: element.clientWidth,
+      scrollWidth: element.scrollWidth,
+    }));
+    expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.width);
   });
 }
 
@@ -504,7 +614,7 @@ test("opens Analytics from the mobile dashboard chart and returns via Back", asy
   isMobile,
 }) => {
   test.skip(!isMobile, "Mobile dashboard navigation only");
-  await page.setViewportSize({ width: 667, height: 800 });
+  await page.setViewportSize({ width: 390, height: 800 });
   const footer = page.getByRole("navigation", { name: "Bottom navigation" });
   await expect(footer.getByRole("link", { name: "Analytics" })).toHaveCount(0);
   await expect(footer.getByRole("link")).toHaveCount(5);
@@ -533,6 +643,42 @@ test("opens Analytics from the mobile dashboard chart and returns via Back", asy
   await expect(page).toHaveURL(/\/analytics$/u);
   await dashboardBack.click();
   await expect(page).toHaveURL(/\/dashboard$/u);
+});
+
+test("keeps mobile previews for one or more groups without combining different currencies", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 800 });
+  const unsettled = page.getByRole("region", { name: "Unsettled balances", exact: true });
+  const chart = page.getByRole("region", { name: "Spending by category", exact: true });
+  await expect(page.locator(".group-cards > a")).toHaveCount(1);
+  await expect(unsettled).toBeVisible();
+  await expect(chart).toBeVisible();
+  await page.evaluate(async () => {
+    const modulePath = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ modulePath)) as typeof DbModule;
+    await db.groups.put({
+      id: "other",
+      name: "Other group",
+      icon: "travel-and-places/camping-3d.png",
+      currency: "INR",
+      createdAt: 2,
+      frequentPayerIds: [],
+    });
+  });
+  await page.reload();
+  await expect(page.locator(".group-cards > a")).toHaveCount(2);
+  await expect(unsettled).toBeVisible();
+  await expect(chart).toBeVisible();
+  await page.evaluate(async () => {
+    const modulePath = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ modulePath)) as typeof DbModule;
+    await db.groups.update("other", { currency: "USD" });
+  });
+  await page.reload();
+  await expect(unsettled).toBeVisible();
+  await expect(chart).toHaveCount(0);
+  await expect(page.getByText("Multiple currencies in use", { exact: true })).toBeVisible();
 });
 
 test("returns from Unsettled through history and falls back after direct entry", async ({

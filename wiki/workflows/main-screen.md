@@ -54,6 +54,14 @@ The group's default route opens Overview. Its recent-activity "View all", "View 
 category-spending "View all" links open the full ledger, per-member balances, and group-scoped
 Analytics respectively. Expenses is also available through the sidebar and mobile navigation;
 Balances is a group-sidebar link on tablet and desktop, not an app-wide or mobile-footer item.
+
+Group Overview's six-category preview and full group Analytics now use the shared compact spending
+breakdown: stable-width names, exact amounts, shares of the full group total, divider-free spacing, and
+full-width slim bars. Full Analytics adds total/largest-category summary fields. The rows stack in
+narrow containers rather than squeezing labels and figures beside a graph. Preview links still open
+group Analytics; full group rows still open category-filtered Expenses. The mobile Analytics route
+omits the floating Add expense action; Overview, Expenses, and Balances keep their existing actions.
+Revised layout/navigation coverage remains unrun. See [[dashboard]] and [[filtering]].
 There is no additional group-view tab bar. The large local-balance hero appears only on Overview.
 The Members and Suggested transfers cards end in full-width, center-labeled actions with right-edge
 arrows. The Members title has no count; "Manage Members (N)" carries the full group count and is

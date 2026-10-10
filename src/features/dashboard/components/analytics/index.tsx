@@ -1,5 +1,5 @@
 import { ArrowLeft, ChartColumn, Globe2 } from "lucide-react";
-import { Link, useNavigate, useOutletContext, useParams } from "react-router-dom";
+import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 
 import { dashboardCategories, dashboardPositions } from "@/features/dashboard/utils/dashboard-data";
 import {
@@ -13,7 +13,7 @@ import { formatCurrency } from "@/shared/utils/currency";
 
 import type { GroupDetailContext } from "@/features/group-detail/types/group-detail.types";
 
-import EmojiImage from "@/shared/ui/emoji-image";
+import CategorySpendingList from "@/shared/ui/category-spending-list";
 import EmptyState from "@/shared/ui/empty-state";
 import Icon from "@/shared/ui/icon";
 import Surface from "@/shared/ui/surface";
@@ -34,7 +34,23 @@ const Analytics = () => {
     : currency
       ? dashboardCategories(state, currency)
       : [];
-  const max = categories[0]?.amount || 1;
+  const totalAmount = categories.reduce((sum, item) => sum + item.amount, 0);
+  const categoryEntries = categories.map((item) => {
+    const categoryIds =
+      groupContext?.groupCategories
+        .filter((category) => category.name === item.name)
+        .map((category) => category.id) ?? [];
+    return {
+      ...item,
+      to:
+        groupId && categoryIds.length
+          ? `/groups/${groupId}/expenses?${writeExpenseFilterParams({
+              ...createExpenseFilterDefaults(),
+              categoryIds,
+            }).toString()}`
+          : undefined,
+    };
+  });
   const handleBack = () => {
     if (window.history.state?.idx > 0) {
       navigate(-1);
@@ -81,54 +97,24 @@ const Analytics = () => {
           description="Open a group to see spending in its own currency. Different currencies cannot be combined honestly."
         />
       ) : categories.length ? (
-        <Surface className="surface-pad">
-          <p className="money text-3xl font-extrabold">
-            {formatCurrency(
-              categories.reduce((sum, item) => sum + item.amount, 0),
-              currency,
-            )}
-          </p>
-          <p className="soft-caption mb-4">total recorded spend</p>
-          {categories.map((item) => {
-            const categoryIds =
-              groupContext?.groupCategories
-                .filter((category) => category.name === item.name)
-                .map((category) => category.id) ?? [];
-            const content = (
-              <>
-                <EmojiImage icon={item.icon} />
-                <span className="min-w-0 w-28 break-words font-semibold">{item.name}</span>
-                <span className="h-2 min-w-0 flex-1 rounded-full bg-[var(--surface-soft)]">
-                  <span
-                    className="block h-full rounded-full bg-[var(--brand)]"
-                    style={{ width: `${(item.amount / max) * 100}%` }}
-                  />
-                </span>
-                <span className="money shrink-0 text-xs">
-                  {formatCurrency(item.amount, currency)}
-                </span>
-              </>
-            );
-            return groupId && categoryIds.length ? (
-              <Link
-                key={item.name}
-                to={{
-                  pathname: `/groups/${groupId}/expenses`,
-                  search: writeExpenseFilterParams({
-                    ...createExpenseFilterDefaults(),
-                    categoryIds,
-                  }).toString(),
-                }}
-                className="ui-row rounded-lg transition-colors hover:bg-[var(--surface-soft)]"
-              >
-                {content}
-              </Link>
-            ) : (
-              <div key={item.name} className="ui-row">
-                {content}
-              </div>
-            );
-          })}
+        <Surface className="category-spending-card surface-pad">
+          <div className="category-spending-summary">
+            <div className="min-w-0">
+              <p className="money category-spending-total">{formatCurrency(totalAmount, currency)}</p>
+              <p className="soft-caption">total recorded spend</p>
+            </div>
+            <div className="min-w-0">
+              <p className="soft-caption">Largest category</p>
+              <p className="category-spending-top-name" title={categories[0].name}>
+                {categories[0].name}
+              </p>
+            </div>
+          </div>
+          <CategorySpendingList
+            categories={categoryEntries}
+            currency={currency}
+            totalAmount={totalAmount}
+          />
         </Surface>
       ) : (
         <EmptyState

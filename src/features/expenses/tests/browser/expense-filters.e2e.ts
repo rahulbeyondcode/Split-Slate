@@ -473,6 +473,122 @@ for (const viewport of [
   { name: "tablet", width: 820, height: 1180 },
   { name: "desktop", width: 1440, height: 900 },
 ]) {
+  for (const theme of ["light", "dark"] as const) {
+    test(`uses seven distinct readable filter colours on ${viewport.name} in ${theme} mode`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: viewport.width, height: viewport.height });
+      await page.evaluate((value) => {
+        localStorage.setItem("split-slate-theme", value);
+      }, theme);
+      await page.goto(
+        "/groups/trip/expenses?categoryIds=food&categoryIds=travel&tagIds=holiday&tagIds=work&payerIds=a&payerIds=b&memberIds=a&memberIds=b&splitTypes=equal&splitTypes=amount&dateFrom=2026-09-20&minAmount=0&sort=highest",
+      );
+      await page.reload();
+      await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+      const chips = page.getByRole("list", { name: "Selected expense filters" });
+      await expect(chips.getByRole("button")).toHaveCount(12);
+      const readColours = () =>
+        chips.evaluate((element) => {
+          const channels = (colour: string) => {
+            const values = colour.match(/[\d.]+/gu)?.map(Number);
+            if (!values || values.length < 3) throw new Error(`Invalid colour: ${colour}`);
+            return values.slice(0, 3);
+          };
+          const luminance = (colour: string) => {
+            const [red, green, blue] = channels(colour).map((value) => {
+              const channel = value / 255;
+              return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+            });
+            return red * 0.2126 + green * 0.7152 + blue * 0.0722;
+          };
+          const hue = (colour: string) => {
+            const [red, green, blue] = channels(colour);
+            const maximum = Math.max(red, green, blue);
+            const minimum = Math.min(red, green, blue);
+            const delta = maximum - minimum;
+            if (!delta) throw new Error("Filter borders must not be grey");
+            const sector =
+              maximum === red
+                ? (green - blue) / delta
+                : maximum === green
+                  ? (blue - red) / delta + 2
+                  : (red - green) / delta + 4;
+            return (sector * 60 + 360) % 360;
+          };
+          return [...element.querySelectorAll<HTMLButtonElement>("button")].map((button) => {
+            const style = getComputedStyle(button);
+            const foreground = luminance(style.color);
+            const background = luminance(style.backgroundColor);
+            const hoverColour = style.getPropertyValue("--filter-hover-background").trim();
+            const hoverChannels = hoverColour
+              .match(/[a-f\d]{2}/giu)
+              ?.map((hex) => Number.parseInt(hex, 16));
+            if (!hoverChannels || hoverChannels.length !== 3) throw new Error("Missing hover colour");
+            const hoverBackground = luminance(`rgb(${hoverChannels.join(", ")})`);
+            const contrast = (first: number, second: number) =>
+              (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05);
+            return {
+              type: button.dataset.filterType,
+              background: style.backgroundColor,
+              border: style.borderTopColor,
+              ink: style.color,
+              hue: hue(style.borderTopColor),
+              contrast: contrast(foreground, background),
+              hoverContrast: contrast(foreground, hoverBackground),
+            };
+          });
+        });
+      const colours = await readColours();
+      const types = [
+        "categoryIds",
+        "tagIds",
+        "payerIds",
+        "memberIds",
+        "splitTypes",
+        "date",
+        "amount",
+      ];
+      const representatives = types.map((type) => {
+        const matching = colours.filter((colour) => colour.type === type);
+        expect(matching).toHaveLength(type === "date" || type === "amount" ? 1 : 2);
+        for (const colour of matching) {
+          expect(colour.background).toBe(matching[0].background);
+          expect(colour.border).toBe(matching[0].border);
+          expect(colour.ink).toBe(matching[0].ink);
+          expect(colour.contrast).toBeGreaterThanOrEqual(4.5);
+          expect(colour.hoverContrast).toBeGreaterThanOrEqual(4.5);
+        }
+        return matching[0];
+      });
+      expect(new Set(representatives.map((colour) => colour.background)).size).toBe(7);
+      expect(new Set(representatives.map((colour) => colour.border)).size).toBe(7);
+      for (let first = 0; first < representatives.length; first += 1) {
+        for (let second = first + 1; second < representatives.length; second += 1) {
+          const difference = Math.abs(representatives[first].hue - representatives[second].hue);
+          expect(Math.min(difference, 360 - difference)).toBeGreaterThanOrEqual(20);
+        }
+      }
+      const removeCategory = chips.getByRole("button", {
+        name: "Remove Category: Food filter",
+        exact: true,
+      });
+      await removeCategory.focus();
+      await page.keyboard.press("Enter");
+      await expect(removeCategory).toHaveCount(0);
+      const remaining = await readColours();
+      for (const colour of remaining) {
+        const original = representatives.find((item) => item.type === colour.type)!;
+        expect(colour.border).toBe(original.border);
+        expect(colour.ink).toBe(original.ink);
+      }
+      expect(new URL(page.url()).searchParams.get("sort")).toBe("highest");
+      await page.reload();
+      await expect(chips.getByRole("button")).toHaveCount(11);
+      expect(await readColours()).toEqual(remaining);
+    });
+  }
+
   test(`keeps filter chips on one horizontally scrollable row on ${viewport.name}`, async ({
     page,
   }) => {
