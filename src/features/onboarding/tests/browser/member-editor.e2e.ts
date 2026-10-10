@@ -84,7 +84,9 @@ for (const viewport of [
     expect((await cancel.boundingBox())!.y).toBeCloseTo(initialCancel.y, 0);
     expect((await savePerson.boundingBox())!.y).toBeCloseTo(initialSavePerson.y, 0);
     expect((await header.boundingBox())!.y).toBeCloseTo(initialHeader.y, 0);
-    await expect(header.getByRole("button", { name: "Close dialog", exact: true })).toBeInViewport();
+    await expect(
+      header.getByRole("button", { name: "Close dialog", exact: true }),
+    ).toBeInViewport();
     expect(await dialog.evaluate((element) => element.scrollTop)).toBe(0);
     await expect(page.locator(".onboarding-continue")).toBeDisabled();
     const box = (await dialog.boundingBox())!;

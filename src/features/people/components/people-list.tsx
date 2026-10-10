@@ -273,8 +273,9 @@ const PeopleList = () => {
         >
           <p id="blocked-contact-description" className="text-sm leading-relaxed">
             {blockedPerson?.name ?? "This contact"} is referenced in expenses or recorded payments
-            across the groups below. Edit those references or delete the records before removing this
-            contact. An expense they created must be deleted, since its creator cannot be reassigned.
+            across the groups below. Edit those references or delete the records before removing
+            this contact. An expense they created must be deleted, since its creator cannot be
+            reassigned.
           </p>
           <div className="mt-4 flex flex-col gap-2">
             {blockedGroups.map(({ group, memberId, count, paymentCount }) => (

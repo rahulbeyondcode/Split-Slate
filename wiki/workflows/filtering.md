@@ -108,6 +108,9 @@ URL and results immediately; Done, Close, and Escape dismiss without reverting t
 viewport changes keep the modal open; crossing the mobile/tablet boundary closes it. Tablet/desktop
 Filters retains its anchored popover. Sort remains a portaled popover at every width, tracks its
 anchor while scrolling, and uses the entire toolbar as its mobile anchor.
+Both popovers also update after filter-value renders and observed form/group-page size changes.
+Filtering or validation can remove insights or resize the sticky toolbar without a window event;
+re-anchoring prevents a stale fixed panel from overlapping and blocking its own trigger.
 
 ## Sorting
 
@@ -152,18 +155,19 @@ values, inactive Analytics selections, stale-option pruning, reloads, long label
 horizontal scrolling, scrollbar clearance, compact typography/padding, 24px minimum controls, and
 keyboard removal at mobile/tablet/desktop
 widths. Mobile modal cases cover scrolling, live selections, Done/Close/Escape, clearing with sort
-retention, focus return, height-only resizing, and switching to tablet. Original-size chips passed
-focused verification; compact-size assertions exposed the font-reset override, which is now fixed
-in source. The latest compact/modal/horizontal-scroll edits and revised tests have not been verified;
-execution is paused under the user's current instruction.
+retention, focus return, height-only resizing, and switching to tablet. Compact-size assertions
+previously exposed the global button-font reset; the explicit compact font override now passes.
+The latest chip/modal/horizontal-scroll cases and a popover-trigger overlap regression pass in the
+final 2026-10-10 full browser suite. Eight production responsive/offline smoke cases at 280–1920px
+also pass. See [[testing-strategy]].
 
 `src/features/group-detail/tests/browser/group-overview-navigation.e2e.ts` adds group Analytics
 drill-down cases at narrow-mobile, tablet, and desktop widths, covering active category selections,
 URL encoding, fresh filter state, reload, clearing, keyboard activation, and same-name historical
-categories. These cases pass in the 2026-10-10 full-browser suite (314 passes, 18 expected viewport
-skips, no failures). Seven additional Analytics smoke checks at 280–1440px confirm no horizontal
-overflow and clickable amount cells; four production offline checks confirm navigation and filtered
-reloads in light/dark mode. See [[testing-strategy]].
+categories. These cases pass in the final 2026-10-10 full-browser suite (389 passes, 21 expected
+viewport skips, no failures), using the responsive Filters dialog/popover controls. Earlier
+Analytics-specific smoke checks verified clickable amount cells and offline navigation; the latest
+production smoke matrix also verifies filtered reloads and saved themes. See [[testing-strategy]].
 
 ---
 

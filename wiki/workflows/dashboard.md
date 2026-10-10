@@ -104,8 +104,10 @@ visible avatar has the person's name as its accessible label and hover title; un
 use the shared profile-icon fallback and an "Unknown member" label. Empty groups omit the avatar
 row. This applies at every screen width without replacing the existing counts or balance.
 The `+N` indicator appears only beyond five members (ten members show five avatars and `+5`).
-Responsive light/dark coverage for zero, one, two, three, five, six, and ten members is added but
-unrun under the current execution pause. See [[global-people-directory]] and [[iconography]].
+Responsive light/dark coverage for zero, one, two, three, five, six, and ten members passes in the
+final 2026-10-10 full browser suite. Cards allow their grid minimum width to shrink so long names
+truncate inside the card rather than widening the main pane. See [[global-people-directory]],
+[[iconography]], and [[testing-strategy]].
 
 Clicking a card navigates to that group's Overview page; the sidebar selection updates to reflect the active group.
 
@@ -145,10 +147,10 @@ There is no time filter.
 The dashboard preview's heading/link, subtitle, and mobile View all action sit above and outside
 the bordered chart surface. Only chart rows or the empty-state message remain inside. The existing
 single-column/two-column layout and ≥640px visibility are retained. Responsive light/dark coverage
-for both external dashboard headers with populated and empty contents is added but unrun under
-the current execution pause. Side-by-side coverage also checks aligned boxes at 1440px and 1920px
-with natural headers, a taller action, and a wrapped category title. Group Overview and full
-Analytics layouts are unchanged.
+for both external dashboard headers with populated and empty contents passes in the final
+2026-10-10 full suite. Side-by-side coverage also verifies aligned boxes at 1440px and 1920px with
+natural headers, a taller action, and a wrapped category title. Group Overview and full Analytics
+layouts are unchanged.
 
 Each expense refers to its own group's category ID; the chart resolves that category and aggregates
 by its exact name. Two groups with `Petrol Expense` become one total, but a differently spelled or
@@ -186,6 +188,10 @@ On narrow mobile screens (<640px), the dashboard retains the groups and overall 
 the unsettled and category previews. Analytics is directly routable, but has no link from the
 dashboard or mobile footer at this width. At 640–767px, the previews are visible. Other
 destinations are reached through the bottom navigation:
+
+Narrow preview and New group CTA visibility uses scoped custom media rules: the custom grid/button
+display declarations otherwise override Tailwind's layered hiding utilities. Production smoke
+checks at 280–1920px confirm the intended visibility and absence of horizontal main-pane overflow.
 
 | Desktop dashboard section | Mobile tab |
 |--------------------------|------------|

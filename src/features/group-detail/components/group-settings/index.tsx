@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Coins, Download, Pencil, Trash2, TriangleAlert } from "lucide-react";
 import type { SyntheticEvent } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { z } from "zod";
@@ -41,6 +41,7 @@ type CurrencyValues = z.infer<typeof currencySchema>;
 
 const GroupSettings = () => {
   const navigate = useNavigate();
+  const nameInputId = useId();
   const currencyDialogRef = useRef<HTMLDialogElement>(null);
   const currencyPickerDialogRef = useRef<HTMLDialogElement>(null);
   const editButtonRef = useRef<HTMLButtonElement>(null);
@@ -236,10 +237,12 @@ const GroupSettings = () => {
                   </>
                 }
               >
-                <label>
-                  <span className="field-label">Group name</span>
-                  <Input name="name" autoFocus />
-                </label>
+                <div>
+                  <label htmlFor={nameInputId} className="field-label">
+                    Group name
+                  </label>
+                  <Input id={nameInputId} name="name" autoFocus />
+                </div>
                 <div>
                   <span className="field-label">Group icon</span>
                   <EmojiPicker name="icon" kind="other" emojis={GROUP_EMOJIS} />

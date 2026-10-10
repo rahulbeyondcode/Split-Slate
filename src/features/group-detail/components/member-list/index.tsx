@@ -354,11 +354,11 @@ const MemberList = () => {
           <p id="blocked-member-description" className="text-sm leading-relaxed">
             {blockedMember?.person?.name ?? "This member"} is referenced by{" "}
             {blockedMember ? memberExpenseCount(blockedMember.id) : 0}{" "}
-            {blockedMember && memberExpenseCount(blockedMember.id) === 1 ? "expense" : "expenses"} and{" "}
-            {blockedMember ? memberPaymentCount(blockedMember.id) : 0}{" "}
+            {blockedMember && memberExpenseCount(blockedMember.id) === 1 ? "expense" : "expenses"}{" "}
+            and {blockedMember ? memberPaymentCount(blockedMember.id) : 0}{" "}
             {blockedMember && memberPaymentCount(blockedMember.id) === 1 ? "payment" : "payments"}.
-            Edit or delete those records before removing this member. An expense they created must be
-            deleted, since its creator cannot be reassigned.
+            Edit or delete those records before removing this member. An expense they created must
+            be deleted, since its creator cannot be reassigned.
           </p>
         </DialogLayout>
       </dialog>

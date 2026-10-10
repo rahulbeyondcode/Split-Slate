@@ -1,5 +1,5 @@
-import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 import type * as DbModule from "@/shared/configs/db";
 import type * as StoreModule from "@/shared/configs/store";
@@ -276,7 +276,9 @@ test("filters expenses through every field, validates ranges, and clears all con
   await expect(page.getByText("8 active filters", { exact: true })).toBeVisible();
   await expect(page.getByRole("status")).toHaveText("1 of 3 expenses");
   await expect(page.getByRole("list", { name: "Expenses" }).getByText("Dinner")).toBeVisible();
-  await expect(page.getByRole("list", { name: "Expenses" }).getByText("Airport taxi")).toHaveCount(0);
+  await expect(page.getByRole("list", { name: "Expenses" }).getByText("Airport taxi")).toHaveCount(
+    0,
+  );
   await expect(page).toHaveURL(/name=.*&dateFrom=2026-09-20.*memberIds=c/u);
 
   await page.reload();
@@ -290,6 +292,19 @@ test("filters expenses through every field, validates ranges, and clears all con
   await expect(
     page.getByText("End date must be on or after start date", { exact: true }),
   ).toBeVisible();
+  if (!isMobile) {
+    await expect
+      .poll(async () => {
+        const trigger = (await getFiltersTrigger(page).boundingBox())!;
+        const popover = (await page
+          .locator(".expense-filter-popover:not([hidden])")
+          .boundingBox())!;
+        return (
+          popover.y + popover.height <= trigger.y + 1 || popover.y >= trigger.y + trigger.height - 1
+        );
+      })
+      .toBe(true);
+  }
   await closeFilters(page);
   await expect(page.getByRole("status")).toHaveText(
     "Correct the highlighted filters to see results.",

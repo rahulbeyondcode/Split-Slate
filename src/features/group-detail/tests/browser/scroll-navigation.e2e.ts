@@ -210,9 +210,9 @@ for (const width of [320, 820, 1440]) {
     await expect(ledger.locator(".settlement-entry")).toHaveCount(20);
     await expect(ledger).toHaveCSS("overflow-y", "visible");
     await expect(ledger).toHaveCSS("max-height", "none");
-    expect(await ledger.evaluate((element) => element.scrollHeight <= element.clientHeight + 1)).toBe(
-      true,
-    );
+    expect(
+      await ledger.evaluate((element) => element.scrollHeight <= element.clientHeight + 1),
+    ).toBe(true);
     await main.evaluate((element) => {
       element.scrollTop = element.scrollHeight;
     });

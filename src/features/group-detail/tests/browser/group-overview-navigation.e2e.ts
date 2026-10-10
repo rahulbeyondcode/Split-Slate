@@ -1,9 +1,18 @@
+import type { Page } from "@playwright/test";
 import { expect, test } from "@playwright/test";
 
 import type * as DbModule from "@/shared/configs/db";
 import type * as StoreModule from "@/shared/configs/store";
 
 import type { OnboardingSettings } from "@/shared/types/domain.types";
+
+const openFilters = async (page: Page) => {
+  if ((page.viewportSize()?.width ?? 0) < 768) {
+    await page.getByRole("button", { name: /^Filters(?: \(\d+\))?$/u }).click();
+  } else {
+    await page.locator("summary").filter({ hasText: "Filters" }).click();
+  }
+};
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/onboarding");
@@ -395,7 +404,7 @@ for (const viewport of [
     await expect(expenses.getByText("Expense 5", { exact: true })).toHaveCount(0);
     await expect(page.getByLabel("Search expenses", { exact: true })).toHaveValue("");
     await expect(page.getByRole("status")).toHaveText("4 of 5 expenses");
-    await page.locator("summary").filter({ hasText: "Filters" }).click();
+    await openFilters(page);
     const categories = page.getByRole("group", { name: "Categories", exact: true });
     await expect(categories.getByLabel("Food", { exact: true })).toBeChecked();
     await expect(categories.getByLabel("Travel", { exact: true })).not.toBeChecked();
@@ -440,7 +449,6 @@ test("filters every same-name category represented by a group analytics row", as
     "food",
     "historical-food",
   ]);
-  await page.locator("summary").filter({ hasText: "Filters" }).click();
   await expect(page.getByText("1 active filter", { exact: true })).toBeVisible();
 });
 

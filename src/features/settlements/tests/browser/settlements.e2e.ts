@@ -155,7 +155,10 @@ for (const width of [320, 820, 1440]) {
     await expect(option).toHaveClass(/choice-option-compact/u);
     await expect(option).toContainText("Cash");
     for (const theme of ["light", "dark"]) {
-      await page.evaluate((value) => document.documentElement.setAttribute("data-theme", value), theme);
+      await page.evaluate(
+        (value) => document.documentElement.setAttribute("data-theme", value),
+        theme,
+      );
       await expect(swatch).toBeVisible();
       await expect(swatch).toHaveCSS("background-color", "rgb(33, 143, 104)");
       const dimensions = await option.evaluate((element) => {

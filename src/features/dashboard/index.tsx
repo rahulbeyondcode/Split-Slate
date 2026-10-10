@@ -94,7 +94,7 @@ const Dashboard = () => {
         <div className="mb-4 flex items-center justify-between gap-3">
           <h2 className="section-title">Your groups</h2>
           {entries.length > 0 && (
-            <Link to="/groups/new" className="btn btn-primary max-sm:hidden">
+            <Link to="/groups/new" className="dashboard-new-group btn btn-primary">
               <Icon icon={Plus} size={18} /> New group
             </Link>
           )}

@@ -11,6 +11,12 @@ Last updated: 2026-10-10
 ---
 
 ## 2026-10-10
+- UPDATED decisions/testing-strategy.md — record the completed approved verification: 467 unit, 389 full-browser, 18 PWA, static checks, both builds, and eight production responsive/offline passes; explain 21 expected skips and the repaired shared UI causes
+- UPDATED architecture/layout-architecture.md — replace paused modal, outer-only ledger, and sidebar coverage caveats with final full-suite and production smoke results
+- UPDATED decisions/settlement-recording.md — confirm compact colour-labelled payment tags across responsive/theme browser cases and production smoke checks
+- UPDATED workflows/dashboard.md — record verified five-avatar previews, external aligned headers, narrow visibility fixes, and zero-width-minimum cards that prevent long-name overflow
+- UPDATED workflows/filtering.md — document layout-aware popover anchoring and completed compact-pill/mobile-modal/Analytics verification
+- UPDATED wiki/index.md — replace the paused pre-refinement baseline with completed verification results and artifact location
 - UPDATED workflows/dashboard.md — document shared row-subgrid sizing for side-by-side dashboard headers and aligned content boxes, preserving natural stacked sizing and approved spacing; revised alignment coverage remains unrun
 - UPDATED wiki/index.md — reflect aligned dashboard preview boxes and retain the verification pause
 - UPDATED workflows/dashboard.md — document approved additional 1rem top margins above both dashboard preview headings while preserving the header-to-box gap; revised spacing coverage remains unrun

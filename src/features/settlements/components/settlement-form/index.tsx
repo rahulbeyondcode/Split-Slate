@@ -141,7 +141,9 @@ const SettlementForm = ({
               </>
             }
           >
-            <p className="soft-caption">Record money sent outside Split Slate in this group only.</p>
+            <p className="soft-caption">
+              Record money sent outside Split Slate in this group only.
+            </p>
             <fieldset disabled={methods.formState.isSubmitting} className="flex flex-col gap-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <MemberPicker name="fromMemberId" label="Paid by" members={members} />

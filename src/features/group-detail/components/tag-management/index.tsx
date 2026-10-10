@@ -142,7 +142,11 @@ const TagManagement = () => {
               >
                 Cancel
               </button>
-              <button type="submit" disabled={isSubmitting || suggesting} className="btn btn-primary">
+              <button
+                type="submit"
+                disabled={isSubmitting || suggesting}
+                className="btn btn-primary"
+              >
                 {isSubmitting ? "Saving..." : tagSubmitLabel}
               </button>
             </>

@@ -179,24 +179,41 @@ declined or deferred, mark the slice unverified and continue only separately app
 
 The 2026-10-10 verification supersedes the older automated baselines below:
 
-- `pnpm check` passes ESLint, Prettier, and TypeScript after approved import-order/formatting fixes
-  and preserving the original caught payer-validation error as `cause` without changing its message.
+- `pnpm check` passes ESLint, Prettier, and TypeScript after the final repairs and scoped
+  import-order/formatting fixes.
 - `pnpm test` passes all 467 cases across 40 files after the final application fixes.
 - `pnpm build` and `VITE_ENABLE_DEVTOOLS=true pnpm build` pass; the final PWA run builds the normal
   production variant again.
 - `pnpm test:pwa` passes all 18 cases against the final application changes.
-- The initial full-browser run passed 307 cases, skipped 18 viewport-specific cases, and failed
-  seven. After an exact-name selector correction for Equal versus Unequal, all 12 focused cases
-  covering those failures passed. A final `pnpm test:e2e` run with source files stable then passed
-  all 314 applicable cases with 18 expected skips and no failures. This includes the new group-only
-  Analytics category links, inactive same-name categories, URL encoding, reload, clearing, and
-  keyboard activation at narrow-mobile, tablet, and desktop widths.
-- Seven independent Analytics smoke checks at 280, 320, 390, 640, 820, 1024, and 1440px confirm no
-  horizontal document/row overflow and that clicking a row's amount opens its matching expenses,
-  including a long category name and a large amount.
-- Four production offline smoke checks at 320px light, 390px dark, 820px light, and 1440px dark
-  verify category navigation, filter persistence after reload, saved themes, and noninteractive
-  app-wide Analytics. Capture artifacts are under `/tmp/opencode/analytics-category-drill-down`.
+- The first full browser run after the modal/filter/dashboard refinements passed 359 cases,
+  skipped 21 inapplicable project combinations, and failed 30. Repairs reduced those failures to
+  shared UI defects and selector drift, not 30 independent defects. The four-file focused rerun
+  passed all 115 applicable cases with 11 expected skips.
+- The final `pnpm test:e2e` run with application source stable passes all 389 applicable cases,
+  with 21 expected viewport-specific skips and zero failures (410 scheduled combinations). It covers
+  group Analytics drill-down, compact horizontal filter pills, mobile Filters, shared modal margins
+  and fixed controls, group identity/currency editing, outer-only expense/payment scrolling,
+  compact colour-labelled payment tags, sidebar groups, and aligned dashboard summaries.
+- Eight production smoke cases at 280, 320, 390, 640, 820, 1024, 1440, and 1920px pass in alternating
+  light/dark themes. Each checks dashboard/pane overflow, member avatars, ledger scrolling, filter
+  pills, modal margins/actions, payment tags, saved themes, and offline filtered reloads and editors.
+  No browser page errors were observed. Logs, screenshots, and traces are under
+  `/tmp/opencode/full-verification-2026-10-10`.
+
+The verification repairs establish these reusable UI constraints:
+
+- Custom unlayered `display` rules override Tailwind's layered hiding utilities. Dashboard preview
+  and New group visibility therefore use explicit scoped media rules. Grid cards also need
+  `min-width: 0` so long names do not expand their automatic minimum width beyond the main pane.
+- Portaled popovers must follow layout changes, not just viewport resize/scroll. Filter edits and
+  validation can remove insights or resize the sticky toolbar; render-time updates and observers
+  keep the popover outside its trigger so it remains closable. See [[filtering]].
+- A custom field's inline error inside a wrapping label changes its accessible name. Group-name
+  editing separates the explicit label from the field/error wrapper, keeping the name stable after
+  invalid submission and allowing correction without weakening the exact-label regression test.
+- Browser tests scope repeated captions and use the current responsive controls: mobile Filters is
+  a dialog, while expense Add tag remains intentionally mobile-only. Desktop tag-modal layout is
+  exercised through Categories & Tags instead.
 
 Builds still emit non-failing large-chunk and service-worker option-deprecation warnings; expense
 payer browser journeys emit a React uncontrolled-to-controlled input warning despite passing.
@@ -204,6 +221,12 @@ These automated results do not claim storage-pressure or two-deployment update r
 verification. See [[layout-architecture]] and [[mobile-pwa-install]].
 
 ### Earlier Verification History
+
+Earlier on 2026-10-10, before the modal/filter/dashboard refinements, the stable full browser suite
+passed 314 cases with 18 expected skips. Seven Analytics smoke cases at 280–1440px and four offline
+cases verified category links, filtered reloads, saved themes, and unchanged app-wide Analytics.
+Those artifacts remain under `/tmp/opencode/analytics-category-drill-down`; the current full run
+supersedes that baseline.
 
 On 2026-10-09, after the onboarding and data-transfer UI changes and execution-approval policy
 updates, `pnpm check` and `pnpm build` passed, all 443 Vitest cases passed across 37 files, and
@@ -287,19 +310,20 @@ Playwright output directories. Component tests with React Testing Library remain
 Some tests exercise UI that exists in only one layout, so `test.skip` excludes the inapplicable
 project rather than dropping the behavior from coverage.
 
-The 2026-10-10 final run scheduled 332 test/project combinations:
+The 2026-10-10 final run scheduled 410 test/project combinations:
 
 | Test scope | Count | Skipped project | Passing project |
 |------------|-------|-----------------|-----------------|
 | Mobile-only UI | 13 | Desktop | Mobile |
-| Desktop-only UI | 2 | Mobile | Desktop |
+| Desktop/sidebar UI | 5 | Mobile | Desktop, including resized sidebar widths |
 | Explicit tablet viewport | 3 | Mobile | Desktop, resized to tablet width |
 
-All 18 skipped combinations have a corresponding passing execution in the appropriate project.
-Examples include mobile footer navigation, desktop dashboard cards, and tablet ledger scrolling.
+All 21 skipped combinations have a corresponding passing execution in the appropriate project.
+Examples include mobile footer navigation, desktop dashboard cards, sidebar rows, and tablet
+outer-only ledger scrolling.
 These tests remain necessary regression coverage; the skip avoids asserting a layout-specific
-contract against a different layout. The result is 314 passing combinations, 18 inapplicable
-combinations, and zero failures—not 18 behaviors left untested.
+contract against a different layout. The result is 389 passing combinations, 21 inapplicable
+combinations, and zero failures—not 21 behaviors left untested.
 
 Additional Vitest suites cover form-value round-trips and fixed two-decimal precision across currency labels; all-member balances,
 transfer conservation, ID tie-breaking, and safe-integer boundaries; member reference checks,

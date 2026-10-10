@@ -2397,11 +2397,18 @@ body:has(.group-page-contained),
   inset: auto;
   top: calc(
     var(--dialog-viewport-top, 0px) +
-      (var(--dialog-viewport-height, 100dvh) + var(--dialog-margin-top) - var(--dialog-margin-bottom)) / 2
+      (
+        var(--dialog-viewport-height, 100dvh) + var(--dialog-margin-top) -
+          var(--dialog-margin-bottom)
+      ) /
+      2
   );
   left: calc(
     var(--dialog-viewport-left, 0px) +
-      (var(--dialog-viewport-width, 100vw) + var(--dialog-margin-left) - var(--dialog-margin-right)) / 2
+      (
+        var(--dialog-viewport-width, 100vw) + var(--dialog-margin-left) - var(--dialog-margin-right)
+      ) /
+      2
   );
   width: calc(
     var(--dialog-viewport-width, 100vw) - var(--dialog-margin-left) - var(--dialog-margin-right)
@@ -2589,6 +2596,7 @@ body:has(.group-page-contained),
 .group-card {
   display: flex;
   flex-direction: column;
+  min-width: 0;
   gap: 1.375rem;
   padding: 1.375rem;
   transition:
@@ -2626,6 +2634,12 @@ body:has(.group-page-contained),
   display: grid;
   grid-template-columns: 1fr;
   gap: 0.875rem;
+}
+@media (max-width: 639px) {
+  .dashboard-lower,
+  .dashboard-new-group {
+    display: none;
+  }
 }
 @container (min-width: 728px) {
   .dashboard-lower {

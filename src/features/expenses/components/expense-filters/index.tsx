@@ -59,7 +59,8 @@ const ExpenseFilters = () => {
   const [sortPosition, setSortPosition] = useState<CSSProperties>();
   const [filtersPosition, setFiltersPosition] = useState<CSSProperties>();
   const [, setSearchParams] = useSearchParams();
-  const { group, groupCategories, groupTags, groupMembers } = useOutletContext<GroupDetailContext>();
+  const { group, groupCategories, groupTags, groupMembers } =
+    useOutletContext<GroupDetailContext>();
   const { control, getValues, register, reset, setValue, trigger } =
     useFormContext<ExpenseFilterValues>();
   const values = useWatch({ control }) as ExpenseFilterValues;
@@ -144,16 +145,23 @@ const ExpenseFilters = () => {
     window.addEventListener("resize", handleResize);
     const main = document.getElementById("main-content");
     main?.addEventListener("scroll", updatePositions, { passive: true });
+    const observer = new ResizeObserver(updatePositions);
+    const form = sortRef.current?.closest("form");
+    if (form) observer.observe(form);
+    const groupPage = form?.closest(".group-page");
+    if (groupPage) observer.observe(groupPage);
     return () => {
+      observer.disconnect();
       window.removeEventListener("resize", handleResize);
       main?.removeEventListener("scroll", updatePositions);
     };
   }, []);
 
   useLayoutEffect(() => {
-    if (window.innerWidth >= 768) return;
     if (sortOpen && sortRef.current) setSortPosition(getPopoverPosition(sortRef.current, 300));
-  }, [sortOpen, values]);
+    if (filtersOpen && filtersRef.current)
+      setFiltersPosition(getPopoverPosition(filtersRef.current, 560));
+  }, [filtersOpen, sortOpen, values]);
 
   const handleClear = () => {
     const next = { ...createExpenseFilterDefaults(), sort: getValues("sort") };

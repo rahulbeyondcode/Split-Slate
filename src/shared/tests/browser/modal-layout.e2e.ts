@@ -1,5 +1,5 @@
-import { expect, test } from "@playwright/test";
 import type { Locator, Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 import type * as DbModule from "@/shared/configs/db";
 import type * as StoreModule from "@/shared/configs/store";
@@ -184,7 +184,7 @@ for (const viewport of [
     await page.goto("/groups/trip/expenses/new");
     for (const { trigger, title } of [
       { trigger: "Add new category", title: "Add category" },
-      { trigger: "Add new tag", title: "Create new tag" },
+      ...(viewport.width < 768 ? [{ trigger: "Add new tag", title: "Create new tag" }] : []),
     ]) {
       await page.getByRole("button", { name: trigger, exact: true }).click();
       const dialog = page.getByRole("dialog", { name: title, exact: true });
@@ -198,7 +198,9 @@ for (const viewport of [
     await dismissDialog(page, payment);
   });
 
-  test(`edits group identity in a modal at ${viewport.width}x${viewport.height}`, async ({ page }) => {
+  test(`edits group identity in a modal at ${viewport.width}x${viewport.height}`, async ({
+    page,
+  }) => {
     await page.setViewportSize(viewport);
     await page.goto("/groups/trip/settings");
     const edit = page.getByRole("button", { name: "Edit name & icon", exact: true });

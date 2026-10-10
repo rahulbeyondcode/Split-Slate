@@ -145,7 +145,8 @@ management, expense-creation, payment, group identity, currency, and export-noti
 280–1440px widths,
 including induced long bodies and naturally short confirmations. Existing onboarding person-editor
 and mobile Filters coverage adds explicit header/footer and 16px-clearance assertions. These
-app-wide layout changes and revised tests have not been executed; verification remains paused.
+app-wide layout changes pass in the final 2026-10-10 full browser suite, with additional production
+responsive/offline smoke checks at 280–1920px. See [[testing-strategy]].
 Group-settings cases also cover cancellation/reset, validation, saved-name reloads, picker-to-
 confirmation transitions, and unchanged expense amounts after a currency relabel.
 
@@ -231,8 +232,8 @@ Expenses scrolls the main pane on all viewport sizes: the group header, expense 
 and then the search/sort/filter toolbar stick in sequence, while insights scroll away. The ledger
 uses natural height with no inner vertical scroll or ten-entry height cap at any width; all expense
 and payment rows are reached through the outer `#main-content` pane. Short filtered lists also
-take only their natural height. Updated browser coverage for outer-only scrolling, last-row access,
-mixed expense/payment history, and navigation resets is unrun under the current execution pause.
+take only their natural height. Browser coverage for outer-only scrolling, last-row access,
+mixed expense/payment history, and navigation resets passes in the final 2026-10-10 full suite.
 Mobile Categories & Tags also scrolls the main pane: each card is 50vh tall with only its content
 scrolling below its section title/subtitle/Add control, so rows cannot appear above or behind
 the sticky group header. The duplicate visible Categories & Tags page title is omitted. Members remains
@@ -309,7 +310,7 @@ Names and counts wrap instead of truncating; the balance occupies its own bottom
 the text, leaving the group icon beside the details. Adjacent rows have a thin theme-token divider
 and vertical spacing. Rows remain transparent, including hover and active states; no background
 fill is added. Tablet/desktop light/dark browser coverage for long names, large positive/negative
-balances, separators, and navigation is added but unrun under the current execution pause.
+balances, separators, and navigation passes in the final 2026-10-10 full suite. See [[testing-strategy]].
 
 ---
 

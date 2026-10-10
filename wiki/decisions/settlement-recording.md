@@ -33,8 +33,9 @@ Optional payment tags use compact native checkbox options with 12px-reference la
 screen width and a colour dot beside each tag name. The dot uses the saved tag colour and is
 decorative; the tag name remains the checkbox's accessible label. Selection, keyboard handling,
 and saved tag IDs are unchanged. Record, Settle up, and Edit share these controls. The colour/sizing
-browser cases at mobile/tablet/desktop widths and in light/dark themes are added but not run under
-the current execution pause. See [[selection-controls]] and [[tag-management]].
+browser cases at mobile/tablet/desktop widths and in light/dark themes pass in the final 2026-10-10
+full suite. Production smoke checks also verify the saved-colour dot and compact text with long tag
+names at 280–1920px. See [[selection-controls]], [[tag-management]], and [[testing-strategy]].
 
 Balances add payments made to each payer's net and subtract payments received from each recipient's
 net, without modifying expenses. Expense spending totals, categories, insights, and filtering remain

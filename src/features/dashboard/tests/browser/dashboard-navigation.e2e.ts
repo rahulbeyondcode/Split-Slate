@@ -138,7 +138,10 @@ for (const width of [768, 820, 1440]) {
     await expect(rows.locator(".money-negative")).toContainText("−₹");
 
     for (const theme of ["light", "dark"]) {
-      await page.evaluate((value) => document.documentElement.setAttribute("data-theme", value), theme);
+      await page.evaluate(
+        (value) => document.documentElement.setAttribute("data-theme", value),
+        theme,
+      );
       for (const row of await rows.all()) {
         await expect(row).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
         await row.hover();
@@ -231,7 +234,7 @@ for (const width of [320, 820, 1440]) {
         );
       }, count);
       await page.reload();
-      await expect(card.locator(".soft-caption")).toHaveText(`${count} members · 0 expenses`);
+      await expect(card.getByText(`${count} members · 0 expenses`, { exact: true })).toBeVisible();
       const members = card.getByRole("group", { name: "Group members", exact: true });
       if (count === 0) {
         await expect(members).toHaveCount(0);
@@ -256,19 +259,26 @@ for (const width of [320, 820, 1440]) {
         );
       }
       if (count >= 5) {
-        await expect(members.getByRole("img", { name: "Extra member 3", exact: true })).toBeVisible();
+        await expect(
+          members.getByRole("img", { name: "Extra member 3", exact: true }),
+        ).toBeVisible();
       }
       if (count > 5) {
-        await expect(
-          members.getByLabel(`${count - 5} more members`, { exact: true }),
-        ).toHaveText(`+${count - 5}`);
-        await expect(members.getByRole("img", { name: "Extra member 4", exact: true })).toHaveCount(0);
+        await expect(members.getByLabel(`${count - 5} more members`, { exact: true })).toHaveText(
+          `+${count - 5}`,
+        );
+        await expect(members.getByRole("img", { name: "Extra member 4", exact: true })).toHaveCount(
+          0,
+        );
       } else {
         await expect(members.getByText(/^\+/u)).toHaveCount(0);
       }
 
       for (const theme of ["light", "dark"]) {
-        await page.evaluate((value) => document.documentElement.setAttribute("data-theme", value), theme);
+        await page.evaluate(
+          (value) => document.documentElement.setAttribute("data-theme", value),
+          theme,
+        );
         await expect(members).toBeVisible();
         const layout = await members.evaluate((element) => {
           const cardBox = element.closest(".group-card")!.getBoundingClientRect();
@@ -397,7 +407,10 @@ for (const width of [667, 820, 1440, 1920]) {
       }
 
       for (const theme of ["light", "dark"]) {
-        await page.evaluate((value) => document.documentElement.setAttribute("data-theme", value), theme);
+        await page.evaluate(
+          (value) => document.documentElement.setAttribute("data-theme", value),
+          theme,
+        );
         for (const section of [unsettled, chart]) {
           const header = section.locator(":scope > header");
           const surface = section.locator(":scope > .surface");
@@ -434,14 +447,18 @@ for (const width of [667, 820, 1440, 1920]) {
           expect(layout.surfaceFits).toBe(true);
           expect(layout.controlsAbove).toBe(true);
         }
-        await expect(unsettled.locator("header").getByRole("link", { name: /View all/u })).toBeVisible();
+        await expect(
+          unsettled.locator("header").getByRole("link", { name: /View all/u }),
+        ).toBeVisible();
         if (width < 768) {
-          await expect(chart.locator("header").getByRole("link", { name: "View all" })).toBeVisible();
+          await expect(
+            chart.locator("header").getByRole("link", { name: "View all" }),
+          ).toBeVisible();
         }
         if (width >= 1440) {
-          const columns = await page.locator(".dashboard-lower").evaluate((element) =>
-            getComputedStyle(element).gridTemplateColumns.split(" "),
-          );
+          const columns = await page
+            .locator(".dashboard-lower")
+            .evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(" "));
           expect(columns).toHaveLength(2);
           for (const headerSize of ["natural", "tall-action", "wrapped-title"]) {
             const action = unsettled.locator("header").getByRole("link", { name: /View all/u });
@@ -561,6 +578,7 @@ test("places the purple New group action at the center of the mobile dashboard f
     "Settings",
   ]);
   await expect(page.locator(".dashboard-page .mobile-cta")).toHaveCount(0);
+  await expect(page.locator(".dashboard-new-group")).toBeHidden();
   const createLink = footer.getByRole("link", { name: "New group" });
   await expect(createLink).toHaveClass(/mobile-nav-create/u);
   await expect(createLink.locator(".nav-icon")).toHaveCSS("color", "rgb(255, 255, 255)");
@@ -656,6 +674,8 @@ test("keeps the dashboard banner and both group balance states readable on narro
       return {
         documentWidth: document.documentElement.scrollWidth,
         viewportWidth: window.innerWidth,
+        mainWidth: document.getElementById("main-content")!.clientWidth,
+        mainScrollWidth: document.getElementById("main-content")!.scrollWidth,
         bannerWidth: banner.getBoundingClientRect().width,
         boxes: [...banner.querySelectorAll(".hero-box")].map(
           (box) => box.getBoundingClientRect().width,
@@ -679,6 +699,7 @@ test("keeps the dashboard banner and both group balance states readable on narro
       };
     });
     expect(layout.documentWidth).toBeLessThanOrEqual(layout.viewportWidth);
+    expect(layout.mainScrollWidth).toBeLessThanOrEqual(layout.mainWidth + 1);
     expect(layout.boxes).toHaveLength(2);
     expect(layout.boxes.every((boxWidth) => boxWidth > layout.bannerWidth / 3)).toBe(true);
     for (const card of layout.cards) {

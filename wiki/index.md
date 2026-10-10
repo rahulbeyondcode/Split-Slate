@@ -21,19 +21,15 @@ Last updated: 2026-10-10
 
 > **Verification status (2026-10-10):** Lint, formatting, TypeScript, production build, and
 > Devtools-enabled build pass. All 467 unit cases across 40 files and all 18 PWA cases pass.
-> The final stable full-browser run passes 314 cases with 18 expected viewport skips and no
-> failures, including group Analytics category drill-down on mobile, tablet, and desktop.
-> Seven Analytics smoke checks at 280–1440px show no horizontal overflow; four production offline
-> checks verify category navigation, filtered reloads, and unchanged app-wide Analytics in light
-> and dark modes. Deployment-specific release checks remain outside this automated verification.
-> Future runs still require approval. The 18 skips are inapplicable project combinations; each
-> corresponding test passes in its appropriate mobile, desktop, or tablet-sized project.
-> These results predate the subsequent compact horizontal filter-pill row, mobile Filters modal,
-> app-wide modal-margin/fixed-controls edits, group name/icon/currency editor modals, and outer-only
-> Expenses scrolling, compact colour-labelled payment tag options, and divided sidebar group rows
-> with bottom balances, plus five-member group-card avatar previews and external dashboard summary
-> headings with extra top spacing and aligned side-by-side boxes, which have not been verified;
-> execution is paused.
+> The final stable full-browser run passes 389 cases with 21 expected viewport-specific skips and
+> zero failures, including the compact filter pills, mobile Filters, shared modal layout,
+> group-settings editors, outer-only Expenses scrolling, payment tags, sidebar groups, and dashboard
+> avatar previews/external aligned headings. Eight production responsive/offline smoke cases at
+> 280–1920px pass in alternating light/dark themes with no horizontal pane overflow or browser errors.
+> The initial 30 browser failures were repaired and all 115 applicable focused cases passed before
+> the final full run. Skips are inapplicable project combinations; each passes in its appropriate
+> project. Deployment-specific release checks remain outside this automated verification.
+> Verification artifacts: `/tmp/opencode/full-verification-2026-10-10`. Future runs require approval.
 > See [[testing-strategy]] and [[layout-architecture]].
 
 ---
@@ -65,7 +61,7 @@ Last updated: 2026-10-10
 - [Selection Controls](decisions/selection-controls.md) — native checkboxes/radios with selected and visibly locked states across forms, filters, and transfer
 - [Offline Payment Recording](decisions/settlement-recording.md) — group-only repayment records, modal entry with compact colour-labelled tags, correction, and portability
 - [String Input Normalization](decisions/string-input-normalization.md) — required strings reject trimmed blanks; optional expense inputs have explicit blank-value semantics
-- [Testing Strategy](decisions/testing-strategy.md) — approval-gated execution, 467 unit/314 browser/18 PWA passes, responsive/offline Analytics checks, and explained project-specific skips
+- [Testing Strategy](decisions/testing-strategy.md) — approval-gated execution, 467 unit/389 browser/18 PWA passes, responsive/offline UI checks, and 21 explained project-specific skips
 
 ### Systems
 - [IndexedDB Schema](systems/indexeddb-schema.md) — version 3 payments, safe expense/balance writes, and bootstrap recovery
