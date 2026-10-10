@@ -37,7 +37,7 @@ Last updated: 2026-10-10
 ## Navigation
 
 ### Roadmap
-- [Product Direction and Roadmap](roadmap/product-roadmap.md) — verified narrow-mobile scaling, group duplication, PWA release gates, and implemented group-only repayment recording
+- [Product Direction and Roadmap](roadmap/product-roadmap.md) — launch-copy promise ledger with unimplemented sync/device continuity, independent animated landing with revised copy awaiting checks, SEO deferred, and PWA release gates
 
 ### Architecture
 - [Domain Models](architecture/domain-models.md) — expense and payment shapes, PNG icon keys, fixed-hundredths money, and optional group tags
@@ -88,7 +88,7 @@ Last updated: 2026-10-10
 - [Category Settings UI](ideas/category-settings-ui.md) — data layer built (DB-backed master/default category lists); settings screen still TODO
 
 ### Research
-- [Competitive Landscape](research/competitive-landscape.md) — dated May 2026 research snapshot covering 9 apps, with current fact corrections
+- [Competitive Landscape](research/competitive-landscape.md) — historical 9-app research plus eight-site lessons applied to launch copy, rendered evidence, retained name, and canonical promise-tracker linkage
 - [Market Opportunity](research/market-opportunity.md) — dated research thesis and recommendations, not the committed product roadmap
 - [User Pain Points](research/user-pain-points.md) — dated complaint synthesis with current-behavior qualifications
 - [Monetization Model](research/monetization-model.md) — unimplemented pricing and packaging proposal derived from the research snapshot

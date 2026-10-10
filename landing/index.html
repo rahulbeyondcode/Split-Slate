@@ -1,0 +1,732 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f3f0e8" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./animations.js" defer></script>
+    <title>Split Slate — Go halves. Stay whole.</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <div class="reading-progress" aria-hidden="true"></div>
+    <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <symbol id="arrow" viewBox="0 0 24 24">
+        <path d="M5 12h14m-6-6 6 6-6 6" />
+      </symbol>
+      <symbol id="arrow-up" viewBox="0 0 24 24">
+        <path d="M6 18 18 6M6 6h12v12" />
+      </symbol>
+      <symbol id="check" viewBox="0 0 24 24">
+        <path d="m5 12 4 4L19 6" />
+      </symbol>
+      <symbol id="plus" viewBox="0 0 24 24">
+        <path d="M12 5v14M5 12h14" />
+      </symbol>
+      <symbol id="spark" viewBox="0 0 48 48">
+        <path d="M24 2v44M2 24h44M8.5 8.5l31 31m-31 0 31-31" />
+      </symbol>
+      <symbol id="lock" viewBox="0 0 24 24">
+        <rect x="5" y="10" width="14" height="11" rx="2" />
+        <path d="M8 10V7a4 4 0 0 1 8 0v3m-4 5v2" />
+      </symbol>
+      <symbol id="sun" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="4" />
+        <path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5" />
+      </symbol>
+    </svg>
+
+    <header class="site-header">
+      <div class="header-inner frame">
+        <a class="wordmark" href="#" aria-label="Split Slate home">
+          <img src="./favicon.svg" width="34" height="34" alt="" />
+          <span
+            >split<span class="wordmark-light">slate</span><span class="brand-dot">.</span></span
+          >
+        </a>
+        <nav class="site-nav" aria-label="Main navigation">
+          <a href="#the-good-part">How it works</a>
+          <a href="#play-with-it">Try a split</a>
+          <a href="#questions">FAQs</a>
+        </nav>
+        <div class="header-actions">
+          <button class="motion-toggle" type="button" aria-pressed="false" hidden>
+            <span class="motion-light" aria-hidden="true"></span>
+            <span class="motion-label">Motion on</span>
+          </button>
+          <a class="button button-header" href="https://split-slate.netlify.app/">
+            Open app <svg class="icon" aria-hidden="true"><use href="#arrow-up" /></svg>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main id="main-content">
+      <section class="hero frame" data-scene aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="section-label" data-reveal>
+            <span class="small-spark" aria-hidden="true">✳</span> Split bills. Keep balances clear.
+          </p>
+          <h1 id="hero-title">
+            <span class="headline-line" data-reveal>Go halves.</span>
+            <span class="headline-line headline-serif" data-reveal data-delay="100">
+              Stay whole<span class="headline-period">.</span>
+            </span>
+          </h1>
+          <p class="hero-description" data-reveal data-delay="180">
+            Split bills with friends, track shared expenses, and see who owes whom. From trips to
+            roommate bills, choose a fair split and keep your group in sync.
+          </p>
+          <div class="hero-actions" data-reveal data-delay="240">
+            <a class="button button-primary" href="https://split-slate.netlify.app/">
+              Start your first group
+              <span class="button-arrow"
+                ><svg class="icon" aria-hidden="true"><use href="#arrow" /></svg
+              ></span>
+            </a>
+            <span class="hero-small-print"
+              >Free core features.<br />No account needed for local use.</span
+            >
+          </div>
+          <a class="scroll-invitation" href="#the-good-part">
+            <span class="scroll-line" aria-hidden="true"></span> Scroll. It adds up.
+          </a>
+        </div>
+
+        <figure class="hero-scene" data-scene aria-labelledby="hero-scene-caption">
+          <div class="scene-parallax">
+            <div class="scene-disc" aria-hidden="true"></div>
+            <div class="scene-orbit" aria-hidden="true"><span>LESS MENTAL MATH</span></div>
+            <svg class="scene-connections" viewBox="0 0 600 600" aria-hidden="true">
+              <path class="connection-path" d="M170 170C30 340 160 520 340 465" />
+              <path
+                class="connection-path connection-path-two"
+                d="M470 180C595 230 580 425 460 450"
+              />
+              <path class="connection-tick" d="m448 435 13 15-17 8" />
+            </svg>
+            <div class="scene-coordinate coordinate-top" aria-hidden="true">
+              03 PEOPLE / 01 GOOD WEEKEND
+            </div>
+            <article
+              class="paper-ticket ticket-stay"
+              aria-label="Example: you paid 5,400 rupees for a stay"
+            >
+              <div class="ticket-meta"><span>THE GETAWAY</span><span>001</span></div>
+              <svg class="ticket-drawing" viewBox="0 0 120 70" aria-hidden="true">
+                <path
+                  d="M22 62V27l38-18 38 18v35M16 62h88M48 62V43h24v19M33 31h12v9H33zm42 0h12v9H75zM54 23h12"
+                />
+                <path d="M11 15h12m-6-6v12m79-7h12m-6-6v12" />
+              </svg>
+              <h2>A place to land.</h2>
+              <p>Two nights. Three friends.</p>
+              <div class="ticket-total"><span>YOU PAID</span><strong>₹5,400</strong></div>
+              <div class="ticket-perforation" aria-hidden="true"></div>
+              <div class="ticket-bottom">
+                <span>Split three ways</span><span class="ticket-barcode" aria-hidden="true"></span>
+              </div>
+            </article>
+            <article
+              class="paper-ticket ticket-dinner"
+              aria-label="Example: Maya paid 2,400 rupees for dinner"
+            >
+              <div class="ticket-meta"><span>THE LONG DINNER</span><span>002</span></div>
+              <svg class="ticket-drawing" viewBox="0 0 120 70" aria-hidden="true">
+                <ellipse cx="60" cy="35" rx="26" ry="24" />
+                <ellipse cx="60" cy="35" rx="17" ry="16" />
+                <path d="M19 10v18m-5-18v12q0 6 10 6V10m-5 18v32m80-50v50m0-50q14 18 0 26" />
+              </svg>
+              <h2>One more course.</h2>
+              <div class="ticket-total"><span>MAYA PAID</span><strong>₹2,400</strong></div>
+              <div class="ticket-perforation" aria-hidden="true"></div>
+              <div class="ticket-bottom"><span>Worth every bite</span><span>✓</span></div>
+            </article>
+            <article
+              class="paper-ticket ticket-ride"
+              aria-label="Example: Dev paid 1,200 rupees for rides"
+            >
+              <div class="ticket-meta"><span>HERE &amp; THERE</span><span>003</span></div>
+              <h2>The scenic route.</h2>
+              <div class="ticket-total"><span>DEV PAID</span><strong>₹1,200</strong></div>
+            </article>
+            <div class="scene-stamp" aria-hidden="true">
+              <svg class="icon"><use href="#sun" /></svg><span>GOOD<br />COMPANY</span>
+            </div>
+            <div class="hero-balance">
+              <span class="balance-avatar" aria-hidden="true">Y</span>
+              <div><span>The math is done.</span><strong>You’re owed ₹2,400</strong></div>
+              <span class="balance-seal" aria-hidden="true"
+                ><svg class="icon"><use href="#check" /></svg
+              ></span>
+            </div>
+            <span class="scene-handwriting" aria-hidden="true"
+              >keep the memories,<br />not the mental tabs.</span
+            >
+          </div>
+          <figcaption id="hero-scene-caption">
+            An illustrated example, not your actual expenses.
+          </figcaption>
+        </figure>
+        <div class="hero-bottomline">
+          <span>LOCAL-FIRST. SHARE ON YOUR TERMS.</span
+          ><span>Made for life outside a spreadsheet. <span aria-hidden="true">↙</span></span>
+        </div>
+      </section>
+
+      <div class="word-ribbon" data-scene>
+        <div class="ribbon-track" aria-hidden="true">
+          <span>The trip</span><span class="ribbon-spark">✳</span><span>The table</span
+          ><span class="ribbon-spark">✳</span><span>The everyday</span
+          ><span class="ribbon-spark">✳</span><span>All figured out</span
+          ><span class="ribbon-spark">✳</span> <span>The trip</span
+          ><span class="ribbon-spark">✳</span><span>The table</span
+          ><span class="ribbon-spark">✳</span><span>The everyday</span
+          ><span class="ribbon-spark">✳</span><span>All figured out</span
+          ><span class="ribbon-spark">✳</span>
+        </div>
+        <span class="sr-only">For trips, meals, and everyday shared expenses.</span>
+      </div>
+
+      <section
+        class="story-section frame"
+        id="the-good-part"
+        data-stage="1"
+        aria-labelledby="story-title"
+      >
+        <div class="section-topline">
+          <span class="section-label">01 / Your group, from first bill to final balance</span
+          ><span class="section-marker" aria-hidden="true">↓</span>
+        </div>
+        <div class="story-layout">
+          <div class="story-copy">
+            <h2 class="section-title" id="story-title" data-reveal>
+              A good time.<br /><em>Not a math problem.</em>
+            </h2>
+            <div class="story-chapter" data-chapter="1">
+              <span class="chapter-index">01 / GATHER</span>
+              <h3>Start a group.<br />Keep your people in the picture.</h3>
+              <p>
+                Create a group for your trip, home, or meal. Add your people and record who paid for
+                what—you booked the stay, Maya picked up dinner, and Dev got the rides. Share the
+                group to keep everyone’s expenses together.
+              </p>
+            </div>
+            <div class="story-chapter" data-chapter="2">
+              <span class="chapter-index">02 / SPLIT</span>
+              <h3>Fair for your people.<br />Not just a formula.</h3>
+              <p>
+                Choose who shares each expense. Split equally, enter exact amounts, use shares or
+                percentages, or adjust an equal split. If two people covered the bill, record both
+                contributions. Everyone’s share stays clear.
+              </p>
+            </div>
+            <div class="story-chapter" data-chapter="3">
+              <span class="chapter-index">03 / BREATHE</span>
+              <h3>Less back-and-forth.<br />More “next time?”</h3>
+              <p>
+                Follow updated balances as expenses are added to your synced group. See suggested
+                repayments, pay each other however you normally do, and record the payment in the
+                group. Split Slate handles the numbers, not the money.
+              </p>
+            </div>
+          </div>
+          <figure class="story-art" data-scene aria-labelledby="story-art-caption">
+            <div class="story-board">
+              <div class="board-topline">
+                <span>WEEKEND AWAY</span><span class="board-indicator">EXAMPLE</span>
+              </div>
+              <div class="board-grid" aria-hidden="true"></div>
+              <svg class="board-lines" viewBox="0 0 500 500" aria-hidden="true">
+                <path
+                  d="M110 170C110 260 250 230 250 330M250 145v185M390 170C390 260 250 230 250 330"
+                />
+                <path class="board-arrow" d="m240 316 10 14 10-14" />
+              </svg>
+              <div class="mini-receipt mini-receipt-you">
+                <span>YOU / STAY</span><strong>₹5,400</strong
+                ><span class="mini-rule" aria-hidden="true"></span><span>Paid for the group</span>
+              </div>
+              <div class="mini-receipt mini-receipt-maya">
+                <span>MAYA / DINNER</span><strong>₹2,400</strong
+                ><span class="mini-rule" aria-hidden="true"></span><span>Paid for the group</span>
+              </div>
+              <div class="mini-receipt mini-receipt-dev">
+                <span>DEV / RIDES</span><strong>₹1,200</strong
+                ><span class="mini-rule" aria-hidden="true"></span><span>Paid for the group</span>
+              </div>
+              <div class="board-equation"><span>₹9,000 ÷ 3</span><strong>₹3,000 each.</strong></div>
+              <div class="board-result">
+                <span class="board-result-label">THE CLEAR PICTURE</span>
+                <div>
+                  <span>Maya <span aria-hidden="true">→</span> You</span><strong>₹600</strong>
+                </div>
+                <div>
+                  <span>Dev <span aria-hidden="true">→</span> You</span><strong>₹1,800</strong>
+                </div>
+                <p>Two suggested repayments. No guesswork.</p>
+              </div>
+              <span class="board-spark" aria-hidden="true">✳</span>
+              <div class="board-bottomline">
+                <span>EVERY LITTLE THING, ACCOUNTED FOR.</span><span aria-hidden="true">↗</span>
+              </div>
+            </div>
+            <figcaption id="story-art-caption">
+              ₹9,000 shared equally. You’re owed ₹2,400 in total.
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="split-section" id="play-with-it" aria-labelledby="split-title">
+        <div class="frame split-layout">
+          <div class="split-copy">
+            <p class="section-label">02 / Fair is a flexible thing</p>
+            <h2 id="split-title" data-reveal>
+              Same dinner.<br /><em>Different ways<br />to split it.</em>
+            </h2>
+            <p>
+              Equal amounts, exact amounts, shares, percentages, or adjustments: pick what’s fair
+              for this bill. Include only the people involved. Someone just had a drink? Their share
+              doesn’t have to look like everyone else’s.
+            </p>
+            <p class="split-invitation">
+              <span aria-hidden="true">↗</span> Pick a method. Watch it add up.
+            </p>
+            <div class="split-footnote">
+              <span>5</span>
+              <p>split methods.<br />One total that always balances.</p>
+            </div>
+          </div>
+          <div class="split-playground" data-scene>
+            <div class="demo-heading">
+              <span>THE DINNER BILL</span><strong>₹1,200<span>.00</span></strong
+              ><span class="demo-stamp">3 PEOPLE</span>
+            </div>
+            <div
+              class="demo-controls"
+              role="group"
+              aria-label="Choose an illustrative split method"
+            >
+              <button type="button" data-split="equal" aria-pressed="true" disabled>Equal</button>
+              <button type="button" data-split="unequal" aria-pressed="false" disabled>
+                Unequal
+              </button>
+              <button type="button" data-split="shares" aria-pressed="false" disabled>
+                Shares
+              </button>
+              <button type="button" data-split="percentage" aria-pressed="false" disabled>%</button>
+              <button type="button" data-split="adjust" aria-pressed="false" disabled>
+                Adjust
+              </button>
+            </div>
+            <div class="demo-allocations">
+              <div class="allocation allocation-you" style="--share: 0.333333">
+                <div class="allocation-label">
+                  <span><span class="person-dot" aria-hidden="true">Y</span>You</span
+                  ><strong data-amount="0">₹400</strong>
+                </div>
+                <div class="allocation-track" aria-hidden="true">
+                  <span class="allocation-fill"></span><span class="allocation-ticks"></span>
+                </div>
+              </div>
+              <div class="allocation allocation-maya" style="--share: 0.333333">
+                <div class="allocation-label">
+                  <span><span class="person-dot" aria-hidden="true">M</span>Maya</span
+                  ><strong data-amount="1">₹400</strong>
+                </div>
+                <div class="allocation-track" aria-hidden="true">
+                  <span class="allocation-fill"></span><span class="allocation-ticks"></span>
+                </div>
+              </div>
+              <div class="allocation allocation-dev" style="--share: 0.333333">
+                <div class="allocation-label">
+                  <span><span class="person-dot" aria-hidden="true">D</span>Dev</span
+                  ><strong data-amount="2">₹400</strong>
+                </div>
+                <div class="allocation-track" aria-hidden="true">
+                  <span class="allocation-fill"></span><span class="allocation-ticks"></span>
+                </div>
+              </div>
+            </div>
+            <p class="demo-explanation">Three people. Three equal shares.</p>
+            <div class="demo-total">
+              <span
+                ><svg class="icon" aria-hidden="true"><use href="#check" /></svg>Every rupee
+                accounted for.</span
+              ><strong>₹1,200</strong>
+            </div>
+            <p class="demo-disclaimer">
+              Illustrative example. Enable JavaScript to try the methods.
+            </p>
+            <p class="sr-only" id="demo-status" role="status" aria-atomic="true"></p>
+          </div>
+        </div>
+      </section>
+
+      <section class="life-section frame" aria-labelledby="life-title">
+        <div class="section-topline">
+          <span class="section-label">03 / Not just for the big plans</span
+          ><span class="section-marker" aria-hidden="true">✳</span>
+        </div>
+        <div class="life-heading">
+          <h2 class="section-title" id="life-title" data-reveal>
+            For the lives<br /><em>you overlap.</em>
+          </h2>
+          <p>
+            Trip costs, roommate bills, meals with friends.<br />Give each its own group, track who
+            paid,<br />and keep the shared costs easy to follow.
+          </p>
+        </div>
+        <div class="life-grid">
+          <article class="life-item life-trip" data-reveal>
+            <div class="life-art" aria-hidden="true">
+              <div class="postcard">
+                <span>OUT OF OFFICE</span
+                ><svg viewBox="0 0 200 150">
+                  <circle cx="144" cy="37" r="20" />
+                  <path
+                    d="M0 107q50-35 100 0t100 0M0 125q50-35 100 0t100 0M67 110Q59 52 77 33m-1 0Q49 16 30 45m46-12q15-29 41-9m-41 9q-2-24-21-26m22 26q23-8 30 14"
+                  /></svg
+                ><span>TAKE THE SCENIC ROUTE.</span>
+              </div>
+              <span class="luggage-tag">03<br /><small>FRIENDS</small></span>
+              <span class="art-doodle" aria-hidden="true">↗</span>
+            </div>
+            <div class="life-item-heading">
+              <span>01</span>
+              <h3>Trips &amp; travel.</h3>
+            </div>
+            <p>
+              Hotels, taxis, fuel, meals, and activities. Keep the whole trip in one group, even when
+              different friends pay for different things.
+            </p>
+          </article>
+          <article class="life-item life-home" data-reveal data-delay="100">
+            <div class="life-art" aria-hidden="true">
+              <div class="house-note">
+                <span>OUR LITTLE CORNER</span
+                ><svg viewBox="0 0 200 150">
+                  <path
+                    d="m30 70 70-50 70 50M45 60v70h110V60M85 130V90h30v40M61 73h15v16H61zm64 0h15v16h-15zM20 130h160"
+                  />
+                  <path d="M139 42V23h14v29M23 34l4-8 4 8 8 4-8 4-4 8-4-8-8-4Z" /></svg
+                ><span>A PLACE WE SHARE.</span>
+              </div>
+              <span class="grocery-slip">MILK<br />COFFEE<br />THE LITTLE THINGS</span>
+            </div>
+            <div class="life-item-heading">
+              <span>02</span>
+              <h3>Roommates &amp; bills.</h3>
+            </div>
+            <p>
+              Rent, electricity, internet, groceries, and household supplies. See what each person
+              paid and their share of the costs you live with.
+            </p>
+          </article>
+          <article class="life-item life-table" data-reveal data-delay="200">
+            <div class="life-art" aria-hidden="true">
+              <div class="table-plate">
+                <svg viewBox="0 0 200 200">
+                  <circle cx="100" cy="100" r="79" />
+                  <circle cx="100" cy="100" r="64" />
+                  <path d="m76 57 69 81-88-14Z" />
+                  <path d="M76 57q35-4 69 81" />
+                  <circle cx="87" cy="87" r="5" />
+                  <circle cx="104" cy="110" r="5" />
+                  <circle cx="78" cy="108" r="4" />
+                </svg>
+              </div>
+              <span class="table-ticket">ONE MORE<br /><em>slice?</em></span>
+              <span class="art-doodle" aria-hidden="true">✳</span>
+            </div>
+            <div class="life-item-heading">
+              <span>03</span>
+              <h3>Meals &amp; meetups.</h3>
+            </div>
+            <p>
+              Restaurant bills, birthday plans, and team lunches. Share equally or use exact amounts
+              when people owe different amounts. Include tax and tip in the expense total.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="privacy-section" id="privacy" aria-labelledby="privacy-title">
+        <div class="frame privacy-layout">
+          <div class="privacy-illustration" data-scene aria-hidden="true">
+            <div class="privacy-orbit privacy-orbit-one"></div>
+            <div class="privacy-orbit privacy-orbit-two"></div>
+            <span class="orbit-label">YOUR GROUPS, YOUR CHOICE</span>
+            <div class="device-illustration">
+              <span class="device-camera"></span
+              ><svg class="device-lock icon"><use href="#lock" /></svg
+              ><span class="device-title">Your<br /><em>groups.</em></span>
+              <div class="device-expense"><span>Weekend away</span><strong>₹9,000</strong></div>
+              <div class="device-expense"><span>Our place</span><strong>₹4,200</strong></div>
+              <span class="device-homebar"></span>
+            </div>
+            <div class="backup-slip">
+              <svg class="icon"><use href="#arrow-up" /></svg
+              ><span>TAKE A COPY.<strong>backup.zip</strong></span>
+            </div>
+            <span class="privacy-star">✳</span>
+          </div>
+          <div class="privacy-copy">
+            <p class="section-label">04 / Offline, shared, and yours</p>
+            <h2 id="privacy-title" data-reveal>Your expenses.<br /><em>Your call.</em></h2>
+            <p class="privacy-intro">
+              Keep everyday expenses on your device, without an account. Share a synced group when
+              you want to keep its people up to date, and export a backup whenever you want a copy.
+            </p>
+            <div class="privacy-fact" id="group-sync">
+              <span>01</span>
+              <div>
+                <h3>Your group, on the same page.</h3>
+                <p>
+                  Share a group and keep its expenses and balances up to date across connected
+                  devices. Everyone can follow the shared costs without comparing separate notes.
+                </p>
+              </div>
+            </div>
+            <div class="privacy-fact" id="offline-use">
+              <span>02</span>
+              <div>
+                <h3>Off the grid. Still keeping track.</h3>
+                <p>
+                  Once the app’s offline files are ready, add expenses and check balances without a
+                  connection.
+                </p>
+              </div>
+            </div>
+            <div class="privacy-fact" id="exports-and-backups">
+              <span>03</span>
+              <div>
+                <h3>A copy you can actually keep.</h3>
+                <p>
+                  Export a group as a link, CSV, or ZIP. Download a whole-app ZIP backup before
+                  clearing browser data or changing devices.
+                </p>
+              </div>
+            </div>
+            <div class="privacy-fact" id="install-app">
+              <span>04</span>
+              <div>
+                <h3>Make room on your home screen.</h3>
+                <p>
+                  Open the app to install it from a supported browser. Your installed PWA is the
+                  expense tool—not this website.
+                </p>
+              </div>
+            </div>
+            <p class="privacy-caveat">
+              Local storage isn’t permanent storage. Keep backups of the things that matter.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="questions-section frame" id="questions" aria-labelledby="questions-title">
+        <div class="questions-heading">
+          <p class="section-label">05 / Before you ask</p>
+          <h2 class="section-title" id="questions-title" data-reveal>
+            The small<br /><em>print, enlarged.</em>
+          </h2>
+          <p>No mystery. No fine-print maze.</p>
+        </div>
+        <div class="faq-list">
+          <details>
+            <summary>
+              <span>Can I start without an account?</span>
+              <span class="faq-toggle" aria-hidden="true"></span>
+            </summary>
+            <div class="faq-answer">
+              <p>
+                Yes. Set up a local profile and start keeping expenses on your device—no email,
+                password, or online account required for local use. Add the people involved so the
+                app knows who paid and who shares each expense.
+              </p>
+            </div>
+          </details>
+          <details id="free-core-features">
+            <summary>
+              <span>Is it free to use?</span><span class="faq-toggle" aria-hidden="true"></span>
+            </summary>
+            <div class="faq-answer">
+              <p>
+                Yes. Adding expenses, all five split methods, balances, offline use, and exports
+                are free core features. You can track local expenses without a subscription.
+              </p>
+            </div>
+          </details>
+          <details id="live-group-updates">
+            <summary>
+              <span>Does everyone get live updates?</span
+              ><span class="faq-toggle" aria-hidden="true"></span>
+            </summary>
+            <div class="faq-answer">
+              <p>
+                Yes. In a synced group, expenses and balances update across connected devices.
+                Keep track together as your group adds expenses, so everyone can follow the shared
+                costs and see where they stand.
+              </p>
+            </div>
+          </details>
+          <details>
+            <summary>
+              <span>Does it really work offline?</span
+              ><span class="faq-toggle" aria-hidden="true"></span>
+            </summary>
+            <div class="faq-answer">
+              <p>
+                Your first visit needs a connection to download the app’s offline files. Once those
+                are ready, you can open the app and record expenses offline. Browser storage and
+                caches aren’t guaranteed to last forever, so keep backups.
+              </p>
+            </div>
+          </details>
+          <details>
+            <summary>
+              <span>How do I install the app?</span
+              ><span class="faq-toggle" aria-hidden="true"></span>
+            </summary>
+            <div class="faq-answer">
+              <p>
+                Open the app from this page. Use Install app in Settings or your browser’s
+                installation menu. On iPhone, use Safari’s Share menu and Add to Home Screen.
+                Options depend on the browser; a browser tab works too.
+              </p>
+            </div>
+          </details>
+          <details>
+            <summary>
+              <span>Can I send money through it?</span
+              ><span class="faq-toggle" aria-hidden="true"></span>
+            </summary>
+            <div class="faq-answer">
+              <p>
+                No. Split Slate calculates balances and suggests repayments. Pay however you
+                normally would, then record that payment in the group. The app doesn’t transfer or
+                hold money.
+              </p>
+            </div>
+          </details>
+          <details id="new-device">
+            <summary>
+              <span>What if I switch devices?</span
+              ><span class="faq-toggle" aria-hidden="true"></span>
+            </summary>
+            <div class="faq-answer">
+              <p>
+                Open a synced group on another device to pick up its shared expenses and balances.
+                For groups you keep locally, download a whole-app ZIP backup from Settings and
+                restore it in the app on your new device. Keep a backup before clearing browser data.
+              </p>
+            </div>
+          </details>
+          <details id="unequal-splits">
+            <summary>
+              <span>What if everyone owes a different amount?</span>
+              <span class="faq-toggle" aria-hidden="true"></span>
+            </summary>
+            <div class="faq-answer">
+              <p>
+                Use Unequal to set exact amounts, Shares for weighted contributions, or Percentage
+                for a percentage-based split. Adjust lets you add or subtract from an equal share.
+                You choose the participants for each expense—it doesn’t have to include everyone
+                in the group.
+              </p>
+            </div>
+          </details>
+          <details id="multiple-payers">
+            <summary>
+              <span>Can more than one person pay for a bill?</span>
+              <span class="faq-toggle" aria-hidden="true"></span>
+            </summary>
+            <div class="faq-answer">
+              <p>
+                Yes. Record each payer’s contribution to the same expense, then choose how the
+                total is shared. What someone paid and what they owe are tracked separately, so
+                contributing upfront doesn’t change their agreed share.
+              </p>
+            </div>
+          </details>
+          <details id="balance-calculation">
+            <summary>
+              <span>How does Split Slate work out who owes whom?</span>
+              <span class="faq-toggle" aria-hidden="true"></span>
+            </summary>
+            <div class="faq-answer">
+              <p>
+                It compares what each person paid with their share of the expenses, then accounts
+                for recorded repayments. In the weekend example, you paid ₹5,400 of a ₹9,000 trip.
+                Your equal share is ₹3,000, so you’re owed ₹2,400: ₹600 from Maya and ₹1,800 from Dev.
+              </p>
+            </div>
+          </details>
+          <details id="group-currency">
+            <summary>
+              <span>Can I use a currency other than rupees?</span>
+              <span class="faq-toggle" aria-hidden="true"></span>
+            </summary>
+            <div class="faq-answer">
+              <p>
+                Yes. Choose your group’s currency when you create it. Each group uses one currency
+                so its expenses and balances stay consistent. Changing the currency label does
+                not convert saved amounts or apply exchange rates.
+              </p>
+            </div>
+          </details>
+          <details id="portable-data">
+            <summary>
+              <span>What’s the difference between exporting and backing up?</span>
+              <span class="faq-toggle" aria-hidden="true"></span>
+            </summary>
+            <div class="faq-answer">
+              <p>
+                A group export gives you a snapshot as a link, CSV, or ZIP—useful for sharing a
+                copy or working with the data outside the app. A whole-app ZIP backup is for
+                restoring your saved local data. Keep both a useful export and a recent backup
+                when the records matter to you.
+              </p>
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <section class="closing-section" aria-labelledby="closing-title" data-scene>
+        <div class="frame closing-inner">
+          <span class="closing-star" aria-hidden="true"
+            ><svg class="icon"><use href="#spark" /></svg
+          ></span>
+          <p class="section-label">The next good thing is waiting.</p>
+          <h2 id="closing-title" data-reveal>Keep the company.<br /><em>Lose the math.</em></h2>
+          <a class="button button-primary" href="https://split-slate.netlify.app/"
+            >Let’s split something<span class="button-arrow"
+              ><svg class="icon" aria-hidden="true"><use href="#arrow" /></svg></span
+          ></a>
+          <div class="closing-bottomline">
+            <span>FREE CORE FEATURES. LESS MENTAL MATH.</span
+            ><span>Just a clearer picture. <span aria-hidden="true">↗</span></span>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer frame">
+      <a class="wordmark" href="#" aria-label="Split Slate home"
+        ><img src="./favicon.svg" width="30" height="30" alt="" /><span
+          >split<span class="wordmark-light">slate</span><span class="brand-dot">.</span></span
+        ></a
+      >
+      <p>Shared expenses. Better company.</p>
+      <nav aria-label="Footer navigation">
+        <a href="#privacy">Your data</a><a href="#questions">Questions</a
+        ><a href="https://split-slate.netlify.app/">Open app ↗</a>
+      </nav>
+      <span class="copyright">© 2026 Split Slate</span>
+    </footer>
+  </body>
+</html>

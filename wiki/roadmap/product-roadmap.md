@@ -13,9 +13,10 @@ Last updated: 2026-10-10
 
 ## How to Read This Page
 
-This is a living roadmap, not a release contract or a second specification. Detailed architecture
-and workflow pages remain canonical for their subjects, and implemented source remains
-authoritative when it disagrees with any plan.
+This is a living roadmap, not a second specification or a blanket delivery contract. The explicitly
+approved website-launch promises below are release conditions for the advertised launch product.
+Detailed architecture and workflow pages remain canonical for their subjects, and implemented
+source remains authoritative when it disagrees with any plan or marketing statement.
 
 Roadmap terms have deliberate meanings:
 
@@ -88,6 +89,111 @@ external payment recording is implemented. Current detail lives in [[index]], [[
 [[main-screen]].
 
 ## Next Tasks
+
+### Standalone Landing Page — launch-copy pass implemented, recheck pending 2026-10-10
+
+The approved marketing entry point lives in `landing/` in this repository, but is deployed as a
+**separate manually uploaded Netlify site**. Its HTML, CSS, SVG, and local JavaScript need no build or framework.
+App-entry links currently open `https://split-slate.netlify.app/`; the app's existing Git-triggered
+deployment remains separate. Future landing updates require another manual upload.
+
+The landing page must never become part of the installed PWA: it has no manifest, service worker,
+application imports, or app navigation entry. Keep it outside `public/` and the app build output;
+the current app routes, launch behavior, and offline cache remain unchanged. Preserve the existing
+app origin because browser-local expense data does not automatically follow a domain change.
+Sharing a repository does not require sharing a browser origin or deployment.
+
+The approved redesign replaces the original card-template presentation with warm-paper editorial
+typography, choreographed fictional receipts, drawn repayment connections, a scroll-driven story,
+hand-drawn use-case artwork, and an interactive five-method split demonstration. The demonstration
+conserves its ₹1,200 total throughout numerical transitions and never saves app data.
+
+Local JavaScript progressively enhances static content without an external animation dependency.
+Device reduced-motion settings take precedence over the page's motion toggle; decorative loops
+pause offscreen/when hidden, fine-pointer tilt is not required on touch, and narrow/short screens
+use normal flow instead of the tall sticky story. Links and native FAQs remain usable without
+JavaScript. The existing app/PWA remains unchanged.
+
+The approved competitor-informed content pass pairs the creative headline with a literal
+expense-splitting explanation, strengthens the create/share/split/repay story, names travel,
+roommate, and meal expenses, and adds practical split/payer/currency/export FAQs. Classes,
+animation hooks, CSS, JavaScript, and app/PWA source are unchanged. See [[competitive-landscape]].
+
+The user approved **launch-state copy**: planned group synchronization is advertised in present
+tense, without development-status disclaimers. The app still has no implemented live sync; the
+website-launch ledger below records that discrepancy intentionally and gates public release until
+delivery. Copy does not promise payment processing, free sync, a particular sync identity model,
+or unapproved competitor capabilities. Local no-account and free-core wording is scoped to local
+use rather than implying that all online functionality has the same access/pricing rules.
+
+SEO remains deferred until the page is reviewed; neither app indexing controls nor production
+landing-domain metadata have changed. **The current content revision has not been formatted or
+browser-checked.** The initial version was unverified. Before the latest copy edits, the separately
+approved redesign check passed JavaScript syntax and eleven Chromium scenarios: 280–1920px representative widths, touch
+landscape, short desktop, reduced motion, and JavaScript disabled. Viewport scenarios cover exact
+animated split totals, keyboard controls, story/motion/pointer behavior, app-entry boundaries, and
+zero horizontal overflow or browser errors. This is not a claim of all-browser or real-device coverage.
+
+Prettier formatted the HTML, CSS, and JavaScript; the four-file command exited with code 2 because
+it cannot infer a parser for the SVG favicon. No formatter retry was run. Screenshots and results
+are in `/tmp/opencode/landing-redesign/`; the temporary server was stopped. No app builds or tests
+were run. Deployment instructions and the next-phase checklist are in `landing/README.md`.
+See [[layout-architecture]], [[mobile-pwa-install]], and [[testing-strategy]].
+
+### Website Launch Promise Ledger
+
+Purpose: distinguish what `landing/index.html` advertises for launch from what the current app
+implements, and keep every unfinished promise visible across sessions.
+
+**Policy approved 2026-10-10:** keep the name Split Slate; use present-tense copy for approved launch
+features; publish the launch product only when all advertised capabilities are available. This
+policy is not authorization to run checks, deploy, or implement other features. The ledger is
+canonical; the landing README links here instead of maintaining another checklist.
+
+Status terms:
+- **Implemented:** current code supports the capability; deployment/release evidence can still be pending.
+- **Partial / release evidence pending:** relevant foundations exist but the promise is not fully cleared.
+- **Not implemented:** launch commitment exists, but implementation and its verification are outstanding.
+
+#### Unfulfilled Launch Promises
+
+| ID | Exact advertised claim and location | Current status | Remaining work and required release evidence |
+|----|-------------------------------------|----------------|---------------------------------------------|
+| SYNC-01 | “Share a group and keep its expenses and balances up to date across connected devices.” — `landing/index.html#group-sync`. Also “keep your group in sync” in the hero, sharing in chapter 1, updated synced-group balances in chapter 3, and “In a synced group, expenses and balances update across connected devices.” in `#live-group-updates`. | **Not implemented.** Current groups and records are device-local; exports reconstruct separate editable groups and are not live synchronization. | Approve access/identity/invitation, server-visibility/security, pricing, membership, and conflict rules. Implement authorized shared-group expense/payment updates, balances, edit/delete propagation, and reconnect handling without making local use depend on a server. Verify two participating devices see consistent records and balances; verify concurrent changes, revoked/unauthorized access, offline work/reconnection, failure handling, and no data loss. No implementation or sync verification occurred in this content pass. |
+| SYNC-02 | “Open a synced group on another device to pick up its shared expenses and balances.” — `landing/index.html#new-device`. | **Not implemented.** Depends on SYNC-01 and approved cross-device access. Existing ZIP restore is a separate implemented local recovery path. | Design how a user gains authorized access on a new device; implement reopening an existing shared group without duplicating it or losing its history. Verify fresh-device access, correct expenses/payments/balances, and rejected unauthorized access. Do not infer whole-app settings, all local groups, automatic backups, or loss-recovery promises from this narrower claim. |
+
+#### Supported Claims and Remaining Release Gates
+
+These are current-source baselines, not proof that every release condition is already cleared.
+Recheck them when the sync implementation or public wording changes.
+
+| Advertised capability and location | Current baseline | Release requirement |
+|-----------------------------------|------------------|---------------------|
+| Create groups, add people, record shared costs — chapter 1 and local-start FAQ. | **Implemented:** local profile, global people directory, group setup, expense recording. See [[onboarding]], [[group-creation]], and [[member-management]]. | Keep no-account wording true for local use when sync is added; verify the launch setup/participation flow and existing local-data preservation. Sharing behavior is separately blocked by SYNC-01. |
+| “Equal amounts, exact amounts, shares, percentages, or adjustments” — split section and `#unequal-splits`; selected expense participants. | **Implemented:** all five methods with exact money allocation and participant selection. See [[split-types]]. | Verify create/edit results, selected-member handling, valid totals, and rounding in the release version; preserve the honest distinction between the illustrative demo and real app. |
+| “Record each payer’s contribution to the same expense” — `#multiple-payers` and chapter 2. | **Implemented:** single/multiple payer contributions separate from owed allocations. See [[paid-by]]. | Verify paid totals equal owed totals and contributions survive editing/import; verify synced expense propagation after SYNC-01 is built. |
+| Compare paid/share amounts, account for repayments, and suggest who owes whom — chapter 3 and `#balance-calculation`. | **Implemented:** payment-aware balances and deterministic suggested transfers; illustrated ₹9,000/₹2,400 example is arithmetically consistent. See [[balance-calculation]] and [[settlement-recording]]. | Verify expense/payment edits and deletes remain consistent across local and synced views. No globally minimum-transfer or in-app money-transfer guarantee is advertised. |
+| Free expenses, five split methods, balances, offline use, and exports — hero and `#free-core-features`. | **Implemented for current local use; approved core-free principle.** No paid entitlements or expense caps exist in the current app. | Preserve these capabilities without forced subscriptions/caps at launch. Online pricing is undecided and is not included in the free-core promise. |
+| Local device storage without an account; share when chosen — privacy introduction and account FAQ. | **Implemented local foundation; optional sharing is blocked by SYNC-01.** See [[state-management]] and [[global-people-directory]]. | Preserve local-first use and intentional sharing when cloud capability is added; make the final data-handling disclosure match the approved sync architecture. No end-to-end encryption or zero server visibility is promised. |
+| Offline expense entry and balances once files are ready — `#offline-use` and offline FAQ. | **Partial / release evidence pending:** offline shell and production-emulated checks exist; deployment update/storage behavior remains a release gate. See [[mobile-pwa-install]] and [[product-roadmap]]. | Clear the existing PWA release checks and verify local use without a network in the final build. Resolve interactions with synced groups/reconnection without claiming that online delivery happens while disconnected. |
+| Group Link/CSV/ZIP exports and whole-app ZIP backup/restore — `#exports-and-backups`, `#portable-data`, and local-device portion of `#new-device`. | **Implemented:** versioned group snapshots and whole-app backup/restore. See [[import-export]] and [[full-backup]]. | Verify release round-trips; determine how snapshots/backups of synced groups behave without silently changing ownership or promising automatic sync via an exported snapshot. |
+| One currency per group; relabeling does not convert saved amounts — `#group-currency`. | **Implemented.** See [[money-representation-and-rounding]]. | Preserve the single-currency/no-conversion contract in the launch product. Mixed-currency entry/conversion is not committed by competitor inspiration. |
+| Install from a supported browser; installed app excludes this website — `#install-app` and installation FAQ. | **Partial / release evidence pending:** install metadata/prompts and automated PWA coverage exist; deployment-specific gates remain. See [[mobile-pwa-install]]. | Verify deployed manifest/service worker/install flow and application-only launch. Do not integrate landing assets into the app build, manifest scope, or PWA cache. |
+| Payments occur externally and are recorded in the group — chapter 3 and payment FAQ. | **Implemented boundary:** no money custody or transfer; offline repayment records exist. See [[settlement-recording]]. | Keep copy and actual behavior consistent; verify repayment recording in the synced launch version without implying payment execution. |
+
+#### Ledger Maintenance and Publication Gate
+
+1. Before adding a launch claim, obtain feature/copy approval; record exact wording and every
+   location, including implication changes to local/free/privacy wording.
+2. For each unfinished claim, preserve its actual source status, remaining design/work, and evidence
+   needed to clear it. A website sentence, demo animation, or roadmap entry never proves delivery.
+3. Update this ledger, [[index]], and [[log]] together after approved claim/status changes. Do not
+   silently mark sync, privacy, recovery, or installation ready based on another feature's checks.
+4. Before public release, clear SYNC-01/SYNC-02 and every applicable release requirement above,
+   review the entire page for unsupported promises, and approve the publication decision.
+5. Formatting/browser/deployment verification and any retries need explicit approval under
+   [[testing-strategy]]. This content pass ran no commands; the earlier eleven landing browser
+   passes do not verify the new copy's layout or the advertised app synchronization features.
 
 ### Narrow-Mobile Root Scaling — automated coverage complete 2026-10-10
 
@@ -224,10 +330,12 @@ different device.
 **Goal:** add multi-device collaboration without weakening the local product or requiring
 traditional personal identity.
 
-Everything in this horizon is a candidate requiring security, recovery, operational-cost, and
-product-design work:
+Live group synchronization and connected-device continuity are **approved launch commitments**
+because they are advertised in the approved landing copy; see the website launch promise ledger.
+They remain unimplemented and require security, recovery, operational-cost, and product-design
+decisions. Other items below remain candidates unless separately approved:
 
-- Optional cloud group synchronization
+- Optional cloud group synchronization — approved launch target, not implemented
 - Optional Google Drive storage for whole-app backup files (separate from live synchronization)
 - Manually shared, expiring invite links and device-bound membership
 - Conflict handling for concurrent expense edits and deletions

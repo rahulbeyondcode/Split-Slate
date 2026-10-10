@@ -11,6 +11,17 @@ Last updated: 2026-10-10
 ---
 
 ## 2026-10-10
+- UPDATED roadmap/product-roadmap.md — add the approved website launch promise ledger, exact pending sync/cross-device claims, supported claim baselines and release evidence requirements; distinguish revised launch copy from current app reality and the earlier browser checks
+- UPDATED research/competitive-landscape.md — record application of the eight-site lessons to original launch copy and link the canonical promise ledger, preserving pending design/implementation and deferred SEO
+- UPDATED wiki/index.md — surface the launch promise tracker and revised-copy verification pause
+- UPDATED research/competitive-landscape.md — preserve the user-requested eight-site website lessons, source/evidence limits, rendered SplitSlate/Spliito review, retained-name decision, launch-state copy policy, and pending sync promise without changing landing or app files
+- UPDATED wiki/index.md — make the competitor content lessons and launch-copy constraints discoverable in future sessions
+- UPDATED roadmap/product-roadmap.md — record the approved landing-only JavaScript syntax and 11 Chromium passes, responsive/keyboard/motion/demo coverage, screenshot location, SVG formatter parser failure without retry, and unchanged app verification
+- UPDATED wiki/index.md — replace unverified landing targets with scope-qualified Chromium coverage
+- UPDATED roadmap/product-roadmap.md — record the approved editorial landing redesign, local animation enhancement, exact-total split demonstration, reduced-motion/touch/short-viewport fallbacks, unchanged PWA, and unrun verification
+- UPDATED wiki/index.md — reflect the animated standalone landing and distinguish responsive targets from verified behavior
+- UPDATED roadmap/product-roadmap.md — record the approved standalone landing implementation, separate manual Netlify deployment, unchanged app/PWA boundaries, origin-preservation requirement, deferred SEO, and unrun verification
+- UPDATED wiki/index.md — surface the independent landing/PWA deployment direction in the roadmap entry
 - UPDATED decisions/testing-strategy.md — record the completed approved verification: 467 unit, 389 full-browser, 18 PWA, static checks, both builds, and eight production responsive/offline passes; explain 21 expected skips and the repaired shared UI causes
 - UPDATED architecture/layout-architecture.md — replace paused modal, outer-only ledger, and sidebar coverage caveats with final full-suite and production smoke results
 - UPDATED decisions/settlement-recording.md — confirm compact colour-labelled payment tags across responsive/theme browser cases and production smoke checks
