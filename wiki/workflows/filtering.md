@@ -168,11 +168,11 @@ The latest chip/modal/horizontal-scroll cases and a popover-trigger overlap regr
 final 2026-10-10 full browser suite. Eight production responsive/offline smoke cases at 280–1920px
 also pass. See [[testing-strategy]].
 
-The subsequent filter-type colour change is not covered by that passing baseline. Added light/dark
+The subsequent filter-type colour change is covered by the final 2026-10-11 full suite. Added light/dark
 browser cases at mobile/tablet/desktop widths check seven distinct colours, at least 20 degrees
 between border hues, consistent same-type styling, 4.5:1 text contrast on normal/hover backgrounds,
-and stable colours after keyboard removal and reload. These revised checks have not been run;
-execution requires explicit approval.
+and stable colours after keyboard removal and reload. These revised checks pass; future execution
+requires explicit approval. See [[testing-strategy]].
 
 `src/features/group-detail/tests/browser/group-overview-navigation.e2e.ts` adds group Analytics
 drill-down cases at narrow-mobile, tablet, and desktop widths, covering active category selections,

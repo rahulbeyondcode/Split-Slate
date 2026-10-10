@@ -10,7 +10,7 @@ metadata:
 Purpose: keep accounting tests fast, make every implemented area verifiable, and reserve real
 browser coverage for behavior that depends on browser storage, navigation, or offline capability.
 
-Last updated: 2026-10-10
+Last updated: 2026-10-11
 
 ## Execution Permission — Highest Project Priority
 
@@ -45,6 +45,7 @@ last split row, Save/Cancel toolbar, and absence of a second document/form scrol
 Root-based mobile scaling was added afterward. Its scale-aware assertions and the later UI fixes
 have now been exercised in the completed browser run and focused follow-ups documented below.
 A final full-browser run after those fixes passes on 2026-10-10, including the Analytics change.
+The 2026-10-11 stable full suite also verifies the subsequent navigation, editor, and input changes.
 See [[layout-architecture]], [[main-screen]], and [[product-roadmap]].
 
 ## Decision
@@ -177,7 +178,45 @@ declined or deferred, mark the slice unverified and continue only separately app
 
 ## Current Status
 
-The 2026-10-10 verification supersedes the older automated baselines below:
+The completed, approved 2026-10-11 verification supersedes the earlier automated baselines:
+
+- `pnpm check` passes ESLint, Prettier, and TypeScript against the final code and tests.
+- `pnpm test` passes all 503 cases across 41 files.
+- The final stable `pnpm test:e2e` run passes 520 cases with 44 expected viewport-specific skips
+  and zero failures (564 scheduled combinations, two workers, 19.7 minutes). It covers both mobile
+  expanding navbars, history/viewport resets, editor focus, grouped/capped amounts, shared time
+  controls, percentage suffixes, tags, filter colours, dashboard clocks/previews, and compact
+  spending layouts in addition to existing accounting, transfer, and CRUD journeys.
+- Production and Devtools-enabled builds pass. All 18 production-build PWA cases pass, covering
+  offline launch, icon-cache repair, installation, reminders, and update consent.
+- JavaScript syntax checks pass for the standalone landing animation and PWA icon generator.
+- Artifacts are under `/tmp/opencode/full-verification-2026-10-11`; the clean full-suite log is
+  `browser-stable-final.log`. Earlier diagnostic/failing runs are superseded, not counted as passes.
+
+The verification repairs establish these additional invariants:
+
+- Shared editor dialogs close before DOM removal in layout-effect cleanup and explicitly restore
+  a connected opener. Passive-effect teardown after removal lost focus. Mobile Contacts must
+  override the unlayered `.btn` display rule when hiding the redundant header creation action.
+- Single-payer radios and controlled multiple-payer checkboxes need distinct React identities;
+  reusing one input across control models emits warnings. Mode switching retains form drafts.
+- Browser tests wait for a rendered destination, not just a changed URL or a link's local collapse.
+  The history test waits for the destination's `aria-current="page"` before another action.
+  Persistence checks and reloads wait for the post-save screen or next onboarding step: a submit
+  click alone does not prove the asynchronous IndexedDB write completed. Reloading during Saving
+  interrupted a noon/midnight update. Existing saved-value/reset assertions remain intact.
+- Source and test files stay frozen during browser verification; edits and formatter writes can
+  invalidate a Vite-served run through page reloads. Only stable runs establish the final baseline.
+
+Builds retain non-failing large-chunk, plugin-timing, and service-worker `inlineDynamicImports`
+deprecation warnings. These checks do not establish perfection, real-device coverage,
+storage-pressure behavior, or a two-deployment update rehearsal. The previous production visual
+smoke matrix below was not repeated for these latest changes. Future execution requires approval.
+See [[layout-architecture]], [[member-management]], [[people-directory]], and [[paid-by]].
+
+### Previous Completed Baseline (2026-10-10)
+
+The 2026-10-10 verification superseded the older automated baselines below:
 
 - `pnpm check` passes ESLint, Prettier, and TypeScript after the final repairs and scoped
   import-order/formatting fixes.
@@ -215,8 +254,9 @@ The verification repairs establish these reusable UI constraints:
   a dialog, while expense Add tag remains intentionally mobile-only. Desktop tag-modal layout is
   exercised through Categories & Tags instead.
 
-Builds still emit non-failing large-chunk and service-worker option-deprecation warnings; expense
-payer browser journeys emit a React uncontrolled-to-controlled input warning despite passing.
+Those builds emitted non-failing large-chunk and service-worker option-deprecation warnings; expense
+payer browser journeys emitted a React uncontrolled-to-controlled input warning despite passing.
+The payer warning is repaired in the 2026-10-11 focused regression documented above.
 These automated results do not claim storage-pressure or two-deployment update rehearsal
 verification. See [[layout-architecture]] and [[mobile-pwa-install]].
 
@@ -310,20 +350,20 @@ Playwright output directories. Component tests with React Testing Library remain
 Some tests exercise UI that exists in only one layout, so `test.skip` excludes the inapplicable
 project rather than dropping the behavior from coverage.
 
-The 2026-10-10 final run scheduled 410 test/project combinations:
+The 2026-10-11 final run scheduled 564 test/project combinations:
 
 | Test scope | Count | Skipped project | Passing project |
 |------------|-------|-----------------|-----------------|
-| Mobile-only UI | 13 | Desktop | Mobile |
+| Mobile-only UI | 36 | Desktop | Mobile |
 | Desktop/sidebar UI | 5 | Mobile | Desktop, including resized sidebar widths |
 | Explicit tablet viewport | 3 | Mobile | Desktop, resized to tablet width |
 
-All 21 skipped combinations have a corresponding passing execution in the appropriate project.
+All 44 skipped combinations have a corresponding passing execution in the appropriate project.
 Examples include mobile footer navigation, desktop dashboard cards, sidebar rows, and tablet
 outer-only ledger scrolling.
 These tests remain necessary regression coverage; the skip avoids asserting a layout-specific
-contract against a different layout. The result is 389 passing combinations, 21 inapplicable
-combinations, and zero failures—not 21 behaviors left untested.
+contract against a different layout. The result is 520 passing combinations, 44 inapplicable
+combinations, and zero failures—not 44 behaviors left untested.
 
 Additional Vitest suites cover form-value round-trips and fixed two-decimal precision across currency labels; all-member balances,
 transfer conservation, ID tie-breaking, and safe-integer boundaries; member reference checks,

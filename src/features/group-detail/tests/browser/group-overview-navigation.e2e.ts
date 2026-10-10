@@ -14,6 +14,15 @@ const openFilters = async (page: Page) => {
   }
 };
 
+const openMore = async (page: Page) => {
+  if ((page.viewportSize()?.width ?? 0) < 768) {
+    await page
+      .getByRole("navigation", { name: "Bottom navigation" })
+      .getByRole("button", { name: "More", exact: true })
+      .click();
+  }
+};
+
 test.beforeEach(async ({ page }) => {
   await page.goto("/onboarding");
   await page.waitForFunction(async () => {
@@ -178,7 +187,11 @@ test("distinguishes the snapshot from the complete expense history", async ({ pa
   await expect(
     page.locator(".group-page-header").getByRole("link", { name: "Group settings" }),
   ).toHaveCount(0);
+  await openMore(page);
   await expect(navigation.getByRole("link", { name: "Settings" })).toBeVisible();
+  if ((page.viewportSize()?.width ?? 0) < 768) {
+    await navigation.getByRole("button", { name: "Close", exact: true }).click();
+  }
   await expect(page.getByText("Your position in this group")).toBeVisible();
   await expect(page.getByRole("heading", { name: "At a glance" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Members", exact: true })).toBeVisible();
@@ -230,6 +243,7 @@ test("distinguishes the snapshot from the complete expense history", async ({ pa
   await navigation.getByRole("link", { name: "Overview" }).click();
   await expect(page.getByRole("heading", { name: "At a glance" })).toBeVisible();
 
+  await openMore(page);
   await navigation.locator('a[href="/groups/trip/categories"]').click();
   await expect(page.getByRole("heading", { level: 1, name: "Weekend Trip" })).toBeVisible();
   await expect(
@@ -237,6 +251,7 @@ test("distinguishes the snapshot from the complete expense history", async ({ pa
   ).toBeVisible();
   await expect(page.getByRole("heading", { level: 2, name: "Tags", exact: true })).toBeVisible();
 
+  await openMore(page);
   await navigation.getByRole("link", { name: "Settings" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Weekend Trip" })).toBeVisible();
   await expect(page.getByRole("heading", { level: 2, name: "Group settings" })).toBeVisible();

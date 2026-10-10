@@ -89,6 +89,7 @@ test("filters expense amounts and caps entered decimals at two places", async ({
   await amount.fill("25abc.009");
   await expect(amount).toHaveValue("25.00");
   await page.getByRole("button", { name: "Save changes", exact: true }).click();
+  await expect(page.getByRole("link", { name: "Edit expense", exact: true })).toBeVisible();
   const stored = await page.evaluate(async () => {
     const path = "/src/shared/configs/db.ts";
     const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;
@@ -151,6 +152,7 @@ test("groups only expense amount input in threes while preserving editing and ra
   await page.getByRole("link", { name: "Edit expense", exact: true }).click();
   await expect(amount).toHaveValue("123,456.78");
   await page.getByRole("button", { name: "Save changes", exact: true }).click();
+  await expect(page.getByRole("link", { name: "Edit expense", exact: true })).toBeVisible();
   const unchanged = await page.evaluate(async () => {
     const path = "/src/shared/configs/db.ts";
     const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;
@@ -202,7 +204,9 @@ test("uses the same grouping and two-decimal cap for non-INR expense input", asy
   await expect(amount).toHaveValue("1,234,567.12");
 });
 
-test("silently limits expense input to eight whole digits and two decimal places", async ({ page }) => {
+test("silently limits expense input to eight whole digits and two decimal places", async ({
+  page,
+}) => {
   const amount = page.getByLabel("Amount (INR)", { exact: true });
   await amount.pressSequentially("99999999999");
   await expect(amount).toHaveValue("99,999,999");
@@ -400,7 +404,9 @@ test("places date and time beneath tags, side by side when possible and stacked 
   }
 });
 
-test("sizes dashed Add actions like the category and tag pills at every width", async ({ page }) => {
+test("sizes dashed Add actions like the category and tag pills at every width", async ({
+  page,
+}) => {
   const category = page.getByRole("group", { name: "Category" });
   const categoryChip = category.locator(".choice-chip").first();
   const addCategory = category.getByRole("button", { name: "Add new category" });
@@ -542,7 +548,14 @@ test("shows a missing-payer error once without an alert box", async ({ page }) =
   await expect(page.getByRole("alert")).toHaveCount(0);
 });
 
-test("uses emoji pills and suggested amounts for selected multiple payers", async ({ page }) => {
+test("switches payer modes without warnings and preserves pills and suggestions", async ({
+  page,
+}) => {
+  const controlWarnings: string[] = [];
+  page.on("console", (message) => {
+    const text = message.text();
+    if (/changing an (?:uncontrolled|controlled) input/iu.test(text)) controlWarnings.push(text);
+  });
   await page.getByLabel("Amount (INR)", { exact: true }).fill("100");
   await expect(page.getByRole("radio", { name: "Paid by Amy" })).toBeChecked();
   await expect(page.locator(".payer-choice-chip .avatar img").first()).toHaveAttribute(
@@ -591,6 +604,14 @@ test("uses emoji pills and suggested amounts for selected multiple payers", asyn
   await expect(rows).toHaveCount(2);
   await expect(rows.first().locator(".expense-payer-preview")).toHaveText("₹70.00");
   expect((await rows.first().boundingBox())!.height).toBeLessThan(64);
+  await page.getByLabel("One person", { exact: true }).check();
+  await expect(page.getByRole("radio", { name: "Paid by Amy" })).toBeChecked();
+  await page.getByLabel("Multiple payers", { exact: true }).check();
+  await expect(page.getByRole("checkbox", { name: "Paid by Amy" })).toBeChecked();
+  await expect(page.getByRole("checkbox", { name: "Paid by Bea" })).toBeChecked();
+  await expect(rows).toHaveCount(2);
+  await expect(rows.first().locator(".expense-payer-preview")).toHaveText("₹70.00");
+  expect(controlWarnings).toEqual([]);
 });
 
 test("omits a selected payer with a zero suggested remainder on save", async ({ page }) => {
@@ -608,6 +629,7 @@ test("omits a selected payer with a zero suggested remainder on save", async ({ 
   const cal = page.locator(".expense-payer-row").filter({ hasText: "Cal" });
   await expect(cal.locator(".expense-payer-preview")).toHaveText("₹0.00");
   await page.getByRole("button", { name: "Save expense" }).click();
+  await expect(page).toHaveURL(/\/groups\/trip\/expenses$/u);
   const paid = await page.evaluate(async () => {
     const path = "/src/shared/configs/db.ts";
     const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;
@@ -896,6 +918,7 @@ test("saves blank percentage suggestions as the displayed owed amounts", async (
     ).toHaveText("₹40.00");
   }
   await page.getByRole("button", { name: "Save expense" }).click();
+  await expect(page).toHaveURL(/\/groups\/trip\/expenses$/u);
   const expense = await page.evaluate(async () => {
     const path = "/src/shared/configs/db.ts";
     const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;
@@ -927,6 +950,7 @@ test("rounds displayed percentages without changing saved or editable values", a
   ]);
 
   await page.getByRole("button", { name: "Save expense" }).click();
+  await expect(page).toHaveURL(/\/groups\/trip\/expenses$/u);
   const expense = await page.evaluate(async () => {
     const path = "/src/shared/configs/db.ts";
     const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;
@@ -957,6 +981,7 @@ test("omits zero-percent suggested members when saving", async ({ page }) => {
   await page.getByLabel("Percentage for Amy").fill("100");
   await expect(page.getByLabel("Percentage for Bea")).toHaveAttribute("placeholder", "0");
   await page.getByRole("button", { name: "Save expense" }).click();
+  await expect(page).toHaveURL(/\/groups\/trip\/expenses$/u);
   const expense = await page.evaluate(async () => {
     const path = "/src/shared/configs/db.ts";
     const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;
@@ -993,6 +1018,7 @@ test("creates and selects tags without losing Add/Edit expense drafts at every w
   await expect(page.getByLabel("Expense name", { exact: true })).toHaveValue("Weekend lunch");
   await expect(page.getByLabel("Amount (INR)", { exact: true })).toHaveValue("42");
   await page.getByRole("button", { name: "Save expense" }).click();
+  await expect(page).toHaveURL(/\/groups\/trip\/expenses$/u);
   const saved = await page.evaluate(async () => {
     const modulePath = "/src/shared/configs/db.ts";
     const { db } = (await import(/* @vite-ignore */ modulePath)) as typeof DbModule;
@@ -1013,6 +1039,7 @@ test("creates and selects tags without losing Add/Edit expense drafts at every w
   await expect(page.getByLabel("Expense name", { exact: true })).toHaveValue("Weekend lunch");
   await expect(page.getByLabel("Amount (INR)", { exact: true })).toHaveValue("42.00");
   await page.getByRole("button", { name: "Save changes", exact: true }).click();
+  await expect(page.getByRole("link", { name: "Edit expense", exact: true })).toBeVisible();
   const updatedTagNames = await page.evaluate(async () => {
     const path = "/src/shared/configs/db.ts";
     const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;
@@ -1134,6 +1161,8 @@ test("edits the time across noon and midnight with 12-hour controls", async ({ p
     .getByRole("list", { name: "Expenses" })
     .getByRole("link", { name: /Late snack/ })
     .click();
+  await expect(page).toHaveURL(/\/groups\/trip\/expenses\/[^/]+$/u);
+  const detailUrl = page.url();
   await page.getByRole("link", { name: "Edit expense", exact: true }).click();
   await expect(page.getByRole("textbox", { name: "Hour" })).toHaveValue("12");
   await expect(page.getByRole("textbox", { name: "Minute" })).toHaveValue("05");
@@ -1142,8 +1171,15 @@ test("edits the time across noon and midnight with 12-hour controls", async ({ p
     "true",
   );
   await page.getByRole("button", { name: "PM", exact: true }).click();
+  await expect(page.getByRole("button", { name: "PM", exact: true })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
   await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page).toHaveURL(detailUrl);
+  await expect(page.getByRole("link", { name: "Edit expense", exact: true })).toBeVisible();
   await page.reload();
+  await expect(page.getByRole("link", { name: "Edit expense", exact: true })).toBeVisible();
   const when = await page.evaluate(async () => {
     const path = "/src/shared/configs/db.ts";
     const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;
@@ -1424,6 +1460,7 @@ test("keeps an inactive historical category available while editing", async ({ p
   await page.getByLabel("Expense name", { exact: true }).fill("Old dinner");
   await page.getByLabel("Amount (INR)", { exact: true }).fill("90");
   await page.getByRole("button", { name: "Save expense", exact: true }).click();
+  await expect(page).toHaveURL(/\/groups\/trip\/expenses$/u);
   await page.evaluate(async () => {
     const path = "/src/shared/configs/db.ts";
     const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;

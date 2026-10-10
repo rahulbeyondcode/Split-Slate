@@ -153,8 +153,8 @@ member_owes = (member_shares / total_shares) × total
   still invalid. A numeric running percentage-total display remains pending.
 
   New browser coverage checks the suffix at 320, 820, and 1440px, deletion and mode switching,
-  participant selection, raw metadata, and reopening for editing. These revised checks have not
-  been run; execution requires explicit approval. See [[testing-strategy]].
+  participant selection, raw metadata, and reopening for editing. These revised checks pass in
+  the final 2026-10-11 full browser suite. Future execution requires approval. See [[testing-strategy]].
 
 **Formula:**
 ```

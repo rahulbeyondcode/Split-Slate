@@ -19,26 +19,16 @@ Last updated: 2026-10-11
 
 ---
 
-> **Verification status (2026-10-10):** Lint, formatting, TypeScript, production build, and
-> Devtools-enabled build pass. All 467 unit cases across 40 files and all 18 PWA cases pass.
-> The final stable full-browser run passes 389 cases with 21 expected viewport-specific skips and
-> zero failures, including the compact filter pills, mobile Filters, shared modal layout,
-> group-settings editors, outer-only Expenses scrolling, payment tags, sidebar groups, and dashboard
-> avatar previews/external aligned headings. Eight production responsive/offline smoke cases at
-> 280–1920px pass in alternating light/dark themes with no horizontal pane overflow or browser errors.
-> The initial 30 browser failures were repaired and all 115 applicable focused cases passed before
-> the final full run. Skips are inapplicable project combinations; each passes in its appropriate
-> project. Deployment-specific release checks remain outside this automated verification.
-> Verification artifacts: `/tmp/opencode/full-verification-2026-10-10`. Future runs require approval.
-> See [[testing-strategy]] and [[layout-architecture]].
-
-The subsequent all-width Add/Edit member and Contacts modal changes, numeric expense amount/shared
-time-input filtering, grouped eight-digit/two-decimal Expense Amount input, fixed percentage-input
-suffixes, all-width expense tag creation, distinct active-filter colours, live dashboard greetings,
-compact category-spending breakdowns, mobile Analytics action removal, restored mobile dashboard previews,
-and revised coverage remain unverified; no checks have been run for these changes.
-See [[member-management]], [[people-directory]], [[main-screen]],
-[[split-types]], [[tag-management]], [[filtering]], and [[dashboard]].
+> **Verification status (2026-10-11):** Lint, formatting, TypeScript, production build, and
+> Devtools-enabled build pass. All 503 unit cases across 41 files, 520 full-browser cases, and
+> 18 production-build PWA cases pass. The stable full-browser run has zero failures and 44 expected
+> viewport-specific skips, each covered in its appropriate project. This includes expanding mobile
+> navbars, editor focus, numeric/time inputs, percentage suffixes, tag creation, filter colours,
+> dashboard clocks/previews, and compact spending layouts. Earlier failing runs are superseded.
+> Build warnings remain non-failing; real-device/storage-pressure/deployment update rehearsals remain
+> release checks. Earlier production visual smoke checks were not repeated for these latest changes.
+> Artifacts: `/tmp/opencode/full-verification-2026-10-11` (`browser-stable-final.log`).
+> Future runs require approval. See [[testing-strategy]] and [[layout-architecture]].
 
 ---
 
@@ -51,8 +41,8 @@ See [[member-management]], [[people-directory]], [[main-screen]],
 - [Domain Models](architecture/domain-models.md) — expense and payment shapes, PNG icon keys, fixed-hundredths money, and optional group tags
 - [Balance Calculation](architecture/balance-calculation.md) — safe payment-aware balances, expense-only spending, and deterministic suggested transfers
 - [State Management](architecture/state-management.md) — Zustand hydration and transactional expense, payment, and group mutations
-- [Split Types](architecture/split-types.md) — 5 exact split methods, fixed percentage-input suffixes, and at-most-three-decimal percentage display; latest suffix checks unrun
-- [Layout Architecture](architecture/layout-architecture.md) — responsive shell, stacked mobile dashboard previews, divided sidebar groups, fixed-control modals, and viewport handling; latest preview checks unrun
+- [Split Types](architecture/split-types.md) — 5 exact split methods, verified fixed percentage-input suffixes, and at-most-three-decimal percentage display
+- [Layout Architecture](architecture/layout-architecture.md) — verified expanding mobile navbars, creation clearance, responsive shell, and layout-effect editor teardown
 
 ### Decisions
 - [Global People Directory](decisions/global-people-directory.md) — shared device-local people identities versus group-owned category labels; supersedes per-group members
@@ -69,7 +59,7 @@ See [[member-management]], [[people-directory]], [[main-screen]],
 - [Selection Controls](decisions/selection-controls.md) — native checkboxes/radios with selected and visibly locked states across forms, filters, and transfer
 - [Offline Payment Recording](decisions/settlement-recording.md) — group-only repayment records, modal entry with compact colour-labelled tags, correction, and portability
 - [String Input Normalization](decisions/string-input-normalization.md) — required strings reject trimmed blanks; optional expense inputs have explicit blank-value semantics
-- [Testing Strategy](decisions/testing-strategy.md) — approval-gated execution, 467 unit/389 browser/18 PWA passes, responsive/offline UI checks, and 21 explained project-specific skips
+- [Testing Strategy](decisions/testing-strategy.md) — approval-gated execution, 503 unit/520 browser/18 PWA passes, successful static checks/builds, route/save synchronization, and 44 explained skips
 
 ### Systems
 - [IndexedDB Schema](systems/indexeddb-schema.md) — version 3 payments, safe expense/balance writes, and bootstrap recovery
@@ -81,14 +71,14 @@ See [[member-management]], [[people-directory]], [[main-screen]],
 - [Development Tools](workflows/development-tools.md) — typed realistic presets, randomized onboarding contacts, individual creation buttons, and persistence boundaries
 - [Onboarding](workflows/onboarding.md) — stable intro rows, themed restore chooser, modal category/person drafts, and a fixed mobile currency heading above scrolling choices
 - [Group Creation](workflows/group-creation.md) — standalone 4-step flow, cross-group category suggestions, and sequential save after final submission
-- [Main Screen](workflows/main-screen.md) — group navigation, capped/grouped Expense Amount, all-width expense tag creation, and expense workflows; latest checks unrun
-- [Paid-By](workflows/paid-by.md) — emoji payer pills, filled edit contributions, live suggestions, and single-message red validation
-- [People Directory](workflows/people-directory.md) — all-width contact Add/Edit modals with fixed heading/actions and guarded deletion; mobile route lacks an in-app entry point; latest coverage unrun
-- [Member Management](workflows/member-management.md) — all-width Add/Edit member and setup modals with fixed heading/actions, directory linking, and guarded removal; latest coverage unrun
+- [Main Screen](workflows/main-screen.md) — verified centered mobile-navbar Add, expanded group destinations, capped/grouped Expense Amount, all-width tag creation, and expense workflows
+- [Paid-By](workflows/paid-by.md) — emoji payer pills, contribution suggestions, validation, and distinct input identities for warning-free mode switching
+- [People Directory](workflows/people-directory.md) — verified mobile More entry, single mobile New contact action, all-width editors with restored opener focus, and guarded deletion
+- [Member Management](workflows/member-management.md) — verified all-width editors with fixed controls/restored opener focus, directory linking, and guarded removal
 - [Category Management](workflows/category-management.md) — all-width management and setup modals, draft-only category entry, and guarded deletion; deactivation pending
-- [Tag Management](workflows/tag-management.md) — group-scoped tags, all-width management/expense-creation modals, suggestions, and transactional cleanup; latest checks unrun
-- [Filtering](workflows/filtering.md) — distinct filter-type colours, horizontal pills, outer-only Expenses scrolling, mobile Filters modal/wider popover, and Analytics drill-down; latest colour checks unrun
-- [Dashboard](workflows/dashboard.md) — restored all-width previews with hiding-rule history, compact divider-free spending rows, live greetings, avatar previews, and scoped totals; latest checks unrun
+- [Tag Management](workflows/tag-management.md) — verified group-scoped tags, all-width management/expense-creation modals, suggestions, and transactional cleanup
+- [Filtering](workflows/filtering.md) — verified distinct filter-type colours, horizontal pills, outer-only Expenses scrolling, responsive filter surfaces, and Analytics drill-down
+- [Dashboard](workflows/dashboard.md) — verified mobile More navigation, restored previews, compact spending rows, live greetings, avatar previews, and scoped totals
 
 ### Ideas (captured, not committed)
 - [Rewarded Ads](ideas/rewarded-ads.md) — optional ad-watch → credits → Pro unlock mechanic; fully opt-in
@@ -136,8 +126,10 @@ See [[member-management]], [[people-directory]], [[main-screen]],
 | Installable/offline PWA support    | IN PROGRESS |
 | Automated tests                    | IN PROGRESS |
 
-The Contacts screen supports contact CRUD, but `/friends` has no in-app mobile entry point. See
-[[people-directory]].
+The Contacts screen supports contact CRUD and is now reachable on mobile through dashboard More →
+Contacts (`/friends`). The expanded dashboard row also exposes app Analytics, Import, Restore,
+and Settings. Revised navigation coverage passes the final 2026-10-11 full browser suite.
+See [[people-directory]] and [[dashboard]].
 
 The IndexedDB layer and Zustand store are complete for the current development scope. Dexie
 version 2 adds activity events and version 3 adds payments without clearing existing data. All group-detail

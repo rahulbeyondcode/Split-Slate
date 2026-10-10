@@ -31,7 +31,7 @@ const AppLayout = () => {
         <Outlet />
       </main>
       {isDesktop && (pathname === "/groups/new" || showActivity) && <ActivityPanel />}
-      {isMobile && !isExpenseForm && <AppFooter />}
+      {isMobile && !isExpenseForm && <AppFooter key={pathname} />}
     </div>
   );
 };

@@ -9,7 +9,7 @@ metadata:
 
 Purpose: document member management, persisted membership guards, and remaining recovery limits.
 
-Last updated: 2026-10-10
+Last updated: 2026-10-11
 
 A member is a link from a group to a person in the global directory. See [[global-people-directory]] and [[people-directory]].
 
@@ -31,7 +31,7 @@ in a second row, filling the width available after the avatar offset with compac
 Add member opens a modal containing the existing-friend picker and the new-person editor at every
 viewport width. Its shared heading/close control and Cancel/Add footer remain outside the scrolling
 body; validation and save errors stay inside the modal. Cancel/Close/Escape dismisses it without
-saving, and the Add member opener stays mounted for native focus restoration. Edit also opens the
+saving, and the Add member opener stays mounted for explicit focus restoration. Edit also opens the
 person editor in a modal at every width, using the same fixed heading/close control and Cancel/Save
 footer with body-only scrolling. Member row presentation and controls remain unchanged.
 See [[layout-architecture]].
@@ -65,6 +65,10 @@ Save and Finish remains disabled while this editor is open. People and membershi
 wait for Save and Finish or the standalone final Create group submission. See [[onboarding]] and
 [[group-creation]].
 
+The shared dialog captures its opener before opening, closes during layout-effect cleanup before
+DOM removal, and restores focus when that opener is still connected. Passive-effect teardown
+after removal lost focus in member and contact editor regressions. See [[layout-architecture]].
+
 ### After Group Creation
 
 Members can be added to a group at any time after group creation — not just during onboarding. Either
@@ -79,9 +83,9 @@ draft, and reopening starts with an empty name.
 
 Browser coverage now includes all-width creation/linking/editing, cancellation/reset, initial/opener
 focus, validation, saved edits after reload, and fixed Add/Edit header/footer with 16px viewport
-clearance at 280, 820, and 1440px. These revised
-checks have not been run; execution requires explicit approval. Earlier verification predates this
-all-width Add/Edit member change.
+clearance at 280, 820, and 1440px. These pass in the final 2026-10-11 full browser suite (520
+passes, 44 expected viewport-specific skips, zero failures). Future execution requires explicit
+approval. See [[testing-strategy]].
 
 The Members screen ignores repeated additions while a save is pending and disables its add form
 and member edit/delete controls until that save finishes. The database transaction is the

@@ -9,7 +9,7 @@ metadata:
 
 Purpose: explain payer selection defaults and ranking across expense mutations.
 
-Last updated: 2026-10-09
+Last updated: 2026-10-11
 
 ## Overview
 
@@ -24,6 +24,12 @@ stored transaction order. An otherwise hidden preselected payer is also shown. M
 payers fall back to the local creator or first available member.
 Both modes use emoji-and-name member pills. Single payer uses radio selection; multiple payers
 uses checkboxes. The pills share the same compact size and reveal additional members with Show more.
+
+The registered single-payer radio and controlled multiple-payer checkbox have distinct React keys.
+Reusing one DOM input across modes changes its control model and emits React's
+uncontrolled-to-controlled warning. Distinct identities remount the input while form state retains
+the draft selections and contributions. The 2026-10-11 desktop/mobile regression verifies switching
+both ways without control warnings or lost contribution suggestions. See [[testing-strategy]].
 
 ---
 

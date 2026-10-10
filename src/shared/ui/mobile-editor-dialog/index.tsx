@@ -1,5 +1,5 @@
 import type { ReactNode, SyntheticEvent } from "react";
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 
 interface PropsType {
   title: string;
@@ -11,9 +11,10 @@ interface PropsType {
 const MobileEditorDialog = ({ title, children, onCancel, busy = false }: PropsType) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
+    const opener = document.activeElement;
     if (!dialog.open) dialog.showModal();
     const initialField = dialog.querySelector<HTMLElement>(
       "input:not([type='hidden']):not(:disabled), select:not(:disabled), textarea:not(:disabled)",
@@ -21,6 +22,9 @@ const MobileEditorDialog = ({ title, children, onCancel, busy = false }: PropsTy
     initialField?.focus({ preventScroll: true });
     return () => {
       if (dialog.open) dialog.close();
+      if (opener instanceof HTMLElement && opener.isConnected) {
+        opener.focus({ preventScroll: true });
+      }
     };
   }, []);
 

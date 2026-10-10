@@ -152,7 +152,9 @@ test("explains blocked removal and links to every expense referencing the member
   await expect(page.getByRole("status")).toHaveText("3 of 4 expenses");
 });
 
-test("opens the new-person modal on the first Add member click at every width", async ({ page }) => {
+test("opens the new-person modal on the first Add member click at every width", async ({
+  page,
+}) => {
   await page.evaluate(async () => {
     const path = "/src/shared/configs/db.ts";
     const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;

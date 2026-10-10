@@ -11,6 +11,24 @@ Last updated: 2026-10-11
 ---
 
 ## 2026-10-11
+- UPDATED decisions/testing-strategy.md — record the completed 503-unit/520-browser/18-PWA verification, clean static checks/builds, 44 explained skips, UI repairs, and rendered-route/save-completion invariants; replace interim checkpoint notes with final evidence and retain release limits
+- UPDATED architecture/layout-architecture.md — record verified navigation/clearance and pre-removal editor focus restoration, with committed-route synchronization for history tests
+- UPDATED workflows/member-management.md — document shared-editor focus repair and final all-width browser verification
+- UPDATED workflows/people-directory.md — document one mobile New contact action, important hiding utility, cancellation focus, and final browser verification
+- UPDATED workflows/paid-by.md — document distinct radio/checkbox identities for warning-free mode switching
+- UPDATED workflows/main-screen.md — reconcile mobile navigation, numeric/time inputs, and all-width tag creation with final passing verification
+- UPDATED workflows/dashboard.md — reconcile greeting boundaries, compact spending rows, restored previews, and More navigation with final passing verification
+- UPDATED architecture/split-types.md — replace unrun percentage-suffix coverage with final browser verification
+- UPDATED workflows/tag-management.md — replace unrun all-width expense tag-editor coverage with final browser verification
+- UPDATED workflows/filtering.md — record passing seven-colour theme/contrast/stability coverage
+- UPDATED wiki/index.md — replace interim verification/checkpoint claims with the final automated baseline and reconcile linked page summaries
+- UPDATED architecture/layout-architecture.md — extend the approved mobile-only expanding navbar to dashboard context, preserve centered New group, expose Contacts/Analytics/Import/Restore/Settings through More, and share animation/content clearance without changing public transfer or desktop/tablet routes
+- UPDATED workflows/dashboard.md — document dashboard primary/More mapping, standalone Import/Restore behavior, Contacts floating-action clearance, and correct the superseded claim that other group routes retain floating expense creation
+- UPDATED workflows/people-directory.md — replace the missing-mobile-entry caveat with dashboard More → Contacts and preserve existing contact editors/data behavior
+- UPDATED wiki/index.md — surface both expandable mobile navbars, safe-area clearance, and mobile Contacts access; revised checks remain unrun
+- UPDATED architecture/layout-architecture.md — document approved mobile-only expanding group footer, centered Add replacing the floating expense CTA, fixed bottom-right More/Close, staggered animation, safe-area/content reservations, and unchanged dashboard/tablet/desktop behavior; revised coverage remains unrun
+- UPDATED workflows/main-screen.md — document persistent mobile expense creation and direct More access to Balances, Analytics, Activity, Cats & Tags, and Settings with preserved filtered URLs and form focus mode
+- UPDATED wiki/index.md — surface expanded mobile group navigation, supersede the narrower Analytics-only floating-action removal, and retain the verification pause
 - UPDATED workflows/dashboard.md — restore documented all-width stacked mobile previews, record the Sep 27/Oct 10 hiding-rule provenance and CSS-layer cause, preserve one-group/empty/currency behavior, and distinguish unrun revised coverage
 - UPDATED architecture/layout-architecture.md — document app-wide Analytics access through narrow mobile dashboard previews without footer changes
 - UPDATED wiki/index.md — surface restored mobile previews and retain the verification pause

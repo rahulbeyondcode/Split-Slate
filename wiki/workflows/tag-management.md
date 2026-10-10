@@ -34,9 +34,9 @@ leaves the new group tag available. Expense detail can also create a tag in a mo
 automatically. See [[main-screen]] and [[layout-architecture]].
 
 Revised browser coverage exercises all-width Add/Edit creation and selection, cancelled drafts,
-cross-group suggestions, and fixed modal controls at 280, 320, 820, and 1440px. These checks have not
-been run; earlier passing verification predates the all-width expense-entry creation action.
-Execution requires explicit approval. See [[testing-strategy]].
+cross-group suggestions, and fixed modal controls at 280, 320, 820, and 1440px. These checks pass in
+the final 2026-10-11 full browser suite. Future execution requires explicit approval.
+See [[testing-strategy]].
 
 Every existing tag-creation form (group management, all-width expense Add/Edit, and expense detail)
 suggests tags from other groups as soon as one letter is typed. Matching works inside the name and

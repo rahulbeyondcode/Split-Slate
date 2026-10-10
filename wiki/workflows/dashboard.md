@@ -15,8 +15,8 @@ The dashboard currently renders:
   has a centered purple New group item in its footer. When no groups exist, the dashboard empty
   state also offers New group and Import group actions at every width. There is no floating
   New group button.
-- An Import Group link in the empty state; app-level Settings also links to the public Link/CSV/ZIP
-  intake route after groups exist
+- An Import Group link in the empty state; app-level Settings and mobile More → Import also link
+  to the public Link/CSV/ZIP intake route after groups exist
 - An empty-state prompt when there are no groups
 - Per-group balance cards and an overall balance summary (or a mixed-currency notice)
 - Unsettled-balance and category-spending previews at every width when at least one group exists,
@@ -24,7 +24,7 @@ The dashboard currently renders:
   a labelled View all link and arrow to `/unsettled`. Category spending requires one shared currency.
 - The dashboard category preview shows up to six categories; its heading and each row link to
   `/analytics`. Below 768px, it also shows View all and a shorter subtitle, providing mobile
-  dashboard access to Analytics without adding a footer item. With one shared currency and recorded expenses,
+  dashboard access to Analytics alongside its More entry. With one shared currency and recorded expenses,
   the app-wide full page shows spending categories and their total; with multiple currencies, it
   shows a notice instead of combining amounts. App-wide Analytics has a Back button at every width
   that follows in-app history or opens Dashboard when entered directly. A separate
@@ -61,7 +61,7 @@ Each group link opens the nested group-detail route, whose Overview shows the lo
   and a group-only category-spending preview beneath those expenses.
 
 The empty state offers both **Create your first group** and **Import an existing group**. Settings
-keeps Import group reachable once groups exist. Import validates the package, shows count-only
+and mobile More keep Import group reachable once groups exist. Import validates the package, shows count-only
 review and identity selection, and creates a separate editable group. See [[import-export]].
 
 ## Implemented Sections and Remaining Target Details
@@ -88,8 +88,8 @@ time catches up without reloading. The minute timer pauses while hidden and is c
 listeners on unmount. The date also updates across midnight, using its existing `DD-MMM-YYYY` format.
 
 Added browser cases cover local-time cutoffs (including 00:54), live transitions, midnight date
-rollover, and focus/visibility refresh. These revised checks have not been run; prior verification
-predates the new greeting windows and live clock. Execution requires explicit approval.
+rollover, and focus/visibility refresh. These revised checks pass in the final 2026-10-11 full
+browser suite. Future execution requires explicit approval. See [[testing-strategy]].
 
 Light/dark mode toggle lives in Settings, not on the dashboard.
 
@@ -183,12 +183,13 @@ expense dominates. Positive shares below 0.1% display `<0.1%`, not a misleading 
 previews use the complete scope's total as their denominator, not the sum of just the visible six.
 Category-name aggregation, expense-only totals, currency boundaries, empty states, and navigation
 are unchanged: previews open Analytics, full group rows open category-filtered Expenses, and full
-app rows remain noninteractive. The mobile group Analytics route no longer shows the floating Add
-expense action; other group routes retain their actions. See [[main-screen]] and [[filtering]].
+app rows remain noninteractive. All ordinary mobile group routes, including Analytics, now expose
+the centered navbar Add action instead of a floating Add expense button. See [[main-screen]] and
+[[filtering]].
 
 Added browser coverage exercises compact responsive light/dark rows, dominant spending, tiny shares,
-long names/large amounts, preview denominators, scope/navigation, and mobile Analytics action removal.
-These revised checks have not been run; earlier chart verification predates the redesign.
+long names/large amounts, preview denominators, scope/navigation, and navbar expense creation.
+These revised checks pass in the final 2026-10-11 full browser suite. See [[testing-strategy]].
 
 The dashboard preview's heading/link, subtitle, and mobile View all action sit above and outside
 the bordered breakdown surface. Only list rows or the empty-state message remain inside. The existing
@@ -196,8 +197,8 @@ single-column/two-column layout is retained, with preview visibility restored be
 Earlier responsive light/dark coverage
 for both external dashboard headers with populated and empty contents passes in the final
 2026-10-10 full suite. Side-by-side coverage also verifies aligned boxes at 1440px and 1920px with
-natural headers, a taller action, and a wrapped category title. Those results are the pre-redesign
-baseline; the shared compact rows above remain unverified.
+natural headers, a taller action, and a wrapped category title. The subsequent shared compact rows
+and restored narrow previews also pass in the final 2026-10-11 full browser suite.
 
 Each expense refers to its own group's category ID; the chart resolves that category and aggregates
 by its exact name. Two groups with `Petrol Expense` become one total, but a differently spelled or
@@ -234,8 +235,9 @@ Adding a tablet section remains a target, not implemented behavior.
 
 Mobile dashboards show the groups and overall summary followed by stacked Unsettled balances and
 Spending by category previews when their usual data/currency conditions allow. The category heading,
-View all action, and rows link to app-wide Analytics at every mobile width; Analytics has no footer
-item. Other destinations are reached through the bottom navigation.
+View all action, and rows link to app-wide Analytics at every mobile width; More also exposes
+Analytics independently of those previews. Other destinations are reached through the bottom
+navigation's primary or expanded row.
 
 The former hiding rule was unrelated to group count. Commit `a384d9c` (2026-09-27) introduced
 `max-sm:hidden` on the preview container. Its unlayered `.dashboard-lower { display: grid; }` rule
@@ -246,8 +248,9 @@ Git history explains the implementation, not which revision or cached stylesheet
 
 Revised browser coverage expects visible, stacked previews with one group at 280–390px, covers
 populated/empty light/dark layouts and mobile Analytics navigation, and retains the mixed-currency
-guard. Shared spending-layout cases now include the narrow dashboard preview. These checks remain
-unrun; the earlier 2026-10-10 production smoke result predates this restoration.
+guard. Shared spending-layout cases now include the narrow dashboard preview. These checks pass
+in the final 2026-10-11 full browser suite; the separate 2026-10-10 production visual smoke matrix
+was not repeated for this restoration.
 
 | Desktop dashboard section | Mobile tab |
 |--------------------------|------------|
@@ -255,15 +258,41 @@ unrun; the earlier 2026-10-10 production smoke result predates this restoration.
 | Activity feed | Activity tab |
 | Create a group | Centered New group footer item |
 | Unsettled balances | Stacked Groups-tab preview and Unsettled tab |
-| Category spending breakdown | Groups-tab preview at every width → Analytics page, when groups share one currency |
-| App settings + profile editing | Settings tab |
+| Category spending breakdown | Groups-tab preview when groups share one currency; More → Analytics at all times |
+| Contacts directory | More → Contacts |
+| Group import | More → Import; existing empty-state and Settings actions retained |
+| Whole-app recovery | More → Restore; existing guarded restore flow retained |
+| App settings + profile editing | More → Settings |
 
-Analytics retains its route but no longer has a footer item. Activity reads persisted action
-snapshots and derives legacy entries for expenses with no saved creation event.
+Analytics retains its app-wide route and is now an expanded footer destination. Activity reads
+persisted action snapshots and derives legacy entries for expenses with no saved creation event.
 
 ---
 
 ## Navigation
+
+Below 768px, the dashboard-context primary row is **Groups, Activity, New group, Unsettled,
+More / Close**. New group stays centered and purple. More unfolds an upper row containing
+**Contacts, Analytics, Import, Restore, Settings**, using the same anchored lower row, staggered
+opening animation, faster closing animation, and rotating/crossfading More/Close icons as the group
+navbar. This replaces the primary Settings item, rather than adding a sixth column.
+
+The dashboard footer also appears on app Activity, Analytics, Unsettled, Contacts, Settings, and
+New group. Selecting a footer link collapses it; pathname/history/context changes or leaving the
+mobile viewport reset expansion. More is highlighted on Contacts, app Analytics, and app Settings.
+Hidden links are inert and excluded from assistive technology, and Escape within the navbar closes
+it and focuses the toggle. Safe-area-aware content clearance grows with expansion. The existing
+Contacts New contact action stays above the expanded row; its editor behavior is unchanged.
+
+Import/Restore open their existing public standalone screens without a navbar. Their Back to
+SplitSlate controls return through guarded home; simply visiting them does not write or replace
+data. Tablet/desktop sidebars, group navbar destinations, dashboard preview/data rules, and
+creation/restore/import forms are unchanged.
+
+Added and revised browser cases cover More destinations, opening/closing and keyboard behavior,
+route/history/resize resets, public-screen return/data preservation, 280–767px light/dark layouts,
+content clearance, and unchanged tablet/desktop actions. These checks pass in the final 2026-10-11
+full browser suite (520 passes, 44 expected skips, zero failures). Future execution requires approval.
 
 Clicking a current group row navigates to that group's Overview route. The sidebar group
 item also links to the Overview and detects the active `groupId`.

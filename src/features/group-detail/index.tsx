@@ -1,4 +1,4 @@
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Link, Navigate, Outlet, useLocation, useParams } from "react-router-dom";
 
 import ExpenseFilterProvider from "@/features/expenses/components/expense-filter-provider";
@@ -164,11 +164,6 @@ const GroupDetail = () => {
         <div className={isContainedPage ? "group-page-body" : undefined}>
           <Outlet context={context} />
         </div>
-        {showGroupNavigation && !(isMobile && pathname === `/groups/${groupId}/analytics`) && (
-          <Link className="mobile-cta" to={`/groups/${group.id}/expenses/new${search}`}>
-            <Icon icon={Plus} size={20} /> Add expense
-          </Link>
-        )}
       </div>
     </ExpenseFilterProvider>
   );

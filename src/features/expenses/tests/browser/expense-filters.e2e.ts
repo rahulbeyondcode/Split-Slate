@@ -194,7 +194,12 @@ test("stacks mobile search above usable sort and filter controls after scrolling
 test("summarizes matching expenses without changing full-group balances", async ({ page }) => {
   const insights = page.getByRole("region", { name: "Expense insights" });
   if ((page.viewportSize()?.width ?? 0) < 640) {
-    await expect(page.locator(".mobile-cta")).toBeVisible();
+    await expect(
+      page
+        .getByRole("navigation", { name: "Bottom navigation" })
+        .getByRole("link", { name: "Add expense" }),
+    ).toBeVisible();
+    await expect(page.locator(".group-page > a.mobile-cta")).toHaveCount(0);
     await expect(page.locator("header").getByRole("link", { name: "Add expense" })).toHaveCount(0);
   }
   await expect(insights.getByText("₹350.01")).toBeVisible();
@@ -524,7 +529,8 @@ for (const viewport of [
             const hoverChannels = hoverColour
               .match(/[a-f\d]{2}/giu)
               ?.map((hex) => Number.parseInt(hex, 16));
-            if (!hoverChannels || hoverChannels.length !== 3) throw new Error("Missing hover colour");
+            if (!hoverChannels || hoverChannels.length !== 3)
+              throw new Error("Missing hover colour");
             const hoverBackground = luminance(`rgb(${hoverChannels.join(", ")})`);
             const contrast = (first: number, second: number) =>
               (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05);

@@ -119,7 +119,8 @@ const PeopleList = () => {
   const blockedPerson = people.find((person) => person.id === blockedPersonId);
   const confirmPerson = people.find((person) => person.id === confirmPersonId);
   const blockedGroups = blockedPerson ? blockingGroupsFor(blockedPerson.id) : [];
-  const editingPerson = mode?.type === "edit" ? people.find((person) => person.id === mode.id) : null;
+  const editingPerson =
+    mode?.type === "edit" ? people.find((person) => person.id === mode.id) : null;
 
   return (
     <div className="page page-narrow flex flex-col gap-5">
@@ -129,7 +130,7 @@ const PeopleList = () => {
           <p className="soft-caption">Everyone you split with — one person, every group</p>
         </div>
         <button
-          className="btn btn-primary max-sm:hidden"
+          className="btn btn-primary max-md:!hidden"
           type="button"
           onClick={handleOpenAdd}
           disabled={isSaving}

@@ -154,6 +154,7 @@ const PayerSelector = ({ members, quickIds, currency, validationMessage }: Props
             <label key={id} className="cursor-pointer">
               {mode === "single" ? (
                 <input
+                  key="single-payer"
                   type="radio"
                   value={id}
                   aria-label={`Paid by ${member.name}`}
@@ -162,6 +163,7 @@ const PayerSelector = ({ members, quickIds, currency, validationMessage }: Props
                 />
               ) : (
                 <input
+                  key="multiple-payer"
                   type="checkbox"
                   checked={payers[index].selected}
                   onChange={() => handleTogglePayer(id, index)}

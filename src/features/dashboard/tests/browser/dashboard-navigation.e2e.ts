@@ -90,7 +90,9 @@ test("uses local-time greetings including the overnight Hello window", async ({ 
     );
     await page.clock.setFixedTime(new Date(timestamp));
     await page.reload();
-    await expect(page.getByRole("heading", { level: 1, name: greeting, exact: true })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { level: 1, name: greeting, exact: true }),
+    ).toBeVisible();
     await expect(page.locator(".dashboard-page > header > p")).toHaveText("11-Oct-2026");
   }
 });
@@ -617,7 +619,8 @@ test("opens Analytics from the mobile dashboard chart and returns via Back", asy
   await page.setViewportSize({ width: 390, height: 800 });
   const footer = page.getByRole("navigation", { name: "Bottom navigation" });
   await expect(footer.getByRole("link", { name: "Analytics" })).toHaveCount(0);
-  await expect(footer.getByRole("link")).toHaveCount(5);
+  await expect(footer.getByRole("link")).toHaveCount(4);
+  await expect(footer.getByRole("button", { name: "More", exact: true })).toBeVisible();
 
   const unsettled = page.getByRole("region", { name: "Unsettled balances", exact: true });
   await expect(unsettled.getByText("Across all groups")).toBeVisible();
@@ -721,8 +724,8 @@ test("places the purple New group action at the center of the mobile dashboard f
     "Activity",
     "New group",
     "Unsettled",
-    "Settings",
   ]);
+  await expect(footer.getByRole("button", { name: "More", exact: true })).toBeVisible();
   await expect(page.locator(".dashboard-page .mobile-cta")).toHaveCount(0);
   await expect(page.locator(".dashboard-new-group")).toBeHidden();
   const createLink = footer.getByRole("link", { name: "New group" });

@@ -70,6 +70,9 @@ test("offers all profile images while creating an account", async ({ page }) => 
     "Woman teacher",
   );
   await page.getByRole("button", { name: "Save and Proceed" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Create your first group", exact: true }),
+  ).toBeVisible();
   const icon = await page.evaluate(async () => {
     const path = "/src/shared/configs/db.ts";
     const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;

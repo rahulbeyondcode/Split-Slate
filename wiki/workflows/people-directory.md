@@ -9,17 +9,22 @@ metadata:
 
 Purpose: explain the shared people directory and its membership/deletion boundaries.
 
-Last updated: 2026-10-10
+Last updated: 2026-10-11
 
 A single device-local list of people, reused across every group. See [[global-people-directory]] for why this is global rather than per-group.
 
 ## Friends List Screen
 
-Reached from the dashboard sidebar on tablet/desktop ("Contacts"). The screen lists contacts other
-than the device owner, with their icons, and allows creating, editing, and deleting those contacts.
-On mobile, `/friends` still renders the screen and its New contact action when opened directly, but
-no in-app navigation link to that route is available: the sidebar is hidden and the bottom nav has
-no Contacts item. See [[layout-architecture]].
+Reached from the dashboard sidebar on tablet/desktop ("Contacts") and dashboard-context mobile
+More → Contacts (`/friends`). The screen lists contacts other than the device owner, with their
+icons, and allows creating, editing, and deleting those contacts. The mobile entry no longer
+requires a direct URL. After navigation, More stays highlighted because Contacts belongs to the
+expanded row. The existing floating New contact action remains available and moves above the
+taller navbar while More is expanded. Below 768px, the header New contact action is explicitly
+hidden with an important utility to override the unlayered `.btn` display rule; tablet/desktop
+keep the header action. The 2026-10-11 focused browser run verifies mobile entry, one accessible
+creation action, expanded-navbar clearance, and cancellation focus at 280, 390, 640, and 767px.
+Persistence behavior is unchanged. See [[layout-architecture]] and [[dashboard]].
 
 - **Create:** New contact opens the profile-image picker + name editor in a modal at every width.
   Add contact saves a new person to the directory and closes the modal.
@@ -41,13 +46,16 @@ Cancel/Save footer; only the body scrolls, containing fields, validation, and sa
 focus goes to Name. Cancel/Close/Escape discards the unsaved draft and returns focus to the opener;
 reopening starts from an empty name or the saved contact. Openers and list rows stay mounted, and
 the underlying search/list layout is unchanged. Fields, submission, cancellation, close, and Escape
-dismissal are disabled while saving. Failed saves keep the editor open with an error.
+dismissal are disabled while saving. Failed saves keep the editor open with an error. The shared
+dialog closes before DOM removal in layout-effect cleanup and explicitly restores its connected
+opener, avoiding the lost focus observed with passive-effect teardown.
 See [[layout-architecture]] and [[member-management]].
 
 Revised browser coverage includes Add/Edit persistence, cancellation/reset/focus, profile-image
 selection, propagation to linked groups, validation, and fixed header/footer with 16px viewport
-clearance at 280, 820, and 1440px. These checks have not been run; earlier passing verification
-predates the Contacts modal changes. Execution requires explicit approval.
+clearance at 280, 820, and 1440px. These pass in the final 2026-10-11 full browser suite (520 passes,
+44 expected viewport-specific skips, zero failures). Future execution requires explicit approval.
+See [[testing-strategy]].
 
 ## Picking People at Group Creation
 

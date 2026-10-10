@@ -33,21 +33,63 @@ Expense forms hide it to give the form focus:
 
 | Context | Items |
 |---------|-------|
-| Home | Groups, Activity, New group, Unsettled, Settings |
-| Inside a group | Overview, Expenses, Members, Categories & Tags, Settings |
+| Dashboard context, primary row | Groups, Activity, New group, Unsettled, More / Close |
+| Dashboard context, expanded upper row | Contacts, Analytics, Import, Restore, Settings |
+| Inside a group, primary row | Overview, Expenses, Add, Members, More / Close |
+| Inside a group, expanded upper row | Balances, Analytics, Activity, Cats & Tags, Settings |
 | Add/Edit Expense | No bottom nav |
 
-Group-scoped Activity should eventually be reachable on mobile, but its entry point has not been
-decided. The current mobile group footer remains unchanged; do not treat the tablet sidebar link as
-a mobile navigation decision.
+Both footer contexts expand upward when More is pressed. The primary row stays anchored at the
+bottom; More becomes Close in the same bottom-right position. The additional row uses a 320ms
+eased height transition and staggered icon fade/slide/scale; closing uses a faster 200ms collapse.
+The More/Close glyphs crossfade and rotate. There is no separate sheet or overlay.
+
+The purple centered Add action opens `/groups/:groupId/expenses/new`, preserving the current query
+string for returning to filtered Expenses. It replaces the floating mobile Add expense control
+and is available on every ordinary group route, including Analytics, Settings, and expense detail.
+This removes route-dependent creation access without adding a sixth primary slot. Add/Edit Expense
+forms still hide the entire footer. Desktop/tablet creation actions and sidebar navigation are
+unchanged; all new navigation styles are scoped below 768px.
+
+Selecting any footer destination collapses the row. `AppLayout` keys the footer by pathname so
+route, history, and group changes reset expansion; leaving mobile also unmounts it. More remains
+highlighted when the current route belongs to the upper row. Closed links are inert and hidden
+from assistive technology; the toggle exposes `aria-expanded`/`aria-controls`, and Escape within
+the footer closes it and returns focus to the toggle. Both footer contexts have a minimum 48px
+control height. Safe-area-aware reserved main-pane padding grows with expansion; bounded Members height
+uses the same reservation so its controls remain reachable above the footer.
+
+`src/app/tests/router/mobile-navigation.e2e.ts` adds interaction, route/history, form hiding,
+keyboard, theme, 280–767px layout, last-ledger-row clearance, and tablet/desktop regression cases.
+Dashboard cases additionally cover every More route, public Import/Restore entry without data
+changes, mobile Contacts access, creation-action centering, and dashboard content clearance at
+280–767px in both themes. Existing overview, filter, category-breakdown, and dashboard expectations
+now use the primary/More split. These pass in the stable 2026-10-11 full browser suite: 520 passes,
+44 expected viewport-specific skips, and zero failures. The history test waits for the destination
+link's active-page state before another action because local link-click collapse does not prove
+the route has committed; every reset assertion remains intact. See [[testing-strategy]].
 
 The centered New group footer action replaces the floating dashboard New group CTA on mobile; it
-uses the same purple accent and opens `/groups/new`. The dashboard-level Activity, Unsettled, and
-Settings destinations have footer links. App-wide Analytics retains `/analytics`, with a Back
-button but no footer item. When groups exist, the dashboard's Unsettled balances and category
+uses the same purple accent as group Add and opens `/groups/new`. The dashboard-context footer
+is shared by Dashboard, Activity, app-wide Analytics, Unsettled, Contacts, app Settings, and New
+group. Activity and Unsettled stay in its primary row. More exposes Contacts (`/friends`), app-wide
+Analytics (`/analytics`), Import (`/import`), Restore (`/restore`), and app Settings (`/settings`).
+Contacts and Analytics no longer depend on sidebar visibility or populated spending previews for
+mobile access. Import/Restore remain public standalone screens outside `AppLayout`, so selecting
+them leaves the navbar; their existing Back to SplitSlate link returns through guarded home.
+Opening those routes does not import or replace data: their existing review/confirmation flows
+are unchanged. On Contacts, the existing floating New contact action moves above the taller navbar
+while More is expanded and returns to its usual position after collapse. Below 768px, its header
+New contact action uses an important hiding utility because the unlayered `.btn` display rule
+otherwise overrides Tailwind's layered utility; only the floating action is exposed. Tablet and
+desktop retain their header action. A regression covers one accessible mobile action, clearance
+above expanded More, and cancellation focus at 280, 390, 640, and 767px.
+
+When groups exist, the dashboard's Unsettled balances and category
 previews stack beneath its group list at every mobile width, including with a single group. The
 category preview requires a shared currency; its heading, View all action, and rows link to
-app-wide Analytics without changing the footer. Revised mobile coverage remains unrun.
+app-wide Analytics without changing the footer. Revised mobile coverage passes in the final
+2026-10-11 full browser suite.
 See [[dashboard]] for the historical hiding rules and their approved removal.
 Group Overview has a category preview at every width;
 `/groups/:groupId/analytics` retains the group shell without adding a second page's top padding.
@@ -56,9 +98,10 @@ direct visits. Balances uses the same rounded secondary styling with its own nav
 Import/Restore also have rounded text-and-arrow controls, but link to guarded home (`/`) rather
 than browser history. App-wide Analytics and Unsettled use rounded Back buttons at every width:
 they follow in-app history or open Dashboard when entered directly.
-All five in-group footer destinations resolve to nested group-detail routes. See [[dashboard]].
-The group-context footer is unchanged; it has no New group action. Other route-specific floating
-actions, such as Add expense and Add contact, are unaffected.
+All in-group footer links resolve to nested group-detail routes. See [[main-screen]].
+The group-context footer has no New group action. Contact creation behavior is unchanged; its
+floating action uses the expanded-dashboard clearance described above. The floating Add expense
+action has been removed in favor of the centered group-navbar Add action.
 On mobile, non-form group headers include the original full-width, plain text-and-arrow Back to
 dashboard link on its own line above the group context. It
 stays visible with the sticky header on Overview, Expenses, Members, Categories & Tags, Balances,
@@ -82,7 +125,7 @@ sidebar links.
 
 The shared group sidebar links to that group's Balances page from every group screen where the
 sidebar is rendered. It is not an app-wide balances destination and is not added to the dashboard
-sidebar or mobile group footer.
+sidebar. The mobile group footer now exposes the same group-scoped destination through More.
 
 ### Desktop (1080px+)
 
@@ -133,6 +176,13 @@ their own layouts. See [[confirmation-dialogs]], [[filtering]], and [[full-backu
   as on-screen keyboards without changing navigation breakpoints.
 - Existing save, validation, confirmation/countdown, cancellation, and pending-state handling stays
   feature-owned. The shared close control follows each caller's cancellation and disabled state.
+
+`MobileEditorDialog` opens and closes in a layout effect. Its cleanup closes the native dialog
+before React removes it from the DOM, then explicitly focuses the captured opener if it remains
+connected, without scrolling. Passive-effect teardown after removal did not restore opener focus.
+The 2026-10-11 focused browser run verifies Cancel/Close/Escape focus restoration for member and
+contact editors without weakening the existing assertions. See [[member-management]] and
+[[people-directory]].
 
 Group Settings keeps its identity and currency summary cards in place. **Edit name & icon** opens
 the shared modal at every width, prefilled from the saved group; Save writes the update, while
@@ -329,21 +379,26 @@ Route content is shared across viewport states. The navigation chrome differs:
 
 | Route | Bottom nav items |
 |-------|-----------------|
-| Home | Groups, Activity, New group, Unsettled, Settings |
-| Inside a group | Overview, Expenses, Members, Categories & Tags, Settings |
+| Dashboard context, primary row | Groups, Activity, New group, Unsettled, More / Close |
+| Dashboard context, expanded upper row | Contacts, Analytics, Import, Restore, Settings |
+| Inside a group, primary row | Overview, Expenses, Add, Members, More / Close |
+| Inside a group, expanded upper row | Balances, Analytics, Activity, Cats & Tags, Settings |
 | Add/Edit Expense | No bottom nav |
 
 All in-group destinations resolve to nested routes. Dashboard footer destinations also have routes,
-though some screens are still lightweight. App-wide and group-scoped Analytics are preview
-destinations, not footer tabs; see [[dashboard]] and [[main-screen]].
+though some screens are still lightweight. App-wide Analytics is reachable through dashboard
+previews and dashboard More. Group Analytics is reachable through its group preview and group
+More; the two destinations keep their existing scope. Public Import/Restore do not render the
+footer. See [[dashboard]], [[people-directory]], and [[main-screen]].
 
 ---
 
 ## Expense Routes
 
 Saved expense links open detail at `/groups/:groupId/expenses/:expenseId`; editing uses its `/edit`
-path. The existing `/expenses/new` route remains creation. Balances is linked from the overview at
-`/groups/:groupId/balances` rather than listed in the sidebar or footer.
+path. The existing `/expenses/new` route remains creation and is the mobile footer's centered Add
+destination. Balances is linked from Overview and the group sidebar, and through More in the
+mobile group footer, at `/groups/:groupId/balances`.
 
 ## Related
 

@@ -178,9 +178,9 @@ for (const width of [280, 390, 820, 1440]) {
           await tiny.scrollIntoViewIfNeeded();
           await expect(tiny.locator(".category-spending-amount")).toHaveText("₹0.01");
           await expect(tiny.locator(".category-spending-share")).toHaveText("<0.1%");
-          const percentage = await tiny.locator(".category-spending-fill").evaluate(
-            (element) => parseFloat((element as HTMLElement).style.width),
-          );
+          const percentage = await tiny
+            .locator(".category-spending-fill")
+            .evaluate((element) => parseFloat((element as HTMLElement).style.width));
           expect(percentage).toBeGreaterThan(0);
           expect(percentage).toBeLessThan(0.001);
         }
@@ -193,7 +193,7 @@ for (const width of [280, 390, 820, 1440]) {
   }
 }
 
-test("preserves preview navigation, group drill-down, and non-Analytics mobile actions", async ({
+test("preserves preview navigation, group drill-down, and navbar expense creation", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 820, height: 900 });
@@ -203,7 +203,9 @@ test("preserves preview navigation, group drill-down, and non-Analytics mobile a
   await page.goto("/groups/trip");
   await page.locator(".category-spending-list").getByRole("link").first().click();
   await expect(page).toHaveURL(/\/groups\/trip\/analytics$/u);
-  const food = page.locator(".category-spending-list").getByRole("link", { name: /Food & Dining/u });
+  const food = page
+    .locator(".category-spending-list")
+    .getByRole("link", { name: /Food & Dining/u });
   await food.focus();
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/\/groups\/trip\/expenses\?categoryIds=category-1$/u);
@@ -212,12 +214,20 @@ test("preserves preview navigation, group drill-down, and non-Analytics mobile a
   );
 
   await page.setViewportSize({ width: 390, height: 900 });
-  for (const route of ["/groups/trip", "/groups/trip/expenses", "/groups/trip/balances"]) {
+  for (const route of [
+    "/groups/trip",
+    "/groups/trip/expenses",
+    "/groups/trip/balances",
+    "/groups/trip/analytics",
+  ]) {
     await page.goto(route);
-    await expect(page.locator(".group-page > a.mobile-cta")).toBeVisible();
+    await expect(page.locator(".group-page > a.mobile-cta")).toHaveCount(0);
+    await expect(
+      page
+        .getByRole("navigation", { name: "Bottom navigation" })
+        .getByRole("link", { name: "Add expense" }),
+    ).toBeVisible();
   }
-  await page.goto("/groups/trip/analytics");
-  await expect(page.locator(".group-page > a.mobile-cta")).toHaveCount(0);
 });
 
 test("preserves empty states and the mixed-currency boundary", async ({ page }) => {

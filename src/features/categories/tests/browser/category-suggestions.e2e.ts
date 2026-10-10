@@ -180,6 +180,7 @@ test("onboarding keeps a suggested category in the draft until Save and Proceed"
   });
   expect(before.map((item) => item.name)).not.toContain("Expense_of_fuel");
   await page.getByRole("button", { name: "Save and Proceed" }).click();
+  await expect(page.getByRole("region", { name: "Members setup", exact: true })).toBeVisible();
   const after = await page.evaluate(async () => {
     const path = "/src/shared/configs/db.ts";
     const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;

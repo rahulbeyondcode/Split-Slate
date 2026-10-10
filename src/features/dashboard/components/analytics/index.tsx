@@ -100,7 +100,9 @@ const Analytics = () => {
         <Surface className="category-spending-card surface-pad">
           <div className="category-spending-summary">
             <div className="min-w-0">
-              <p className="money category-spending-total">{formatCurrency(totalAmount, currency)}</p>
+              <p className="money category-spending-total">
+                {formatCurrency(totalAmount, currency)}
+              </p>
               <p className="soft-caption">total recorded spend</p>
             </div>
             <div className="min-w-0">

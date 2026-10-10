@@ -53,15 +53,18 @@ single-row identity card.
 The group's default route opens Overview. Its recent-activity "View all", "View all balances", and
 category-spending "View all" links open the full ledger, per-member balances, and group-scoped
 Analytics respectively. Expenses is also available through the sidebar and mobile navigation;
-Balances is a group-sidebar link on tablet and desktop, not an app-wide or mobile-footer item.
+Balances is a group-sidebar link on tablet and desktop and an expanded group-footer link on
+mobile; it is not an app-wide destination.
 
 Group Overview's six-category preview and full group Analytics now use the shared compact spending
 breakdown: stable-width names, exact amounts, shares of the full group total, divider-free spacing, and
 full-width slim bars. Full Analytics adds total/largest-category summary fields. The rows stack in
 narrow containers rather than squeezing labels and figures beside a graph. Preview links still open
-group Analytics; full group rows still open category-filtered Expenses. The mobile Analytics route
-omits the floating Add expense action; Overview, Expenses, and Balances keep their existing actions.
-Revised layout/navigation coverage remains unrun. See [[dashboard]] and [[filtering]].
+group Analytics; full group rows still open category-filtered Expenses. All ordinary mobile group
+routes now share the centered navbar Add expense action, including Analytics; the floating Add
+expense action has been removed entirely. Revised layout/navigation coverage passes in the final
+2026-10-11 full browser suite.
+See [[dashboard]], [[filtering]], and [[layout-architecture]].
 There is no additional group-view tab bar. The large local-balance hero appears only on Overview.
 The Members and Suggested transfers cards end in full-width, center-labeled actions with right-edge
 arrows. The Members title has no count; "Manage Members (N)" carries the full group count and is
@@ -103,9 +106,18 @@ Changing currency when expenses or payments exist requires confirmation: saved a
 values and are displayed under the new currency label without exchange conversion. The same
 integer hundredths are used for every group currency. See [[money-representation-and-rounding]].
 
-The group header's Add Expense link opens the entry form. Successful saves return to the expense
-list and update overview/sidebar balances through the shared store. Failed saves retain form inputs
-and show an error; cancellation writes nothing. Submissions are guarded against repeated clicks.
+On mobile, the centered navbar Add action opens the entry form from every ordinary group screen;
+desktop/tablet retain their existing Overview and Expenses creation links. The mobile primary row
+is Overview, Expenses, Add, Members, More. More expands a second row above it for Balances,
+Analytics, Activity, Cats & Tags, and Settings; Close replaces More in the bottom-right slot.
+Selecting a destination collapses the row, and pathname/group/viewport changes reset expansion.
+The navbar is absent on Add/Edit Expense forms. The Add link retains current query parameters so
+the form's Back to expenses control preserves filters. These navigation changes and revised
+browser coverage pass in the final 2026-10-11 full suite. See [[layout-architecture]].
+
+Successful saves return to the expense list and update overview/sidebar balances through the
+shared store. Failed saves retain form inputs and show an error; cancellation writes nothing.
+Submissions are guarded against repeated clicks.
 Dashboard and sidebar group rows link to the Overview. The sidebar group-list items display the
 local member's calculated net position derived from expense allocations and recorded payments.
 
@@ -223,14 +235,16 @@ See [[layout-architecture]] and [[testing-strategy]].
   display comma to delete the adjacent digit. Pasting grouped text is sanitized before regrouping.
   Payer/split inputs, payment inputs, other displayed totals, parsing, and stored hundredths are
   unchanged. New helper/browser coverage covers grouping, eight-digit/two-decimal caps, editing,
-  raw saves, and currency independence; these checks have not been run and require execution approval.
+  raw saves, and currency independence; helper cases and the final 2026-10-11 browser suite pass.
+  Future execution requires approval. See [[testing-strategy]].
 - The shared expense/payment Hour and Minute inputs filter non-digits before limiting the result
   to two digits, so bulk insertion cannot retain letters or lose valid digits to an earlier raw-text
   length limit. AM/PM controls, current-time filling, padding, time-range checks, and empty-minute
   Backspace navigation are unchanged. Hour auto-advance occurs only when its cleaned value changes
   to a valid advancing value; typing a rejected character into a valid hour does not steal focus.
   New browser coverage exercises amount Add/Edit, typing/bulk insertion, range/precision validation,
-  and payment time Add/Edit; these revised checks have not been run and require execution approval.
+  and payment time Add/Edit; these revised checks pass in the final 2026-10-11 full browser suite.
+  Save/reload checks wait for the post-save screen rather than interrupting an in-flight write.
 - **Use current time** fills the hour, minute, and AM/PM from the device clock when clicked without
   changing the selected expense date. Manual entry remains available and time remains required;
   omitting it does not silently assign the save time, which could misdate a past expense.
@@ -255,7 +269,8 @@ See [[layout-architecture]] and [[testing-strategy]].
   Add/Edit and detail support tag creation on mobile, tablet, and desktop. The existing tag modal
   retains its fixed heading/close control and Cancel/Create tag footer with body-only scrolling;
   creating selects the new tag without clearing expense drafts. Revised creation/editing,
-  cancellation, suggestion, and responsive modal coverage has not been run. See [[split-types]],
+  cancellation, suggestion, and responsive modal coverage passes in the final 2026-10-11 full
+  browser suite. See [[split-types]],
   [[tag-management]], [[paid-by]], and [[money-representation-and-rounding]].
 
 ### Expense Correction
