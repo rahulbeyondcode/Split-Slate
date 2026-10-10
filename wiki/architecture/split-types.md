@@ -9,7 +9,7 @@ metadata:
 
 Purpose: explain implemented split calculations, inputs, rounding, and remaining presentation work.
 
-Last updated: 2026-10-09
+Last updated: 2026-10-11
 
 ## Overview
 
@@ -137,7 +137,11 @@ member_owes = (member_shares / total_shares) × total
 **What it does:** Each member is assigned a percentage of the total.
 
 **UX:** Each selected member gets a percentage input. Blank fields display an equal share of the
-  remaining percentage as a placeholder. The allocation uses exact six-decimal percentages with
+  remaining percentage as a placeholder. Each input has a fixed `%` suffix inside its right edge,
+  with padding reserved so the editable digits do not overlap it. The suffix remains visible when
+  the numeric text is empty, cannot be erased with Backspace/Delete, and is not part of the field
+  value or saved metadata; entering `20` visually reads as `20%`. Shares and other split modes have
+  no suffix. The allocation uses exact six-decimal percentages with
   leftover units assigned by ascending member ID, but placeholders, the green summary, and saved
   expense details round their displayed percentages to at most three decimal places (trailing zeros
   omitted). Rounded displays need not sum visibly to 100%; entered/editable fields, saved metadata,
@@ -147,6 +151,10 @@ member_owes = (member_shares / total_shares) × total
   The calculator requires the resolved percentages to total exactly 100%; if a suggested value is
   zero, that member is omitted from the saved owed amounts and metadata. Explicit zero input is
   still invalid. A numeric running percentage-total display remains pending.
+
+  New browser coverage checks the suffix at 320, 820, and 1440px, deletion and mode switching,
+  participant selection, raw metadata, and reopening for editing. These revised checks have not
+  been run; execution requires explicit approval. See [[testing-strategy]].
 
 **Formula:**
 ```

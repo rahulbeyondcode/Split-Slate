@@ -60,6 +60,305 @@ test.beforeEach(async ({ page }) => {
   await minute.fill("00");
 });
 
+test("filters expense amounts and caps entered decimals at two places", async ({ page }) => {
+  const amount = page.getByLabel("Amount (INR)", { exact: true });
+  await amount.pressSequentially("abc+-eE! 12.50");
+  await expect(amount).toHaveValue("12.50");
+  await amount.press("ArrowLeft");
+  await amount.press("Backspace");
+  await expect(amount).toHaveValue("12.0");
+  await amount.fill("");
+  await page.keyboard.insertText("INR -1,234.5.0e+");
+  await expect(amount).toHaveValue("1,234.50");
+  await amount.fill("letters only!");
+  await expect(amount).toBeEmpty();
+  await page.getByLabel("Expense name", { exact: true }).fill("Numeric amount");
+  await amount.fill("10.123");
+  await expect(amount).toHaveValue("10.12");
+  await amount.pressSequentially("9");
+  await expect(amount).toHaveValue("10.12");
+  await amount.fill("12abc.50");
+  await page.getByRole("button", { name: "Save expense", exact: true }).click();
+  await expect(page).toHaveURL(/\/expenses$/u);
+  await page
+    .getByRole("list", { name: "Expenses" })
+    .getByRole("link", { name: /^Numeric amount /u })
+    .click();
+  await page.getByRole("link", { name: "Edit expense", exact: true }).click();
+  await expect(amount).toHaveValue("12.50");
+  await amount.fill("25abc.009");
+  await expect(amount).toHaveValue("25.00");
+  await page.getByRole("button", { name: "Save changes", exact: true }).click();
+  const stored = await page.evaluate(async () => {
+    const path = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;
+    return (await db.expenses.toArray())[0].transactions.paid;
+  });
+  expect(stored).toEqual([{ memberId: "a", amount: 2500 }]);
+});
+
+test("groups only expense amount input in threes while preserving editing and raw persistence", async ({
+  page,
+}) => {
+  const amount = page.getByLabel("Amount (INR)", { exact: true });
+  await amount.pressSequentially("1234567.89");
+  await expect(amount).toHaveValue("1,234,567.89");
+  await expect(page.locator(".expense-split-row").first()).toContainText("₹4,11,522.63");
+  await amount.fill("1234");
+  await amount.evaluate((input: HTMLInputElement) => input.setSelectionRange(3, 3));
+  await amount.pressSequentially("9");
+  await expect(amount).toHaveValue("12,934");
+  expect(await amount.evaluate((input: HTMLInputElement) => input.selectionStart)).toBe(4);
+  await amount.press("Backspace");
+  await expect(amount).toHaveValue("1,234");
+  expect(await amount.evaluate((input: HTMLInputElement) => input.selectionStart)).toBe(3);
+  await amount.evaluate((input: HTMLInputElement) => input.setSelectionRange(2, 2));
+  await amount.press("Backspace");
+  await expect(amount).toHaveValue("234");
+  expect(await amount.evaluate((input: HTMLInputElement) => input.selectionStart)).toBe(0);
+  await amount.fill("1234");
+  await amount.evaluate((input: HTMLInputElement) => input.setSelectionRange(1, 1));
+  await amount.press("Delete");
+  await expect(amount).toHaveValue("134");
+  expect(await amount.evaluate((input: HTMLInputElement) => input.selectionStart)).toBe(1);
+  await amount.fill("1234.50");
+  await amount.evaluate((input: HTMLInputElement) => input.setSelectionRange(2, 5));
+  await page.keyboard.insertText("987");
+  await expect(amount).toHaveValue("1,987.50");
+  await amount.fill("1234.");
+  await expect(amount).toHaveValue("1,234.");
+  await amount.pressSequentially("00");
+  await expect(amount).toHaveValue("1,234.00");
+  await amount.fill("0");
+  await expect(amount).toHaveValue("0");
+  await amount.fill("");
+  await expect(amount).toBeEmpty();
+  await page.keyboard.insertText("1,23,456.78");
+  await expect(amount).toHaveValue("123,456.78");
+  await page.getByLabel("Expense name", { exact: true }).fill("Grouped amount");
+  await page.getByRole("button", { name: "Save expense", exact: true }).click();
+  await expect(page).toHaveURL(/\/expenses$/u);
+  const original = await page.evaluate(async () => {
+    const path = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;
+    return (await db.expenses.toArray())[0];
+  });
+  expect(original.transactions.paid).toEqual([{ memberId: "a", amount: 12_345_678 }]);
+  await page
+    .getByRole("list", { name: "Expenses" })
+    .getByRole("link", { name: /^Grouped amount /u })
+    .click();
+  await page.getByRole("link", { name: "Edit expense", exact: true }).click();
+  await expect(amount).toHaveValue("123,456.78");
+  await page.getByRole("button", { name: "Save changes", exact: true }).click();
+  const unchanged = await page.evaluate(async () => {
+    const path = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;
+    return (await db.expenses.toArray())[0].transactions;
+  });
+  expect(unchanged).toEqual(original.transactions);
+});
+
+test("caps typed and bulk-inserted decimals without rounding and preserves editing", async ({
+  page,
+}) => {
+  const amount = page.getByLabel("Amount (INR)", { exact: true });
+  await amount.pressSequentially("1000.123456");
+  await expect(amount).toHaveValue("1,000.12");
+  await amount.press("Backspace");
+  await expect(amount).toHaveValue("1,000.1");
+  await amount.pressSequentially("3");
+  await expect(amount).toHaveValue("1,000.13");
+  await amount.evaluate((input: HTMLInputElement) => input.setSelectionRange(6, 8));
+  await page.keyboard.insertText("56789");
+  await expect(amount).toHaveValue("1,000.56");
+  await amount.fill("");
+  await page.keyboard.insertText("1,234.999");
+  await expect(amount).toHaveValue("1,234.99");
+  await page.getByLabel("Expense name", { exact: true }).fill("Two decimal amount");
+  await page.getByRole("button", { name: "Save expense", exact: true }).click();
+  await expect(page).toHaveURL(/\/expenses$/u);
+  const stored = await page.evaluate(async () => {
+    const path = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;
+    return (await db.expenses.toArray())[0].transactions.paid;
+  });
+  expect(stored).toEqual([{ memberId: "a", amount: 123_499 }]);
+});
+
+test("uses the same grouping and two-decimal cap for non-INR expense input", async ({ page }) => {
+  await page.evaluate(async () => {
+    const path = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;
+    await db.groups.update("trip", { currency: "USD" });
+  });
+  await page.reload();
+  const amount = page.getByLabel("Amount (USD)", { exact: true });
+  await amount.fill("1234567.89");
+  await expect(amount).toHaveValue("1,234,567.89");
+  await amount.fill("1234567.123");
+  await expect(amount).toHaveValue("1,234,567.12");
+  await amount.pressSequentially("9");
+  await expect(amount).toHaveValue("1,234,567.12");
+});
+
+test("silently limits expense input to eight whole digits and two decimal places", async ({ page }) => {
+  const amount = page.getByLabel("Amount (INR)", { exact: true });
+  await amount.pressSequentially("99999999999");
+  await expect(amount).toHaveValue("99,999,999");
+  await amount.pressSequentially(".999");
+  await expect(amount).toHaveValue("99,999,999.99");
+  await expect(amount.locator("..").getByRole("alert")).toHaveCount(0);
+  await amount.fill("");
+  await page.keyboard.insertText("123,456,789.1234");
+  await expect(amount).toHaveValue("12,345,678.12");
+  await expect(amount.locator("..").getByRole("alert")).toHaveCount(0);
+  await amount.press("End");
+  await amount.press("Backspace");
+  await expect(amount).toHaveValue("12,345,678.1");
+  await amount.pressSequentially("5");
+  await expect(amount).toHaveValue("12,345,678.15");
+  await amount.fill("99999999.99");
+  await page.getByLabel("Expense name", { exact: true }).fill("Maximum entered amount");
+  await page.getByRole("button", { name: "Save expense", exact: true }).click();
+  await expect(page).toHaveURL(/\/expenses$/u);
+  const stored = await page.evaluate(async () => {
+    const path = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;
+    return (await db.expenses.toArray())[0].transactions.paid;
+  });
+  expect(stored).toEqual([{ memberId: "a", amount: 9_999_999_999 }]);
+  await page
+    .getByRole("list", { name: "Expenses" })
+    .getByRole("link", { name: /^Maximum entered amount /u })
+    .click();
+  await page.getByRole("link", { name: "Edit expense", exact: true }).click();
+  await expect(amount).toHaveValue("99,999,999.99");
+  await amount.press("Home");
+  await amount.pressSequentially("1");
+  await expect(amount).toHaveValue("19,999,999.99");
+  await expect(amount.locator("..").getByRole("alert")).toHaveCount(0);
+});
+
+test("keeps a non-erasable percentage suffix inside split inputs without storing it", async ({
+  page,
+}) => {
+  await page.getByLabel("Amount (INR)", { exact: true }).fill("100");
+  const methods = page.getByRole("group", { name: "Split method" });
+  await methods.getByRole("button", { name: "%", exact: true }).click();
+  const input = page.getByLabel("Percentage for Amy", { exact: true });
+  const suffix = input.locator("..").locator("[data-input-suffix]");
+  await expect(page.locator(".expense-split-input [data-input-suffix]")).toHaveCount(3);
+  await expect(suffix).toHaveText("%");
+  await expect(suffix).toHaveAttribute("aria-hidden", "true");
+  await input.fill("20");
+  await expect(input).toHaveValue("20");
+  for (const width of [320, 820, 1440]) {
+    await page.setViewportSize({ width, height: 800 });
+    await expect(suffix).toBeVisible();
+    const inputBox = (await input.boundingBox())!;
+    const suffixBox = (await suffix.boundingBox())!;
+    expect(suffixBox.x).toBeGreaterThan(inputBox.x);
+    expect(suffixBox.x + suffixBox.width).toBeLessThan(inputBox.x + inputBox.width);
+    expect(suffixBox.y).toBeGreaterThan(inputBox.y);
+    expect(suffixBox.y + suffixBox.height).toBeLessThan(inputBox.y + inputBox.height);
+    const padding = await input.evaluate((element) =>
+      Number.parseFloat(getComputedStyle(element).paddingRight),
+    );
+    expect(padding).toBeGreaterThan(suffixBox.width);
+  }
+  await input.evaluate((element: HTMLInputElement) => element.select());
+  await input.press("Backspace");
+  await expect(input).toBeEmpty();
+  await input.press("Delete");
+  await expect(input).toBeEmpty();
+  await expect(suffix).toBeVisible();
+  await input.fill("20%");
+  await expect(input).toHaveValue("20");
+  await page.getByRole("checkbox", { name: "Cal", exact: true }).uncheck();
+  await expect(page.locator(".expense-split-input [data-input-suffix]")).toHaveCount(2);
+  await page.getByRole("checkbox", { name: "Cal", exact: true }).check();
+  await expect(page.locator(".expense-split-input [data-input-suffix]")).toHaveCount(3);
+  await methods.getByRole("button", { name: "Shares", exact: true }).click();
+  await expect(page.locator("[data-input-suffix]")).toHaveCount(0);
+  await methods.getByRole("button", { name: "%", exact: true }).click();
+  await input.fill("20");
+  await page.getByLabel("Expense name", { exact: true }).fill("Percentage suffix");
+  await page.getByRole("button", { name: "Save expense", exact: true }).click();
+  await expect(page).toHaveURL(/\/expenses$/u);
+  const metadata = await page.evaluate(async () => {
+    const path = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;
+    return (await db.expenses.toArray())[0].splitMeta.map((row) => row.value);
+  });
+  expect(metadata).toEqual(["20", "40", "40"]);
+  await page
+    .getByRole("list", { name: "Expenses" })
+    .getByRole("link", { name: /^Percentage suffix /u })
+    .click();
+  await page.getByRole("link", { name: "Edit expense", exact: true }).click();
+  await expect(input).toHaveValue("20");
+  await expect(suffix).toHaveText("%");
+});
+
+test("filters hour and minute entry without bypassing time ranges or focus behavior", async ({
+  page,
+}) => {
+  const hour = page.getByRole("textbox", { name: "Hour", exact: true });
+  const minute = page.getByRole("textbox", { name: "Minute", exact: true });
+  await hour.fill("");
+  await hour.pressSequentially("abc+-e.!");
+  await expect(hour).toBeEmpty();
+  await expect(hour).toBeFocused();
+  await hour.pressSequentially("1");
+  await expect(hour).toBeFocused();
+  await hour.pressSequentially("a");
+  await expect(hour).toHaveValue("1");
+  await expect(hour).toBeFocused();
+  await hour.pressSequentially("2");
+  await expect(hour).toHaveValue("12");
+  await expect(minute).toBeFocused();
+  await minute.fill("");
+  await minute.pressSequentially("-a3e5.");
+  await expect(minute).toHaveValue("35");
+  await minute.fill("");
+  await page.keyboard.insertText("min 4:5.678");
+  await expect(minute).toHaveValue("45");
+  await hour.fill("");
+  await page.keyboard.insertText("hour 0a9.123");
+  await expect(hour).toHaveValue("09");
+  await expect(minute).toBeFocused();
+  await hour.focus();
+  await hour.press("End");
+  await hour.pressSequentially("x");
+  await expect(hour).toHaveValue("09");
+  await expect(hour).toBeFocused();
+  await page.getByLabel("Expense name", { exact: true }).fill("Numeric time");
+  await page.getByLabel("Amount (INR)", { exact: true }).fill("10");
+  for (const [hours, minutes] of [
+    ["99", "30"],
+    ["12", "99"],
+  ]) {
+    await hour.fill(hours);
+    await minute.fill(minutes);
+    await page.getByRole("button", { name: "Save expense", exact: true }).click();
+    await expect(page.getByRole("alert")).toContainText("Enter a valid local date and time");
+    await expect(page).toHaveURL(/\/expenses\/new$/u);
+  }
+  await hour.fill("1a2");
+  await minute.fill("0b5");
+  await page.getByRole("button", { name: "PM", exact: true }).click();
+  await page.getByRole("button", { name: "Save expense", exact: true }).click();
+  await expect(page).toHaveURL(/\/expenses$/u);
+  const storedTime = await page.evaluate(async () => {
+    const path = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;
+    const date = new Date((await db.expenses.toArray())[0].when);
+    return { hour: date.getHours(), minute: date.getMinutes() };
+  });
+  expect(storedTime).toEqual({ hour: 12, minute: 5 });
+});
+
 test("places date and time beneath tags, side by side when possible and stacked on narrow screens", async ({
   page,
 }) => {
@@ -101,7 +400,7 @@ test("places date and time beneath tags, side by side when possible and stacked 
   }
 });
 
-test("sizes dashed Add actions like the category and tag pills", async ({ page, isMobile }) => {
+test("sizes dashed Add actions like the category and tag pills at every width", async ({ page }) => {
   const category = page.getByRole("group", { name: "Category" });
   const categoryChip = category.locator(".choice-chip").first();
   const addCategory = category.getByRole("button", { name: "Add new category" });
@@ -112,16 +411,13 @@ test("sizes dashed Add actions like the category and tag pills", async ({ page, 
   expect(categoryButtonBox.y).toBe(categoryChipBox.y);
 
   const tags = page.getByRole("group", { name: "Tags (optional)" });
-  const addTag = tags.getByRole("button", { name: "Add new tag", includeHidden: true });
-  if (isMobile) {
-    const tagChipBox = (await tags.locator(".choice-pill").first().boundingBox())!;
-    const tagButtonBox = (await addTag.boundingBox())!;
-    await expect(addTag).toHaveCSS("border-style", "dashed");
-    expect(Math.abs(tagButtonBox.height - tagChipBox.height)).toBeLessThan(4);
-    expect(tagButtonBox.y).toBe(tagChipBox.y);
-  } else {
-    await expect(addTag).toBeHidden();
-  }
+  const addTag = tags.getByRole("button", { name: "Add new tag" });
+  await expect(addTag).toBeVisible();
+  const tagChipBox = (await tags.locator(".choice-pill").first().boundingBox())!;
+  const tagButtonBox = (await addTag.boundingBox())!;
+  await expect(addTag).toHaveCSS("border-style", "dashed");
+  expect(Math.abs(tagButtonBox.height - tagChipBox.height)).toBeLessThan(4);
+  expect(tagButtonBox.y).toBe(tagChipBox.y);
 });
 
 test("shows the member, owed amount, then narrow input for every split method", async ({
@@ -670,14 +966,26 @@ test("omits zero-percent suggested members when saving", async ({ page }) => {
   expect(expense.splitMeta).toEqual([{ memberId: "a", value: "100" }]);
 });
 
-test("creates and selects a new tag without losing the unfinished mobile expense", async ({
+test("creates and selects tags without losing Add/Edit expense drafts at every width", async ({
   page,
-}, testInfo) => {
-  test.skip(testInfo.project.name !== "mobile", "Mobile-only tag creation");
+}) => {
   await page.getByLabel("Expense name", { exact: true }).fill("Weekend lunch");
   await page.getByLabel("Amount (INR)", { exact: true }).fill("42");
   await page.getByRole("button", { name: "Add new tag" }).click();
   const dialog = page.getByRole("dialog", { name: "Create new tag" });
+  await dialog.getByRole("textbox", { name: "Tag name" }).fill("Unsaved tag");
+  await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(page.getByLabel("Expense name", { exact: true })).toHaveValue("Weekend lunch");
+  await expect(page.getByLabel("Amount (INR)", { exact: true })).toHaveValue("42");
+  const unsavedTags = await page.evaluate(async () => {
+    const path = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;
+    return db.tags.filter((tag) => tag.name === "Unsaved tag").count();
+  });
+  expect(unsavedTags).toBe(0);
+  await page.getByRole("button", { name: "Add new tag" }).click();
+  await expect(dialog.getByRole("textbox", { name: "Tag name" })).toBeEmpty();
   await dialog.getByRole("textbox", { name: "Tag name" }).fill("Weekend");
   await dialog.getByRole("button", { name: "Create tag" }).click();
   await expect(dialog).toHaveCount(0);
@@ -691,6 +999,27 @@ test("creates and selects a new tag without losing the unfinished mobile expense
     return { tags: await db.tags.toArray(), expenses: await db.expenses.toArray() };
   });
   expect(saved.expenses[0].tagIds).toContain(saved.tags.find((tag) => tag.name === "Weekend")?.id);
+  await page
+    .getByRole("list", { name: "Expenses" })
+    .getByRole("link", { name: /^Weekend lunch /u })
+    .click();
+  await page.getByRole("link", { name: "Edit expense", exact: true }).click();
+  await page.getByRole("button", { name: "Add new tag", exact: true }).click();
+  await dialog.getByRole("textbox", { name: "Tag name" }).fill("Travel");
+  await dialog.getByRole("button", { name: "Create tag", exact: true }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(page.getByRole("checkbox", { name: "Weekend", exact: true })).toBeChecked();
+  await expect(page.getByRole("checkbox", { name: "Travel", exact: true })).toBeChecked();
+  await expect(page.getByLabel("Expense name", { exact: true })).toHaveValue("Weekend lunch");
+  await expect(page.getByLabel("Amount (INR)", { exact: true })).toHaveValue("42.00");
+  await page.getByRole("button", { name: "Save changes", exact: true }).click();
+  const updatedTagNames = await page.evaluate(async () => {
+    const path = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;
+    const expense = (await db.expenses.toArray())[0];
+    return (await db.tags.bulkGet(expense.tagIds)).map((tag) => tag?.name).sort();
+  });
+  expect(updatedTagNames).toEqual(["Travel", "Weekend"]);
 });
 
 test("records an equal expense, updates balances, and survives reload", async ({ page }) => {

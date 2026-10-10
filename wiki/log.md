@@ -6,11 +6,31 @@ Entries record historical changes, not current execution instructions. The expli
 policy in [[testing-strategy]], `AGENTS.md`, and `CLAUDE.md` supersedes older automatic-run or
 "highest-priority next task" directives. Historical results do not authorize new runs.
 
-Last updated: 2026-10-10
+Last updated: 2026-10-11
 
 ---
 
+## 2026-10-11
+- UPDATED workflows/tag-management.md — document approved all-width Add new tag in Expense Add/Edit, preserved fixed modal controls and draft fields, and unrun creation/suggestion/layout coverage
+- UPDATED workflows/main-screen.md — remove mobile-only expense tag creation claims and document the unchanged modal save/selection flow at every width
+- UPDATED wiki/index.md — surface all-width expense tag creation and retain its unverified status
+- UPDATED architecture/split-types.md — document approved non-erasable percentage-input suffix, unchanged raw values/ratio precision, and unrun responsive/browser coverage
+- UPDATED workflows/main-screen.md — document silent eight-whole-digit Expense Amount entry cap up to 99,999,999.99, preserved grouping/decimal editing, and unchanged store/import limits
+- UPDATED wiki/index.md — surface the fixed percentage suffix and eight-digit input cap while retaining the verification pause
+- UPDATED workflows/main-screen.md — document approved two-decimal input cap for Expense Add/Edit Amount, unchanged other inputs/save validation, preserved grouping, and unrun helper/browser coverage
+- UPDATED wiki/index.md — surface the expense-input decimal cap and retain the verification pause
+- UPDATED workflows/main-screen.md — document approved currency-independent three-digit comma grouping only in Expense Amount, raw form/storage values, preserved caret/decimal text, and unrun helper/browser coverage
+- UPDATED wiki/index.md — surface input-only grouping and retain the verification pause
+
 ## 2026-10-10
+- UPDATED workflows/main-screen.md — document approved expense Add/Edit amount filtering and app-wide shared Hour/Minute digit filtering, preserved decimal/time validation and focus behavior, and unrun browser coverage
+- UPDATED wiki/index.md — surface numeric input restrictions and distinguish these unverified edits from earlier passing checks
+- UPDATED workflows/people-directory.md — document approved all-width Contacts Add/Edit modals, fixed heading/actions, cancellation and save-error behavior, unrun browser coverage, and correct stale inline setup wording against the shared member-step implementation
+- UPDATED wiki/index.md — surface contact editor modals and distinguish unverified member/Contacts changes from earlier passing checks
+- UPDATED workflows/member-management.md — document approved all-width Edit person modal, fixed heading/Cancel/Save actions, pending-state dismissal guards, and revised edit coverage awaiting execution approval
+- UPDATED wiki/index.md — surface both Add/Edit member modals and retain their unverified status
+- UPDATED workflows/member-management.md — document approved all-width Add member modal with fixed heading/actions, scrolling body, preserved edit layouts, and revised browser coverage awaiting approval to run
+- UPDATED wiki/index.md — surface all-width member creation and distinguish the unverified change from earlier passing checks
 - UPDATED roadmap/product-roadmap.md — add the approved website launch promise ledger, exact pending sync/cross-device claims, supported claim baselines and release evidence requirements; distinguish revised launch copy from current app reality and the earlier browser checks
 - UPDATED research/competitive-landscape.md — record application of the eight-site lessons to original launch copy and link the canonical promise ledger, preserving pending design/implementation and deferred SEO
 - UPDATED wiki/index.md — surface the launch promise tracker and revised-copy verification pause

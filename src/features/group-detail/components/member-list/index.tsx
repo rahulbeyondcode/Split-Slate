@@ -32,6 +32,7 @@ const MemberList = () => {
   const [mode, setMode] = useState<MemberMode>(null);
   const [memberError, setMemberError] = useState<string | null>(null);
   const [isAddingMember, setIsAddingMember] = useState(false);
+  const [isEditingMember, setIsEditingMember] = useState(false);
   const [blockedMemberId, setBlockedMemberId] = useState<string | null>(null);
   const [confirmMemberId, setConfirmMemberId] = useState<string | null>(null);
   const addingMember = useRef(false);
@@ -104,6 +105,7 @@ const MemberList = () => {
 
   const handleEditMember =
     (member: GroupMemberWithPerson) => async (values: PersonEditorValues) => {
+      setIsEditingMember(true);
       setMemberError(null);
       try {
         if (member.personId === localUser?.id) {
@@ -114,6 +116,8 @@ const MemberList = () => {
         closeEditor();
       } catch (error) {
         setMemberError(error instanceof Error ? error.message : "Could not update this member");
+      } finally {
+        setIsEditingMember(false);
       }
     };
 
@@ -171,45 +175,28 @@ const MemberList = () => {
       </div>
     </div>
   );
-  const addEditor =
-    mode?.type === "add" &&
-    (isMobile ? (
-      <PersonEditor
-        existingNames={existingNames()}
-        onSave={handleCreatePerson}
-        onCancel={closeEditor}
-        submitLabel="Add"
-        inDialog
-        beforeFields={friendPicker}
-        error={memberError}
-        busy={isAddingMember}
-      />
-    ) : (
-      <fieldset
-        disabled={isAddingMember}
-        aria-busy={isAddingMember}
-        className="member-editor flex min-w-0 flex-col gap-3 disabled:opacity-60"
-      >
-        {friendPicker}
-        <PersonEditor
-          existingNames={existingNames()}
-          onSave={handleCreatePerson}
-          onCancel={closeEditor}
-          submitLabel="Add"
-        />
-      </fieldset>
-    ));
+  const addEditor = mode?.type === "add" && (
+    <PersonEditor
+      existingNames={existingNames()}
+      onSave={handleCreatePerson}
+      onCancel={closeEditor}
+      submitLabel="Add"
+      inDialog
+      beforeFields={friendPicker}
+      error={memberError}
+      busy={isAddingMember}
+    />
+  );
   const editEditor = editingMember?.person && (
-    <div className={isMobile ? "dialog-form" : "member-editor py-2"}>
-      <PersonEditor
-        existingNames={existingNames(editingMember.personId)}
-        initial={{ name: editingMember.person.name, icon: editingMember.person.icon }}
-        onSave={handleEditMember(editingMember)}
-        onCancel={closeEditor}
-        inDialog={isMobile}
-        error={isMobile ? memberError : undefined}
-      />
-    </div>
+    <PersonEditor
+      existingNames={existingNames(editingMember.personId)}
+      initial={{ name: editingMember.person.name, icon: editingMember.person.icon }}
+      onSave={handleEditMember(editingMember)}
+      onCancel={closeEditor}
+      inDialog
+      error={memberError}
+      busy={isEditingMember}
+    />
   );
 
   return (
@@ -219,36 +206,33 @@ const MemberList = () => {
           <h2 className="section-title">Members</h2>
           <p className="soft-caption">{groupMembers.length} in this group</p>
         </div>
-        {mode?.type !== "add" && (
-          <button type="button" onClick={handleOpenAdd} className="btn btn-primary">
-            <Icon icon={Plus} size={18} /> Add member
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={handleOpenAdd}
+          disabled={isAddingMember}
+          className="btn btn-primary"
+        >
+          <Icon icon={Plus} size={18} /> Add member
+        </button>
       </div>
 
-      {memberError && (!isMobile || !mode) && (
+      {memberError && !mode && (
         <p role="alert" className="note money-negative">
           {memberError}
         </p>
       )}
 
-      {mode?.type === "add" &&
-        (isMobile ? (
-          <MobileEditorDialog title="Add a person" onCancel={closeEditor} busy={isAddingMember}>
-            {addEditor}
-          </MobileEditorDialog>
-        ) : (
-          addEditor
-        ))}
+      {mode?.type === "add" && (
+        <MobileEditorDialog title="Add a person" onCancel={closeEditor} busy={isAddingMember}>
+          {addEditor}
+        </MobileEditorDialog>
+      )}
 
-      {editingMember?.person &&
-        (isMobile ? (
-          <MobileEditorDialog title="Edit person" onCancel={closeEditor}>
-            {editEditor}
-          </MobileEditorDialog>
-        ) : (
-          editEditor
-        ))}
+      {editingMember?.person && (
+        <MobileEditorDialog title="Edit person" onCancel={closeEditor} busy={isEditingMember}>
+          {editEditor}
+        </MobileEditorDialog>
+      )}
 
       <ul className="member-list-scroll surface px-5">
         {sortedMembers.map((member) => (

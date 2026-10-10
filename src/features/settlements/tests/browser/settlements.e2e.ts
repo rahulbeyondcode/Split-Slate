@@ -309,6 +309,40 @@ test("stacks balance sections on tablets and places them side by side on desktop
   expect(desktopTransfers.x).toBeGreaterThanOrEqual(desktopMember.x + desktopMember.width);
 });
 
+test("filters numeric time input in payment creation and editing", async ({ page }) => {
+  await page.getByRole("button", { name: "Settle up", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "Record payment", exact: true });
+  const hour = dialog.getByRole("textbox", { name: "Hour", exact: true });
+  const minute = dialog.getByRole("textbox", { name: "Minute", exact: true });
+  await hour.pressSequentially("abc+-e.");
+  await expect(hour).toBeEmpty();
+  await expect(hour).toBeFocused();
+  await hour.pressSequentially("1a2");
+  await expect(hour).toHaveValue("12");
+  await expect(minute).toBeFocused();
+  await page.keyboard.insertText("minutes 0a5:678");
+  await expect(minute).toHaveValue("05");
+  await dialog.getByRole("button", { name: "PM", exact: true }).click();
+  await dialog.getByRole("button", { name: "Record payment", exact: true }).click();
+  await expect(dialog).toHaveCount(0);
+  await page
+    .getByRole("list", { name: "Recorded payments" })
+    .getByRole("button", { name: "Edit", exact: true })
+    .click();
+  const editor = page.getByRole("dialog", { name: "Edit payment", exact: true });
+  await expect(editor.getByRole("textbox", { name: "Hour" })).toHaveValue("12");
+  await expect(editor.getByRole("textbox", { name: "Minute" })).toHaveValue("05");
+  await editor.getByRole("textbox", { name: "Hour" }).fill("hour 0a9");
+  await editor.getByRole("textbox", { name: "Minute" }).fill("minute 3b0");
+  await expect(editor.getByRole("textbox", { name: "Hour" })).toHaveValue("09");
+  await expect(editor.getByRole("textbox", { name: "Minute" })).toHaveValue("30");
+  await editor.getByRole("button", { name: "AM", exact: true }).click();
+  await editor.getByRole("button", { name: "Save payment", exact: true }).click();
+  await expect(editor).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByRole("list", { name: "Recorded payments" })).toContainText("09:30 AM");
+});
+
 test("transfers time focus in the payment modal in both directions", async ({ page }) => {
   await page.getByRole("button", { name: "Add payment" }).click();
   const dialog = page.getByRole("dialog", { name: "Record payment" });

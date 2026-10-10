@@ -5,7 +5,7 @@ This wiki is the sole persistent compiled knowledge layer. The implementation in
 authoritative; `app-featureset-context/spec-sheet.md` is a historical baseline where later source
 and approved decisions have superseded it. Changes: [log.md](log.md)
 
-Last updated: 2026-10-10
+Last updated: 2026-10-11
 
 ---
 
@@ -32,6 +32,12 @@ Last updated: 2026-10-10
 > Verification artifacts: `/tmp/opencode/full-verification-2026-10-10`. Future runs require approval.
 > See [[testing-strategy]] and [[layout-architecture]].
 
+The subsequent all-width Add/Edit member and Contacts modal changes, numeric expense amount/shared
+time-input filtering, grouped eight-digit/two-decimal Expense Amount input, fixed percentage-input
+suffixes, all-width expense tag creation, and revised coverage remain unverified; no checks have
+been run for these changes. See [[member-management]], [[people-directory]], [[main-screen]],
+[[split-types]], and [[tag-management]].
+
 ---
 
 ## Navigation
@@ -43,7 +49,7 @@ Last updated: 2026-10-10
 - [Domain Models](architecture/domain-models.md) — expense and payment shapes, PNG icon keys, fixed-hundredths money, and optional group tags
 - [Balance Calculation](architecture/balance-calculation.md) — safe payment-aware balances, expense-only spending, and deterministic suggested transfers
 - [State Management](architecture/state-management.md) — Zustand hydration and transactional expense, payment, and group mutations
-- [Split Types](architecture/split-types.md) — 5 split types with exact allocations and at-most-three-decimal display of percentages
+- [Split Types](architecture/split-types.md) — 5 exact split methods, fixed percentage-input suffixes, and at-most-three-decimal percentage display; latest suffix checks unrun
 - [Layout Architecture](architecture/layout-architecture.md) — responsive shell, transparent divided sidebar groups with bottom balances, inset modals with fixed controls, and viewport handling
 
 ### Decisions
@@ -73,12 +79,12 @@ Last updated: 2026-10-10
 - [Development Tools](workflows/development-tools.md) — typed realistic presets, randomized onboarding contacts, individual creation buttons, and persistence boundaries
 - [Onboarding](workflows/onboarding.md) — stable intro rows, themed restore chooser, modal category/person drafts, and a fixed mobile currency heading above scrolling choices
 - [Group Creation](workflows/group-creation.md) — standalone 4-step flow, cross-group category suggestions, and sequential save after final submission
-- [Main Screen](workflows/main-screen.md) — group navigation including tablet Activity and sidebar Balances, counted Recent transactions, and expense workflows
+- [Main Screen](workflows/main-screen.md) — group navigation, capped/grouped Expense Amount, all-width expense tag creation, and expense workflows; latest checks unrun
 - [Paid-By](workflows/paid-by.md) — emoji payer pills, filled edit contributions, live suggestions, and single-message red validation
-- [People Directory](workflows/people-directory.md) — shared contacts with expense/payment-aware deletion guards; mobile route lacks an in-app entry point
-- [Member Management](workflows/member-management.md) — setup person-draft modals with initial field focus and visible actions, directory linking, and guarded removal
+- [People Directory](workflows/people-directory.md) — all-width contact Add/Edit modals with fixed heading/actions and guarded deletion; mobile route lacks an in-app entry point; latest coverage unrun
+- [Member Management](workflows/member-management.md) — all-width Add/Edit member and setup modals with fixed heading/actions, directory linking, and guarded removal; latest coverage unrun
 - [Category Management](workflows/category-management.md) — all-width management and setup modals, draft-only category entry, and guarded deletion; deactivation pending
-- [Tag Management](workflows/tag-management.md) — group-scoped tags, all-width Add/Edit modal, tablet-stacked cards, and transactional cleanup
+- [Tag Management](workflows/tag-management.md) — group-scoped tags, all-width management/expense-creation modals, suggestions, and transactional cleanup; latest checks unrun
 - [Filtering](workflows/filtering.md) — outer-only Expenses scrolling, horizontal filter pills, mobile Filters modal/wider popover, and URL-backed Analytics drill-down
 - [Dashboard](workflows/dashboard.md) — five-member avatar previews, external summary headings with aligned side-by-side boxes, tablet Activity navigation, group-only Analytics links, and scoped totals
 

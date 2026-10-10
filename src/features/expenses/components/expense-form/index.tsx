@@ -12,6 +12,10 @@ import TagCreator from "@/features/expenses/components/tag-creator";
 import Input from "@/shared/components/form-elements/input";
 
 import {
+  formatExpenseAmountInput,
+  sanitizeExpenseAmountInput,
+} from "@/features/expenses/utils/amount-input";
+import {
   expenseFormMembers,
   expenseFormValues,
   localDateTime,
@@ -154,6 +158,8 @@ const ExpenseForm = () => {
               <Input
                 name="amount"
                 inputMode="decimal"
+                sanitize={sanitizeExpenseAmountInput}
+                formatValue={formatExpenseAmountInput}
                 placeholder="0"
                 className="!bg-[var(--brand-soft)] !border-0 !py-4 !text-3xl !font-extrabold money"
               />
@@ -210,7 +216,7 @@ const ExpenseForm = () => {
                 <button
                   type="button"
                   onClick={() => setIsCreatingTag(true)}
-                  className="chip choice-pill add-choice-chip md:hidden"
+                  className="chip choice-pill add-choice-chip"
                 >
                   <Icon icon={Plus} size={16} /> Add new tag
                 </button>

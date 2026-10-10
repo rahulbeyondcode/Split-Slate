@@ -81,6 +81,144 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/friends");
 });
 
+test("creates and edits contacts in modals at every width", async ({ page }) => {
+  await page.getByRole("button", { name: "New contact", exact: true }).first().click();
+  const addDialog = page.getByRole("dialog", { name: "Add a person" });
+  await expect(addDialog.getByRole("textbox", { name: "Name" })).toBeFocused();
+  await addDialog.getByRole("textbox", { name: "Name" }).fill("Dana");
+  await addDialog.getByRole("button", { name: "Add contact", exact: true }).click();
+  await expect(addDialog).toHaveCount(0);
+  await page.getByRole("button", { name: "Edit Dana", exact: true }).click();
+  const editDialog = page.getByRole("dialog", { name: "Edit person" });
+  await expect(editDialog.getByRole("textbox", { name: "Name" })).toHaveValue("Dana");
+  await editDialog.getByRole("textbox", { name: "Name" }).fill("Dana Updated");
+  await editDialog.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(editDialog).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Edit Dana Updated", exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Edit Dana Updated", exact: true })).toBeVisible();
+});
+
+test("discards cancelled contact drafts and restores focus", async ({ page }) => {
+  for (const editorMode of ["add", "edit"] as const) {
+    const opener = page
+      .getByRole("button", {
+        name: editorMode === "add" ? "New contact" : "Edit Cal",
+        exact: true,
+      })
+      .first();
+    const dialog = page.getByRole("dialog", {
+      name: editorMode === "add" ? "Add a person" : "Edit person",
+    });
+    for (const dismissal of ["Cancel", "Escape", "Close dialog"]) {
+      await opener.click();
+      await expect(dialog.getByRole("textbox", { name: "Name" })).toHaveValue(
+        editorMode === "add" ? "" : "Cal",
+      );
+      await expect(dialog.getByRole("textbox", { name: "Name" })).toBeFocused();
+      await dialog.getByRole("textbox", { name: "Name" }).fill("Unsaved contact");
+      if (dismissal === "Escape") await page.keyboard.press("Escape");
+      else await dialog.getByRole("button", { name: dismissal, exact: true }).click();
+      await expect(dialog).toHaveCount(0);
+      await expect(opener).toBeFocused();
+    }
+  }
+  const saved = await page.evaluate(async () => {
+    const path = "/src/shared/configs/db.ts";
+    const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;
+    return (await db.people.toArray()).map((person) => person.name).sort();
+  });
+  expect(saved).toEqual(["Amy", "Bea", "Cal"]);
+});
+
+test("contact edits still propagate to every linked group", async ({ page }) => {
+  await page.getByRole("button", { name: "Edit Bea", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "Edit person" });
+  await dialog.getByRole("textbox", { name: "Name" }).fill("Bea Updated");
+  await dialog.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(dialog).toHaveCount(0);
+  for (const groupId of ["trip", "home"]) {
+    await page.goto(`/groups/${groupId}/members`);
+    await expect(
+      page.locator(".member-list-scroll li").filter({ hasText: "Bea Updated" }),
+    ).toBeVisible();
+  }
+});
+
+for (const viewport of [
+  { width: 280, height: 480 },
+  { width: 820, height: 600 },
+  { width: 1440, height: 700 },
+]) {
+  for (const editorMode of ["add", "edit"] as const) {
+    test(`keeps ${editorMode} contact heading and actions fixed at ${viewport.width}px`, async ({
+      page,
+    }) => {
+      await page.setViewportSize(viewport);
+      await page
+        .getByRole("button", {
+          name: editorMode === "add" ? "New contact" : "Edit Cal",
+          exact: true,
+        })
+        .first()
+        .click();
+      const title = editorMode === "add" ? "Add a person" : "Edit person";
+      const submitLabel = editorMode === "add" ? "Add contact" : "Save";
+      const dialog = page.getByRole("dialog", { name: title });
+      const body = dialog.locator(".dialog-body");
+      const header = dialog.locator(".dialog-header");
+      const footer = dialog.locator(".dialog-footer");
+      await expect(header.getByRole("heading", { name: title })).toBeVisible();
+      await dialog.getByRole("textbox", { name: "Name" }).fill("");
+      await footer.getByRole("button", { name: submitLabel, exact: true }).click();
+      await expect(body.getByText("Name is required", { exact: true })).toBeVisible();
+      await dialog.getByRole("textbox", { name: "Name" }).fill("Bea");
+      await footer.getByRole("button", { name: submitLabel, exact: true }).click();
+      await expect(body.getByText("Someone with this name already exists")).toBeVisible();
+      await body.evaluate((element) => {
+        const content = document.createElement("div");
+        for (let index = 0; index < 40; index += 1) {
+          const paragraph = document.createElement("p");
+          paragraph.textContent = `Additional contact modal content ${index + 1}`;
+          content.append(paragraph);
+        }
+        element.append(content);
+      });
+      const initialHeader = (await header.boundingBox())!;
+      const initialFooter = (await footer.boundingBox())!;
+      await body.evaluate((element) => {
+        element.scrollTop = element.scrollHeight;
+      });
+      expect(await body.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+      expect((await header.boundingBox())!.y).toBeCloseTo(initialHeader.y, 0);
+      expect((await footer.boundingBox())!.y).toBeCloseTo(initialFooter.y, 0);
+      await expect(header.getByRole("button", { name: "Close dialog" })).toBeInViewport();
+      await expect(footer.getByRole("button", { name: "Cancel" })).toBeInViewport();
+      await expect(footer.getByRole("button", { name: submitLabel, exact: true })).toBeInViewport();
+      const dimensions = await dialog.evaluate((element) => {
+        const bounds = element.getBoundingClientRect();
+        const viewport = window.visualViewport;
+        return {
+          gaps: [
+            bounds.left - (viewport?.offsetLeft ?? 0),
+            bounds.top - (viewport?.offsetTop ?? 0),
+            (viewport?.offsetLeft ?? 0) + (viewport?.width ?? window.innerWidth) - bounds.right,
+            (viewport?.offsetTop ?? 0) + (viewport?.height ?? window.innerHeight) - bounds.bottom,
+          ],
+          scrollTop: element.scrollTop,
+          scrollWidth: element.scrollWidth,
+          width: element.clientWidth,
+        };
+      });
+      for (const gap of dimensions.gaps) expect(gap).toBeGreaterThanOrEqual(15.5);
+      expect(dimensions.scrollTop).toBe(0);
+      expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.width + 1);
+      await footer.getByRole("button", { name: "Cancel" }).click();
+      await expect(dialog).toHaveCount(0);
+    });
+  }
+}
+
 test("shows per-group expense links when a contact cannot be deleted", async ({ page }) => {
   const blockedDelete = page.getByRole("button", { name: "Delete Bea" });
   await expect(blockedDelete).toHaveClass(/btn-blocked/u);

@@ -91,8 +91,7 @@ test("copies a tag name and color with multiple group sources", async ({ page })
   expect(saved[0].id).not.toBe("one-fuel");
 });
 
-test("suggests a tag inside the expense-entry dialog on mobile", async ({ page, isMobile }) => {
-  if (!isMobile) return;
+test("suggests a tag inside the expense-entry dialog at every width", async ({ page }) => {
   await page.goto("/groups/current/expenses/new");
   await page.getByRole("button", { name: "Add new tag" }).click();
   const dialog = page.getByRole("dialog", { name: "Create new tag" });
@@ -102,6 +101,7 @@ test("suggests a tag inside the expense-entry dialog on mobile", async ({ page, 
     .getByRole("button", { name: /Weekend_trip/u })
     .click();
   await expect(dialog).toHaveCount(0);
+  await expect(page.getByRole("checkbox", { name: "Weekend_trip", exact: true })).toBeChecked();
   const saved = await page.evaluate(async () => {
     const path = "/src/shared/configs/db.ts";
     const { db } = (await import(/* @vite-ignore */ path)) as typeof DbModule;

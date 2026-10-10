@@ -84,24 +84,22 @@ test("creates and edits a contact with a profile image, then adds that contact t
   await seedGroup(page);
   await page.goto("/friends");
   await page.locator("button:visible").filter({ hasText: "New contact" }).first().click();
-  const editor = page
-    .locator("form")
-    .filter({ has: page.getByRole("heading", { name: "Add a person" }) });
+  const editor = page.getByRole("dialog", { name: "Add a person" });
   await editor.getByLabel("Name").fill("Sam");
   const picker = editor.getByRole("group", { name: "Choose icon" });
   await picker.getByRole("button", { name: "Browse more" }).click();
   await picker.getByRole("searchbox", { name: "Search icons" }).fill("robot");
   await picker.getByRole("button", { name: "Icon Robot" }).last().click();
   await editor.getByRole("button", { name: "Add contact" }).click();
+  await expect(editor).toHaveCount(0);
   const contact = page.getByRole("listitem").filter({ hasText: "Sam" });
   await expect(contact.locator('img[src$="/profile-pic/robot-3d.png"]')).toBeVisible();
   await contact.getByRole("button", { name: "Edit Sam" }).click();
-  const editForm = page
-    .locator("form")
-    .filter({ has: page.getByRole("heading", { name: "Edit person" }) });
+  const editForm = page.getByRole("dialog", { name: "Edit person" });
   const editPicker = editForm.getByRole("group", { name: "Choose icon" });
   await editPicker.getByRole("button", { name: "Icon Panda" }).click();
   await editForm.getByRole("button", { name: "Save" }).click();
+  await expect(editForm).toHaveCount(0);
   await page.goto("/groups/trip/members");
   await page.getByRole("button", { name: "Add member" }).click();
   await page.getByRole("button", { name: /Sam/ }).click();

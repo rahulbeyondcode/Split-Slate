@@ -9,7 +9,7 @@ metadata:
 
 Purpose: describe implemented group navigation, expense workflows, balances, and group transfer.
 
-Last updated: 2026-10-10
+Last updated: 2026-10-11
 
 ## Current Implementation
 
@@ -194,6 +194,35 @@ See [[layout-architecture]] and [[testing-strategy]].
   The form still submits a local `YYYY-MM-DDTHH:mm` value in 24-hour notation for validation and
   storage; 12 AM maps to 00:xx, and 12 PM maps to 12:xx. Editing reconstructs the 12-hour display
   from the saved local time without changing an untouched timestamp.
+- Expense Add/Edit total amounts filter typed and bulk-inserted text to digits and one decimal
+  point, then keep at most eight whole-number digits and two fractional digits without rounding.
+  Further digits typed at the end are ignored; bulk-inserted/pasted values keep the first eight
+  whole-number digits and first two fractional digits. This limits new entry to `99,999,999.99`
+  without a maximum-amount error or warning. The cap is specific to Expense Amount;
+  payer/split input precision is unchanged. Letters,
+  exponent markers, signs, whitespace, grouping separators, and other punctuation are removed
+  rather than interpreted.
+  Monetary validation still independently rejects more than two fractional digits from
+  programmatic callers, zero/invalid totals, and unsafe values; input limiting does not replace
+  save-time validation. Store/import safe-integer and aggregate limits are unchanged; the new
+  eight-digit limit applies only to user entry in Expense Amount.
+- Only the Expense Add/Edit **Amount** input visually groups the whole-number portion in threes,
+  independent of currency: `1234567.89` displays as `1,234,567.89`, including for INR. Decimal text,
+  trailing decimal points/zeros, and accepted two-place precision remain intact without Number
+  conversion.
+  The shared Input's optional display formatter keeps commas out of React Hook Form values and
+  preserves selection/caret positions through typing and reformatting; Backspace/Delete skip a
+  display comma to delete the adjacent digit. Pasting grouped text is sanitized before regrouping.
+  Payer/split inputs, payment inputs, other displayed totals, parsing, and stored hundredths are
+  unchanged. New helper/browser coverage covers grouping, eight-digit/two-decimal caps, editing,
+  raw saves, and currency independence; these checks have not been run and require execution approval.
+- The shared expense/payment Hour and Minute inputs filter non-digits before limiting the result
+  to two digits, so bulk insertion cannot retain letters or lose valid digits to an earlier raw-text
+  length limit. AM/PM controls, current-time filling, padding, time-range checks, and empty-minute
+  Backspace navigation are unchanged. Hour auto-advance occurs only when its cleaned value changes
+  to a valid advancing value; typing a rejected character into a valid hour does not steal focus.
+  New browser coverage exercises amount Add/Edit, typing/bulk insertion, range/precision validation,
+  and payment time Add/Edit; these revised checks have not been run and require execution approval.
 - **Use current time** fills the hour, minute, and AM/PM from the device clock when clicked without
   changing the selected expense date. Manual entry remains available and time remains required;
   omitting it does not silently assign the save time, which could misdate a past expense.
@@ -202,9 +231,9 @@ See [[layout-architecture]] and [[testing-strategy]].
   digit. Backspace in an empty Minute field returns focus to the end of Hour; deleting minute digits
   first stays in Minute. At every width, split-participant rows toggle when clicked outside an
   editable value field and show a brand-colored selected background and border. **Select all** sits
-  below the split-method tabs and toggles the entire participant list. The mobile form can also
+  below the split-method tabs and toggles the entire participant list. The Add/Edit form can also
   create and select a new tag in a modal without clearing the unfinished expense.
-- In the expense form, Add new category and the mobile-only Add new tag sit beside their choice pills
+- In the expense form, Add new category and Add new tag sit beside their choice pills at every width
   with dashed borders. Each split-participant row displays a profile icon and name, then a live
   currency-formatted owed amount, then a compact numeric input when applicable; unselected rows
   show zero. Equal places the computed amount to the right of the name. The row wraps at narrow
@@ -214,8 +243,11 @@ See [[layout-architecture]] and [[testing-strategy]].
 - One or multiple payers, all five split types, and existing optional group tags are supported.
 - React Hook Form and Zod validate input; the store revalidates current persisted references and
   saves the expense plus frequent-payer ranking atomically in IndexedDB.
-- A missing local membership or active category blocks entry. Receipts remain pending. Desktop form
-  tag creation is not exposed; expense detail and the mobile form support it. See [[split-types]],
+- A missing local membership or active category blocks entry. Receipts remain pending. Expense
+  Add/Edit and detail support tag creation on mobile, tablet, and desktop. The existing tag modal
+  retains its fixed heading/close control and Cancel/Create tag footer with body-only scrolling;
+  creating selects the new tag without clearing expense drafts. Revised creation/editing,
+  cancellation, suggestion, and responsive modal coverage has not been run. See [[split-types]],
   [[tag-management]], [[paid-by]], and [[money-representation-and-rounding]].
 
 ### Expense Correction

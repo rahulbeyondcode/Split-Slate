@@ -14,6 +14,7 @@ import DialogLayout from "@/shared/ui/dialog-layout";
 import EmojiImage from "@/shared/ui/emoji-image";
 import EmptyState from "@/shared/ui/empty-state";
 import Icon from "@/shared/ui/icon";
+import MobileEditorDialog from "@/shared/ui/mobile-editor-dialog";
 import Surface from "@/shared/ui/surface";
 
 type EditorMode = { type: "add" } | { type: "edit"; id: string } | null;
@@ -32,6 +33,8 @@ const PeopleList = () => {
     setLocalUser,
   } = useStore();
   const [mode, setMode] = useState<EditorMode>(null);
+  const [editorError, setEditorError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const [query, setQuery] = useState("");
   const [blockedPersonId, setBlockedPersonId] = useState<string | null>(null);
   const [confirmPersonId, setConfirmPersonId] = useState<string | null>(null);
@@ -62,14 +65,36 @@ const PeopleList = () => {
           : [];
       })
       .sort((a, b) => a.group.name.localeCompare(b.group.name));
-  const handleAdd = async (values: PersonEditorValues) => {
-    await addPerson(values.name, values.icon);
+  const closeEditor = () => {
     setMode(null);
+    setEditorError(null);
   };
-  const handleEdit = (id: string) => async (values: PersonEditorValues) => {
-    if (id === localUser?.id) await setLocalUser(values.name, values.icon);
-    else await updatePerson(id, values);
-    setMode(null);
+  const handleOpenAdd = () => {
+    setEditorError(null);
+    setMode({ type: "add" });
+  };
+  const handleOpenEdit = (id: string) => {
+    setEditorError(null);
+    setMode({ type: "edit", id });
+  };
+  const handleSave = async (values: PersonEditorValues) => {
+    if (!mode || isSaving) return;
+    setIsSaving(true);
+    setEditorError(null);
+    try {
+      if (mode.type === "add") {
+        await addPerson(values.name, values.icon);
+      } else if (mode.id === localUser?.id) {
+        await setLocalUser(values.name, values.icon);
+      } else {
+        await updatePerson(mode.id, values);
+      }
+      closeEditor();
+    } catch (error) {
+      setEditorError(error instanceof Error ? error.message : "Could not save this contact");
+    } finally {
+      setIsSaving(false);
+    }
   };
   const handleDelete = (id: string) => {
     if (blockingGroupsFor(id).length) {
@@ -94,6 +119,7 @@ const PeopleList = () => {
   const blockedPerson = people.find((person) => person.id === blockedPersonId);
   const confirmPerson = people.find((person) => person.id === confirmPersonId);
   const blockedGroups = blockedPerson ? blockingGroupsFor(blockedPerson.id) : [];
+  const editingPerson = mode?.type === "edit" ? people.find((person) => person.id === mode.id) : null;
 
   return (
     <div className="page page-narrow flex flex-col gap-5">
@@ -102,17 +128,14 @@ const PeopleList = () => {
           <h1 className="page-title">Contacts</h1>
           <p className="soft-caption">Everyone you split with — one person, every group</p>
         </div>
-        {mode?.type !== "add" && (
-          <button
-            className="btn btn-primary max-sm:hidden"
-            type="button"
-            onClick={() => {
-              setMode({ type: "add" });
-            }}
-          >
-            <Icon icon={Plus} size={18} /> New contact
-          </button>
-        )}
+        <button
+          className="btn btn-primary max-sm:hidden"
+          type="button"
+          onClick={handleOpenAdd}
+          disabled={isSaving}
+        >
+          <Icon icon={Plus} size={18} /> New contact
+        </button>
       </header>
       <label className="relative block max-w-sm">
         <span className="sr-only">Search contacts</span>
@@ -129,13 +152,25 @@ const PeopleList = () => {
           className="form-input !pl-10"
         />
       </label>
-      {mode?.type === "add" && (
-        <PersonEditor
-          existingNames={namesExcept()}
-          onSave={handleAdd}
-          onCancel={() => setMode(null)}
-          submitLabel="Add contact"
-        />
+      {mode && (mode.type === "add" || editingPerson) && (
+        <MobileEditorDialog
+          title={mode.type === "add" ? "Add a person" : "Edit person"}
+          onCancel={closeEditor}
+          busy={isSaving}
+        >
+          <PersonEditor
+            existingNames={namesExcept(editingPerson?.id)}
+            initial={
+              editingPerson ? { name: editingPerson.name, icon: editingPerson.icon } : undefined
+            }
+            onSave={handleSave}
+            onCancel={closeEditor}
+            submitLabel={mode.type === "add" ? "Add contact" : "Save"}
+            inDialog
+            error={editorError}
+            busy={isSaving}
+          />
+        </MobileEditorDialog>
       )}
       {visible.length ? (
         <Surface className="px-5">
@@ -158,73 +193,66 @@ const PeopleList = () => {
               }));
               return (
                 <li key={person.id}>
-                  {mode?.type === "edit" && mode.id === person.id ? (
-                    <PersonEditor
-                      existingNames={namesExcept(person.id)}
-                      initial={{ name: person.name, icon: person.icon }}
-                      onSave={handleEdit(person.id)}
-                      onCancel={() => setMode(null)}
-                    />
-                  ) : (
-                    <div className="ui-row">
-                      <Avatar icon={person.icon} name={person.name} />
-                      <div className="min-w-0 flex-1">
-                        <p className="font-bold">{person.name}</p>
-                        <p className="soft-caption">
-                          {groupIds.size
-                            ? `${groupIds.size} ${groupIds.size === 1 ? "group" : "groups"} · ${count} records`
-                            : "not in any group yet"}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2 max-sm:hidden">
-                        {balances.slice(0, 3).map(
-                          ({ group }) =>
-                            group && (
-                              <span key={group.id} className="group relative inline-flex">
-                                <Link
-                                  aria-label={`Open ${group.name}`}
-                                  to={`/groups/${group.id}/members`}
-                                  className="chip !px-2"
-                                >
-                                  <EmojiImage icon={group.icon} />
-                                </Link>
-                                <span
-                                  aria-hidden="true"
-                                  className="pointer-events-none invisible absolute bottom-[calc(100%+8px)] left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-lg bg-[var(--ink)] px-2.5 py-1.5 text-xs font-semibold text-[var(--surface)] opacity-0 shadow-md transition-opacity group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
-                                >
-                                  {group.name}
-                                </span>
-                              </span>
-                            ),
-                        )}
-                      </div>
-                      <div className="ml-auto flex shrink-0 items-center gap-2">
-                        <button
-                          type="button"
-                          className="btn btn-secondary !px-3"
-                          onClick={() => setMode({ type: "edit", id: person.id })}
-                          aria-label={`Edit ${person.name}`}
-                        >
-                          <Icon icon={Pencil} size={18} />
-                        </button>
-                        <button
-                          type="button"
-                          className={`btn !px-3 ${count ? "btn-blocked" : "btn-danger"}`}
-                          onClick={() => handleDelete(person.id)}
-                          aria-label={`Delete ${person.name}`}
-                          aria-describedby={count ? `blocked-contact-${person.id}` : undefined}
-                        >
-                          <Icon icon={Trash2} size={18} />
-                        </button>
-                        {count > 0 && (
-                          <span id={`blocked-contact-${person.id}`} className="sr-only">
-                            Cannot delete while this contact is in an expense or payment. Select to
-                            learn why.
-                          </span>
-                        )}
-                      </div>
+                  <div className="ui-row">
+                    <Avatar icon={person.icon} name={person.name} />
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold">{person.name}</p>
+                      <p className="soft-caption">
+                        {groupIds.size
+                          ? `${groupIds.size} ${groupIds.size === 1 ? "group" : "groups"} · ${count} records`
+                          : "not in any group yet"}
+                      </p>
                     </div>
-                  )}
+                    <div className="flex items-center gap-2 max-sm:hidden">
+                      {balances.slice(0, 3).map(
+                        ({ group }) =>
+                          group && (
+                            <span key={group.id} className="group relative inline-flex">
+                              <Link
+                                aria-label={`Open ${group.name}`}
+                                to={`/groups/${group.id}/members`}
+                                className="chip !px-2"
+                              >
+                                <EmojiImage icon={group.icon} />
+                              </Link>
+                              <span
+                                aria-hidden="true"
+                                className="pointer-events-none invisible absolute bottom-[calc(100%+8px)] left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-lg bg-[var(--ink)] px-2.5 py-1.5 text-xs font-semibold text-[var(--surface)] opacity-0 shadow-md transition-opacity group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
+                              >
+                                {group.name}
+                              </span>
+                            </span>
+                          ),
+                      )}
+                    </div>
+                    <div className="ml-auto flex shrink-0 items-center gap-2">
+                      <button
+                        type="button"
+                        className="btn btn-secondary !px-3"
+                        onClick={() => handleOpenEdit(person.id)}
+                        disabled={isSaving}
+                        aria-label={`Edit ${person.name}`}
+                      >
+                        <Icon icon={Pencil} size={18} />
+                      </button>
+                      <button
+                        type="button"
+                        className={`btn !px-3 ${count ? "btn-blocked" : "btn-danger"}`}
+                        onClick={() => handleDelete(person.id)}
+                        disabled={isSaving}
+                        aria-label={`Delete ${person.name}`}
+                        aria-describedby={count ? `blocked-contact-${person.id}` : undefined}
+                      >
+                        <Icon icon={Trash2} size={18} />
+                      </button>
+                      {count > 0 && (
+                        <span id={`blocked-contact-${person.id}`} className="sr-only">
+                          Cannot delete while this contact is in an expense or payment. Select to
+                          learn why.
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </li>
               );
             })}
@@ -321,11 +349,9 @@ const PeopleList = () => {
         onCancel={() => setConfirmPersonId(null)}
         onConfirm={handleConfirmDelete}
       />
-      {mode?.type !== "add" && (
-        <button type="button" className="mobile-cta" onClick={() => setMode({ type: "add" })}>
-          <Icon icon={Plus} size={20} /> New contact
-        </button>
-      )}
+      <button type="button" className="mobile-cta" onClick={handleOpenAdd} disabled={isSaving}>
+        <Icon icon={Plus} size={20} /> New contact
+      </button>
     </div>
   );
 };

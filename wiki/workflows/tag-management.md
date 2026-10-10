@@ -9,7 +9,7 @@ metadata:
 
 Purpose: describe implemented tag management, expense references, and cascade boundaries.
 
-Last updated: 2026-10-06
+Last updated: 2026-10-11
 
 ## What Tags Are
 
@@ -21,9 +21,24 @@ Tag names are trimmed and case-insensitively unique within a group. Every tag al
 
 ## Creating and Renaming Tags
 
-Tags can be created from the group's **Categories & Tags** screen by entering a name and choosing a color. The reusable color picker offers 10 named presets (stored as hex values) plus synchronized custom native-picker and manual hex-code controls. Valid output is always a six-digit hex code. Expense entry can select existing group tags. On mobile, Add new tag opens the same name/color modal as expense detail, persists a new group tag, and selects it in the unfinished form; saving the expense commits the reference. Cancelling the expense after creating a tag leaves the new group tag available. Desktop expense entry has no inline creation action; detail can create one in a modal and attach it automatically.
+Tags can be created from the group's **Categories & Tags** screen by entering a name and choosing a
+color. The reusable color picker offers 10 named presets (stored as hex values) plus synchronized
+custom native-picker and manual hex-code controls. Valid output is always a six-digit hex code.
+Expense entry can select existing group tags. **Add new tag** is available in both Add and Edit
+Expense on mobile, tablet, and desktop, beside the existing tag pills with the same dashed styling.
+It opens the existing name/color modal, persists a new group tag, and selects it without clearing
+the unfinished expense; saving the expense commits the reference. The shared heading/close control
+and Cancel/Create tag footer stay fixed outside the scrolling body. Cancel/Close/Escape dismisses
+an unsaved tag draft without changing expense fields. Cancelling the expense after creating a tag
+leaves the new group tag available. Expense detail can also create a tag in a modal and attach it
+automatically. See [[main-screen]] and [[layout-architecture]].
 
-Every existing tag-creation form (group management, mobile expense entry, and expense detail)
+Revised browser coverage exercises all-width Add/Edit creation and selection, cancelled drafts,
+cross-group suggestions, and fixed modal controls at 280, 320, 820, and 1440px. These checks have not
+been run; earlier passing verification predates the all-width expense-entry creation action.
+Execution requires explicit approval. See [[testing-strategy]].
+
+Every existing tag-creation form (group management, all-width expense Add/Edit, and expense detail)
 suggests tags from other groups as soon as one letter is typed. Matching works inside the name and
 ignores case and separators. Each suggestion shows its color and the groups using that exact name
 and color; selecting it creates a separate group-scoped tag with the copied name/color. The expense

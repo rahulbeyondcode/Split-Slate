@@ -9,7 +9,7 @@ metadata:
 
 Purpose: document member management, persisted membership guards, and remaining recovery limits.
 
-Last updated: 2026-10-09
+Last updated: 2026-10-10
 
 A member is a link from a group to a person in the global directory. See [[global-people-directory]] and [[people-directory]].
 
@@ -28,10 +28,13 @@ deletion are available through detail. See [[settlement-recording]].
 On mobile, each member row gives the avatar and one-line name the full first row; long names are
 truncated with a `data-tooltip` revealing the full name on hover or focus/tap. Edit and Delete sit
 in a second row, filling the width available after the avatar offset with compact rounded corners.
-On mobile Add member opens a modal containing the existing-friend picker and the new-person editor;
-Edit opens the person editor in a modal. Errors remain visible inside the modal, and Cancel/Escape
-dismisses it without saving. Tablet and desktop retain inline add/edit forms and their existing row
-presentation and controls.
+Add member opens a modal containing the existing-friend picker and the new-person editor at every
+viewport width. Its shared heading/close control and Cancel/Add footer remain outside the scrolling
+body; validation and save errors stay inside the modal. Cancel/Close/Escape dismisses it without
+saving, and the Add member opener stays mounted for native focus restoration. Edit also opens the
+person editor in a modal at every width, using the same fixed heading/close control and Cancel/Save
+footer with body-only scrolling. Member row presentation and controls remain unchanged.
+See [[layout-architecture]].
 
 `addMember` checks persisted group/person existence and `(groupId, personId)` links, then inserts
 within one read-write transaction spanning groups, people, and members. Concurrent calls cannot
@@ -64,11 +67,21 @@ wait for Save and Finish or the standalone final Create group submission. See [[
 
 ### After Group Creation
 
-Members can be added to a group at any time after group creation — not just during onboarding. Either pick an existing person from the directory or add a new person inline from the group-details Members screen. People already linked to the group are excluded from the picker, and the store rejects duplicate memberships defensively.
+Members can be added to a group at any time after group creation — not just during onboarding. Either
+pick an existing person from the directory or create a new person in the Members screen's Add member
+modal. People already linked to the group are excluded from the picker, and the store rejects
+duplicate memberships defensively.
 
-The Members screen opens the new-person form on the first Add member click, while also showing
-available existing friends for one-click linking. On mobile they appear together in a modal; on
-tablet and desktop they remain inline. Cancel closes the add form.
+The Members screen opens the new-person modal on the first Add member click, while also showing
+available existing friends for one-click linking, on mobile, tablet, and desktop. Initial focus goes
+to Name; successful creation or linking closes the modal. Cancel/Close/Escape discards an unsaved
+draft, and reopening starts with an empty name.
+
+Browser coverage now includes all-width creation/linking/editing, cancellation/reset, initial/opener
+focus, validation, saved edits after reload, and fixed Add/Edit header/footer with 16px viewport
+clearance at 280, 820, and 1440px. These revised
+checks have not been run; execution requires explicit approval. Earlier verification predates this
+all-width Add/Edit member change.
 
 The Members screen ignores repeated additions while a save is pending and disables its add form
 and member edit/delete controls until that save finishes. The database transaction is the
@@ -78,6 +91,12 @@ either insert has committed. Creating a new person and then linking them remains
 ---
 
 ## Editing Members
+
+Edit opens **Edit person** on mobile, tablet, and desktop, prefilled with the linked person's saved
+name/icon and initial focus on Name. Validation and save errors remain in the scrolling modal body.
+Successful Save closes it; Cancel/Close/Escape discards the draft, returns focus to the row's Edit
+button, and reopening uses saved values. Save, cancellation, the close control, and Escape dismissal
+are disabled while the edit is saving.
 
 A member has no name or icon of its own — those live on the linked person. The group-details Members screen edits the linked person's name/icon directly, so the change propagates to every group because rendering resolves display through `personId`. Editing the device owner also updates `LocalUser` to keep the self identity synchronized. Expenses reference the member by `memberId` only, so the edit touches nothing else. See [[people-directory]].
 

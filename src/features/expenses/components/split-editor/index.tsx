@@ -236,6 +236,7 @@ const SplitEditor = ({ members, currency, validationMessage }: PropsType) => {
                   inputMode="decimal"
                   wrapperClass="expense-split-input w-20 shrink-0"
                   className="money"
+                  suffix={splitType === "percentage" ? "%" : undefined}
                   sanitize={(value) =>
                     splitType === "percentage"
                       ? capPercentageInput(

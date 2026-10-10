@@ -25,12 +25,13 @@ const WhenPicker = ({ defaultDate }: PropsType) => {
     field.onChange(composeLocalDateTime(next));
   };
   const handleHourChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const hour = event.target.value;
+    const hour = event.target.value.replace(/\D/gu, "").slice(0, 2);
     updateParts({ hour });
-    if (/^[2-9]$/.test(hour) || /^(0[1-9]|1[0-2])$/.test(hour)) minuteRef.current?.focus();
+    if (hour !== parts.hour && (/^[2-9]$/.test(hour) || /^(0[1-9]|1[0-2])$/.test(hour)))
+      minuteRef.current?.focus();
   };
   const handleMinuteChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    updateParts({ minute: event.target.value });
+    updateParts({ minute: event.target.value.replace(/\D/gu, "").slice(0, 2) });
   };
   const handleMinuteKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key !== "Backspace" || event.currentTarget.value !== "") return;
@@ -45,7 +46,7 @@ const WhenPicker = ({ defaultDate }: PropsType) => {
     updateParts({ date: event.target.value });
   };
   const handleHourBlur = (event: React.FocusEvent<HTMLInputElement>) => {
-    const hour = event.currentTarget.value;
+    const hour = event.currentTarget.value.replace(/\D/gu, "").slice(0, 2);
     if (/^\d{1,2}$/.test(hour) && Number(hour) >= 1 && Number(hour) <= 12)
       updateParts({ hour: hour.padStart(2, "0") });
     field.onBlur();
@@ -100,7 +101,6 @@ const WhenPicker = ({ defaultDate }: PropsType) => {
               ref={hourRef}
               type="text"
               inputMode="numeric"
-              maxLength={2}
               value={parts.hour}
               onChange={handleHourChange}
               onBlur={handleHourBlur}
@@ -116,7 +116,6 @@ const WhenPicker = ({ defaultDate }: PropsType) => {
               ref={minuteRef}
               type="text"
               inputMode="numeric"
-              maxLength={2}
               value={parts.minute}
               onChange={handleMinuteChange}
               onKeyDown={handleMinuteKeyDown}

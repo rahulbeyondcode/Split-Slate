@@ -184,7 +184,7 @@ for (const viewport of [
     await page.goto("/groups/trip/expenses/new");
     for (const { trigger, title } of [
       { trigger: "Add new category", title: "Add category" },
-      ...(viewport.width < 768 ? [{ trigger: "Add new tag", title: "Create new tag" }] : []),
+      { trigger: "Add new tag", title: "Create new tag" },
     ]) {
       await page.getByRole("button", { name: trigger, exact: true }).click();
       const dialog = page.getByRole("dialog", { name: title, exact: true });
